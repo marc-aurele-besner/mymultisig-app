@@ -5,7 +5,7 @@
 
 ## Online version
 
-[Demo](https://multisig.app/)
+[MyMultiSig.app](https://multisig.app/)
 
 ## 1-click deployment on Netlify
 

@@ -45,6 +45,7 @@ const Header = ({ title = titleDefault }) => {
       <link rel='shortcut icon' href='/icons/favicon.ico' />
 
       <meta name='twitter:card' content='summary' />
+      <meta name='twitter:site' content='@marcaureleb' />
     </Head>
   )
 }
