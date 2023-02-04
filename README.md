@@ -14,6 +14,12 @@ yarn
 yarn dev
 ```
 
+## Start the development environment locally with Netlify
+
+```
+yarn netlify dev
+```
+
 ## Build the Web App for deployment
 
 ```
