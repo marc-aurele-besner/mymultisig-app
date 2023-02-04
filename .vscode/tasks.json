@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dev",
+      "type": "shell",
+      "command": "next dev",
+      "problemMatcher": []
+    },
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "next build",
+      "problemMatcher": []
+    },
+    {
+      "label": "start",
+      "type": "shell",
+      "command": "next start",
+      "problemMatcher": []
+    },
+    {
+      "label": "lint",
+      "type": "shell",
+      "command": "next build lint",
+      "problemMatcher": []
+    },
+    {
+      "label": "prettier",
+      "type": "shell",
+      "command": "prettier -l \"./src/**/*.{js,jsx,ts,tsx,md}\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "export",
+      "type": "shell",
+      "command": "EXPORT=true turbo build && EXPORT=true turbo export",
+      "problemMatcher": []
+    },
+    {
+      "label": "analyze",
+      "type": "shell",
+      "command": "ANALYZE=true turbo build",
+      "problemMatcher": []
+    }
+  ]
+}
