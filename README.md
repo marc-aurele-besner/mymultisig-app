@@ -8,10 +8,16 @@
 yarn
 ```
 
-## Start the development environment
+## Start the development environment locally
 
 ```
-yarn start
+yarn dev
+```
+
+## Build the Web App for deployment
+
+```
+yarn build
 ```
 
 ## Start Strorybook
