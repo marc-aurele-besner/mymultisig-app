@@ -19,7 +19,7 @@ const Header = ({ title = titleDefault }) => {
       {/* Search Engine Optimization Meta Tags */}
       <title>{title}</title>
       <meta name='description' content={description} />
-      <meta name='keywords' content='keywords1,keywords2,keywords3,keywords4,keywords5' />
+      <meta name='keywords' content='nextjs,react,typescript,web3,ethereum,multisig,wallet,dapp' />
       <meta name='robots' content='index,follow' />
       <meta name='distribution' content='web' />
       <meta name='og:title' content={title} />
