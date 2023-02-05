@@ -8,13 +8,9 @@ const withPWA = require('next-pwa')({
 })
 
 const nextConfig = {
-  // uncomment the following snippet if using styled components
-  // compiler: {
-  //   styledComponents: true,
-  // },
   experimental: {},
   images: {},
-  reactStrictMode: true, // Recommended for the `pages` directory, default in `app`.
+  reactStrictMode: true,
   webpack(config, { isServer }) {
     // audio support
     config.module.rules.push({
@@ -35,13 +31,6 @@ const nextConfig = {
       ],
     })
 
-    // shader support
-    config.module.rules.push({
-      test: /\.(glsl|vs|fs|vert|frag)$/,
-      exclude: /node_modules/,
-      use: ['raw-loader', 'glslify-loader'],
-    })
-
     return config
   },
 }
@@ -49,7 +38,7 @@ const nextConfig = {
 // manage i18n
 if (process.env.EXPORT !== 'true') {
   nextConfig.i18n = {
-    locales: ['en', 'jp'],
+    locales: ['en', 'fr', 'jp'],
     defaultLocale: 'en',
   }
 }
