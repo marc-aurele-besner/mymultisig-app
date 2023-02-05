@@ -2,6 +2,7 @@ import React from 'react'
 import { ComponentStory, ComponentMeta } from '@storybook/react'
 
 import Welcome from './Welcome'
+import Web3Provider from '../web3/Web3Provider'
 
 export default {
   title: 'Views/Welcome',
@@ -11,4 +12,8 @@ export default {
   },
 } as ComponentMeta<typeof Welcome>
 
-export const Basic: ComponentStory<typeof Welcome> = (args) => <Welcome {...args} />
+export const Basic: ComponentStory<typeof Welcome> = (args) => (
+  <Web3Provider>
+    <Welcome {...args} />
+  </Web3Provider>
+)
