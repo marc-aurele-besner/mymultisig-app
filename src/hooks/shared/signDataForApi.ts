@@ -1,4 +1,4 @@
-import { JsonRpcProvider, Wallet } from 'ethers'
+import { JsonRpcProvider, Wallet } from 'ethersV6'
 
 import { TCollectionList } from '../../models/Collections'
 import { TApiCallData } from '../../types/signedData'

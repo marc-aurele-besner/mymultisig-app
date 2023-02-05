@@ -1,5 +1,5 @@
 import React from 'react'
-import { Center, VStack, Box, Text } from '@chakra-ui/react'
+import { Center, VStack, Text } from '@chakra-ui/react'
 import { useConnect } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
