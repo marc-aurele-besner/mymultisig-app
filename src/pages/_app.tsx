@@ -8,7 +8,7 @@ import Web3Provider from '../components/web3/Web3Provider'
 import theme from '../styles/theme'
 import Layout from '../components/dom/Layout'
 
-const App: React.FC<AppProps> = ({ Component, pageProps = { title: 'index' } }) => {
+const App: React.FC<AppProps> = ({ Component, pageProps = { title: 'MyMultiSig' } }) => {
   return (
     <ChakraProvider theme={theme}>
       <ColorModeScript initialColorMode='light' />
