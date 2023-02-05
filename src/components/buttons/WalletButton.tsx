@@ -4,11 +4,15 @@ import { Button, HStack, Image, Text } from '@chakra-ui/react'
 interface WalletButtonProps {
   placeholder: string
   imagePath: string
+  onClick?: () => void
+  isLoading?: boolean
+  isDisabled?: boolean
 }
 
-const WalletButton: React.FC<WalletButtonProps> = ({ placeholder, imagePath }) => {
+const WalletButton: React.FC<WalletButtonProps> = ({ placeholder, imagePath, onClick, isLoading, isDisabled }) => {
   return (
     <Button
+      key={placeholder}
       w='94%'
       p={4}
       m={2}
@@ -16,6 +20,9 @@ const WalletButton: React.FC<WalletButtonProps> = ({ placeholder, imagePath }) =
       borderRadius={10}
       bg='cyan.100'
       boxShadow='dark-lg'
+      onClick={onClick}
+      isLoading={isLoading}
+      isDisabled={isDisabled}
       _hover={{
         bg: 'cyan.300',
       }}>

@@ -51,7 +51,7 @@
     "@chakra-ui/react": "^2.4.9",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
-    "ethers": "^6.0.0",
+    "ethers": "5.7.2",
     "faunadb-utility": "^0.1.0",
     "framer-motion": "^9.0.1",
     "next": "^13.1.6",
