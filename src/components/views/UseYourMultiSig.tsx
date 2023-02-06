@@ -3,9 +3,8 @@ import { Center, VStack, Text } from '@chakra-ui/react'
 import { useAccount } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
-import CreateMultiSigForm from '../forms/CreateMultiSigForm'
 
-const CreateMultiSig: React.FC = () => {
+const UseYourMultiSig: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
   const { isConnected, address } = useAccount()
 
@@ -23,9 +22,11 @@ const CreateMultiSig: React.FC = () => {
         <Center>
           <VStack>
             <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
-              Create your multiSig
+              Use your multiSig
             </Text>
-            <CreateMultiSigForm owner01={address.toString()} />
+            <Text fontSize='xl' fontWeight='bold' color='white' m='4rem' pt='2rem'>
+              This section is under construction
+            </Text>
           </VStack>
         </Center>
       </BigCard>
@@ -33,4 +34,4 @@ const CreateMultiSig: React.FC = () => {
   )
 }
 
-export default CreateMultiSig
+export default UseYourMultiSig

@@ -10,7 +10,7 @@ import {
 interface NumberInputProps {
   placeholder: string
   size?: 'xs' | 'sm' | 'md' | 'lg'
-  defaultValue?: string
+  defaultValue?: number
   value?: string
   min?: number
   max?: number

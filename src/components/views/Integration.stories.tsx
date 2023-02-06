@@ -1,19 +1,19 @@
 import React from 'react'
 import { ComponentStory, ComponentMeta } from '@storybook/react'
 
-import HeaderBox from './HeaderBox'
+import Integration from './Integration'
 import Web3Provider from '../web3/Web3Provider'
 
 export default {
-  title: 'Header/HeaderBox',
-  component: HeaderBox,
+  title: 'Views/Integration',
+  component: Integration,
   argTypes: {
     backgroundColor: { control: 'color' },
   },
-} as ComponentMeta<typeof HeaderBox>
+} as ComponentMeta<typeof Integration>
 
-export const Basic: ComponentStory<typeof HeaderBox> = (args) => (
+export const Basic: ComponentStory<typeof Integration> = (args) => (
   <Web3Provider>
-    <HeaderBox {...args} />
+    <Integration {...args} />
   </Web3Provider>
 )
