@@ -24,7 +24,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01 }) => {
       <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
         Chose a threshold for your Multi-Signature Contract
       </Text>
-      <NumberInput placeholder={owner01} defaultValue={owner01} min={1} max={3} step={1} hasStepper allowMouseWheel />
+      <NumberInput placeholder={owner01} defaultValue={1} min={1} max={3} step={1} hasStepper allowMouseWheel />
     </VStack>
   )
 }
