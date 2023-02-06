@@ -19,4 +19,5 @@ export type MultiSig = {
   ownerCount: number
   nonce: number
   owners: string[]
+  isDeployed?: boolean
 }
