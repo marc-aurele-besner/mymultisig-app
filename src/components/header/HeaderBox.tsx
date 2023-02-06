@@ -1,7 +1,10 @@
 import Link from 'next/link'
 import React from 'react'
-import { Box, HStack, Text, useMediaQuery, Menu, MenuButton, Button, MenuList, MenuItem, Image } from '@chakra-ui/react'
+import { Box, HStack, Text, useMediaQuery, Menu, MenuButton, Button, MenuList, MenuItem } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
+
+import HeaderLink from './HeaderLink'
+import HeaderNetworkSelector from './HeaderNetworkSelector'
 
 const HeaderBox: React.FC = () => {
   const [isLargerThan800] = useMediaQuery('(min-width: 800px)', {
@@ -13,14 +16,17 @@ const HeaderBox: React.FC = () => {
     {
       name: 'Create a MultiSig',
       link: '/createMultiSig',
+      imagePath: '/images/create.png',
     },
     {
       name: 'Use your MultiSig',
       link: '/useYourMultiSig',
+      imagePath: '/images/use.png',
     },
     {
       name: 'Integration',
       link: '/integration',
+      imagePath: '/images/integration.png',
     },
   ]
 
@@ -35,36 +41,11 @@ const HeaderBox: React.FC = () => {
       boxShadow='dark-lg'
       bgGradient='linear(to-r, cyan.300, cyan.600, purple.300)'>
       <HStack>
-        <Link href='/'>
-          <HStack>
-            <Image src='/icons/android-icon-512x512.png' alt='MyMultiSig Logo' h='2rem' />
-            <Text
-              fontSize='lg'
-              fontWeight='bold'
-              color='white'
-              _hover={{
-                color: 'cyan.900',
-              }}>
-              MyMultiSig.app
-            </Text>
-          </HStack>
-        </Link>
+        <HeaderLink name='MyMultiSig.app' link='/' imagePath='/icons/android-icon-512x512.png' />
         {isLargerThan800 ? (
           <>
             {menu.map((item) => (
-              <Link key={`Link-${item.link}`} href={item.link}>
-                <Text
-                  key={`LinkText-${item.link}`}
-                  fontSize='lg'
-                  fontWeight='bold'
-                  color='white'
-                  pl='1rem'
-                  _hover={{
-                    color: 'cyan.900',
-                  }}>
-                  {item.name}
-                </Text>
-              </Link>
+              <HeaderLink key={`Link-${item.name}`} name={item.name} link={item.link} imagePath={item.imagePath} />
             ))}
           </>
         ) : (
@@ -107,6 +88,7 @@ const HeaderBox: React.FC = () => {
             </Menu>
           </Box>
         )}
+        <HeaderNetworkSelector />
       </HStack>
     </Box>
   )

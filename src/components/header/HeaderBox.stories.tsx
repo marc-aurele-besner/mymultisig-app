@@ -2,6 +2,7 @@ import React from 'react'
 import { ComponentStory, ComponentMeta } from '@storybook/react'
 
 import HeaderBox from './HeaderBox'
+import Web3Provider from '../web3/Web3Provider'
 
 export default {
   title: 'Header/HeaderBox',
@@ -11,4 +12,8 @@ export default {
   },
 } as ComponentMeta<typeof HeaderBox>
 
-export const Basic: ComponentStory<typeof HeaderBox> = (args) => <HeaderBox {...args} />
+export const Basic: ComponentStory<typeof HeaderBox> = (args) => (
+  <Web3Provider>
+    <HeaderBox {...args} />
+  </Web3Provider>
+)
