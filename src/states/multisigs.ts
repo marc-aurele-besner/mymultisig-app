@@ -39,7 +39,7 @@ const useMultiSigs = create<MultiSigState>()(
       }),
       {
         name: 'multiSigs-storage',
-        storage: createJSONStorage(() => sessionStorage),
+        storage: createJSONStorage(() => localStorage),
       },
     ),
   ),
