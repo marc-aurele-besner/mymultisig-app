@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button, HStack, Image, Text } from '@chakra-ui/react'
 
-interface WalletButtonProps {
+interface ImageButtonProps {
   placeholder: string
   imagePath: string
   onClick?: () => void
@@ -9,7 +9,7 @@ interface WalletButtonProps {
   isDisabled?: boolean
 }
 
-const WalletButton: React.FC<WalletButtonProps> = ({ placeholder, imagePath, onClick, isLoading, isDisabled }) => {
+const ImageButton: React.FC<ImageButtonProps> = ({ placeholder, imagePath, onClick, isLoading, isDisabled }) => {
   return (
     <Button
       key={placeholder}
@@ -34,4 +34,4 @@ const WalletButton: React.FC<WalletButtonProps> = ({ placeholder, imagePath, onC
   )
 }
 
-export default WalletButton
+export default ImageButton
