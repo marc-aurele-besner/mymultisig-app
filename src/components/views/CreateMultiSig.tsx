@@ -22,7 +22,7 @@ const CreateMultiSig: React.FC = () => {
 
   return (
     <Center>
-      <BigCard w='80vw' h='70vh'>
+      <BigCard w='80vw' h='85vh'>
         <Center>
           <VStack>
             <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>

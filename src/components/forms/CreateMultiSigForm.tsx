@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { VStack, Text } from '@chakra-ui/react'
 import { useNetwork } from 'wagmi'
 
 import TextInput from '../inputs/TextInput'
+import ConfirmationCard from '../cards/ConfirmationCard'
 import NumberInput from '../inputs/NumberInput'
 import ImageButton from '../buttons/ImageButton'
 import { MultiSigFactory, MultiSig } from '../../models/MultiSigs'
@@ -60,6 +62,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
 
   const handleCreateMultiSig = () => {
     write?.()
+    // addMultiSig(multiSig)
   }
 
   return (
@@ -99,7 +102,21 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
           Check Wallet
         </Text>
       )}
-      {isSuccess && <div>Transaction: {JSON.stringify(data)}</div>}
+      {isSuccess && (
+        <>
+          <Link key={`LinkToExplorer`} href={`https://goerli.etherscan.io/tx/${data?.hash}`}>
+            <ImageButton placeholder='See transaction in explorer' imagePath='/images/globe.png' />
+          </Link>
+          {data && data.hash && (
+            <>
+              <Text fontSize='lg' fontWeight='bold' color='white' pb='1rem'>
+                Transaction hash: {data?.hash}
+              </Text>
+              <ConfirmationCard hash={data.hash} multiSigFactoryAddress={factory.address} />
+            </>
+          )}
+        </>
+      )}
     </VStack>
   )
 }
