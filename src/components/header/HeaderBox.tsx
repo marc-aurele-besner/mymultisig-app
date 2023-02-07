@@ -32,7 +32,7 @@ const HeaderBox: React.FC = () => {
 
   return (
     <Box
-      w='70vw'
+      w='80vw'
       h='100%'
       p={4}
       m={2}

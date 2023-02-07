@@ -4,9 +4,9 @@ const multiSigFactories: MultiSigFactory[] = [
   {
     chainId: 31337,
     chainName: 'localhost',
-    address: '0x8B190573374637f144AC8D37375d97fd84cBD3a0',
+    address: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
     name: 'MyMultiSigFactory',
-    version: '0.0.1',
+    version: '0.0.2',
     multiSigCount: 0,
   },
 ]
