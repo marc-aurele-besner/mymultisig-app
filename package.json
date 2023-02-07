@@ -64,7 +64,7 @@
     "ethersV6": "npm:ethers@6.0.2",
     "faunadb-utility": "^0.1.0",
     "framer-motion": "^9.0.1",
-    "mymultisig-contract": "^0.0.1",
+    "mymultisig-contract": "^0.0.2",
     "next": "^13.1.6",
     "next-pwa": "^5.6.0",
     "react": "^18.2.0",
