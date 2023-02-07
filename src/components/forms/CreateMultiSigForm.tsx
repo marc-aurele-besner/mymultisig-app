@@ -6,14 +6,14 @@ import TextInput from '../inputs/TextInput'
 import NumberInput from '../inputs/NumberInput'
 import ImageButton from '../buttons/ImageButton'
 import { MultiSigFactory, MultiSig } from '../../models/MultiSigs'
+import useCreateMultiSig from '../../hooks/useCreateMultiSig'
 
 interface CreateMultiSigFormProps {
   owner01: string
   factory: MultiSigFactory
-  handleCreateMultiSig: (multiSig: MultiSig) => void
 }
 
-const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factory, handleCreateMultiSig }) => {
+const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factory }) => {
   const { chain } = useNetwork()
   const [multiSig, setMultiSig] = useState<MultiSig>({
     chainId: chain ? chain.id : 1,
@@ -22,14 +22,22 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
     id: factory.multiSigCount + 1,
     name: '',
     version: factory.version,
-    address: '',
+    address: '0x',
     threshold: 1,
     ownerCount: 1,
     nonce: 0,
     owners: [owner01, '', ''],
     isDeployed: false,
   })
-  const [isDeploying, setIsDeploying] = useState(false)
+
+  const { data, isLoading, isSuccess, write } = useCreateMultiSig(
+    {
+      contractName: multiSig.name,
+      owners: multiSig.owners,
+      threshold: multiSig.threshold,
+    },
+    factory.address,
+  )
 
   const handleOwnersChange = (event: React.ChangeEvent<HTMLInputElement>, input: number) => {
     setMultiSig({
@@ -49,6 +57,10 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
   // const handleRemoveOwner = (index: number) => {
   //   setMultiSig({ ...multiSig, ownerCount: multiSig.ownerCount - 1, owners: multiSig.owners.filter((owner, i) => i !== index) })
   // }
+
+  const handleCreateMultiSig = () => {
+    write?.()
+  }
 
   return (
     <VStack>
@@ -78,12 +90,16 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
       <ImageButton
         placeholder='Create'
         imagePath='/images/create.png'
-        onClick={() => {
-          handleCreateMultiSig(multiSig)
-          setIsDeploying(true)
-        }}
-        isLoading={isDeploying}
+        onClick={() => handleCreateMultiSig()}
+        isLoading={isLoading}
+        isDisabled={!write}
       />
+      {isLoading && (
+        <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
+          Check Wallet
+        </Text>
+      )}
+      {isSuccess && <div>Transaction: {JSON.stringify(data)}</div>}
     </VStack>
   )
 }
