@@ -2,7 +2,7 @@ import React from 'react'
 import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from 'wagmi'
 import { Text } from '@chakra-ui/react'
 
-import WalletButton from '../buttons/WalletButton'
+import ImageButton from '../buttons/ImageButton'
 
 const ConnectedWallet: React.FC = () => {
   const { address, connector, isConnected } = useAccount()
@@ -34,7 +34,7 @@ const ConnectedWallet: React.FC = () => {
           ENS avatar {ensAvatar}
         </Text>
       )}
-      <WalletButton
+      <ImageButton
         placeholder='Disconnect'
         imagePath='/images/wallets/disconnect.png'
         onClick={() => disconnect()}

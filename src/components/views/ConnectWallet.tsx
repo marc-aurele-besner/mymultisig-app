@@ -3,7 +3,7 @@ import { Text } from '@chakra-ui/react'
 import { useConnect } from 'wagmi'
 
 import ErrorCard from '../cards/ErrorCard'
-import WalletButton from '../buttons/WalletButton'
+import ImageButton from '../buttons/ImageButton'
 
 const ConnectWallet: React.FC = () => {
   const { connect, connectors, error, isLoading, pendingConnector } = useConnect()
@@ -12,28 +12,28 @@ const ConnectWallet: React.FC = () => {
       <Text fontSize='2xl' fontWeight='bold' color='white' pt='2rem' pb='2rem'>
         Connect your wallet
       </Text>
-      <WalletButton
+      <ImageButton
         placeholder='MetaMask'
         imagePath='/images/wallets/mm.png'
         onClick={() => connect({ connector: connectors.find((connector) => connector.id === 'metaMask') })}
         isLoading={isLoading && pendingConnector && pendingConnector.id === 'metaMask'}
         isDisabled={isLoading && pendingConnector && pendingConnector.id !== 'metaMask'}
       />
-      <WalletButton
+      <ImageButton
         placeholder='CoinBaseWallet'
         imagePath='/images/wallets/cbw.png'
         onClick={() => connect({ connector: connectors.find((connector) => connector.id === 'coinbaseWallet') })}
         isLoading={isLoading && pendingConnector && pendingConnector.id === 'coinbaseWallet'}
         isDisabled={isLoading && pendingConnector && pendingConnector.id !== 'coinbaseWallet'}
       />
-      <WalletButton
+      <ImageButton
         placeholder='WalletConnect'
         imagePath='/images/wallets/wc.png'
         onClick={() => connect({ connector: connectors.find((connector) => connector.id === 'walletConnect') })}
         isLoading={isLoading && pendingConnector && pendingConnector.id === 'walletConnect'}
         isDisabled={isLoading && pendingConnector && pendingConnector.id !== 'walletConnect'}
       />
-      <WalletButton
+      <ImageButton
         placeholder='Injected'
         imagePath='/images/wallets/injected.png'
         onClick={() => connect({ connector: connectors.find((connector) => connector.id === 'injected') })}

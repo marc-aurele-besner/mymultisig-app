@@ -3,10 +3,9 @@ import React from 'react'
 import { Box, HStack, Text, useMediaQuery, Menu, MenuButton, Button, MenuList, MenuItem } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
 
-import HeaderLink from './HeaderLink'
-import HeaderNetworkSelector from './HeaderNetworkSelector'
+import FooterLink from './FooterLink'
 
-const HeaderBox: React.FC = () => {
+const FooterBox: React.FC = () => {
   const [isLargerThan800] = useMediaQuery('(min-width: 800px)', {
     ssr: true,
     fallback: false, // return false on the server, and re-evaluate on the client side
@@ -14,19 +13,16 @@ const HeaderBox: React.FC = () => {
 
   const menu = [
     {
-      name: 'Create a MultiSig',
-      link: '/createMultiSig',
-      imagePath: '/images/create.png',
+      name: 'Smart Contract Repository',
+      link: 'https://github.com/marc-aurele-besner/mymultisig-contract',
+      imagePath: '/images/github.png',
+      target: '_blank',
     },
     {
-      name: 'Use your MultiSig',
-      link: '/useYourMultiSig',
-      imagePath: '/images/use.png',
-    },
-    {
-      name: 'Integration',
-      link: '/integration',
-      imagePath: '/images/integration.png',
+      name: 'This Repository',
+      link: 'https://github.com/marc-aurele-besner/mymultisig-app',
+      imagePath: '/images/github.png',
+      target: '_blank',
     },
   ]
 
@@ -41,11 +37,17 @@ const HeaderBox: React.FC = () => {
       boxShadow='dark-lg'
       bgGradient='linear(to-r, cyan.300, cyan.600, purple.300)'>
       <HStack>
-        <HeaderLink name='MyMultiSig.app' link='/' imagePath='/icons/android-icon-512x512.png' />
+        <FooterLink name='MyMultiSig.app' link='/' imagePath='/icons/android-icon-512x512.png' />
         {isLargerThan800 ? (
           <>
             {menu.map((item) => (
-              <HeaderLink key={`Link-${item.name}`} name={item.name} link={item.link} imagePath={item.imagePath} />
+              <FooterLink
+                key={`Link-${item.name}`}
+                name={item.name}
+                link={item.link}
+                imagePath={item.imagePath}
+                target={item.target}
+              />
             ))}
           </>
         ) : (
@@ -88,10 +90,9 @@ const HeaderBox: React.FC = () => {
             </Menu>
           </Box>
         )}
-        <HeaderNetworkSelector />
       </HStack>
     </Box>
   )
 }
 
-export default HeaderBox
+export default FooterBox
