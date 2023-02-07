@@ -1,7 +1,7 @@
 export type MultiSigFactory = {
   chainId: number
   chainName: string
-  address: string
+  address: `0x${string}`
   name: string
   version: string
   multiSigCount: number
@@ -10,11 +10,11 @@ export type MultiSigFactory = {
 export type MultiSig = {
   chainId: number
   chainName: string
-  factoryAddress: string
+  factoryAddress: `0x${string}`
   id: number
   name: string
   version: string
-  address: string
+  address: `0x${string}`
   threshold: number
   ownerCount: number
   nonce: number
