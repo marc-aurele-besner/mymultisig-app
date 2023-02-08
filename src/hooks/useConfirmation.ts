@@ -3,7 +3,7 @@ import { useNetwork, useWaitForTransaction, useContractEvent } from 'wagmi'
 import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
 import { BigNumber } from 'ethers'
 
-import useMultiSigs from '../states/multisigs'
+import useMultiSigs from '../states/multiSigs'
 
 const useConfirmation = (hash: `0x${string}`, multiSigFactoryAddress: `0x${string}`) => {
   const [multiSigAddress, setMultiSigAddress] = useState<string | undefined>(undefined)

@@ -5,10 +5,13 @@ import { useAccount } from 'wagmi'
 import BigCard from '../cards/BigCard'
 import ErrorCard from '../cards/ErrorCard'
 import ConnectWallet from './ConnectWallet'
+import MultiSigList from '../multiSigDetails/MultiSigList'
+import useMultiSigs from '../../states/multiSigs'
 
 const UseYourMultiSig: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
   const { isConnected, address } = useAccount()
+  const { multiSigs } = useMultiSigs()
 
   useEffect(() => {
     setHasMounted(true)
@@ -30,9 +33,15 @@ const UseYourMultiSig: React.FC = () => {
                 <ConnectWallet />
               </>
             ) : (
-              <Text fontSize='xl' fontWeight='bold' color='white' m='4rem' pt='2rem'>
-                This section is under construction
-              </Text>
+              <>
+                {multiSigs.length === 0 ? (
+                  <ErrorCard>You don&apos;t have any multiSig yet. Please create one first</ErrorCard>
+                ) : (
+                  multiSigs.map((multiSig) => (
+                    <MultiSigList key={multiSig.address} multiSigAddress={multiSig.address} address={address} />
+                  ))
+                )}
+              </>
             )}
           </VStack>
         </Center>
