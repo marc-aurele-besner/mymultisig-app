@@ -38,7 +38,6 @@ const useMultiSigDetails = (multiSigAddress: `0x${string}`, address: `0x${string
         },
       ],
     })
-
   return {
     data,
     error,
