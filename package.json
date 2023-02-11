@@ -24,7 +24,7 @@
   "author": "Marc-Aurele Besner <82244926+marc-aurele-besner@users.noreply.github.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/marc-aurele-besner/kill-bill/issues"
+    "url": "https://github.com/marc-aurele-besner/mymultisig-app/issues"
   },
   "scripts": {
     "prepare": "husky install",
@@ -64,7 +64,7 @@
     "ethersV6": "npm:ethers@6.0.2",
     "faunadb-utility": "^0.1.0",
     "framer-motion": "^9.0.1",
-    "mymultisig-contract": "^0.0.2",
+    "mymultisig-contract": "^0.0.3",
     "next": "^13.1.6",
     "next-pwa": "^5.6.0",
     "react": "^18.2.0",

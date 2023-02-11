@@ -13373,6 +13373,11 @@ forwarded@0.2.0:
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.2.0.tgz#2269936428aad4c15c7ebe9779a84bf0b2a81811"
   integrity sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==
 
+foundry-test-utility@^0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/foundry-test-utility/-/foundry-test-utility-0.0.7.tgz#05b2e70988aa2134a0b2c29e6fa42c8e5e2ef644"
+  integrity sha512-U1R30NvuuEq8x9VQMWiWQA6WfFpnAENOezXe+DM8qAIYJMvwXpGMgz1k4QQAclO2erArfdCbGKK0r6KUy7Q1JA==
+
 fragment-cache@^0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/fragment-cache/-/fragment-cache-0.2.1.tgz#4290fad27f13e89be7f33799c6bc5a0abfff0d19"
@@ -17388,16 +17393,17 @@ mute-stream@0.0.7:
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.7.tgz#3075ce93bc21b8fab43e1bc4da7e8115ed1e7bab"
   integrity sha512-r65nCZhrbXXb6dXOACihYApHw2Q6pV0M3V0PSxd74N0+D8nzAdEAITq2oAjA1jVnKI+tGvEBUpqiMh0+rW6zDQ==
 
-mymultisig-contract@^0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/mymultisig-contract/-/mymultisig-contract-0.0.2.tgz#4dc1d1c2c0db6e9acdedb6b08015bd2bdae36146"
-  integrity sha512-jYaT0/5EPTgsaDEU2TyPu+WWU0XrO4yM/ZPWNTQC9zFAnwEsC4xVXFLqh/K2nuCjqXpHhlkA1G/xfwAMur39Pg==
+mymultisig-contract@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/mymultisig-contract/-/mymultisig-contract-0.0.3.tgz#b778527610425b22cf6dd3a0b2a0d92350efe709"
+  integrity sha512-vUO8VSgOg+f2pg9cFK4z0GWfEyfQ0Z0RY9kVTtgtnFRfo2t67+kRzwZU3xkJTjW4Jtu2q7fovbT+5/8HnekRyA==
   dependencies:
     "@openzeppelin/contracts" "^4.8.1"
     "@openzeppelin/contracts-upgradeable" "^4.8.1"
     "@typechain/ethers-v5" "^10.2.0"
     ethers "5.4.7"
     ethersV6 "npm:ethers"
+    foundry-test-utility "^0.0.7"
 
 nan@^2.12.1, nan@^2.16.0:
   version "2.17.0"
