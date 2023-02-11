@@ -2,10 +2,11 @@ import React from 'react'
 import { Select } from '@chakra-ui/react'
 
 interface SelectFunctionProps {
+  abi: any[]
   onChange: (e: string) => void
 }
 
-const SelectFunction: React.FC<SelectFunctionProps> = ({ onChange }) => {
+const SelectFunction: React.FC<SelectFunctionProps> = ({ abi, onChange }) => {
   return (
     <Select
       placeholder='Select Function'
@@ -14,6 +15,14 @@ const SelectFunction: React.FC<SelectFunctionProps> = ({ onChange }) => {
       _focus={{
         color: 'black',
       }}>
+      {abi.length > 0 &&
+        abi.map((item: { name: string }) => {
+          return (
+            <option key={item.name} value={item.name}>
+              {item.name}
+            </option>
+          )
+        })}
       <option value='itSelf'>addOwner</option>
     </Select>
   )

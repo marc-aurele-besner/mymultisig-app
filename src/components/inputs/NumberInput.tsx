@@ -4,7 +4,7 @@ import {
   NumberInputField,
   NumberInputStepper,
   NumberIncrementStepper,
-  NumberDecrementStepper,
+  NumberDecrementStepper
 } from '@chakra-ui/react'
 
 interface NumberInputProps {
@@ -38,7 +38,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
   isReadOnly,
   isInvalid,
   hasStepper,
-  allowMouseWheel,
+  allowMouseWheel
 }) => {
   return (
     <ChakraNumberInput
@@ -49,6 +49,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
       size={size}
       borderRadius={10}
       bg='cyan.100'
+      color={'gray.700'}
       boxShadow='dark-lg'
       placeholder={placeholder}
       defaultValue={defaultValue}

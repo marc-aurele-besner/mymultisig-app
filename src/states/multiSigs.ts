@@ -14,11 +14,12 @@ interface MultiSigState extends MultiSigDefaultState {
   addMultiSigFactory: (multiSigFactory: MultiSigFactory) => void
   setMultiSigs: (multiSigs: MultiSig[]) => void
   addMultiSig: (multiSig: MultiSig) => void
+  clearAllMultiSig: () => void
 }
 
 const initialState: MultiSigDefaultState = {
   multiSigFactory: multiSigFactories,
-  multiSigs: [],
+  multiSigs: []
 }
 
 const useMultiSigs = create<MultiSigState>()(
@@ -28,19 +29,20 @@ const useMultiSigs = create<MultiSigState>()(
       setMultiSigFactory: (multiSigFactory) => set(() => ({ multiSigFactory })),
       addMultiSigFactory: (multiSigFactory) =>
         set((state) => ({
-          multiSigFactory: [...state.multiSigFactory, multiSigFactory],
+          multiSigFactory: [...state.multiSigFactory, multiSigFactory]
         })),
       setMultiSigs: (multiSigs) => set(() => ({ multiSigs })),
       addMultiSig: (multiSig) =>
         set((state) => ({
-          multiSigs: [...state.multiSigs, multiSig],
+          multiSigs: [...state.multiSigs, multiSig]
         })),
+      clearAllMultiSig: () => set(() => ({ ...initialState }))
     }),
     {
       name: 'multiSigs-storage',
-      storage: createJSONStorage(() => localStorage),
-    },
-  ),
+      storage: createJSONStorage(() => localStorage)
+    }
+  )
 )
 
 export default useMultiSigs

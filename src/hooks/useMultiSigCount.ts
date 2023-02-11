@@ -7,13 +7,13 @@ const useMultiSigCount = (
     owners: string[]
     threshold: number
   },
-  multiSigFactoryAddress: `0x${string}`,
+  multiSigFactoryAddress: `0x${string}`
 ) => {
   const { data, error, isIdle, isError, isLoading, isSuccess, isFetched, isRefetching, refetch, status } =
     useContractRead({
       address: multiSigFactoryAddress,
       abi: MyMultiSigFactory,
-      functionName: 'multiSigCount',
+      functionName: 'multiSigCount'
     })
 
   return {
@@ -26,7 +26,7 @@ const useMultiSigCount = (
     isFetched,
     isRefetching,
     refetch,
-    status,
+    status
   }
 }
 

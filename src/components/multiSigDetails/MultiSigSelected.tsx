@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Box, Button, Center, HStack, Text } from '@chakra-ui/react'
+import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import SelectContract from '../inputs/SelectContract'
@@ -32,7 +33,7 @@ const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, addres
               <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
                 Function to call:
               </Text>
-              <SelectFunction onChange={() => console.log('contract')} />
+              <SelectFunction abi={MyMultiSig} onChange={() => console.log('contract')} />
             </HStack>
             <Center>
               <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setDisplaySelector(true)}>

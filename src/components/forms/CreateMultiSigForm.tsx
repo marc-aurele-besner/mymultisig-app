@@ -29,22 +29,22 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
     ownerCount: 1,
     nonce: 0,
     owners: [owner01, '', ''],
-    isDeployed: false,
+    isDeployed: false
   })
 
   const { data, isLoading, isSuccess, write } = useCreateMultiSig(
     {
       contractName: multiSig.name,
       owners: multiSig.owners,
-      threshold: multiSig.threshold,
+      threshold: multiSig.threshold
     },
-    factory.address,
+    factory.address
   )
 
   const handleOwnersChange = (event: React.ChangeEvent<HTMLInputElement>, input: number) => {
     setMultiSig({
       ...multiSig,
-      owners: multiSig.owners.map((owner, index) => (index === input ? event.target.value : owner)),
+      owners: multiSig.owners.map((owner, index) => (index === input ? event.target.value : owner))
     })
   }
   const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>, input: keyof MultiSig) => {
@@ -104,7 +104,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
       )}
       {isSuccess && (
         <>
-          <Link key={`LinkToExplorer`} href={`https://goerli.etherscan.io/tx/${data?.hash}`}>
+          <Link key={`LinkToExplorer`} href={`https://goerli.etherscan.io/tx/${data?.hash}`} target='_blank'>
             <ImageButton placeholder='See transaction in explorer' imagePath='/images/globe.png' />
           </Link>
           {data && data.hash && (
