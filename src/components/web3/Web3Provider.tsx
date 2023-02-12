@@ -1,23 +1,18 @@
-import { WagmiConfig, createClient, configureChains, goerli, mainnet } from 'wagmi'
-import { hardhat } from 'wagmi/chains'
-
-// import { alchemyProvider } from 'wagmi/providers/alchemy'
+import { WagmiConfig, createClient, configureChains } from 'wagmi'
 import { publicProvider } from 'wagmi/providers/public'
-
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
 import { InjectedConnector } from 'wagmi/connectors/injected'
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
+
+import extraNetworks from '../../constants/networks'
 
 interface Web3ProviderProps {
   children: React.ReactNode
 }
 
 const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
-  const { chains, provider, webSocketProvider } = configureChains(
-    [mainnet, hardhat, goerli],
-    [publicProvider()], // alchemyProvider({ apiKey: 'yourAlchemyApiKey' }),
-  )
+  const { chains, provider, webSocketProvider } = configureChains(extraNetworks, [publicProvider()])
 
   // Set up client
   const client = createClient({
@@ -27,25 +22,25 @@ const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       new CoinbaseWalletConnector({
         chains,
         options: {
-          appName: 'wagmi',
-        },
+          appName: 'wagmi'
+        }
       }),
       new WalletConnectConnector({
         chains,
         options: {
-          qrcode: true,
-        },
+          qrcode: true
+        }
       }),
       new InjectedConnector({
         chains,
         options: {
           name: 'Injected',
-          shimDisconnect: true,
-        },
-      }),
+          shimDisconnect: true
+        }
+      })
     ],
     provider,
-    webSocketProvider,
+    webSocketProvider
   })
 
   return <WagmiConfig client={client}>{children}</WagmiConfig>
