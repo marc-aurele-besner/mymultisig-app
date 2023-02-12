@@ -21,3 +21,9 @@ export type MultiSig = {
   owners: string[]
   isDeployed?: boolean
 }
+
+export type MultiSigConstructorArgs = {
+  contractName: string
+  owners: string[]
+  threshold: number
+}
