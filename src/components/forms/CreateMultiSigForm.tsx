@@ -7,7 +7,7 @@ import TextInput from '../inputs/TextInput'
 import ConfirmationCard from '../cards/ConfirmationCard'
 import NumberInput from '../inputs/NumberInput'
 import ImageButton from '../buttons/ImageButton'
-import { MultiSigFactory, MultiSig } from '../../models/MultiSigs'
+import { MultiSigFactory, MultiSig, MultiSigConstructorArgs } from '../../models/MultiSigs'
 import useCreateMultiSig from '../../hooks/useCreateMultiSig'
 
 interface CreateMultiSigFormProps {
@@ -32,14 +32,13 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
     isDeployed: false
   })
 
-  const { data, isLoading, isSuccess, write } = useCreateMultiSig(
-    {
-      contractName: multiSig.name,
-      owners: multiSig.owners,
-      threshold: multiSig.threshold
-    },
-    factory.address
-  )
+  const constructorArgs: MultiSigConstructorArgs = {
+    contractName: multiSig.name,
+    owners: multiSig.owners,
+    threshold: multiSig.threshold
+  }
+
+  const { data, isLoading, isSuccess, write } = useCreateMultiSig(constructorArgs, factory.address)
 
   const handleOwnersChange = (event: React.ChangeEvent<HTMLInputElement>, input: number) => {
     setMultiSig({
@@ -112,7 +111,11 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
               <Text fontSize='lg' fontWeight='bold' color='white' pb='1rem'>
                 Transaction hash: {data?.hash}
               </Text>
-              <ConfirmationCard hash={data.hash} multiSigFactoryAddress={factory.address} />
+              <ConfirmationCard
+                hash={data.hash}
+                multiSigFactoryAddress={factory.address}
+                constructorArgs={constructorArgs}
+              />
             </>
           )}
         </>

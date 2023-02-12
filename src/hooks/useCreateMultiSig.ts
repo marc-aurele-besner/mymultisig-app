@@ -1,21 +1,17 @@
 import { useNetwork, useContractWrite, usePrepareContractWrite } from 'wagmi'
 import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
 
-const useCreateMultiSig = (
-  argument: {
-    contractName: string
-    owners: string[]
-    threshold: number
-  },
-  multiSigFactoryAddress: `0x${string}`,
-) => {
+import { MultiSigConstructorArgs } from '../models/MultiSigs'
+
+const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFactoryAddress: `0x${string}`) => {
+  console.log('constructorArgs', constructorArgs)
   const { chain } = useNetwork()
   const { config } = usePrepareContractWrite({
     chainId: chain?.id,
     address: multiSigFactoryAddress,
     abi: MyMultiSigFactory,
     functionName: 'createMultiSig',
-    args: [argument.contractName, argument.owners, argument.threshold],
+    args: [constructorArgs.contractName, constructorArgs.owners, constructorArgs.threshold]
   })
   const { data, error, isError, isIdle, isLoading, isSuccess, write, writeAsync, reset, status } =
     useContractWrite(config)
@@ -30,7 +26,7 @@ const useCreateMultiSig = (
     write,
     writeAsync,
     reset,
-    status,
+    status
   }
 }
 

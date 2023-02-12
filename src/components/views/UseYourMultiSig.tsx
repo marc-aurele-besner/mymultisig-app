@@ -1,19 +1,26 @@
 import React, { useState, useEffect } from 'react'
 import { Center, VStack, Text } from '@chakra-ui/react'
-import { useAccount } from 'wagmi'
+import { useAccount, useNetwork } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
 import ErrorCard from '../cards/ErrorCard'
 import ConnectWallet from './ConnectWallet'
+import ImageButton from '../buttons/ImageButton'
 import MultiSigSelected from '../multiSigDetails/MultiSigSelected'
 import MultiSigList from '../multiSigDetails/MultiSigList'
 import useMultiSigs from '../../states/multiSigs'
+import Link from 'next/link'
 
 const UseYourMultiSig: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
   const { isConnected, address } = useAccount()
-  const { multiSigs } = useMultiSigs()
+  const { chain } = useNetwork()
+  const { multiSigs, clearAllMultiSig } = useMultiSigs()
   const [selectMultiSig, setSelectMultiSig] = useState<`0x${string}` | undefined>()
+
+  const filteredMultiSigs = chain ? multiSigs.filter((multiSig) => multiSig.chainId === chain.id) : []
+
+  console.log('multiSigs', multiSigs, filteredMultiSigs)
 
   useEffect(() => {
     setHasMounted(true)
@@ -46,10 +53,13 @@ const UseYourMultiSig: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    {multiSigs.length === 0 ? (
-                      <ErrorCard>You don&apos;t have any multiSig yet. Please create one first</ErrorCard>
+                    {filteredMultiSigs.length === 0 ? (
+                      <ErrorCard>
+                        You don&apos;t have seem to have any multi-signatures contract on this network. <br />
+                        Please create one first or import one.
+                      </ErrorCard>
                     ) : (
-                      multiSigs.map((multiSig) => (
+                      filteredMultiSigs.map((multiSig) => (
                         <MultiSigList
                           key={multiSig.address}
                           multiSigAddress={multiSig.address}
@@ -58,6 +68,22 @@ const UseYourMultiSig: React.FC = () => {
                         />
                       ))
                     )}
+                    <Link href='/importMultiSig'>
+                      <ImageButton
+                        placeholder='Import a multiSig'
+                        imagePath='/images/import.png'
+                        onClick={() => null}
+                        // isLoading={isLoading}
+                        // isDisabled={isLoading}
+                      />
+                    </Link>
+                    <ImageButton
+                      placeholder='Remove all multiSig'
+                      imagePath='/images/clear.png'
+                      onClick={() => clearAllMultiSig()}
+                      // isLoading={isLoading}
+                      // isDisabled={isLoading}
+                    />
                   </>
                 )}
               </>
