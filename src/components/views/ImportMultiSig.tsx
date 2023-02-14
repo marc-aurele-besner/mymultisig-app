@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Center, VStack, Text } from '@chakra-ui/react'
-import { useAccount, useNetwork } from 'wagmi'
+import { useNetwork } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
 import ErrorCard from '../cards/ErrorCard'

@@ -1,60 +1,48 @@
 import React, { useState } from 'react'
-import Link from 'next/link'
 import { VStack, Text } from '@chakra-ui/react'
-import { useNetwork } from 'wagmi'
+import { useAccount } from 'wagmi'
 
 import TextInput from '../inputs/TextInput'
 import ImageButton from '../buttons/ImageButton'
-import { MultiSigFactory, MultiSig } from '../../models/MultiSigs'
+import ImportConfirmationCard from '../cards/ImportConfirmationCard'
+import { MultiSigFactory } from '../../models/MultiSigs'
 
 interface ImportMultiSigFormProps {
   factory: MultiSigFactory
 }
 
 const ImportMultiSigForm: React.FC<ImportMultiSigFormProps> = ({ factory }) => {
-  const { chain } = useNetwork()
-  const [multiSigAddress, setMultiSigAddress] = useState<string>('0x')
+  const { address } = useAccount()
+  const [multiSigAddress, setMultiSigAddress] = useState<`0x${string}`>('0x')
+  const [importClicked, setImportClicked] = useState<boolean>(false)
 
-  // const { data, isLoading, isSuccess, write } = useCreateMultiSig(
-  //   {
-  //     contractName: multiSig.name,
-  //     owners: multiSig.owners,
-  //     threshold: multiSig.threshold
-  //   },
-  //   factory.address
-  // )
+  const handleImportMultiSig = () => {
+    setImportClicked(true)
+  }
 
-  // const handleOwnersChange = (event: React.ChangeEvent<HTMLInputElement>, input: number) => {
-  //   setMultiSig({
-  //     ...multiSig,
-  //     owners: multiSig.owners.map((owner, index) => (index === input ? event.target.value : owner))
-  //   })
-  // }
-  // const handleAddOwner = () => {
-  //   setMultiSig({ ...multiSig, ownerCount: multiSig.ownerCount + 1, owners: [...multiSig.owners, ''] })
-  // }
-  // const handleRemoveOwner = (index: number) => {
-  //   setMultiSig({ ...multiSig, ownerCount: multiSig.ownerCount - 1, owners: multiSig.owners.filter((owner, i) => i !== index) })
-  // }
-
-  const handleFindMultiSig = () => {
-    // write?.()
-    // addMultiSig(multiSig)
+  const handleChangeAddress = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value.length === 42) setMultiSigAddress(`0x${e.target.value.substring(2, e.target.value.length)}`)
   }
 
   return (
     <VStack>
-      <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
-        The multi sig contract address
-      </Text>
-      <TextInput placeholder='MultiSig Address' onChange={(e) => setMultiSigAddress(e.target.value)} />
-      <ImageButton
-        placeholder='Import'
-        imagePath='/images/import.png'
-        onClick={() => handleFindMultiSig()}
-        // isLoading={isLoading}
-        // isDisabled={!write}
-      />
+      {importClicked && address ? (
+        <ImportConfirmationCard factoryAddress={factory.address} multiSigAddress={multiSigAddress} address={address} />
+      ) : (
+        <>
+          <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
+            The multi sig contract address
+          </Text>
+          <TextInput placeholder='MultiSig Address' onChange={(e) => handleChangeAddress(e)} />
+          <ImageButton
+            placeholder='Import'
+            imagePath='/images/import.png'
+            onClick={() => handleImportMultiSig()}
+            // isLoading={isLoading}
+            isDisabled={multiSigAddress !== `0x`}
+          />
+        </>
+      )}
       {/* {isLoading && (
         <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
           Check Wallet
