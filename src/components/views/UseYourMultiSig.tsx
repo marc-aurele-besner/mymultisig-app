@@ -59,9 +59,9 @@ const UseYourMultiSig: React.FC = () => {
                         Please create one first or import one.
                       </ErrorCard>
                     ) : (
-                      filteredMultiSigs.map((multiSig) => (
+                      filteredMultiSigs.map((multiSig, index) => (
                         <MultiSigList
-                          key={multiSig.address}
+                          key={`${multiSig.address}-${index}}`}
                           multiSigAddress={multiSig.address}
                           address={address}
                           setSelectMultiSig={setSelectMultiSig}
