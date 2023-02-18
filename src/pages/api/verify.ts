@@ -1,5 +1,4 @@
-import axios, { isCancel, AxiosError } from 'axios'
-import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
+import axios from 'axios'
 
 import Contract from '../../constants/FlatMyMultiSig'
 

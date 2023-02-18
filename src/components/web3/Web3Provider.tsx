@@ -1,18 +1,20 @@
 import { WagmiConfig, createClient, configureChains } from 'wagmi'
-import { publicProvider } from 'wagmi/providers/public'
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
 import { InjectedConnector } from 'wagmi/connectors/injected'
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
+import { LedgerConnector } from '@wagmi/connectors/ledger'
+// import { SafeConnector } from '@wagmi/connectors/safe'
 
-import extraNetworks from '../../constants/networks'
+import networks from '../../constants/networks'
+import providers from '../../constants/providers'
 
 interface Web3ProviderProps {
   children: React.ReactNode
 }
 
 const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
-  const { chains, provider, webSocketProvider } = configureChains(extraNetworks, [publicProvider()])
+  const { chains, provider, webSocketProvider } = configureChains(networks, providers, { targetQuorum: 2 })
 
   // Set up client
   const client = createClient({
@@ -28,6 +30,7 @@ const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       new WalletConnectConnector({
         chains,
         options: {
+          projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? '',
           qrcode: true
         }
       }),
@@ -37,7 +40,17 @@ const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
           name: 'Injected',
           shimDisconnect: true
         }
+      }),
+      new LedgerConnector({
+        chains
       })
+      // new SafeConnector({
+      //   chains,
+      //   options: {
+      //     allowedDomains: [/gnosis-safe.io$/, /app.safe.global$/],
+      //     debug: false
+      //   }
+      // })
     ],
     provider,
     webSocketProvider

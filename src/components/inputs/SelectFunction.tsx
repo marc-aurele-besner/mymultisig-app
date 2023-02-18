@@ -2,6 +2,7 @@ import React from 'react'
 import { Select } from '@chakra-ui/react'
 
 interface SelectFunctionProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   abi: any[]
   onChange: (e: string) => void
 }
@@ -13,7 +14,7 @@ const SelectFunction: React.FC<SelectFunctionProps> = ({ abi, onChange }) => {
       color='white'
       onChange={(e) => onChange(e.target.value)}
       _focus={{
-        color: 'black',
+        color: 'black'
       }}>
       {abi.length > 0 &&
         abi.map((item: { name: string }) => {

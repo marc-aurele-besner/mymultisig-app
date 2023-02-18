@@ -19,6 +19,6 @@ const anvil9999: Chain = {
   }
 }
 
-const extraNetworks: Chain[] = [mainnet, hardhat, goerli, anvil9999]
+const networks: Chain[] = [mainnet, hardhat, goerli, anvil9999]
 
-export default extraNetworks
+export default networks
