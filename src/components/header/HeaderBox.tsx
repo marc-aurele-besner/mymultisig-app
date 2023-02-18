@@ -1,6 +1,18 @@
 import Link from 'next/link'
 import React from 'react'
-import { Box, HStack, Text, useMediaQuery, Menu, MenuButton, Button, MenuList, MenuItem } from '@chakra-ui/react'
+import {
+  Box,
+  HStack,
+  Text,
+  useMediaQuery,
+  Menu,
+  MenuButton,
+  Button,
+  MenuList,
+  MenuItem,
+  useColorMode,
+  useStyleConfig,
+} from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
 
 import HeaderLink from './HeaderLink'
@@ -11,6 +23,9 @@ const HeaderBox: React.FC = () => {
     ssr: true,
     fallback: false, // return false on the server, and re-evaluate on the client side
   })
+  const { colorMode, toggleColorMode } = useColorMode()
+
+  const styles = useStyleConfig('Card')
 
   const menu = [
     {
@@ -31,15 +46,7 @@ const HeaderBox: React.FC = () => {
   ]
 
   return (
-    <Box
-      w='80vw'
-      h='100%'
-      p={4}
-      m={2}
-      mt={4}
-      borderRadius={10}
-      boxShadow='dark-lg'
-      bgGradient='linear(to-r, cyan.300, cyan.600, purple.300)'>
+    <Box w='80vw' h='100%' p={4} m={2} mt={4} __css={styles}>
       <HStack>
         <HeaderLink name='MyMultiSig.app' link='/' imagePath='/icons/android-icon-512x512.png' />
         {isLargerThan800 ? (
@@ -47,6 +54,7 @@ const HeaderBox: React.FC = () => {
             {menu.map((item) => (
               <HeaderLink key={`Link-${item.name}`} name={item.name} link={item.link} imagePath={item.imagePath} />
             ))}
+            <Button onClick={toggleColorMode}>Toggle {colorMode === 'light' ? 'Dark' : 'Light'}</Button>
           </>
         ) : (
           <Box ml='2rem'>

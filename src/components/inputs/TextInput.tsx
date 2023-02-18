@@ -18,7 +18,7 @@ const TextInput: React.FC<TextInputProps> = ({
   onChange,
   isDisabled,
   isReadOnly,
-  isInvalid,
+  isInvalid
 }) => {
   return (
     <Input
@@ -29,6 +29,7 @@ const TextInput: React.FC<TextInputProps> = ({
       borderRadius={10}
       bg='cyan.100'
       boxShadow='dark-lg'
+      color={'gray.700'}
       placeholder={placeholder}
       defaultValue={defaultValue}
       value={value}

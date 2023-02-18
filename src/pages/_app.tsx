@@ -11,7 +11,7 @@ import Layout from '../components/dom/Layout'
 const App: React.FC<AppProps> = ({ Component, pageProps = { title: 'MyMultiSig' } }) => {
   return (
     <ChakraProvider theme={theme}>
-      <ColorModeScript initialColorMode='light' />
+      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
       <Header title={pageProps.title} />
       <Web3Provider>
         <Layout>

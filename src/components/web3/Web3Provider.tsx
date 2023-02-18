@@ -1,23 +1,20 @@
-import { WagmiConfig, createClient, configureChains, goerli, mainnet } from 'wagmi'
-import { hardhat } from 'wagmi/chains'
-
-// import { alchemyProvider } from 'wagmi/providers/alchemy'
-import { publicProvider } from 'wagmi/providers/public'
-
+import { WagmiConfig, createClient, configureChains } from 'wagmi'
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
 import { InjectedConnector } from 'wagmi/connectors/injected'
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
+import { LedgerConnector } from '@wagmi/connectors/ledger'
+// import { SafeConnector } from '@wagmi/connectors/safe'
+
+import networks from '../../constants/networks'
+import providers from '../../constants/providers'
 
 interface Web3ProviderProps {
   children: React.ReactNode
 }
 
 const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
-  const { chains, provider, webSocketProvider } = configureChains(
-    [mainnet, hardhat, goerli],
-    [publicProvider()], // alchemyProvider({ apiKey: 'yourAlchemyApiKey' }),
-  )
+  const { chains, provider, webSocketProvider } = configureChains(networks, providers, { targetQuorum: 2 })
 
   // Set up client
   const client = createClient({
@@ -27,25 +24,36 @@ const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       new CoinbaseWalletConnector({
         chains,
         options: {
-          appName: 'wagmi',
-        },
+          appName: 'wagmi'
+        }
       }),
       new WalletConnectConnector({
         chains,
         options: {
-          qrcode: true,
-        },
+          projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? '',
+          qrcode: true
+        }
       }),
       new InjectedConnector({
         chains,
         options: {
           name: 'Injected',
-          shimDisconnect: true,
-        },
+          shimDisconnect: true
+        }
       }),
+      new LedgerConnector({
+        chains
+      })
+      // new SafeConnector({
+      //   chains,
+      //   options: {
+      //     allowedDomains: [/gnosis-safe.io$/, /app.safe.global$/],
+      //     debug: false
+      //   }
+      // })
     ],
     provider,
-    webSocketProvider,
+    webSocketProvider
   })
 
   return <WagmiConfig client={client}>{children}</WagmiConfig>

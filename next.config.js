@@ -1,10 +1,10 @@
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
+  enabled: process.env.ANALYZE === 'true'
 })
 
 const withPWA = require('next-pwa')({
   dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
+  disable: process.env.NODE_ENV === 'development'
 })
 
 const nextConfig = {
@@ -25,23 +25,23 @@ const nextConfig = {
             publicPath: `${config.assetPrefix}/_next/static/images/`,
             outputPath: `${isServer ? '../' : ''}static/images/`,
             name: '[name]-[hash].[ext]',
-            esModule: config.esModule || false,
-          },
-        },
-      ],
+            esModule: config.esModule || false
+          }
+        }
+      ]
     })
 
     return config
-  },
+  }
 }
 
 // manage i18n
-if (process.env.EXPORT !== 'true') {
-  nextConfig.i18n = {
-    locales: ['en', 'fr', 'jp'],
-    defaultLocale: 'en',
-  }
-}
+// if (process.env.EXPORT !== 'true') {
+//   nextConfig.i18n = {
+//     locales: ['en', 'fr', 'jp'],
+//     defaultLocale: 'en',
+//   }
+// }
 
 const KEYS_TO_OMIT = ['webpackDevMiddleware', 'configOrigin', 'target', 'analyticsId', 'webpack5', 'amp', 'assetPrefix']
 
@@ -50,7 +50,7 @@ module.exports = (_phase, { defaultConfig }) => {
 
   const wConfig = plugins.reduce((acc, [plugin, config]) => plugin({ ...acc, ...config }), {
     ...defaultConfig,
-    ...nextConfig,
+    ...nextConfig
   })
 
   const finalConfig = {}

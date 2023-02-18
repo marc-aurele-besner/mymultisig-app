@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { VStack, Text } from '@chakra-ui/react'
 import { useNetwork } from 'wagmi'
 
 import TextInput from '../inputs/TextInput'
+import ConfirmationCard from '../cards/ConfirmationCard'
 import NumberInput from '../inputs/NumberInput'
 import ImageButton from '../buttons/ImageButton'
-import { MultiSigFactory, MultiSig } from '../../models/MultiSigs'
+import { MultiSigFactory, MultiSig, MultiSigConstructorArgs } from '../../models/MultiSigs'
 import useCreateMultiSig from '../../hooks/useCreateMultiSig'
 
 interface CreateMultiSigFormProps {
@@ -27,22 +29,21 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
     ownerCount: 1,
     nonce: 0,
     owners: [owner01, '', ''],
-    isDeployed: false,
+    isDeployed: false
   })
 
-  const { data, isLoading, isSuccess, write } = useCreateMultiSig(
-    {
-      contractName: multiSig.name,
-      owners: multiSig.owners,
-      threshold: multiSig.threshold,
-    },
-    factory.address,
-  )
+  const constructorArgs: MultiSigConstructorArgs = {
+    contractName: multiSig.name,
+    owners: multiSig.owners,
+    threshold: multiSig.threshold
+  }
+
+  const { data, isLoading, isSuccess, write } = useCreateMultiSig(constructorArgs, factory.address)
 
   const handleOwnersChange = (event: React.ChangeEvent<HTMLInputElement>, input: number) => {
     setMultiSig({
       ...multiSig,
-      owners: multiSig.owners.map((owner, index) => (index === input ? event.target.value : owner)),
+      owners: multiSig.owners.map((owner, index) => (index === input ? event.target.value : owner))
     })
   }
   const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>, input: keyof MultiSig) => {
@@ -60,6 +61,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
 
   const handleCreateMultiSig = () => {
     write?.()
+    // addMultiSig(multiSig)
   }
 
   return (
@@ -99,7 +101,25 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
           Check Wallet
         </Text>
       )}
-      {isSuccess && <div>Transaction: {JSON.stringify(data)}</div>}
+      {isSuccess && (
+        <>
+          <Link key={`LinkToExplorer`} href={`https://goerli.etherscan.io/tx/${data?.hash}`} target='_blank'>
+            <ImageButton placeholder='See transaction in explorer' imagePath='/images/globe.png' />
+          </Link>
+          {data && data.hash && (
+            <>
+              <Text fontSize='lg' fontWeight='bold' color='white' pb='1rem'>
+                Transaction hash: {data?.hash}
+              </Text>
+              <ConfirmationCard
+                hash={data.hash}
+                multiSigFactoryAddress={factory.address}
+                constructorArgs={constructorArgs}
+              />
+            </>
+          )}
+        </>
+      )}
     </VStack>
   )
 }
