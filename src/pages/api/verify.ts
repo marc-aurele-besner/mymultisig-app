@@ -62,11 +62,11 @@ const handler = async (event: any, context: any) => {
     console.log('event.body', event.body)
 
     axios
-      .post('//api.etherscan.io/api', {
-        apikey: ETHERSCAN_API_KEY, //A valid API-Key is required
-        module: 'contract', //Do not change
-        action: 'verifysourcecode', //Do not change
-        contractaddress: data.contractAddress, //Contract Address starts with 0x...
+      .post('https://api.etherscan.io/api', {
+        apikey: ETHERSCAN_API_KEY,
+        module: 'contract',
+        action: 'verifysourcecode',
+        contractaddress: data.contractAddress,
         sourceCode: `${Contract.Flat}`, //Contract Source Code (Flattened if necessary)
         codeformat: 'solidity-single-file', //solidity-single-file (default) or solidity-standard-json-input (for std-input-json-format support
         contractname: data.constructorArgs.contractName, //ContractName (if codeformat=solidity-standard-json-input, then enter contractname as ex: erc20.sol:erc20)
@@ -77,7 +77,7 @@ const handler = async (event: any, context: any) => {
           data.constructorArgs.contractName,
           data.constructorArgs.owners,
           data.constructorArgs.threshold
-        ], //if applicable
+        ],
         evmversion: '', //leave blank for compiler default, homestead, tangerineWhistle, spuriousDragon, byzantium, constantinople, petersburg, istanbul (applicable when codeformat=solidity-single-file)
         licenseType: 3 //Valid codes 1-14 where 1=No License .. 14=Business Source License 1.1, see https://etherscan.io/contract-license-types
       })
