@@ -11,7 +11,7 @@ interface MultiSigListProps {
 
 const MultiSigList: React.FC<MultiSigListProps> = ({ multiSigAddress, address, setSelectMultiSig }) => {
   const { data } = useMultiSigDetails(multiSigAddress, address)
-
+  console.log('data', data)
   if (!data || !data[0] || !data[5]) return null
 
   return (

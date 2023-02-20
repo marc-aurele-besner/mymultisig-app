@@ -20,7 +20,7 @@ const UseYourMultiSig: React.FC = () => {
 
   const filteredMultiSigs = chain ? multiSigs.filter((multiSig) => multiSig.chainId === chain.id) : []
 
-  console.log('multiSigs', multiSigs, filteredMultiSigs)
+  console.log('multiSigs', multiSigs, filteredMultiSigs, chain?.id)
 
   useEffect(() => {
     setHasMounted(true)
@@ -59,14 +59,17 @@ const UseYourMultiSig: React.FC = () => {
                         Please create one first or import one.
                       </ErrorCard>
                     ) : (
-                      filteredMultiSigs.map((multiSig, index) => (
-                        <MultiSigList
-                          key={`${multiSig.address}-${index}}`}
-                          multiSigAddress={multiSig.address}
-                          address={address}
-                          setSelectMultiSig={setSelectMultiSig}
-                        />
-                      ))
+                      <>
+                        {filteredMultiSigs.map((multiSig, index) => (
+                          <MultiSigList
+                            key={`${multiSig.address}-${index}}`}
+                            multiSigAddress={multiSig.address}
+                            address={address}
+                            setSelectMultiSig={setSelectMultiSig}
+                          />
+                        ))}
+                        Hello world
+                      </>
                     )}
                     <Link href='/importMultiSig'>
                       <ImageButton
