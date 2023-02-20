@@ -12,9 +12,15 @@ const SelectContract: React.FC<SelectContractProps> = ({ onChange }) => {
       color='white'
       onChange={(e) => onChange(e.target.value)}
       _focus={{
-        color: 'black',
+        color: 'white'
       }}>
-      <option value='itSelf'>MyMultiSig</option>
+      <option
+        value='itSelf'
+        style={{
+          color: 'white'
+        }}>
+        MyMultiSig
+      </option>
     </Select>
   )
 }

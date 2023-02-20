@@ -8,23 +8,31 @@ interface SelectFunctionProps {
 }
 
 const SelectFunction: React.FC<SelectFunctionProps> = ({ abi, onChange }) => {
+  const filterFunction = abi.filter(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (abi: any) => abi.type === 'function' && abi.stateMutability !== 'view' && abi.stateMutability !== 'pure'
+  )
   return (
     <Select
       placeholder='Select Function'
       color='white'
       onChange={(e) => onChange(e.target.value)}
       _focus={{
-        color: 'black'
+        color: 'white'
       }}>
-      {abi.length > 0 &&
-        abi.map((item: { name: string }) => {
+      {filterFunction.length > 0 &&
+        filterFunction.map((item: { name: string }) => {
           return (
-            <option key={item.name} value={item.name}>
+            <option
+              key={item.name}
+              value={item.name}
+              style={{
+                color: 'white'
+              }}>
               {item.name}
             </option>
           )
         })}
-      <option value='itSelf'>addOwner</option>
     </Select>
   )
 }
