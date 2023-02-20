@@ -11,20 +11,17 @@ interface MultiSigListProps {
 
 const MultiSigList: React.FC<MultiSigListProps> = ({ multiSigAddress, address, setSelectMultiSig }) => {
   const { data } = useMultiSigDetails(multiSigAddress, address)
-  console.log('data', data)
+
   if (!data || !data[0] || !data[5]) return null
 
   return (
     <>
-      <Text fontSize='2xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-        Select a MultiSig to use
-      </Text>
       <Box border='1px' borderColor='white' borderRadius='5px' p='1rem'>
         <HStack>
           <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
             {data[0]?.toString()}
           </Text>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rrem'>
+          <Text fontSize='sm' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
             {multiSigAddress}
           </Text>
           <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setSelectMultiSig(multiSigAddress)}>

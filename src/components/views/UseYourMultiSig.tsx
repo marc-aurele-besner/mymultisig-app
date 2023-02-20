@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Center, VStack, Text } from '@chakra-ui/react'
+import { Center, VStack, Text, Box } from '@chakra-ui/react'
 import { useAccount, useNetwork } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
@@ -19,8 +19,6 @@ const UseYourMultiSig: React.FC = () => {
   const [selectMultiSig, setSelectMultiSig] = useState<`0x${string}` | undefined>()
 
   const filteredMultiSigs = chain ? multiSigs.filter((multiSig) => multiSig.chainId === chain.id) : []
-
-  console.log('multiSigs', multiSigs, filteredMultiSigs, chain?.id)
 
   useEffect(() => {
     setHasMounted(true)
@@ -60,6 +58,9 @@ const UseYourMultiSig: React.FC = () => {
                       </ErrorCard>
                     ) : (
                       <>
+                        <Text fontSize='2xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+                          Select a MultiSig to use
+                        </Text>
                         {filteredMultiSigs.map((multiSig, index) => (
                           <MultiSigList
                             key={`${multiSig.address}-${index}}`}
@@ -68,25 +69,27 @@ const UseYourMultiSig: React.FC = () => {
                             setSelectMultiSig={setSelectMultiSig}
                           />
                         ))}
-                        Hello world
                       </>
                     )}
-                    <Link href='/importMultiSig'>
-                      <ImageButton
-                        placeholder='Import a multiSig'
-                        imagePath='/images/import.png'
-                        onClick={() => null}
-                        // isLoading={isLoading}
-                        // isDisabled={isLoading}
-                      />
-                    </Link>
-                    <ImageButton
-                      placeholder='Remove all multiSig'
-                      imagePath='/images/clear.png'
-                      onClick={() => clearAllMultiSig()}
-                      // isLoading={isLoading}
-                      // isDisabled={isLoading}
-                    />
+                    <Text fontSize='2xl' fontWeight='bold' color='white' m='0.5rem'>
+                      Other options
+                    </Text>
+                    <Box border='1px' borderColor='white' borderRadius='5px' p='1rem' w='100%'>
+                      <Link href='/importMultiSig'>
+                        <ImageButton
+                          placeholder='Import a multiSig'
+                          imagePath='/images/import.png'
+                          onClick={() => null}
+                        />
+                      </Link>
+                      {multiSigs.length > 0 && (
+                        <ImageButton
+                          placeholder='Remove all multiSig'
+                          imagePath='/images/clear.png'
+                          onClick={() => clearAllMultiSig()}
+                        />
+                      )}
+                    </Box>
                   </>
                 )}
               </>
