@@ -27,3 +27,11 @@ export type MultiSigConstructorArgs = {
   owners: string[]
   threshold: number
 }
+
+export type MultiSigExecTransactionArgs = {
+  to: string
+  value: string
+  data: string
+  txnGas: string
+  signatures: string
+}
