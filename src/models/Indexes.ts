@@ -12,98 +12,165 @@ export const indexes: TIndexes = [
   // Actions
   {
     name: 'all_actions',
-    classes: 'actions',
+    classes: 'actions'
   },
   {
     name: 'actions_by_id',
     classes: 'actions',
     private: true,
-    terms: ['data.id'],
+    terms: ['data.id']
+  },
+  // MultiSig
+  {
+    name: 'all_multisig-factories',
+    classes: 'multisig-factories'
+  },
+  {
+    name: 'multisig-factories_by_chainId',
+    classes: 'multisig-factories',
+    private: true,
+    terms: ['data.chainId']
+  },
+  {
+    name: 'multisig-factories_by_address',
+    classes: 'multisig-factories',
+    private: true,
+    terms: ['data.address']
+  },
+  {
+    name: 'multisig-factories_by_chainIdAndAddress',
+    classes: 'multisig-factories',
+    private: true,
+    terms: ['data.chainIdAndAddress']
+  },
+  {
+    name: 'multisig-requests_by_id',
+    classes: 'multisig-requests',
+    private: true,
+    terms: ['data.id']
+  },
+  {
+    name: 'all_multisig-requests',
+    classes: 'multisig-requests'
+  },
+  {
+    name: 'multisig-requests_by_id',
+    classes: 'multisig-requests',
+    private: true,
+    terms: ['data.id']
+  },
+  {
+    name: 'multisig-requests_by_multisig-wallet',
+    classes: 'multisig-requests',
+    private: true,
+    terms: ['data.multisig-wallet']
+  },
+  {
+    name: 'multisig-requests_by_submitter',
+    classes: 'multisig-requests',
+    private: true,
+    terms: ['data.submitter']
+  },
+  {
+    name: 'all_multisig-wallets',
+    classes: 'multisig-wallets'
+  },
+  {
+    name: 'multisig-wallets_by_address',
+    classes: 'multisig-wallets',
+    private: true,
+    terms: ['data.address']
+  },
+  {
+    name: 'multisig-wallets_by_chainIdAndAddress',
+    classes: 'multisig-wallets',
+    private: true,
+    terms: ['data.chainIdAndAddress']
   },
   // Log
   {
     name: 'logActions_by_id',
     classes: 'logActions',
     private: true,
-    terms: ['data.id'],
+    terms: ['data.id']
   },
   {
     name: 'logActions_by_function',
     classes: 'logActions',
     private: true,
-    terms: ['data.function'],
+    terms: ['data.function']
   },
   {
     name: 'logAddDbs_by_id',
     classes: 'logAddDbs',
     private: true,
-    terms: ['data.id'],
+    terms: ['data.id']
   },
   {
     name: 'logAddDbs_by_class',
     classes: 'logAddDbs',
     private: true,
-    terms: ['data.class'],
+    terms: ['data.class']
   },
   {
     name: 'logAddDbs_by_document',
     classes: 'logAddDbs',
     private: true,
-    terms: ['data.document'],
+    terms: ['data.document']
   },
   {
     name: 'logDelDbs_by_id',
     classes: 'logDelDbs',
     private: true,
-    terms: ['data.id'],
+    terms: ['data.id']
   },
   {
     name: 'logDelDbs_by_class',
     classes: 'logDelDbs',
     private: true,
-    terms: ['data.class'],
+    terms: ['data.class']
   },
   {
     name: 'logDelDbs_by_index',
     classes: 'logDelDbs',
     private: true,
-    terms: ['data.index'],
+    terms: ['data.index']
   },
   {
     name: 'logDelDbs_by_document',
     classes: 'logDelDbs',
     private: true,
-    terms: ['data.document'],
+    terms: ['data.document']
   },
   {
     name: 'logUpdDbs_by_id',
     classes: 'logUpdDbs',
     private: true,
-    terms: ['data.id'],
+    terms: ['data.id']
   },
   {
     name: 'logUpdDbs_by_class',
     classes: 'logUpdDbs',
     private: true,
-    terms: ['data.class'],
+    terms: ['data.class']
   },
   {
     name: 'logUpdDbs_by_document',
     classes: 'logUpdDbs',
     private: true,
-    terms: ['data.document'],
+    terms: ['data.document']
   },
   // Wallet
   {
     name: 'all_wallets',
-    classes: 'wallets',
+    classes: 'wallets'
   },
   {
     name: 'wallets_by_id',
     classes: 'wallets',
     private: true,
-    terms: ['data.id'],
-  },
+    terms: ['data.id']
+  }
 ]
 
 export default indexes

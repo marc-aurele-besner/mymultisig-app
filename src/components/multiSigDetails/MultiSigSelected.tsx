@@ -44,7 +44,6 @@ const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, addres
             }}
           />
         </HStack>
-
         {abi &&
           abi.find((item) => item.name == selectedFunction) &&
           abi.find((item) => item.name == selectedFunction).inputs.length > 0 && (
