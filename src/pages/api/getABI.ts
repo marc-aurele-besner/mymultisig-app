@@ -1,7 +1,5 @@
 import axios from 'axios'
 
-import Contract from '../../constants/FlatMyMultiSig'
-
 if (!process.env.ETHERSCAN_API_KEY) throw new Error('No ETHERSCAN_API_KEY in .env file')
 
 const { ETHERSCAN_API_KEY } = process.env

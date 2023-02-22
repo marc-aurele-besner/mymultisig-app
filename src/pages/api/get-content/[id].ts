@@ -3,9 +3,8 @@ import { providers, Wallet } from 'ethers'
 import fauna from 'faunadb-utility'
 import { slackBuilder, slackUtils } from 'slack-utility'
 import { TBlock } from 'slack-utility/src/types'
-import { v4 as uuid } from 'uuid'
 
-import signDataForApi from '../../hooks/shared/signDataForApi'
+import signDataForApi from '../../../hooks/shared/signDataForApi'
 
 if (!process.env.FAUNADB_SERVER_SECRET) throw new Error('No FAUNADB_SERVER_SECRET in .env file')
 if (!process.env.API_SIGNER_PRIVATE_KEY) throw new Error('No API_SIGNER_PRIVATE_KEY in .env file')
@@ -15,12 +14,15 @@ if (!process.env.SLACK_CONVERSATION_ID) throw new Error('No SLACK_CONVERSATION_I
 
 const { FAUNADB_SERVER_SECRET, SLACK_TOKEN, SLACK_CONVERSATION_ID } = process.env
 
-const FUNCTION = 'add-content'
+const FUNCTION = 'get-content'
 
-// eslint-disable-next-line
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('Function `%s` invoked', FUNCTION)
   const data = JSON.parse(req.body)
+  const { id } = req.query
+  if (!id) throw new Error('No id in query')
+  if (typeof id !== 'string') throw new Error('id is not a string')
+
   if (
     data.collection !== undefined &&
     data.action !== undefined &&
@@ -39,7 +41,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         process.env.SLACK_TOKEN,
         process.env.SLACK_CONVERSATION_ID,
         'Add Content function called',
-        [slackBuilder.buildSimpleSlackHeaderMsg(`Someone is adding data on MyMultiSig.app (${data.action})`)],
+        [slackBuilder.buildSimpleSlackHeaderMsg(`Someone is querying data on MyMultiSig.app (${data.action})`)],
         true
       )
 
@@ -53,7 +55,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     )
     const uiProvider = new providers.JsonRpcProvider(process.env.API_SIGNER_RPC_URL)
     const uiPK = process.env.API_SIGNER_PRIVATE_KEY
-    if (uiPK === undefined) throw new Error('No API_SIGNER_PRIVATE_KEY in .env file')
+    if (uiPK === undefined) throw new Error('No API_SIGNER_PRIVATE_KEY in .env.development file')
     const uiSigner = new Wallet(uiPK, uiProvider)
     const matchingUISignDataCheck2 = await uiSigner._signTypedData(data.message[0], data.message[1], data.message[2])
     if (
@@ -70,18 +72,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
      * To-Do: Check the user signature
      */
     let classes: string[] = []
+    let indexes: string[] = []
     let slackMessageTitle = ''
-    let slackMessageBlocks: TBlock[] = []
+    const slackMessageBlocks: TBlock[] = []
     switch (data.collection) {
-      case 'addMultiSigRequest':
+      case 'getMultiSigRequestById':
         classes = ['multisig-requests']
-        slackMessageTitle = 'A new MultiSig request has been created'
-        slackMessageBlocks = [slackBuilder.buildSimpleSlackHeaderMsg(`A new MultiSig request has been created`)]
-        break
-      case 'createMultiSigWallet':
-        classes = ['multisig-wallets']
-        slackMessageTitle = 'New MultiSig wallet was created',
-        slackMessageBlocks = [slackBuilder.buildSimpleSlackHeaderMsg(`New MultiSig wallet was created`)]
+        indexes = ['multisig-requests_by_id']
+        slackMessageTitle = 'Someone is querying MultiSig Request by ID'
+        slackMessageBlocks.push(slackBuilder.buildSimpleSlackHeaderMsg(`Someone is querying MultiSig Request by ID`))
         break
       default:
         break
@@ -90,13 +89,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       await slackUtils.slackPostMessage(SLACK_TOKEN, SLACK_CONVERSATION_ID, slackMessageTitle, slackMessageBlocks, true)
     }
     if (classes.length == 1) {
-      await fauna.createFaunaDocument(FAUNADB_SERVER_SECRET, classes[0], {
-        id: uuid(),
-        ...data.data
-      })
-      console.log('Add content done')
       res.status(200).json({
-        message: 'Add content done'
+        message: 'Data retrieved',
+        content: await fauna.queryTermByFaunaIndexes(FAUNADB_SERVER_SECRET, indexes[0], id)
       })
     } else console.log('Invalid collection')
     res.status(400).json({
@@ -105,7 +100,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   } else {
     console.log('Invalid data')
     res.status(400).json({
-      message: JSON.stringify('Invalid data')
+      message: 'Invalid data'
     })
   }
 }
