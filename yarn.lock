@@ -14123,10 +14123,10 @@ hard-rejection@^2.1.0:
   resolved "https://registry.yarnpkg.com/hard-rejection/-/hard-rejection-2.1.0.tgz#1c6eda5c1685c63942766d79bb40ae773cecd883"
   integrity sha512-VIZB+ibDhx7ObhAe7OVtoEbuP4h/MuOTHJ+J8h/eBXotJYl0fBgR72xDFCKgIh22OJZIOVNxBMWuhAr10r8HdA==
 
-hardhat-contract-clarity@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/hardhat-contract-clarity/-/hardhat-contract-clarity-0.0.5.tgz#fb6ab13d4ba348d6f17d4f5c23e898b6bf1f3f0c"
-  integrity sha512-sWd5t5vT9Xj+JGeiIAdBwHTtXAZIeZdtUzx9JWgVOaOyejvfBNfg+4ijPZ0fFsKjgdV6Obc7V/JYz1wuDAnJZw==
+hardhat-contract-clarity@^0.1.0:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/hardhat-contract-clarity/-/hardhat-contract-clarity-0.1.1.tgz#4c723dff5a97190e6378ae320a96e0ce0f5f8286"
+  integrity sha512-uZUfJ8lMeuG3KAuwVLEea+9CA/gRri29ODJ19J2Vh3MR4SUYh42uakEN/S7uSjSEfaIWSevtl2FafXM05sCdMg==
   dependencies:
     fs "^0.0.1-security"
     inquirer "^8.2.5"
@@ -17523,10 +17523,10 @@ mute-stream@0.0.8:
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.8.tgz#1630c42b2251ff81e2a283de96a5497ea92e5e0d"
   integrity sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==
 
-mymultisig-contract@^0.0.6:
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/mymultisig-contract/-/mymultisig-contract-0.0.6.tgz#b4524020246580b6e1cbe1569cbe8109607556b2"
-  integrity sha512-2/abPRKQKbxoS4QIrQQx1I0xh1nk0WtySani67dEd9ZVzJxg7LfpUocwfWH2otHdTYeRiz3apnShiZbKGw0/eg==
+mymultisig-contract@^0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/mymultisig-contract/-/mymultisig-contract-0.0.7.tgz#31cae3c99f1e71c575896eb44422c443de48d48c"
+  integrity sha512-xLvQzv2msBEfFX+JwxVZKaE99oFuIEIwGp/cPReHsadJFk3ySe2+EtmIvVbHt2pYjLXtu6Xp1RRwRJj3zwP7bA==
   dependencies:
     "@openzeppelin/contracts" "^4.8.1"
     "@openzeppelin/contracts-upgradeable" "^4.8.1"
@@ -17534,7 +17534,7 @@ mymultisig-contract@^0.0.6:
     ethers "5.4.7"
     ethersV6 "npm:ethers"
     foundry-test-utility "^0.0.7"
-    hardhat-contract-clarity "^0.0.5"
+    hardhat-contract-clarity "^0.1.0"
 
 nan@^2.12.1, nan@^2.16.0:
   version "2.17.0"

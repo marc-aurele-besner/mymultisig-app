@@ -69,7 +69,7 @@
     "framer-motion": "^9.0.4",
     "jest": "^29.4.3",
     "lint-staged": "^13.1.2",
-    "mymultisig-contract": "^0.0.6",
+    "mymultisig-contract": "^0.0.7",
     "next": "^13.1.6",
     "next-pwa": "^5.6.0",
     "prettier": "^2.8.4",
