@@ -1,12 +1,14 @@
-import { useContractRead, useNetwork, useSignTypedData } from 'wagmi'
-import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
+import { useAccount, useNetwork, useSignTypedData } from 'wagmi'
 import { BigNumber } from 'ethers'
 
 import { useNotificationSuccess, useNotificationError } from './notifications'
+import useMultiSigDetails from './useMultiSigDetails'
 import { MultiSigExecTransactionArgs } from '../models/MultiSigs'
 
 const useSignedMultiSigRequest = (multiSigAddress: `0x${string}`, args: MultiSigExecTransactionArgs) => {
   const { chain } = useNetwork()
+  const { address } = useAccount()
+  const { data: multiSigDetails } = useMultiSigDetails(multiSigAddress, address || '0x')
   const notificationError = useNotificationError(
     'Error Signing MultiSig Request',
     'There was an error signing MultiSig request.'
@@ -16,15 +18,9 @@ const useSignedMultiSigRequest = (multiSigAddress: `0x${string}`, args: MultiSig
     'You signed the MultiSig request successfully.'
   )
 
-  const { data: nonceData } = useContractRead({
-    address: multiSigAddress,
-    abi: MyMultiSig,
-    functionName: 'nonce'
-  })
-
   const domain = {
-    name: 'MyMultiSigFactory',
-    version: '0.0.7',
+    name: multiSigDetails ? String(multiSigDetails[0]) : 'MyMultiSigFactory',
+    version: multiSigDetails ? String(multiSigDetails[1]) : '0.0.7',
     chainId: chain?.id,
     verifyingContract: multiSigAddress
   } as const
@@ -59,7 +55,7 @@ const useSignedMultiSigRequest = (multiSigAddress: `0x${string}`, args: MultiSig
     value: BigNumber.from(args.value),
     data: args.data,
     gas: BigNumber.from(args.txnGas),
-    nonce: BigNumber.from(nonceData)
+    nonce: BigNumber.from(multiSigDetails ? multiSigDetails[2] : 0)
   } as const
 
   const { data, isError, isLoading, isSuccess, signTypedData } = useSignTypedData({
