@@ -29,9 +29,9 @@ export type MultiSigConstructorArgs = {
 }
 
 export type MultiSigExecTransactionArgs = {
-  to: string
+  to: `0x${string}`
   value: string
-  data: string
+  data: `0x${string}`
   txnGas: string
   signatures: string
 }
