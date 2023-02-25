@@ -4,7 +4,7 @@ import fauna from 'faunadb-utility'
 import { slackBuilder, slackUtils } from 'slack-utility'
 import { TBlock } from 'slack-utility/src/types'
 
-import signData from '../../utils/signData'
+import signData from '../../../utils/signData'
 
 if (!process.env.FAUNADB_SERVER_SECRET) throw new Error('No FAUNADB_SERVER_SECRET in .env file')
 if (!process.env.PRIVATE_KEY) throw new Error('No PRIVATE_KEY in .env file')
@@ -24,6 +24,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (typeof id !== 'string') throw new Error('id is not a string')
 
   if (
+    process.env.PRIVATE_KEY !== undefined &&
+    process.env.RPC_ETHEREUM !== undefined &&
     data.collection !== undefined &&
     data.action !== undefined &&
     data.chainId !== undefined &&
