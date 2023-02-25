@@ -9,10 +9,9 @@ import SignRequest from '../buttons/SignRequest'
 
 interface CreateMultiSigRequestFormProps {
   multiSigAddress: `0x${string}`
-  address: `0x${string}`
 }
 
-const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ multiSigAddress, address }) => {
+const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ multiSigAddress }) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [abi, setAbi] = useState<any[] | undefined>(undefined)
   const [type, setType] = useState<string>('contract')

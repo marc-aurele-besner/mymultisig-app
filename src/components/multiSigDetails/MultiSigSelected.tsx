@@ -20,7 +20,7 @@ const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, addres
   return (
     <>
       <Box>
-        <HStack>
+        <HStack pl='1.5rem' pr='1.5rem'>
           <Center>
             <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setAction('buildRequest')}>
               Build a request
@@ -33,7 +33,7 @@ const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, addres
         {action === 'consultRequests' ? (
           <MultiSigRequestList multiSigAddress={multiSigAddress} address={address} />
         ) : (
-          <CreateMultiSigRequestForm multiSigAddress={multiSigAddress} address={address} />
+          <CreateMultiSigRequestForm multiSigAddress={multiSigAddress} />
         )}
       </Box>
       <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setSelectMultiSig(undefined)}>
