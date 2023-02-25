@@ -38,12 +38,15 @@ export type MultiSigExecTransactionArgs = {
 
 export type MultiSigTransactionRequest = {
   id: string
+  multiSigAddress: `0x${string}`
   request: MultiSigExecTransactionArgs
+  description: string
   submitter: `0x${string}`
   signatures: string[]
   ownerSigners: `0x${string}`[]
   dateSubmitted: string
   dateExecuted: string
+  isActive: boolean
   isExecuted: boolean
   isCancelled: boolean
   isConfirmed: boolean

@@ -81,15 +81,18 @@ const useSignedMultiSigRequest = (multiSigAddress: `0x${string}`, args: MultiSig
       setDataAdded(true)
       const dataToAdd: MultiSigTransactionRequest = {
         id: v4(),
+        multiSigAddress: multiSigAddress,
         request: {
           ...args,
           signatures: args.signatures === '' ? data || '0x' : args.signatures + data?.substring(2)
         },
+        description: 'Add MultiSig Request',
         submitter: address || '0x',
         signatures: [data || '0x'],
         ownerSigners: [address || '0x'],
         dateSubmitted: Date.now().toString(),
         dateExecuted: '',
+        isActive: true,
         isExecuted: false,
         isCancelled: false,
         isConfirmed: false
@@ -107,7 +110,7 @@ const useSignedMultiSigRequest = (multiSigAddress: `0x${string}`, args: MultiSig
         })
       })
     }
-  }, [dataAdded, isSuccess, data, address, chain, args, addMultiSigTransactionRequest])
+  }, [dataAdded, isSuccess, data, multiSigAddress, address, chain, args, addMultiSigTransactionRequest])
 
   return { data, isError, isLoading, isSuccess, signTypedData }
 }

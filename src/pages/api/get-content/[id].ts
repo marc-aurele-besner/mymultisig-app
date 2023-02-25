@@ -77,9 +77,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
      */
     let classes: string[] = []
     let indexes: string[] = []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let terms: any[] = []
     let slackMessageTitle = ''
     const slackMessageBlocks: TBlock[] = []
-    switch (data.collection) {
+    switch (data.action) {
+      case 'getMultiSigRequests':
+        classes = ['multisig-requests']
+        indexes = ['multisig-requests_by_multiSigAddress_and_isActive']
+        terms = [data.data.multiSigAddress, true]
+        slackMessageTitle = 'Someone is querying MultiSig Request by multiSigAddress and isActive'
+        slackMessageBlocks.push(
+          slackBuilder.buildSimpleSlackHeaderMsg(`Someone is querying MultiSig Request by multiSigAddress and isActive`)
+        )
+        break
       case 'getMultiSigRequestById':
         classes = ['multisig-requests']
         indexes = ['multisig-requests_by_id']
@@ -93,14 +104,29 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       await slackUtils.slackPostMessage(SLACK_TOKEN, SLACK_CONVERSATION_ID, slackMessageTitle, slackMessageBlocks, true)
     }
     if (classes.length == 1) {
-      res.status(200).json({
-        message: 'Data retrieved',
-        content: await fauna.queryTermByFaunaIndexes(FAUNADB_SERVER_SECRET, indexes[0], id)
+      if (terms.length == 0) {
+        res.status(200).json({
+          message: 'Data retrieved',
+          content: await fauna.queryTermByFaunaIndexes(FAUNADB_SERVER_SECRET, indexes[0], id)
+        })
+      } else {
+        const findData = await fauna.queryTermsByFaunaIndexes(FAUNADB_SERVER_SECRET, indexes[0], terms)
+        if (findData.statusCode === 200 && findData.body)
+          res.status(200).json({
+            message: 'Data retrieved',
+            content: JSON.parse(findData.body)
+          })
+        else
+          res.status(404).json({
+            message: 'Data not found'
+          })
+      }
+    } else {
+      console.log('Invalid collection')
+      res.status(400).json({
+        message: 'Invalid collection'
       })
-    } else console.log('Invalid collection')
-    res.status(400).json({
-      message: 'Invalid collection'
-    })
+    }
   } else {
     console.log('Invalid data')
     res.status(400).json({
