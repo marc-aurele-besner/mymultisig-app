@@ -14,7 +14,6 @@ const signDataForApi = async (
   details: string,
   signatureExpiry = 0
 ) => {
-  console.log('signDataForApi', action, chainId, collection, data, details, signatureExpiry)
   const uiProvider = new JsonRpcProvider(rpcUrl)
   const uiSigner = new Wallet(pk, uiProvider)
 
