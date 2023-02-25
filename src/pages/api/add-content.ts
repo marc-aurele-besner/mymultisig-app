@@ -5,11 +5,11 @@ import { slackBuilder, slackUtils } from 'slack-utility'
 import { TBlock } from 'slack-utility/src/types'
 import { v4 as uuid } from 'uuid'
 
-import signDataForApi from '../../hooks/shared/signDataForApi'
+import signData from '../../utils/signData'
 
 if (!process.env.FAUNADB_SERVER_SECRET) throw new Error('No FAUNADB_SERVER_SECRET in .env file')
-if (!process.env.API_SIGNER_PRIVATE_KEY) throw new Error('No API_SIGNER_PRIVATE_KEY in .env file')
-if (!process.env.API_SIGNER_RPC_URL) throw new Error('No API_SIGNER_RPC_URL in .env file')
+if (!process.env.PRIVATE_KEY) throw new Error('No PRIVATE_KEY in .env file')
+if (!process.env.RPC_ETHEREUM) throw new Error('No RPC_ETHEREUM in .env file')
 if (!process.env.SLACK_TOKEN) throw new Error('No SLACK_TOKEN in .env file')
 if (!process.env.SLACK_CONVERSATION_ID) throw new Error('No SLACK_CONVERSATION_ID in .env file')
 
@@ -22,6 +22,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('Function `%s` invoked', FUNCTION)
   const data = JSON.parse(req.body)
   if (
+    process.env.PRIVATE_KEY !== undefined &&
+    process.env.RPC_ETHEREUM !== undefined &&
     data.collection !== undefined &&
     data.action !== undefined &&
     data.chainId !== undefined &&
@@ -43,7 +45,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         true
       )
 
-    const matchingUISignData = await signDataForApi(
+    const matchingUISignData = await signData(
+      process.env.PRIVATE_KEY,
+      process.env.RPC_ETHEREUM,
       data.action,
       data.chainId,
       data.collection,
@@ -51,9 +55,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       data.details,
       data.signatureExpiry
     )
-    const uiProvider = new providers.JsonRpcProvider(process.env.API_SIGNER_RPC_URL)
-    const uiPK = process.env.API_SIGNER_PRIVATE_KEY
-    if (uiPK === undefined) throw new Error('No API_SIGNER_PRIVATE_KEY in .env file')
+    const uiProvider = new providers.JsonRpcProvider(process.env.RPC_ETHEREUM)
+    const uiPK = process.env.PRIVATE_KEY
+    if (uiPK === undefined) throw new Error('No PRIVATE_KEY in .env file')
     const uiSigner = new Wallet(uiPK, uiProvider)
     const matchingUISignDataCheck2 = await uiSigner._signTypedData(data.message[0], data.message[1], data.message[2])
     if (
@@ -72,7 +76,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     let classes: string[] = []
     let slackMessageTitle = ''
     let slackMessageBlocks: TBlock[] = []
-    switch (data.collection) {
+    console.log('data.collection', data.action)
+    switch (data.action) {
       case 'addMultiSigRequest':
         classes = ['multisig-requests']
         slackMessageTitle = 'A new MultiSig request has been created'
@@ -80,8 +85,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         break
       case 'createMultiSigWallet':
         classes = ['multisig-wallets']
-        slackMessageTitle = 'New MultiSig wallet was created',
-        slackMessageBlocks = [slackBuilder.buildSimpleSlackHeaderMsg(`New MultiSig wallet was created`)]
+        ;(slackMessageTitle = 'New MultiSig wallet was created'),
+          (slackMessageBlocks = [slackBuilder.buildSimpleSlackHeaderMsg(`New MultiSig wallet was created`)])
         break
       default:
         break
@@ -89,6 +94,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (slackMessageTitle && slackMessageBlocks && slackMessageBlocks.length > 0) {
       await slackUtils.slackPostMessage(SLACK_TOKEN, SLACK_CONVERSATION_ID, slackMessageTitle, slackMessageBlocks, true)
     }
+    console.log('classes', classes)
     if (classes.length == 1) {
       await fauna.createFaunaDocument(FAUNADB_SERVER_SECRET, classes[0], {
         id: uuid(),
@@ -98,10 +104,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       res.status(200).json({
         message: 'Add content done'
       })
-    } else console.log('Invalid collection')
-    res.status(400).json({
-      message: 'Invalid collection'
-    })
+    } else {
+      console.log('Invalid collection')
+      res.status(400).json({
+        message: 'Invalid collection'
+      })
+    }
   } else {
     console.log('Invalid data')
     res.status(400).json({

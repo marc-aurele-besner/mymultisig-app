@@ -4,11 +4,11 @@ import fauna from 'faunadb-utility'
 import { slackBuilder, slackUtils } from 'slack-utility'
 import { TBlock } from 'slack-utility/src/types'
 
-import signDataForApi from '../../../hooks/shared/signDataForApi'
+import signData from '../../utils/signData'
 
 if (!process.env.FAUNADB_SERVER_SECRET) throw new Error('No FAUNADB_SERVER_SECRET in .env file')
-if (!process.env.API_SIGNER_PRIVATE_KEY) throw new Error('No API_SIGNER_PRIVATE_KEY in .env file')
-if (!process.env.API_SIGNER_RPC_URL) throw new Error('No API_SIGNER_RPC_URL in .env file')
+if (!process.env.PRIVATE_KEY) throw new Error('No PRIVATE_KEY in .env file')
+if (!process.env.RPC_ETHEREUM) throw new Error('No RPC_ETHEREUM in .env file')
 if (!process.env.SLACK_TOKEN) throw new Error('No SLACK_TOKEN in .env file')
 if (!process.env.SLACK_CONVERSATION_ID) throw new Error('No SLACK_CONVERSATION_ID in .env file')
 
@@ -45,7 +45,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         true
       )
 
-    const matchingUISignData = await signDataForApi(
+    const matchingUISignData = await signData(
+      process.env.PRIVATE_KEY,
+      process.env.RPC_ETHEREUM,
       data.action,
       data.chainId,
       data.collection,
@@ -53,9 +55,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       data.details,
       data.signatureExpiry
     )
-    const uiProvider = new providers.JsonRpcProvider(process.env.API_SIGNER_RPC_URL)
-    const uiPK = process.env.API_SIGNER_PRIVATE_KEY
-    if (uiPK === undefined) throw new Error('No API_SIGNER_PRIVATE_KEY in .env.development file')
+    const uiProvider = new providers.JsonRpcProvider(process.env.RPC_ETHEREUM)
+    const uiPK = process.env.PRIVATE_KEY
+    if (uiPK === undefined) throw new Error('No PRIVATE_KEY in .env.development file')
     const uiSigner = new Wallet(uiPK, uiProvider)
     const matchingUISignDataCheck2 = await uiSigner._signTypedData(data.message[0], data.message[1], data.message[2])
     if (

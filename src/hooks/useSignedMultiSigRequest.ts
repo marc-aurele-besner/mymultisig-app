@@ -6,8 +6,7 @@ import { BigNumber } from 'ethers'
 import { useNotificationSuccess, useNotificationError } from './notifications'
 import useMultiSigDetails from './useMultiSigDetails'
 import { MultiSigExecTransactionArgs } from '../models/MultiSigs'
-import { addContent } from '../utils'
-import signDataForApi from './shared/signDataForApi'
+import { signData, addContent } from '../utils'
 
 const useSignedMultiSigRequest = (multiSigAddress: `0x${string}`, args: MultiSigExecTransactionArgs) => {
   const { chain } = useNetwork()
@@ -76,19 +75,20 @@ const useSignedMultiSigRequest = (multiSigAddress: `0x${string}`, args: MultiSig
 
   useEffect(() => {
     if (isSuccess && chain) {
-      addContent(
-        signDataForApi(
-          'addMultiSigRequest',
-          chain.id,
-          'multisig-requests',
-          {
-            ...args,
-            signatures: args.signatures === '' ? data : args.signatures + data?.substring(2)
-          },
-          'Add MultiSig Request',
-          Date.now() + 1000 * 60 * 60 * 24 * 7
-        )
-      )
+      signData({
+        action: 'addMultiSigRequest',
+        chainId: chain.id,
+        collection: 'multisig-requests',
+        data: {
+          ...args,
+          signatures: args.signatures === '' ? data : args.signatures + data?.substring(2)
+        },
+        details: 'Add MultiSig Request',
+        signatureExpiry: 0
+      }).then(async (dataSigned) => {
+        console.log('dataSigned', dataSigned)
+        await addContent(dataSigned.message)
+      })
     }
   }, [data, isSuccess, args, chain])
 

@@ -1,4 +1,4 @@
-import { addContent, deleteContent, getContent, updateContent } from './api'
 import truncateAddress from './truncateAddress'
 
-export { addContent, deleteContent, getContent, updateContent, truncateAddress }
+export { verifyContract, getABI, signData, addContent, deleteContent, getContent, updateContent } from './api'
+export { truncateAddress }

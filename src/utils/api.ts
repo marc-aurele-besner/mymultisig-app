@@ -19,6 +19,16 @@ const getABI = (data: any) => {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const signData = (data: any) => {
+  return fetch('/api/signData', {
+    body: JSON.stringify(data),
+    method: 'POST'
+  }).then((response) => {
+    return response.json()
+  })
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const addContent = (data: any) => {
   return fetch('/api/add-content', {
     body: JSON.stringify(data),
@@ -58,4 +68,4 @@ const updateContent = (data: any) => {
   })
 }
 
-export { verifyContract, getABI, addContent, deleteContent, getContent, updateContent }
+export { verifyContract, getABI, signData, addContent, deleteContent, getContent, updateContent }
