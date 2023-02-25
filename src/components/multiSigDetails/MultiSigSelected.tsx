@@ -88,6 +88,11 @@ const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, addres
         )}
         <HStack>
           <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+            Tx. Detail
+          </Text>
+        </HStack>
+        <HStack>
+          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
             Value:
           </Text>
           <TextInput placeholder={'Value'} onChange={(e) => console.log('Value', e)} />

@@ -1,9 +1,13 @@
+import { useEffect } from 'react'
+
 import { useAccount, useNetwork, useSignTypedData } from 'wagmi'
 import { BigNumber } from 'ethers'
 
 import { useNotificationSuccess, useNotificationError } from './notifications'
 import useMultiSigDetails from './useMultiSigDetails'
 import { MultiSigExecTransactionArgs } from '../models/MultiSigs'
+import { addContent } from '../utils'
+import signDataForApi from './shared/signDataForApi'
 
 const useSignedMultiSigRequest = (multiSigAddress: `0x${string}`, args: MultiSigExecTransactionArgs) => {
   const { chain } = useNetwork()
@@ -69,6 +73,24 @@ const useSignedMultiSigRequest = (multiSigAddress: `0x${string}`, args: MultiSig
       notificationSuccess()
     }
   })
+
+  useEffect(() => {
+    if (isSuccess && chain) {
+      addContent(
+        signDataForApi(
+          'addMultiSigRequest',
+          chain.id,
+          'multisig-requests',
+          {
+            ...args,
+            signatures: args.signatures === '' ? data : args.signatures + data?.substring(2)
+          },
+          'Add MultiSig Request',
+          Date.now() + 1000 * 60 * 60 * 24 * 7
+        )
+      )
+    }
+  }, [data, isSuccess, args, chain])
 
   return { data, isError, isLoading, isSuccess, signTypedData }
 }
