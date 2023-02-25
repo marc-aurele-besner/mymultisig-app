@@ -19,14 +19,41 @@ printf "${BLUE}
 ${BGREEN}Let's make sure the branch is up to date 🔄
 ${NC}"
 
+printf "${BBLUE}Let's make sure git is installed 📦
+${NC}"
+
+# Verify if git is installed
+if ! [ -x "$(command -v git)" ]; then
+  printf "${BRED}Git is not installed. Please install it before running this script.
+${NC}"
+  exit 1
+fi
+
 # Make sure the branch is up to date
 git pull
+
+printf "${BYELLOW}Let's verify if Yarn is installed 📦
+${NC}"
+
+# Verify if Yarn is installed
+if ! [ -x "$(command -v yarn)" ]; then
+  printf "${BRED}Yarn is not installed. Please install it before running this script.
+${NC}"
+  exit 1
+fi
 
 printf "${BGREEN}Let's install the dependencies 📦
 ${NC}"
 
 # Install the dependencies
 yarn
+
+printf "${BBLUE}Let's make sure the dependencies are up to date 📦
+${NC}"
+
+# Make sure the dependencies are up to date
+yarn outdated
+
 
 printf "${BYELLOW}Let's build the project 🏗️
 ${NC}"
