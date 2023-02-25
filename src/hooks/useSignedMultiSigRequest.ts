@@ -1,17 +1,20 @@
-import { useEffect } from 'react'
-
+import { useEffect, useState } from 'react'
 import { useAccount, useNetwork, useSignTypedData } from 'wagmi'
 import { BigNumber } from 'ethers'
+import { v4 } from 'uuid'
 
 import { useNotificationSuccess, useNotificationError } from './notifications'
 import useMultiSigDetails from './useMultiSigDetails'
-import { MultiSigExecTransactionArgs } from '../models/MultiSigs'
+import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../models/MultiSigs'
+import useMultiSigs from '../states/multiSigs'
 import { signData, addContent } from '../utils'
 
 const useSignedMultiSigRequest = (multiSigAddress: `0x${string}`, args: MultiSigExecTransactionArgs) => {
   const { chain } = useNetwork()
   const { address } = useAccount()
+  const { addMultiSigTransactionRequest } = useMultiSigs()
   const { data: multiSigDetails } = useMultiSigDetails(multiSigAddress, address || '0x')
+  const [dataAdded, setDataAdded] = useState(false)
   const notificationError = useNotificationError(
     'Error Signing MultiSig Request',
     'There was an error signing MultiSig request.'
@@ -74,23 +77,37 @@ const useSignedMultiSigRequest = (multiSigAddress: `0x${string}`, args: MultiSig
   })
 
   useEffect(() => {
-    if (isSuccess && chain) {
+    if (isSuccess && chain && !dataAdded) {
+      setDataAdded(true)
+      const dataToAdd: MultiSigTransactionRequest = {
+        id: v4(),
+        request: {
+          ...args,
+          signatures: args.signatures === '' ? data || '0x' : args.signatures + data?.substring(2)
+        },
+        submitter: address || '0x',
+        signatures: [data || '0x'],
+        ownerSigners: [address || '0x'],
+        dateSubmitted: Date.now().toString(),
+        dateExecuted: '',
+        isExecuted: false,
+        isCancelled: false,
+        isConfirmed: false
+      }
       signData({
         action: 'addMultiSigRequest',
         chainId: chain.id,
         collection: 'multisig-requests',
-        data: {
-          ...args,
-          signatures: args.signatures === '' ? data : args.signatures + data?.substring(2)
-        },
+        data: dataToAdd,
         details: 'Add MultiSig Request',
         signatureExpiry: 0
       }).then(async (dataSigned) => {
-        console.log('dataSigned', dataSigned)
-        await addContent(dataSigned.message)
+        addContent(dataSigned.message).then(() => {
+          addMultiSigTransactionRequest(dataToAdd)
+        })
       })
     }
-  }, [data, isSuccess, args, chain])
+  }, [dataAdded, isSuccess, data, address, chain, args, addMultiSigTransactionRequest])
 
   return { data, isError, isLoading, isSuccess, signTypedData }
 }

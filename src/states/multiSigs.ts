@@ -1,12 +1,13 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-import { MultiSigFactory, MultiSig } from '../models/MultiSigs'
+import { MultiSigFactory, MultiSig, MultiSigTransactionRequest } from '../models/MultiSigs'
 import multiSigFactories from '../constants/multiSigFactory'
 
 interface MultiSigDefaultState {
   multiSigFactory: MultiSigFactory[]
   multiSigs: MultiSig[]
+  multiSigTransactionRequests: MultiSigTransactionRequest[]
 }
 
 interface MultiSigState extends MultiSigDefaultState {
@@ -15,11 +16,15 @@ interface MultiSigState extends MultiSigDefaultState {
   setMultiSigs: (multiSigs: MultiSig[]) => void
   addMultiSig: (multiSig: MultiSig) => void
   clearAllMultiSig: () => void
+  setMultiSigTransactionRequests: (multiSigTransactionRequests: MultiSigTransactionRequest[]) => void
+  addMultiSigTransactionRequest: (multiSigTransactionRequest: MultiSigTransactionRequest) => void
+  clearAllMultiSigTransactionRequests: () => void
 }
 
 const initialState: MultiSigDefaultState = {
   multiSigFactory: multiSigFactories,
-  multiSigs: []
+  multiSigs: [],
+  multiSigTransactionRequests: []
 }
 
 const useMultiSigs = create<MultiSigState>()(
@@ -36,7 +41,13 @@ const useMultiSigs = create<MultiSigState>()(
         set((state) => ({
           multiSigs: [...state.multiSigs, multiSig]
         })),
-      clearAllMultiSig: () => set(() => ({ ...initialState }))
+      clearAllMultiSig: () => set(() => ({ ...initialState })),
+      setMultiSigTransactionRequests: (multiSigTransactionRequests) => set(() => ({ multiSigTransactionRequests })),
+      addMultiSigTransactionRequest: (multiSigTransactionRequest) =>
+        set((state) => ({
+          multiSigTransactionRequests: [...state.multiSigTransactionRequests, multiSigTransactionRequest]
+        })),
+      clearAllMultiSigTransactionRequests: () => set(() => ({ ...initialState }))
     }),
     {
       name: 'multiSigs-storage',
