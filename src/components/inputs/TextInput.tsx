@@ -28,8 +28,9 @@ const TextInput: React.FC<TextInputProps> = ({
       mt={4}
       borderRadius={10}
       bg='cyan.100'
-      boxShadow='dark-lg'
-      color={'gray.700'}
+      boxShadow='lg'
+      color={'white'}
+      backgroundColor='transparent'
       placeholder={placeholder}
       defaultValue={defaultValue}
       value={value}
@@ -37,6 +38,9 @@ const TextInput: React.FC<TextInputProps> = ({
       isDisabled={isDisabled}
       isReadOnly={isReadOnly}
       isInvalid={isInvalid}
+      _placeholder={{
+        color: 'gray.200'
+      }}
     />
   )
 }

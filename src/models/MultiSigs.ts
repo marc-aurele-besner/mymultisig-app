@@ -29,9 +29,22 @@ export type MultiSigConstructorArgs = {
 }
 
 export type MultiSigExecTransactionArgs = {
-  to: string
+  to: `0x${string}`
   value: string
-  data: string
+  data: `0x${string}`
   txnGas: string
   signatures: string
+}
+
+export type MultiSigTransactionRequest = {
+  id: string
+  request: MultiSigExecTransactionArgs
+  submitter: `0x${string}`
+  signatures: string[]
+  ownerSigners: `0x${string}`[]
+  dateSubmitted: string
+  dateExecuted: string
+  isExecuted: boolean
+  isCancelled: boolean
+  isConfirmed: boolean
 }
