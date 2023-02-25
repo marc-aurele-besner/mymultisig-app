@@ -27,10 +27,10 @@
     "url": "https://github.com/marc-aurele-besner/mymultisig-app/issues"
   },
   "scripts": {
+    "start": "bash ./start.sh",
     "prepare": "husky install",
     "dev": "next dev",
     "build": "next build ",
-    "start": "next start",
     "lint": "next build lint",
     "prettier": "prettier -l \"./src/**/*.{js,jsx,ts,tsx,md}\"",
     "export": "EXPORT=true turbo build && EXPORT=true turbo export",
