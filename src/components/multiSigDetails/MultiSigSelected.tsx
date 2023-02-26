@@ -19,8 +19,6 @@ const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, addres
 
   if (multiSigDetails == null) return null
 
-  console.log('selectRequest', selectRequest)
-
   return (
     <>
       <Box>
@@ -39,6 +37,7 @@ const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, addres
             {selectRequest != null ? (
               <MultiSigRequestDetail
                 multiSigAddress={multiSigAddress}
+                address={address}
                 multiSigDetails={multiSigDetails}
                 multiSigRequestId={selectRequest}
                 setSelectRequest={setSelectRequest}
