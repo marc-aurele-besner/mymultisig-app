@@ -94,6 +94,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       case 'getMultiSigRequestById':
         classes = ['multisig-requests']
         indexes = ['multisig-requests_by_id']
+        terms = [data.data.multiSigRequestId]
         slackMessageTitle = 'Someone is querying MultiSig Request by ID'
         slackMessageBlocks.push(slackBuilder.buildSimpleSlackHeaderMsg(`Someone is querying MultiSig Request by ID`))
         break
@@ -105,9 +106,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
     if (classes.length == 1) {
       if (terms.length == 0) {
+        const findData = await fauna.queryTermByFaunaIndexes(FAUNADB_SERVER_SECRET, indexes[0], id)
         res.status(200).json({
           message: 'Data retrieved',
-          content: await fauna.queryTermByFaunaIndexes(FAUNADB_SERVER_SECRET, indexes[0], id)
+          content: JSON.parse(findData.body)
         })
       } else {
         const findData = await fauna.queryTermsByFaunaIndexes(FAUNADB_SERVER_SECRET, indexes[0], terms)

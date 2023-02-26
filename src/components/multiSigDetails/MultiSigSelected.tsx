@@ -4,6 +4,7 @@ import { Box, Button, HStack, Center } from '@chakra-ui/react'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import MultiSigRequestList from './MultiSigRequestList'
 import CreateMultiSigRequestForm from '../forms/CreateMultiSigRequestForm'
+import MultiSigRequestDetail from './MultiSigRequestDetail'
 
 interface MultiSigListProps {
   multiSigAddress: `0x${string}`
@@ -12,10 +13,13 @@ interface MultiSigListProps {
 }
 
 const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, address, setSelectMultiSig }) => {
-  const { data } = useMultiSigDetails(multiSigAddress, address)
+  const { multiSigDetails } = useMultiSigDetails(multiSigAddress, address)
   const [action, setAction] = useState<string>('contract')
+  const [selectRequest, setSelectRequest] = useState<string | null>(null)
 
-  if (!data || !data[0] || !data[5]) return null
+  if (multiSigDetails == null) return null
+
+  console.log('selectRequest', selectRequest)
 
   return (
     <>
@@ -31,7 +35,22 @@ const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, addres
           </Center>
         </HStack>
         {action === 'consultRequests' ? (
-          <MultiSigRequestList multiSigAddress={multiSigAddress} address={address} />
+          <>
+            {selectRequest != null ? (
+              <MultiSigRequestDetail
+                multiSigAddress={multiSigAddress}
+                multiSigDetails={multiSigDetails}
+                multiSigRequestId={selectRequest}
+                setSelectRequest={setSelectRequest}
+              />
+            ) : (
+              <MultiSigRequestList
+                multiSigAddress={multiSigAddress}
+                multiSigDetails={multiSigDetails}
+                setSelectRequest={setSelectRequest}
+              />
+            )}
+          </>
         ) : (
           <CreateMultiSigRequestForm multiSigAddress={multiSigAddress} />
         )}

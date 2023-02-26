@@ -16,10 +16,7 @@ printf "${BLUE}
 |_|  |_|\__, |_|  |_|\__,_|_|\__|_|___/_|\__, |
          __/ |                            __/ |
         |___/                            |___/ 
-${BGREEN}Let's make sure the branch is up to date 🔄
-${NC}"
-
-printf "${BBLUE}Let's make sure git is installed 📦
+${BBLUE}Let's make sure git is installed 📦
 ${NC}"
 
 # Verify if git is installed
@@ -28,6 +25,9 @@ if ! [ -x "$(command -v git)" ]; then
 ${NC}"
   exit 1
 fi
+
+printf "${BGREEN}Let's make sure the branch is up to date 🔄
+${NC}"
 
 # Make sure the branch is up to date
 git pull

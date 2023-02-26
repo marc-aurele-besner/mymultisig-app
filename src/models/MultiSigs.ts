@@ -51,3 +51,12 @@ export type MultiSigTransactionRequest = {
   isCancelled: boolean
   isConfirmed: boolean
 }
+
+export type MultiSigOnChainData = {
+  name: string
+  version: string
+  threshold: number
+  ownerCount: number
+  nonce: number
+  owners: string[]
+}

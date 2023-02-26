@@ -1,19 +1,23 @@
 import React from 'react'
 import { Box, Button, HStack, Text } from '@chakra-ui/react'
 
-import useMultiSigDetails from '../../hooks/useMultiSigDetails'
+import { MultiSigOnChainData } from '../../models/MultiSigs'
 import useMultiSigRequests from '../../hooks/useMultiSigRequests'
 
 interface MultiSigRequestListProps {
   multiSigAddress: `0x${string}`
-  address: `0x${string}`
+  multiSigDetails: MultiSigOnChainData
+  setSelectRequest: React.Dispatch<React.SetStateAction<string | null>>
 }
 
-const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({ multiSigAddress, address }) => {
-  const { data } = useMultiSigDetails(multiSigAddress, address)
+const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({
+  multiSigAddress,
+  multiSigDetails,
+  setSelectRequest
+}) => {
   const requests = useMultiSigRequests(multiSigAddress)
 
-  if (!data || !data[0] || !data[5] || !requests || requests == null) return null
+  if (multiSigDetails == null || requests == null) return null
 
   return (
     <>
@@ -23,7 +27,7 @@ const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({ multiSigAddre
             <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
               {request.data.description}
             </Text>
-            <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => console.log('hello')}>
+            <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setSelectRequest(request.data.id)}>
               Select
             </Button>
           </HStack>
