@@ -39,7 +39,7 @@ const nextConfig = {
 // if (process.env.EXPORT !== 'true') {
 //   nextConfig.i18n = {
 //     locales: ['en', 'fr', 'jp'],
-//     defaultLocale: 'en',
+//     defaultLocale: 'en'
 //   }
 // }
 

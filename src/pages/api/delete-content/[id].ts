@@ -36,8 +36,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     data.signature !== undefined &&
     data.signatureExpiry !== undefined
   ) {
-    console.log(`Function '${FUNCTION}" invoked`, data)
-
     if (process.env.SLACK_TOKEN && process.env.SLACK_CONVERSATION_ID)
       await slackUtils.slackPostMessage(
         process.env.SLACK_TOKEN,

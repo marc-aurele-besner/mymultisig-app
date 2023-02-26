@@ -34,8 +34,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     data.signature !== undefined &&
     data.signatureExpiry !== undefined
   ) {
-    console.log(`Function '${FUNCTION}" invoked`, data)
-
     if (process.env.SLACK_TOKEN && process.env.SLACK_CONVERSATION_ID)
       await slackUtils.slackPostMessage(
         process.env.SLACK_TOKEN,
@@ -76,7 +74,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     let classes: string[] = []
     let slackMessageTitle = ''
     let slackMessageBlocks: TBlock[] = []
-    console.log('data.collection', data.action)
     switch (data.action) {
       case 'addMultiSigRequest':
         classes = ['multisig-requests']
@@ -94,7 +91,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (slackMessageTitle && slackMessageBlocks && slackMessageBlocks.length > 0) {
       await slackUtils.slackPostMessage(SLACK_TOKEN, SLACK_CONVERSATION_ID, slackMessageTitle, slackMessageBlocks, true)
     }
-    console.log('classes', classes)
     if (classes.length == 1) {
       await fauna.createFaunaDocument(FAUNADB_SERVER_SECRET, classes[0], {
         id: uuid(),

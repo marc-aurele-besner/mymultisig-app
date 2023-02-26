@@ -1,14 +1,18 @@
 import { useNetwork, usePrepareContractWrite, useContractEvent } from 'wagmi'
-import MyMultiSig from 'mymultisig-contract/abi/MyMultiSigFactory.json'
+import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 
 import { MultiSigExecTransactionArgs } from '../models/MultiSigs'
 import { useNotification } from './notifications'
 import useFinalizeTransaction from './useFinalizeTransaction'
 
-const useCreateMultiSig = (args: MultiSigExecTransactionArgs, multiSigAddress: `0x${string}`) => {
+const useExecTransaction = (args: MultiSigExecTransactionArgs, multiSigAddress: `0x${string}`) => {
   const { chain } = useNetwork()
   const { notificationInfo, notificationError, notificationSuccess } = useNotification()
-  const { config } = usePrepareContractWrite({
+  const {
+    config,
+    error: preparationError,
+    isError: preparationIsError
+  } = usePrepareContractWrite({
     chainId: chain?.id,
     address: multiSigAddress,
     abi: MyMultiSig,
@@ -43,6 +47,8 @@ const useCreateMultiSig = (args: MultiSigExecTransactionArgs, multiSigAddress: `
   })
   return {
     data,
+    preparationError,
+    preparationIsError,
     error,
     isError,
     isIdle,
@@ -57,4 +63,4 @@ const useCreateMultiSig = (args: MultiSigExecTransactionArgs, multiSigAddress: `
   }
 }
 
-export default useCreateMultiSig
+export default useExecTransaction

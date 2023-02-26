@@ -50,6 +50,18 @@ export const indexes: TIndexes = [
     terms: ['data.id']
   },
   {
+    name: 'multisig-requests_by_multiSigAddress',
+    classes: 'multisig-requests',
+    private: true,
+    terms: ['data.multiSigAddress']
+  },
+  {
+    name: 'multisig-requests_by_multiSigAddress_and_isActive',
+    classes: 'multisig-requests',
+    private: true,
+    terms: ['data.multiSigAddress', 'data.isActive']
+  },
+  {
     name: 'all_multisig-requests',
     classes: 'multisig-requests'
   },
