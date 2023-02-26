@@ -1,16 +1,23 @@
 import React from 'react'
 import { Button, Center, Text } from '@chakra-ui/react'
 
-import { MultiSigExecTransactionArgs } from '../../models/MultiSigs'
+import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
 import useSignedMultiSigRequest from '../../hooks/useSignedMultiSigRequest'
 
 interface MultiSigListProps {
   multiSigAddress: `0x${string}`
   args: MultiSigExecTransactionArgs
+  requestDetails?: MultiSigTransactionRequest
+  existingRequestRef?: string
 }
 
-const SignRequest: React.FC<MultiSigListProps> = ({ multiSigAddress, args }) => {
-  const { isError, isLoading, isSuccess, signTypedData } = useSignedMultiSigRequest(multiSigAddress, args)
+const SignRequest: React.FC<MultiSigListProps> = ({ multiSigAddress, args, requestDetails, existingRequestRef }) => {
+  const { isError, isLoading, isSuccess, signTypedData } = useSignedMultiSigRequest(
+    multiSigAddress,
+    args,
+    requestDetails,
+    existingRequestRef
+  )
 
   return (
     <>

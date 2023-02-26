@@ -1,17 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNetwork } from 'wagmi'
 
-import { MultiSigTransactionRequest } from '../models/MultiSigs'
+import { MultiSigRequestDB } from '../models/MultiSigs'
 import { signData, getContent } from '../utils'
 
 const useMultiSigRequestDetails = (multiSigRequestId: string) => {
   const { chain } = useNetwork()
   const [dataIsLoading, setDataIsLoading] = useState(false)
-  const [requestDetails, setRequestDetails] = useState<{
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ref: any
-    data: MultiSigTransactionRequest
-  } | null>(null)
+  const [requestDetails, setRequestDetails] = useState<MultiSigRequestDB | null>(null)
 
   useEffect(() => {
     if (chain && !dataIsLoading) {

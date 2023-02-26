@@ -60,3 +60,9 @@ export type MultiSigOnChainData = {
   nonce: number
   owners: string[]
 }
+
+export type MultiSigRequestDB = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ref: any
+  data: MultiSigTransactionRequest
+}

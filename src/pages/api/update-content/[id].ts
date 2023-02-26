@@ -77,8 +77,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     let indexes: string[] = []
     let slackMessageTitle = ''
     const slackMessageBlocks: TBlock[] = []
-    switch (data.collection) {
-      case 'addSignatureToRequest':
+    switch (data.action) {
+      case 'updateMultiSigRequest':
         classes = ['multisig-requests']
         indexes = ['multisig-requests_by_id']
         slackMessageTitle = 'Someone has signed a request!'
@@ -98,11 +98,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           ? { ...JSON.parse(previousData.body).data, ...data.data }
           : data.data
 
-      await fauna.updateFaunaDocument(FAUNADB_SERVER_SECRET, classes[0], id, newData)
-    } else console.log('Invalid collection')
-    res.status(400).json({
-      message: 'Invalid collection'
-    })
+      const editData = await fauna.updateFaunaDocument(FAUNADB_SERVER_SECRET, classes[0], id, newData)
+
+      res.status(200).json({
+        message: 'Data updated',
+        content: JSON.parse(editData.body)
+      })
+    } else {
+      console.log('Invalid collection')
+      res.status(400).json({
+        message: 'Invalid collection'
+      })
+    }
   } else {
     console.log('Invalid data')
     res.status(400).json({

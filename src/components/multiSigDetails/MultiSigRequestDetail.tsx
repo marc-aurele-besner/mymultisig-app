@@ -102,7 +102,12 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
             {requestDetails.data.ownerSigners.find((signature) => signature === address) ? (
               <Text color='green'>You already signed this request</Text>
             ) : (
-              <SignRequest multiSigAddress={multiSigAddress} args={requestDetails.data.request} />
+              <SignRequest
+                multiSigAddress={multiSigAddress}
+                args={requestDetails.data.request}
+                requestDetails={requestDetails.data}
+                existingRequestRef={requestDetails.data.id}
+              />
             )}
           </Text>
         </HStack>

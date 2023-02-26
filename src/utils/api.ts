@@ -44,7 +44,7 @@ const addContent = (data: object) => {
 }
 
 const updateContent = (data: object, documentId: string) => {
-  return fetch('/api/update-content' + documentId, {
+  return fetch('/api/update-content/' + documentId, {
     body: JSON.stringify(data),
     method: 'POST'
   }).then((response) => {

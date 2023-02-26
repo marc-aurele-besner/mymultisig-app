@@ -18,6 +18,7 @@ interface MultiSigState extends MultiSigDefaultState {
   clearAllMultiSig: () => void
   setMultiSigTransactionRequests: (multiSigTransactionRequests: MultiSigTransactionRequest[]) => void
   addMultiSigTransactionRequest: (multiSigTransactionRequest: MultiSigTransactionRequest) => void
+  updateMultiSigTransactionRequest: (id: string, multiSigTransactionRequest: MultiSigTransactionRequest) => void
   clearAllMultiSigTransactionRequests: () => void
 }
 
@@ -46,6 +47,12 @@ const useMultiSigs = create<MultiSigState>()(
       addMultiSigTransactionRequest: (multiSigTransactionRequest) =>
         set((state) => ({
           multiSigTransactionRequests: [...state.multiSigTransactionRequests, multiSigTransactionRequest]
+        })),
+      updateMultiSigTransactionRequest: (id, multiSigTransactionRequest) =>
+        set((state) => ({
+          multiSigTransactionRequests: state.multiSigTransactionRequests.map((item) =>
+            item.id === id ? multiSigTransactionRequest : item
+          )
         })),
       clearAllMultiSigTransactionRequests: () => set(() => ({ ...initialState }))
     }),
