@@ -19,10 +19,6 @@ const FUNCTION = 'get-content'
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('Function `%s` invoked', FUNCTION)
   const data = JSON.parse(req.body)
-  const { id } = req.query
-  if (!id) throw new Error('No id in query')
-  if (typeof id !== 'string') throw new Error('id is not a string')
-
   if (
     process.env.PRIVATE_KEY !== undefined &&
     process.env.RPC_ETHEREUM !== undefined &&
@@ -104,7 +100,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
     if (classes.length == 1) {
       if (terms.length == 0) {
-        const findData = await fauna.queryTermByFaunaIndexes(FAUNADB_SERVER_SECRET, indexes[0], id)
+        const findData = await fauna.queryTermByFaunaIndexes(FAUNADB_SERVER_SECRET, indexes[0], terms[0])
         res.status(200).json({
           message: 'Data retrieved',
           content: JSON.parse(findData.body)
