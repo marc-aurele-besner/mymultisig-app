@@ -1,4 +1,5 @@
 import React from 'react'
+import Script from 'next/script'
 import { AppProps } from 'next/app'
 import { ArcxAnalyticsProvider } from '@arcxmoney/analytics'
 import { ChakraProvider } from '@chakra-ui/react'
@@ -21,6 +22,19 @@ const App: React.FC<AppProps> = ({ Component, pageProps = { title: 'MyMultiSig' 
           </Layout>
         </Web3Provider>
       </ChakraProvider>
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_APP_GTAG}`}
+        strategy='afterInteractive'
+      />
+      <Script id='google-analytics' strategy='afterInteractive'>
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){window.dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', '${process.env.NEXT_PUBLIC_APP_GTAG}');
+        `}
+      </Script>
     </ArcxAnalyticsProvider>
   )
 }
