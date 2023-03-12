@@ -5,6 +5,7 @@ import { useAccount } from 'wagmi'
 import BigCard from '../cards/BigCard'
 import ConnectWallet from './ConnectWallet'
 import ConnectedWallet from './ConnectedWallet'
+import Disclaimer from '../modals/Disclaimer'
 
 const Welcome: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
@@ -16,6 +17,7 @@ const Welcome: React.FC = () => {
 
   return (
     <Center>
+      <Disclaimer />
       <BigCard w='80vw' h='80vh'>
         <Center>
           <VStack>
