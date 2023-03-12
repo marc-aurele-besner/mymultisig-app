@@ -19,7 +19,7 @@ const Disclaimer: React.FC = () => {
 
   useEffect(() => {
     onOpen()
-  }, [])
+  }, [onOpen])
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
