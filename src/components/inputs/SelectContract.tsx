@@ -21,6 +21,13 @@ const SelectContract: React.FC<SelectContractProps> = ({ onChange }) => {
         }}>
         MyMultiSig
       </option>
+      <option
+        value='newContract'
+        style={{
+          color: 'white'
+        }}>
+        New contract
+      </option>
     </Select>
   )
 }
