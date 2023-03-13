@@ -6,6 +6,7 @@ import SelectContract from '../inputs/SelectContract'
 import SelectFunction from '../inputs/SelectFunction'
 import TextInput from '../inputs/TextInput'
 import SignRequest from '../buttons/SignRequest'
+import NewContract from '../modals/NewContract'
 
 interface CreateMultiSigRequestFormProps {
   multiSigAddress: `0x${string}`
@@ -20,6 +21,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
 
   return (
     <>
+      {selectedContract == 'newContract' && <NewContract />}
       <Box border='1px' borderColor='white' borderRadius='5px' p='1rem'>
         <HStack>
           <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setType('contract')}>
