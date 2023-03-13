@@ -22,16 +22,22 @@ const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({
   return (
     <>
       <Box border='1px' borderColor='white' borderRadius='5px' p='1rem'>
-        {requests.map((request) => (
-          <HStack key={`Request-${request.data.id}`}>
-            <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-              {request.data.description}
-            </Text>
-            <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setSelectRequest(request.data.id)}>
-              Select
-            </Button>
-          </HStack>
-        ))}
+        {requests.length > 0 ? (
+          requests.map((request) => (
+            <HStack key={`Request-${request.data.id}`}>
+              <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+                {request.data.description}
+              </Text>
+              <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setSelectRequest(request.data.id)}>
+                Select
+              </Button>
+            </HStack>
+          ))
+        ) : (
+          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+            No requests
+          </Text>
+        )}
       </Box>
     </>
   )
