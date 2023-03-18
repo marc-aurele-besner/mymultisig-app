@@ -5,7 +5,7 @@ import { JsonFragment } from '@ethersproject/abi'
 import { buildRawSignatureFromFunction } from '../../utils/buildFunctionSignature'
 
 interface SelectFunctionProps {
-  abi: JsonFragment[] | undefined
+  abi: JsonFragment[] | null
   onChange: (e: string) => void
 }
 

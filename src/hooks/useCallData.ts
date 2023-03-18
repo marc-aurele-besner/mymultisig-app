@@ -15,17 +15,17 @@ const useCallData = (
   let callData = ''
   let argumentsString = ''
   try {
-    if (functionSignature && abi && signer) {
+    if (abi && signer) {
       const functionSelected = abi.find((abiObject) => buildRawSignatureFromFunction(abiObject) === functionSignature)
       const contractTargetInstance = new Contract(targetContract, abi, signer)
       if (abi !== null && functionSelected) {
         if (functionSelected.inputs == undefined || functionSelected.inputs.length === 0) {
           callData = contractTargetInstance.interface.encodeFunctionData(functionSignature)
         } else {
-          const inputArray = Array.from({ length: functionSelected.inputs.length }, (_, i) => {
-            if (functionSelected.inputs[i].type.includes('['))
-              return JSON.parse(functionArguments[functionSelected.inputs[i].name])
-            else return functionArguments[functionSelected.inputs[i].name]
+          const inputArray = functionSelected.inputs.map((input) => {
+            if (input.type && input.type.includes('[')) {
+              return JSON.parse(functionArguments[`${input.name}`])
+            } else return functionArguments[`${input.name}`]
           })
           argumentsString = functionSelected.inputs.map((obj) => obj.name).join(', ')
           callData = contractTargetInstance.interface.encodeFunctionData(functionSignature, inputArray)
