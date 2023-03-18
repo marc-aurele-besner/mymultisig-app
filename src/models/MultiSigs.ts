@@ -66,3 +66,11 @@ export type MultiSigRequestDB = {
   ref: any
   data: MultiSigTransactionRequest
 }
+
+export type BuildMultiSigRequest = {
+  to: `0x${string}`
+  value: string
+  txnGas: string
+  description: string
+  arguments: object
+}

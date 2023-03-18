@@ -105,6 +105,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
               <SignRequest
                 multiSigAddress={multiSigAddress}
                 args={requestDetails.data.request}
+                description={requestDetails.data.description}
                 requestDetails={requestDetails.data}
                 existingRequestRef={requestDetails.data.id}
               />

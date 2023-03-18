@@ -12,6 +12,7 @@ import { signData, addContent, updateContent } from '../utils'
 const useSignedMultiSigRequest = (
   multiSigAddress: `0x${string}`,
   args: MultiSigExecTransactionArgs,
+  description: string,
   existingRequest?: MultiSigTransactionRequest,
   existingRequestRef?: string
 ) => {
@@ -104,7 +105,7 @@ const useSignedMultiSigRequest = (
               ...args,
               signatures: args.signatures === '' ? data || '0x' : args.signatures + data?.substring(2)
             },
-            description: 'Add MultiSig Request',
+            description,
             submitter: address || '0x',
             signatures: [data || '0x'],
             ownerSigners: [address || '0x'],
@@ -142,6 +143,7 @@ const useSignedMultiSigRequest = (
           })
         })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     existingRequest,
     dataAdded,
@@ -151,6 +153,7 @@ const useSignedMultiSigRequest = (
     address,
     chain,
     args,
+    description,
     addMultiSigTransactionRequest
   ])
 
