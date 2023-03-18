@@ -7,14 +7,22 @@ import useSignedMultiSigRequest from '../../hooks/useSignedMultiSigRequest'
 interface MultiSigListProps {
   multiSigAddress: `0x${string}`
   args: MultiSigExecTransactionArgs
+  description: string
   requestDetails?: MultiSigTransactionRequest
   existingRequestRef?: string
 }
 
-const SignRequest: React.FC<MultiSigListProps> = ({ multiSigAddress, args, requestDetails, existingRequestRef }) => {
+const SignRequest: React.FC<MultiSigListProps> = ({
+  multiSigAddress,
+  args,
+  description,
+  requestDetails,
+  existingRequestRef
+}) => {
   const { isError, isLoading, isSuccess, signTypedData } = useSignedMultiSigRequest(
     multiSigAddress,
     args,
+    description,
     requestDetails,
     existingRequestRef
   )
