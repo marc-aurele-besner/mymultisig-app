@@ -17,7 +17,8 @@ const theme = extendTheme({
         fontSize: 'sm',
         lineHeight: 'tall',
         fontFamily: 'Roboto, sans-serif',
-        height: 'fit-content'
+        height: 'fit-content',
+        minHeight: '100vh'
       },
       a: {
         color: mode('#000000', '#ffffff')(props),
