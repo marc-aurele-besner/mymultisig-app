@@ -5,8 +5,7 @@ import { JsonFragment } from '@ethersproject/abi'
 import { buildRawSignatureFromFunction } from '../../utils/buildFunctionSignature'
 
 interface SelectFunctionProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  abi: any[] | undefined
+  abi: JsonFragment[] | undefined
   onChange: (e: string) => void
 }
 
@@ -14,8 +13,8 @@ const SelectFunction: React.FC<SelectFunctionProps> = ({ abi, onChange }) => {
   const filterFunction =
     abi &&
     abi.filter(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (abi: any) => abi.type === 'function' && abi.stateMutability !== 'view' && abi.stateMutability !== 'pure'
+      (item: JsonFragment) =>
+        item.type === 'function' && item.stateMutability !== 'view' && item.stateMutability !== 'pure'
     )
   return (
     <Select

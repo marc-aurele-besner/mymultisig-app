@@ -1,3 +1,5 @@
+import { JsonFragment } from '@ethersproject/abi'
+
 export type Contract = {
   chainId: number
   chainName: string
@@ -5,7 +7,7 @@ export type Contract = {
   name: string
   address: `0x${string}`
   creator: `0x${string}`
-  abi: unknown[]
+  abi: JsonFragment[]
   isMultiSig: boolean
   isPublic: boolean
   isVerified: boolean
