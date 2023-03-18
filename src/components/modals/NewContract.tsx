@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Modal,
   ModalOverlay,
@@ -11,13 +11,38 @@ import {
   Text,
   useDisclosure
 } from '@chakra-ui/react'
-import { useAccount } from 'wagmi'
+import { v4 } from 'uuid'
+import { useAccount, useNetwork } from 'wagmi'
 
+import { Contract } from '../../models/Contracts'
 import AddContactForm from '../forms/AddContactForm'
+import useContracts from '../../states/contracts'
 
 const NewContract: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const { address } = useAccount()
+  const { chain } = useNetwork()
+  const addContract = useContracts((state) => state.addContract)
+  const [contract, setContract] = useState<Contract>({
+    chainId: chain ? chain.id : 1,
+    chainName: chain ? chain.name : 'Ethereum',
+    id: v4(),
+    name: '',
+    address: '0x',
+    creator: address || '0x',
+    abi: [],
+    isMultiSig: false,
+    isPublic: false,
+    isVerified: false,
+    isWhitelisted: false,
+    isChainSpecific: false,
+    isWalletSpecific: true
+  })
+
+  const handleSubmit = () => {
+    addContract(contract)
+    onClose()
+  }
 
   useEffect(() => {
     onOpen()
@@ -32,11 +57,11 @@ const NewContract: React.FC = () => {
         <ModalHeader>New Contract</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <AddContactForm creator={address} />
+          <AddContactForm contract={contract} setContract={setContract} />
         </ModalBody>
 
         <ModalFooter>
-          <Button colorScheme='blue' mr={3} onClick={onClose}>
+          <Button colorScheme='blue' mr={3} onClick={handleSubmit}>
             Create
           </Button>
           <Button colorScheme='red' mr={3} onClick={onClose}>

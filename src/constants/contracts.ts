@@ -12,6 +12,7 @@ const contracts: Contract[] = [
     address: `0x`,
     creator: `0x`,
     abi: MyMultiSig,
+    isMultiSig: true,
     isPublic: true,
     isVerified: true,
     isWhitelisted: true,

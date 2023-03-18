@@ -7,6 +7,7 @@ import SelectFunction from '../inputs/SelectFunction'
 import TextInput from '../inputs/TextInput'
 import SignRequest from '../buttons/SignRequest'
 import NewContract from '../modals/NewContract'
+import useContracts from '../../states/contracts'
 
 interface CreateMultiSigRequestFormProps {
   multiSigAddress: `0x${string}`
@@ -18,6 +19,20 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
   const [type, setType] = useState<string>('contract')
   const [selectedContract, setSelectedContract] = useState<string | undefined>(undefined)
   const [selectedFunction, setSelectedFunction] = useState<string | undefined>(undefined)
+  const contracts = useContracts((state) => state.contracts)
+
+  const handleChangeContract = (e: string) => {
+    console.log('e', e)
+    if (e == 'itSelf') {
+      setAbi(MyMultiSig)
+    } else {
+      const contract = contracts.find((contract) => contract.id == e)
+      if (contract) setAbi(contract.abi)
+    }
+    setSelectedContract(e)
+  }
+  console.log('abi', abi)
+  console.log('selectedFunction', selectedFunction)
 
   return (
     <>
@@ -37,15 +52,16 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
               <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
                 Contract to call:
               </Text>
-              <SelectContract onChange={(e) => setSelectedContract(e)} />
+              <SelectContract onChange={(e) => handleChangeContract(e)} />
             </HStack>
             <HStack>
               <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
                 Function to call:
               </Text>
               <SelectFunction
-                abi={selectedContract == 'itSelf' ? MyMultiSig : []}
+                abi={selectedContract == 'itSelf' ? MyMultiSig : abi}
                 onChange={(e) => {
+                  console.log('e', e)
                   setSelectedFunction(e)
                   if (selectedContract == 'itSelf') setAbi(MyMultiSig)
                   else setAbi(undefined)
@@ -53,6 +69,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
               />
             </HStack>
             {abi &&
+              abi.length > 0 &&
               abi.find((item) => item.name == selectedFunction) &&
               abi.find((item) => item.name == selectedFunction).inputs.length > 0 && (
                 <>
@@ -63,14 +80,17 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
                   </HStack>
                   {abi
                     .find((item) => item.name == selectedFunction)
-                    .inputs.map((item: { name: string }) => (
-                      <HStack key={`Argument-${item.name}`}>
-                        <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-                          {item.name}:
-                        </Text>
-                        <TextInput placeholder={item.name} onChange={(e) => console.log('argument', item.name, e)} />
-                      </HStack>
-                    ))}
+                    .inputs.map((item: { name: string }) => {
+                      console.log('item', item)
+                      return (
+                        <HStack key={`Argument-${item.name}`}>
+                          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+                            {item.name}:
+                          </Text>
+                          <TextInput placeholder={item.name} onChange={(e) => console.log('argument', item.name, e)} />
+                        </HStack>
+                      )
+                    })}
                 </>
               )}
           </>

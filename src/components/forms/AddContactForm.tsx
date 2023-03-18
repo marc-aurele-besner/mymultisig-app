@@ -1,43 +1,23 @@
-import React, { useState } from 'react'
-// import Link from 'next/link'
+import React from 'react'
 import { VStack, Text } from '@chakra-ui/react'
-import { useNetwork } from 'wagmi'
-import { v4 } from 'uuid'
 
 import { Contract } from '../../models/Contracts'
 import TextInput from '../inputs/TextInput'
 import Textarea from '../inputs/Textarea'
-// import ConfirmationCard from '../cards/ConfirmationCard'
-// import NumberInput from '../inputs/NumberInput'
 import Switch from '../inputs/Switch'
-// import useCreateMultiSig from '../../hooks/useCreateMultiSig'
 
 interface AddContactFormProps {
-  creator: `0x${string}`
+  contract: Contract
+  setContract: React.Dispatch<React.SetStateAction<Contract>>
 }
 
-const AddContactForm: React.FC<AddContactFormProps> = ({ creator }) => {
-  const { chain } = useNetwork()
-  const [contract, setContract] = useState<Contract>({
-    chainId: chain ? chain.id : 1,
-    chainName: chain ? chain.name : 'Ethereum',
-    id: v4(),
-    name: '',
-    address: '0x',
-    creator,
-    abi: [],
-    isPublic: false,
-    isVerified: false,
-    isWhitelisted: false,
-    isChainSpecific: false,
-    isWalletSpecific: true
-  })
-
-  const handleValueChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    input: keyof Contract
-  ) => {
+const AddContactForm: React.FC<AddContactFormProps> = ({ contract, setContract }) => {
+  const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>, input: keyof Contract) => {
     setContract({ ...contract, [input]: event.target.value })
+  }
+
+  const handleChangeABI = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContract({ ...contract, abi: JSON.parse(event.target.value) })
   }
 
   return (
@@ -63,7 +43,7 @@ const AddContactForm: React.FC<AddContactFormProps> = ({ creator }) => {
       <Textarea
         placeholder='Contract ABI'
         onChange={(e) => {
-          handleValueChange(e, 'abi')
+          handleChangeABI(e)
         }}
       />
       <Switch

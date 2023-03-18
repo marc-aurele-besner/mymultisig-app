@@ -1,17 +1,22 @@
 import React from 'react'
 import { Select } from '@chakra-ui/react'
+import { JsonFragment } from '@ethersproject/abi'
+
+import { buildRawSignatureFromFunction } from '../../utils/buildFunctionSignature'
 
 interface SelectFunctionProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  abi: any[]
+  abi: any[] | undefined
   onChange: (e: string) => void
 }
 
 const SelectFunction: React.FC<SelectFunctionProps> = ({ abi, onChange }) => {
-  const filterFunction = abi.filter(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (abi: any) => abi.type === 'function' && abi.stateMutability !== 'view' && abi.stateMutability !== 'pure'
-  )
+  const filterFunction =
+    abi &&
+    abi.filter(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (abi: any) => abi.type === 'function' && abi.stateMutability !== 'view' && abi.stateMutability !== 'pure'
+    )
   return (
     <Select
       placeholder='Select Function'
@@ -20,19 +25,18 @@ const SelectFunction: React.FC<SelectFunctionProps> = ({ abi, onChange }) => {
       _focus={{
         color: 'white'
       }}>
-      {filterFunction.length > 0 &&
-        filterFunction.map((item: { name: string }) => {
-          return (
-            <option
-              key={item.name}
-              value={item.name}
-              style={{
-                color: 'white'
-              }}>
-              {item.name}
-            </option>
-          )
-        })}
+      {filterFunction &&
+        filterFunction.length > 0 &&
+        filterFunction.map((item: JsonFragment) => (
+          <option
+            key={item.name}
+            value={buildRawSignatureFromFunction(item)}
+            style={{
+              color: 'white'
+            }}>
+            {item.name}
+          </option>
+        ))}
     </Select>
   )
 }

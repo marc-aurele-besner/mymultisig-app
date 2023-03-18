@@ -6,6 +6,7 @@ export type Contract = {
   address: `0x${string}`
   creator: `0x${string}`
   abi: unknown[]
+  isMultiSig: boolean
   isPublic: boolean
   isVerified: boolean
   isWhitelisted: boolean
