@@ -1,10 +1,11 @@
-import React from 'react'
-import { Box, Button, Center, HStack, Text } from '@chakra-ui/react'
+import React, { useState } from 'react'
+import { Box, Button, Center, HStack, Text, Textarea } from '@chakra-ui/react'
 
 import { MultiSigOnChainData } from '../../models/MultiSigs'
 import SignRequest from '../buttons/SignRequest'
 import ExecuteRequest from '../buttons/ExecuteRequest'
 import useMultiSigRequestDetails from '../../hooks/useMultiSigRequestDetails'
+import useDeleteMultiSigRequest from '../../hooks/useDeleteMultiSigRequest'
 
 interface MultiSigRequestDetailProps {
   multiSigAddress: `0x${string}`
@@ -21,7 +22,10 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
   multiSigRequestId,
   setSelectRequest
 }) => {
+  const [isDeleted, setIsDeleted] = useState(false)
   const requestDetails = useMultiSigRequestDetails(multiSigRequestId)
+  const deleted = useDeleteMultiSigRequest(multiSigRequestId, requestDetails?.ref['@ref'].id, isDeleted)
+  if (deleted) setSelectRequest(null)
 
   if (requestDetails == null) return null
 
@@ -56,9 +60,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
           <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
             Data
           </Text>
-          <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            {requestDetails.data.request.data}
-          </Text>
+          <Textarea isReadOnly>{requestDetails.data.request.data}</Textarea>
         </HStack>
         <HStack key={`Request-Value`}>
           <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
@@ -110,6 +112,16 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
                 existingRequestRef={requestDetails.data.id}
               />
             )}
+          </Text>
+        </HStack>
+        <HStack key={`Request-Delete`}>
+          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+            Delete this request
+          </Text>
+          <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+            <Button colorScheme='red' m='1rem' mr='2rem' onClick={() => setIsDeleted(true)}>
+              Delete
+            </Button>
           </Text>
         </HStack>
       </Box>
