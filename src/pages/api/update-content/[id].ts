@@ -93,17 +93,28 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (classes.length == 1) {
       const previousData = await fauna.queryTermByFaunaIndexes(FAUNADB_SERVER_SECRET, indexes[0], id)
 
-      const newData =
-        previousData.statusCode === 200 && JSON.parse(previousData.body).data
-          ? { ...JSON.parse(previousData.body).data, ...data.data }
-          : data.data
-
-      const editData = await fauna.updateFaunaDocument(FAUNADB_SERVER_SECRET, classes[0], id, newData)
-
-      res.status(200).json({
-        message: 'Data updated',
-        content: JSON.parse(editData.body)
-      })
+      if (previousData.statusCode == 200 && previousData.body) {
+        const foundedData = JSON.parse(previousData.body)
+        if (foundedData && foundedData.length == 1) {
+          const documentRef = foundedData[0].ref['@ref'].id
+          const newData = { ...foundedData[0].data, ...data.data }
+          const editData = await fauna.updateFaunaDocument(FAUNADB_SERVER_SECRET, classes[0], documentRef, newData)
+          res.status(200).json({
+            message: 'Data updated',
+            content: JSON.parse(editData.body)
+          })
+        } else {
+          console.log('Invalid document')
+          res.status(400).json({
+            message: 'Invalid document'
+          })
+        }
+      } else {
+        console.log('Invalid document id')
+        res.status(400).json({
+          message: 'Invalid document id'
+        })
+      }
     } else {
       console.log('Invalid collection')
       res.status(400).json({
