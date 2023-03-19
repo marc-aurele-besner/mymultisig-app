@@ -152,7 +152,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
             args={{
               to: request.to,
               value: request.value,
-              data: `0x${callData.callData?.substring(2)}`,
+              data: callData.callData ? `0x${callData.callData?.substring(2)}` : '0x',
               txnGas: request.txnGas,
               signatures: ''
             }}
