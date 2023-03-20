@@ -13982,10 +13982,10 @@ forwarded@0.2.0:
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.2.0.tgz#2269936428aad4c15c7ebe9779a84bf0b2a81811"
   integrity sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==
 
-foundry-test-utility@^0.0.7:
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/foundry-test-utility/-/foundry-test-utility-0.0.7.tgz#05b2e70988aa2134a0b2c29e6fa42c8e5e2ef644"
-  integrity sha512-U1R30NvuuEq8x9VQMWiWQA6WfFpnAENOezXe+DM8qAIYJMvwXpGMgz1k4QQAclO2erArfdCbGKK0r6KUy7Q1JA==
+foundry-test-utility@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/foundry-test-utility/-/foundry-test-utility-0.1.0.tgz#7aa493827ae958b7974f88ff087b01686df8e1bd"
+  integrity sha512-folqqHJbYcYlv7Ovd965Oy2485txwmXXmBNWp2O/cZgEHbupagwizQ1F+IKeCM5zbPKD4d4lSMTtQpr7ykJGFg==
 
 fp-ts@1.19.3:
   version "1.19.3"
@@ -18738,10 +18738,10 @@ mute-stream@0.0.8:
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.8.tgz#1630c42b2251ff81e2a283de96a5497ea92e5e0d"
   integrity sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==
 
-mymultisig-contract@^0.0.10:
-  version "0.0.10"
-  resolved "https://registry.yarnpkg.com/mymultisig-contract/-/mymultisig-contract-0.0.10.tgz#060cd19385553a595480a6d66f5393fc2426fc54"
-  integrity sha512-NB8q7+e4QbhIaiPrqGUFYGvUwZyhvq23NB+ooH2o01dEKUbG8/13qN9OYkBQRApAnBexPGBv2P160ncd5uymKA==
+mymultisig-contract@^0.0.12:
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/mymultisig-contract/-/mymultisig-contract-0.0.12.tgz#fc06595ade5941c90232d0ad4ac5261dd19ec96a"
+  integrity sha512-ZFPCC2a0u3hgBpxlJiGZ0+XY/yFd8tU9+0W7c4zr33z6YhbYDxfeTZ08yZ90F9WQR2a/LrsJIxhQvI9PhAdwEg==
   dependencies:
     "@chugsplash/plugins" "^0.13.0"
     "@nomicfoundation/hardhat-chai-matchers" "^1.0.6"
@@ -18752,7 +18752,7 @@ mymultisig-contract@^0.0.10:
     "@types/node" "^18.14.1"
     ethers "5.7.2"
     ethersV6 "npm:ethers"
-    foundry-test-utility "^0.0.7"
+    foundry-test-utility "^0.1.0"
     hardhat-awesome-cli "^0.1.1"
     hardhat-contract-clarity "^0.1.1"
     prettier "^2.8.4"
