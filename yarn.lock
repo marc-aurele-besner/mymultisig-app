@@ -18380,9 +18380,9 @@ minimatch@^5.0.1, minimatch@^5.1.0:
     brace-expansion "^2.0.1"
 
 minimatch@^7.0.0:
-  version "7.4.2"
-  resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-7.4.2.tgz#157e847d79ca671054253b840656720cb733f10f"
-  integrity sha512-xy4q7wou3vUoC9k1xGTXc+awNdGaGVHtFUaey8tiX4H1QRc04DZ/rmDFwNm2EBsuYEhAZ6SgMmYf3InGY6OauA==
+  version "7.4.3"
+  resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-7.4.3.tgz#012cbf110a65134bb354ae9773b55256cdb045a2"
+  integrity sha512-5UB4yYusDtkRPbRiy1cqZ1IpGNcJCGlEMG17RKzPddpyiPKoCdwohbED8g4QXT0ewCt8LTkQXuljsUfQ3FKM4A==
   dependencies:
     brace-expansion "^2.0.1"
 
@@ -18829,9 +18829,9 @@ nested-error-stacks@^2.0.0, nested-error-stacks@^2.1.0, nested-error-stacks@^2.1
   integrity sha512-9iN1ka/9zmX1ZvLV9ewJYEk9h7RyRRtqdK0woXcqohu8EWIerfPUjYJPg0ULy0UqP7cslmdGc8xKDJcojlKiaw==
 
 netlify-cli@^13.1.2:
-  version "13.2.0"
-  resolved "https://registry.yarnpkg.com/netlify-cli/-/netlify-cli-13.2.0.tgz#c45ce8828d0644165a607ba32ecad9e40e32b715"
-  integrity sha512-ifCfjqLsmtoYJiKsYBN3BpoyNyC+NsgAN5wq1rkr7XCMovd9nB7UyXCFwDFP4Xges3ZGmY8FCtru6zO1yajZ4A==
+  version "13.2.1"
+  resolved "https://registry.yarnpkg.com/netlify-cli/-/netlify-cli-13.2.1.tgz#a3beee8935cfb51c47359b0a2eb49c1b32400021"
+  integrity sha512-SPBEJ5JjhPJwTu+IBjkpaX98H9l3Yq5JpFgc7VNT/tnvQ9eBzRcv+jVJpuVD6x4J+YNeQPAekKejfdY6InUfcQ==
   dependencies:
     "@fastify/static" "^6.6.0"
     "@netlify/build" "^29.7.1"
