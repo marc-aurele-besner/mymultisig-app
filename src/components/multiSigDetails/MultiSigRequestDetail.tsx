@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Button, Center, HStack, Text, Textarea } from '@chakra-ui/react'
 
 import { MultiSigOnChainData } from '../../models/MultiSigs'
@@ -89,59 +89,73 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
             {requestDetails.data.signatures.length} / {multiSigDetails.threshold}
           </Text>
         </HStack>
-        {requestDetails.data.signatures.length >= multiSigDetails.threshold && (
-          <HStack key={`Request-Execute`}>
-            <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-              Execute this request
-            </Text>
-            <ExecuteRequest
-              multiSigAddress={multiSigAddress}
-              args={requestDetails.data.request}
-              requestDetails={requestDetails.data}
-              existingRequestRef={requestDetails.data.id}
-            />
-          </HStack>
-        )}
-        <HStack key={`Request-Sign`}>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            Sign this request
-          </Text>
+        {requestDetails.data.isExecuted ? (
           <>
-            {requestDetails.data.ownerSigners.find((signature) => signature === address) ? (
-              <Text color='green' fontSize='xl' fontWeight='bold' m='0.5rem' pt='0.5rem'>
-                You already signed this request
+            <HStack key={`Request-Sign`}>
+              <Text fontSize='xl' fontWeight='bold' color='green' m='0.5rem' pt='0.5rem'>
+                This request has been executed
+                {requestDetails.data.dateExecuted &&
+                  ' on the ' + new Date(Number(requestDetails.data.dateExecuted)).toLocaleDateString()}
               </Text>
-            ) : (
-              <SignRequest
-                multiSigAddress={multiSigAddress}
-                args={requestDetails.data.request}
-                description={requestDetails.data.description}
-                requestDetails={requestDetails.data}
-                existingRequestRef={requestDetails.data.id}
-              />
-            )}
+            </HStack>
           </>
-        </HStack>
-        <HStack key={`Request-ClearSignatures`}>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            Clear signatures
-          </Text>
-          <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            <Button colorScheme='orange' m='1rem' mr='2rem' onClick={() => setIsReset(true)}>
-              Reset signatures
-            </Button>
-          </Text>
-        </HStack>
-        <HStack key={`Request-Delete`}>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            Delete this request
-          </Text>
-          <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            <Button colorScheme='red' m='1rem' mr='2rem' onClick={() => setIsDeleted(true)}>
-              Delete
-            </Button>
-          </Text>
-        </HStack>
+        ) : (
+          <>
+            {requestDetails.data.signatures.length >= multiSigDetails.threshold && (
+              <HStack key={`Request-Execute`}>
+                <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+                  Execute this request
+                </Text>
+                <ExecuteRequest
+                  multiSigAddress={multiSigAddress}
+                  args={requestDetails.data.request}
+                  requestDetails={requestDetails.data}
+                  existingRequestRef={requestDetails.data.id}
+                />
+              </HStack>
+            )}
+            <HStack key={`Request-Sign`}>
+              <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+                Sign this request
+              </Text>
+              <>
+                {requestDetails.data.ownerSigners.find((signature) => signature === address) ? (
+                  <Text color='green' fontSize='xl' fontWeight='bold' m='0.5rem' pt='0.5rem'>
+                    You already signed this request
+                  </Text>
+                ) : (
+                  <SignRequest
+                    multiSigAddress={multiSigAddress}
+                    args={requestDetails.data.request}
+                    description={requestDetails.data.description}
+                    requestDetails={requestDetails.data}
+                    existingRequestRef={requestDetails.data.id}
+                  />
+                )}
+              </>
+            </HStack>
+            <HStack key={`Request-ClearSignatures`}>
+              <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+                Clear signatures
+              </Text>
+              <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+                <Button colorScheme='orange' m='1rem' mr='2rem' onClick={() => setIsReset(true)}>
+                  Reset signatures
+                </Button>
+              </Text>
+            </HStack>
+            <HStack key={`Request-Delete`}>
+              <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+                Delete this request
+              </Text>
+              <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+                <Button colorScheme='red' m='1rem' mr='2rem' onClick={() => setIsDeleted(true)}>
+                  Delete
+                </Button>
+              </Text>
+            </HStack>
+          </>
+        )}
       </Box>
       <Center>
         <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setSelectRequest(null)}>

@@ -42,6 +42,7 @@ const useExecTransaction = (
           chainId: chain.id,
           collection: 'multisig-requests',
           data: {
+            dateExecuted: new Date().toISOString(),
             isExecuted: true,
             isSuccessful: true
           },
@@ -51,6 +52,7 @@ const useExecTransaction = (
           updateContent(dataSigned.message, existingRequestRef).then(() => {
             updateMultiSigTransactionRequest(existingRequest.id, {
               ...existingRequest,
+              dateExecuted: new Date().toISOString(),
               isExecuted: true,
               isSuccessful: true
             })
@@ -71,6 +73,7 @@ const useExecTransaction = (
           chainId: chain.id,
           collection: 'multisig-requests',
           data: {
+            dateExecuted: new Date().toISOString(),
             isExecuted: true,
             isSuccess: false
           },
@@ -80,6 +83,7 @@ const useExecTransaction = (
           updateContent(dataSigned.message, existingRequestRef).then(() => {
             updateMultiSigTransactionRequest(existingRequest.id, {
               ...existingRequest,
+              dateExecuted: new Date().toISOString(),
               isExecuted: true,
               isSuccessful: false
             })

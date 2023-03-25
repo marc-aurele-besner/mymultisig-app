@@ -22,7 +22,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
   const [request, setRequest] = useState<BuildMultiSigRequest>({
     to: `0x`,
     value: '0',
-    txnGas: '0',
+    txnGas: '35000',
     description: '',
     arguments: {}
   })
@@ -119,7 +119,11 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
             <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
               Receiver:
             </Text>
-            <TextInput placeholder={'Receiver'} onChange={(e) => handleChangeValue(e.target.value, 'to')} />
+            <TextInput
+              placeholder={'Receiver'}
+              value={request.to}
+              onChange={(e) => handleChangeValue(e.target.value, 'to')}
+            />
           </HStack>
         )}
         <HStack>
@@ -131,33 +135,47 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
           <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
             Value:
           </Text>
-          <TextInput placeholder={'Value'} onChange={(e) => handleChangeValue(e.target.value, 'value')} />
+          <TextInput
+            placeholder={'Value'}
+            value={request.value}
+            onChange={(e) => handleChangeValue(e.target.value, 'value')}
+          />
         </HStack>
         <HStack>
           <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
             Tx. Gas:
           </Text>
-          <TextInput placeholder={'Tx. Gas'} onChange={(e) => handleChangeValue(e.target.value, 'txnGas')} />
+          <TextInput
+            placeholder={'Tx. Gas'}
+            value={request.txnGas}
+            onChange={(e) => handleChangeValue(e.target.value, 'txnGas')}
+          />
         </HStack>
         <HStack>
           <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
             Description:
           </Text>
-          <TextInput placeholder={'Description'} onChange={(e) => handleChangeValue(e.target.value, 'description')} />
-        </HStack>
-        <Center>
-          <SignRequest
-            multiSigAddress={multiSigAddress}
-            description={request.description}
-            args={{
-              to: request.to,
-              value: request.value,
-              data: callData.callData ? `0x${callData.callData?.substring(2)}` : '0x',
-              txnGas: request.txnGas,
-              signatures: ''
-            }}
+          <TextInput
+            placeholder={'Description'}
+            value={request.description}
+            onChange={(e) => handleChangeValue(e.target.value, 'description')}
           />
-        </Center>
+        </HStack>
+        {selectedContract && selectedFunction && request.description && (
+          <Center>
+            <SignRequest
+              multiSigAddress={multiSigAddress}
+              description={request.description}
+              args={{
+                to: request.to,
+                value: request.value,
+                data: callData.callData ? `0x${callData.callData?.substring(2)}` : '0x',
+                txnGas: request.txnGas,
+                signatures: ''
+              }}
+            />
+          </Center>
+        )}
       </Box>
     </>
   )
