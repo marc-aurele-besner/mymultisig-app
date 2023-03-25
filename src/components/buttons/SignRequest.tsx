@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Center, Text } from '@chakra-ui/react'
+import { Button, Center, Text, VStack } from '@chakra-ui/react'
 
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
 import useSignedMultiSigRequest from '../../hooks/useSignedMultiSigRequest'
@@ -19,30 +19,41 @@ const SignRequest: React.FC<MultiSigListProps> = ({
   requestDetails,
   existingRequestRef
 }) => {
-  const { isError, isLoading, isSuccess, signTypedData } = useSignedMultiSigRequest(
-    multiSigAddress,
-    args,
-    description,
-    requestDetails,
-    existingRequestRef
-  )
+  const { isPrepareError, isError, prepareError, error, isLoading, isSuccess, signTypedData, reset } =
+    useSignedMultiSigRequest(multiSigAddress, args, description, requestDetails, existingRequestRef)
 
   return (
     <>
       <Center>
-        {isError && (
-          <Text fontSize='xl' fontWeight='bold' color='red' m='0.5rem' pt='0.5rem'>
-            Something went wrong
-          </Text>
+        {isPrepareError || isError ? (
+          <VStack>
+            <Text fontSize='xl' fontWeight='bold' color='red' m='0.5rem' pt='0.5rem'>
+              Something went wrong
+            </Text>
+            {error != null && (
+              <Text fontSize='lg' color='red' m='0.5rem' pt='0.5rem'>
+                {JSON.stringify(error)}
+              </Text>
+            )}
+            {prepareError != null && (
+              <Text fontSize='lg' color='red' m='0.5rem' pt='0.5rem'>
+                {prepareError}
+              </Text>
+            )}
+            <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => reset()} isDisabled={isLoading || isSuccess}>
+              Try again
+            </Button>
+          </VStack>
+        ) : (
+          <Button
+            colorScheme='blue'
+            m='1rem'
+            mr='2rem'
+            onClick={() => signTypedData()}
+            isDisabled={isLoading || isSuccess}>
+            Sign transaction request
+          </Button>
         )}
-        <Button
-          colorScheme='blue'
-          m='1rem'
-          mr='2rem'
-          onClick={() => signTypedData()}
-          isDisabled={isLoading || isSuccess}>
-          Sign transaction request
-        </Button>
       </Center>
     </>
   )

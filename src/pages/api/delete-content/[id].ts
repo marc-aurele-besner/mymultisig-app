@@ -40,7 +40,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       await slackUtils.slackPostMessage(
         process.env.SLACK_TOKEN,
         process.env.SLACK_CONVERSATION_ID,
-        'Add Content function called',
+        'Delete Content function called',
         [slackBuilder.buildSimpleSlackHeaderMsg(`Someone is deleting data on MyMultiSig.app (${data.action})`)],
         true
       )
@@ -74,13 +74,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
      * To-Do: Check the user signature
      */
     let classes: string[] = []
-    let indexes: string[] = []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let terms: any[] = []
     let slackMessageTitle = ''
     const slackMessageBlocks: TBlock[] = []
-    switch (data.collection) {
+    switch (data.action) {
       case 'deleteMultiSigRequest':
         classes = ['multisig-requests']
-        indexes = ['multisig-requests_by_id']
+        terms = [data.data.existingRequestRef]
         slackMessageTitle = 'Someone is deleting a MultiSig Request'
         slackMessageBlocks.push(slackBuilder.buildSimpleSlackHeaderMsg(`Someone is deleting a MultiSig Request`))
         break
@@ -91,14 +92,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       await slackUtils.slackPostMessage(SLACK_TOKEN, SLACK_CONVERSATION_ID, slackMessageTitle, slackMessageBlocks, true)
     }
     if (classes.length == 1) {
+      await fauna.deleteFaunaDocument(FAUNADB_SERVER_SECRET, classes[0], terms[0])
       res.status(200).json({
         message: 'Data retrieved',
-        content: await fauna.deleteFaunaDocument(FAUNADB_SERVER_SECRET, indexes[0], id)
+        content: 'Ref deleted'
       })
-    } else console.log('Invalid collection')
-    res.status(400).json({
-      message: 'Invalid collection'
-    })
+    } else {
+      console.log('Invalid collection')
+      res.status(400).json({
+        message: 'Invalid collection'
+      })
+    }
   } else {
     console.log('Invalid data')
     res.status(400).json({

@@ -9,7 +9,6 @@ const useMyMultiSigCreated = (multiSigFactoryAddress: `0x${string}`) => {
   const { chain } = useNetwork()
   const { addMultiSig } = useMultiSigs()
   const [multiSigAddress, setMultiSigAddress] = useState<string | undefined>(undefined)
-  console.log('multiSigFactoryAddress', multiSigFactoryAddress)
 
   useContractEvent({
     address: multiSigFactoryAddress,

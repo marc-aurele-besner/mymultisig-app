@@ -1,13 +1,21 @@
 import { useNetwork, usePrepareContractWrite, useContractEvent } from 'wagmi'
 import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 
-import { MultiSigExecTransactionArgs } from '../models/MultiSigs'
+import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../models/MultiSigs'
 import { useNotification } from './notifications'
 import useFinalizeTransaction from './useFinalizeTransaction'
+import useMultiSigs from '../states/multiSigs'
+import { signData, updateContent } from '../utils'
 
-const useExecTransaction = (args: MultiSigExecTransactionArgs, multiSigAddress: `0x${string}`) => {
+const useExecTransaction = (
+  args: MultiSigExecTransactionArgs,
+  multiSigAddress: `0x${string}`,
+  existingRequest: MultiSigTransactionRequest,
+  existingRequestRef: string
+) => {
   const { chain } = useNetwork()
   const { notificationInfo, notificationError, notificationSuccess } = useNotification()
+  const { updateMultiSigTransactionRequest } = useMultiSigs()
   const {
     config,
     error: preparationError,
@@ -16,7 +24,7 @@ const useExecTransaction = (args: MultiSigExecTransactionArgs, multiSigAddress: 
     chainId: chain?.id,
     address: multiSigAddress,
     abi: MyMultiSig,
-    functionName: 'execTransaction',
+    functionName: 'execTransaction(address,uint256,bytes,uint256,bytes)',
     args: [args.to, args.value, args.data, args.txnGas, args.signatures]
   })
   const { data, error, isError, isIdle, isLoading, isSuccess, write, writeAsync, reset, status, dataFinal, isFinal } =
@@ -27,6 +35,29 @@ const useExecTransaction = (args: MultiSigExecTransactionArgs, multiSigAddress: 
     eventName: 'TransactionExecuted',
     listener: (executor, to, value, data, txnGas, txnNonce) => {
       console.log('TransactionExecuted', executor, to, value, data, txnGas, txnNonce)
+
+      if (chain && existingRequestRef)
+        signData({
+          action: 'updateMultiSigRequest',
+          chainId: chain.id,
+          collection: 'multisig-requests',
+          data: {
+            dateExecuted: new Date().toISOString(),
+            isExecuted: true,
+            isSuccessful: true
+          },
+          details: 'Update MultiSig Request',
+          signatureExpiry: 0
+        }).then(async (dataSigned) => {
+          updateContent(dataSigned.message, existingRequestRef).then(() => {
+            updateMultiSigTransactionRequest(existingRequest.id, {
+              ...existingRequest,
+              dateExecuted: new Date().toISOString(),
+              isExecuted: true,
+              isSuccessful: true
+            })
+          })
+        })
     }
   })
   useContractEvent({
@@ -35,6 +66,29 @@ const useExecTransaction = (args: MultiSigExecTransactionArgs, multiSigAddress: 
     eventName: 'TransactionFailed',
     listener: (executor, to, value, data, txnGas, txnNonce) => {
       console.log('TransactionFailed', executor, to, value, data, txnGas, txnNonce)
+
+      if (chain && existingRequestRef)
+        signData({
+          action: 'updateMultiSigRequest',
+          chainId: chain.id,
+          collection: 'multisig-requests',
+          data: {
+            dateExecuted: new Date().toISOString(),
+            isExecuted: true,
+            isSuccess: false
+          },
+          details: 'Update MultiSig Request',
+          signatureExpiry: 0
+        }).then(async (dataSigned) => {
+          updateContent(dataSigned.message, existingRequestRef).then(() => {
+            updateMultiSigTransactionRequest(existingRequest.id, {
+              ...existingRequest,
+              dateExecuted: new Date().toISOString(),
+              isExecuted: true,
+              isSuccessful: false
+            })
+          })
+        })
     }
   })
   useContractEvent({

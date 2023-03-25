@@ -50,6 +50,7 @@ export type MultiSigTransactionRequest = {
   isExecuted: boolean
   isCancelled: boolean
   isConfirmed: boolean
+  isSuccessful: boolean
 }
 
 export type MultiSigOnChainData = {

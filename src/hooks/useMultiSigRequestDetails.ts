@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react'
-import { useNetwork } from 'wagmi'
+import { useNetwork, useAccount } from 'wagmi'
 
 import { MultiSigRequestDB } from '../models/MultiSigs'
+import useMultiSigs from '../states/multiSigs'
 import { signData, getContent } from '../utils'
 
 const useMultiSigRequestDetails = (multiSigRequestId: string) => {
   const { chain } = useNetwork()
+  const { address } = useAccount()
   const [dataIsLoading, setDataIsLoading] = useState(false)
   const [requestDetails, setRequestDetails] = useState<MultiSigRequestDB | null>(null)
+  const { multiSigTransactionRequests } = useMultiSigs()
 
   useEffect(() => {
-    if (chain && !dataIsLoading) {
+    if (chain && !dataIsLoading && address) {
       setDataIsLoading(true)
       signData({
         action: 'getMultiSigRequestById',
@@ -27,7 +30,7 @@ const useMultiSigRequestDetails = (multiSigRequestId: string) => {
         })
       })
     }
-  }, [dataIsLoading, chain, multiSigRequestId])
+  }, [multiSigTransactionRequests, dataIsLoading, chain, address, multiSigRequestId])
 
   return requestDetails
 }

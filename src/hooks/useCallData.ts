@@ -15,7 +15,7 @@ const useCallData = (
   let callData = ''
   let argumentsString = ''
   try {
-    if (abi && signer) {
+    if (abi && signer && functionArguments) {
       const functionSelected = abi.find((abiObject) => buildRawSignatureFromFunction(abiObject) === functionSignature)
       const contractTargetInstance = new Contract(targetContract, abi, signer)
       if (abi !== null && functionSelected) {
