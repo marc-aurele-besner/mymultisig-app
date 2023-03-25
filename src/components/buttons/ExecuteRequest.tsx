@@ -1,18 +1,27 @@
 import React from 'react'
 import { Button, Center, VStack, HStack, Text, Textarea } from '@chakra-ui/react'
 
-import { MultiSigExecTransactionArgs } from '../../models/MultiSigs'
+import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
 import useExecTransaction from '../../hooks/useExecTransaction'
 
 interface ExecuteRequestProps {
   multiSigAddress: `0x${string}`
   args: MultiSigExecTransactionArgs
+  requestDetails: MultiSigTransactionRequest
+  existingRequestRef: string
 }
 
-const ExecuteRequest: React.FC<ExecuteRequestProps> = ({ multiSigAddress, args }) => {
+const ExecuteRequest: React.FC<ExecuteRequestProps> = ({
+  multiSigAddress,
+  args,
+  requestDetails,
+  existingRequestRef
+}) => {
   const { preparationError, preparationIsError, isError, isLoading, isSuccess, write, reset } = useExecTransaction(
     args,
-    multiSigAddress
+    multiSigAddress,
+    requestDetails,
+    existingRequestRef
   )
   return (
     <>

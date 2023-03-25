@@ -94,7 +94,12 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
             <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
               Execute this request
             </Text>
-            <ExecuteRequest multiSigAddress={multiSigAddress} args={requestDetails.data.request} />
+            <ExecuteRequest
+              multiSigAddress={multiSigAddress}
+              args={requestDetails.data.request}
+              requestDetails={requestDetails.data}
+              existingRequestRef={requestDetails.data.id}
+            />
           </HStack>
         )}
         <HStack key={`Request-Sign`}>
