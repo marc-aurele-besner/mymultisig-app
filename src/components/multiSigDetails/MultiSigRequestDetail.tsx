@@ -1,39 +1,51 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
+import Link from 'next/link'
 import { Box, Button, Center, HStack, Text, Textarea } from '@chakra-ui/react'
 
-import { MultiSigOnChainData } from '../../models/MultiSigs'
 import SignRequest from '../buttons/SignRequest'
 import ExecuteRequest from '../buttons/ExecuteRequest'
 import useMultiSigRequestDetails from '../../hooks/useMultiSigRequestDetails'
 import useDeleteMultiSigRequest from '../../hooks/useDeleteMultiSigRequest'
 import useResetMultiSigRequest from '../../hooks/useResetMultiSigRequest'
+import useMultiSigDetails from '../../hooks/useMultiSigDetails'
+import useMultiSigs from '../../states/multiSigs'
 
 interface MultiSigRequestDetailProps {
-  multiSigAddress: `0x${string}`
   address: `0x${string}`
-  multiSigDetails: MultiSigOnChainData
   multiSigRequestId: string
-  setSelectRequest: React.Dispatch<React.SetStateAction<string | null>>
 }
 
-const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
-  multiSigAddress,
-  address,
-  multiSigDetails,
-  multiSigRequestId,
-  setSelectRequest
-}) => {
+const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, multiSigRequestId }) => {
   const [isDeleted, setIsDeleted] = useState(false)
   const [isReset, setIsReset] = useState(false)
   const requestDetails = useMultiSigRequestDetails(multiSigRequestId)
-  const deleted = useDeleteMultiSigRequest(multiSigRequestId, requestDetails?.ref['@ref'].id, isDeleted)
-  useResetMultiSigRequest(multiSigRequestId, requestDetails?.ref['@ref'].id, isReset)
-  if (deleted) setSelectRequest(null)
+  const { multiSigDetails } = useMultiSigDetails(
+    requestDetails != null ? requestDetails.data.multiSigAddress : '0x',
+    address
+  )
 
-  if (requestDetails == null) return null
+  const deleted = useDeleteMultiSigRequest(multiSigRequestId, requestDetails?.ref['@ref'].id, isDeleted)
+  const { setSelectedMultiSigTransactionRequest } = useMultiSigs()
+
+  useResetMultiSigRequest(multiSigRequestId, requestDetails?.ref['@ref'].id, isReset)
+  if (deleted) setSelectedMultiSigTransactionRequest(null)
+
+  if (requestDetails == null || multiSigDetails == null) return null
 
   return (
     <>
+      <HStack pl='1.5rem' pr='1.5rem'>
+        <Link href={`/multisig/${requestDetails.data.multiSigAddress}/buildRequest`}>
+          <Button colorScheme='blue' m='1rem' mr='2rem'>
+            Build a request
+          </Button>
+        </Link>
+        <Link href={`/multisig/${requestDetails.data.multiSigAddress}/requests`}>
+          <Button colorScheme='blue' m='1rem' mr='2rem'>
+            Consult requests
+          </Button>
+        </Link>
+      </HStack>
       <Box border='1px' borderColor='white' borderRadius='5px' p='1rem'>
         <HStack key={`Request-Title`}>
           <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
@@ -107,7 +119,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
                   Execute this request
                 </Text>
                 <ExecuteRequest
-                  multiSigAddress={multiSigAddress}
+                  multiSigAddress={requestDetails.data.multiSigAddress}
                   args={requestDetails.data.request}
                   requestDetails={requestDetails.data}
                   existingRequestRef={requestDetails.data.id}
@@ -125,7 +137,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
                   </Text>
                 ) : (
                   <SignRequest
-                    multiSigAddress={multiSigAddress}
+                    multiSigAddress={requestDetails.data.multiSigAddress}
                     args={requestDetails.data.request}
                     description={requestDetails.data.description}
                     requestDetails={requestDetails.data}
@@ -158,9 +170,13 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
         )}
       </Box>
       <Center>
-        <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setSelectRequest(null)}>
-          View a different request
-        </Button>
+        <Link
+          href={`/multisig/${requestDetails.data.multiSigAddress}/requests`}
+          onClick={() => setSelectedMultiSigTransactionRequest(null)}>
+          <Button colorScheme='blue' m='1rem' mr='2rem'>
+            View a different request
+          </Button>
+        </Link>
       </Center>
     </>
   )
