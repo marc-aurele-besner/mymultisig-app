@@ -1,21 +1,22 @@
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { Box, Button, HStack, Center } from '@chakra-ui/react'
 
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import MultiSigRequestList from './MultiSigRequestList'
 import CreateMultiSigRequestForm from '../forms/CreateMultiSigRequestForm'
 import MultiSigRequestDetail from './MultiSigRequestDetail'
+import useMultiSigs from '../../states/multiSigs'
 
 interface MultiSigListProps {
   multiSigAddress: `0x${string}`
   address: `0x${string}`
-  setSelectMultiSig: React.Dispatch<React.SetStateAction<`0x${string}` | undefined>>
 }
 
-const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, address, setSelectMultiSig }) => {
+const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, address }) => {
   const { multiSigDetails } = useMultiSigDetails(multiSigAddress, address)
   const [action, setAction] = useState<string>('contract')
-  const [selectRequest, setSelectRequest] = useState<string | null>(null)
+  const { setSelectedMultiSigAddress, selectedMultiSigTransactionRequest } = useMultiSigs()
 
   if (multiSigDetails == null) return null
 
@@ -34,29 +35,21 @@ const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, addres
         </HStack>
         {action === 'consultRequests' ? (
           <>
-            {selectRequest != null ? (
-              <MultiSigRequestDetail
-                multiSigAddress={multiSigAddress}
-                address={address}
-                multiSigDetails={multiSigDetails}
-                multiSigRequestId={selectRequest}
-                setSelectRequest={setSelectRequest}
-              />
+            {selectedMultiSigTransactionRequest != null ? (
+              <MultiSigRequestDetail address={address} multiSigRequestId={selectedMultiSigTransactionRequest} />
             ) : (
-              <MultiSigRequestList
-                multiSigAddress={multiSigAddress}
-                multiSigDetails={multiSigDetails}
-                setSelectRequest={setSelectRequest}
-              />
+              <MultiSigRequestList multiSigAddress={multiSigAddress} multiSigDetails={multiSigDetails} />
             )}
           </>
         ) : (
           <CreateMultiSigRequestForm multiSigAddress={multiSigAddress} />
         )}
       </Box>
-      <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setSelectMultiSig(undefined)}>
-        Select a different MultiSig to use
-      </Button>
+      <Link href='/useYourMultiSig' onClick={() => setSelectedMultiSigAddress(null)}>
+        <Button colorScheme='blue' m='1rem' mr='2rem'>
+          Select a different MultiSig to use
+        </Button>
+      </Link>
     </>
   )
 }
