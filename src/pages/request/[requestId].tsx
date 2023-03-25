@@ -1,8 +1,8 @@
 import React from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useAccount } from 'wagmi'
-import Link from 'next/link'
-import { Box, Button, Text, VStack, HStack, Center } from '@chakra-ui/react'
+import { Box, Button, Text, VStack, Center } from '@chakra-ui/react'
 
 import BigCard from '../../components/cards/BigCard'
 import MultiSigRequestDetail from '../../components/multiSigDetails/MultiSigRequestDetail'
@@ -25,16 +25,6 @@ const Page: React.FC = () => {
               Multi signature request
             </Text>
             <Box>
-              <HStack pl='1.5rem' pr='1.5rem'>
-                {/* <Center>
-                  <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setAction('buildRequest')}>
-                    Build a request
-                  </Button>
-                  <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setAction('consultRequests')}>
-                    Consult requests
-                  </Button>
-                </Center> */}
-              </HStack>
               <MultiSigRequestDetail address={address} multiSigRequestId={requestId} />
             </Box>
             <Link href='/useYourMultiSig' onClick={() => setSelectedMultiSigAddress(null)}>
@@ -55,12 +45,7 @@ export async function getStaticProps() {
 
 export async function getStaticPaths() {
   return {
-    paths: [
-      // String variant:
-      '/request/first-post',
-      // Object variant:
-      { params: { requestId: 'second-post' } }
-    ],
+    paths: [{ params: { requestId: '01' } }],
     fallback: true
   }
 }
