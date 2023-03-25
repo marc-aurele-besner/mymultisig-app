@@ -40,7 +40,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       await slackUtils.slackPostMessage(
         process.env.SLACK_TOKEN,
         process.env.SLACK_CONVERSATION_ID,
-        'Add Content function called',
+        'Edit Content function called',
         [slackBuilder.buildSimpleSlackHeaderMsg(`Someone is updating data on MyMultiSig.app (${data.action})`)],
         true
       )
@@ -83,6 +83,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         indexes = ['multisig-requests_by_id']
         slackMessageTitle = 'Someone has signed a request!'
         slackMessageBlocks.push(slackBuilder.buildSimpleSlackHeaderMsg(`Someone has signed a request!`))
+        break
+      case 'resetMultiSigRequest':
+        classes = ['multisig-requests']
+        indexes = ['multisig-requests_by_id']
+        slackMessageTitle = 'Someone has reset a request!'
+        slackMessageBlocks.push(slackBuilder.buildSimpleSlackHeaderMsg(`Someone has reset a request!`))
         break
       default:
         break

@@ -16,7 +16,7 @@ const useExecTransaction = (args: MultiSigExecTransactionArgs, multiSigAddress: 
     chainId: chain?.id,
     address: multiSigAddress,
     abi: MyMultiSig,
-    functionName: 'execTransaction',
+    functionName: 'execTransaction(address,uint256,bytes,uint256,bytes)',
     args: [args.to, args.value, args.data, args.txnGas, args.signatures]
   })
   const { data, error, isError, isIdle, isLoading, isSuccess, write, writeAsync, reset, status, dataFinal, isFinal } =

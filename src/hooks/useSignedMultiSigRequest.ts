@@ -29,7 +29,6 @@ const useSignedMultiSigRequest = (
     'Successfully Signing MultiSig Request',
     'You signed the MultiSig request successfully.'
   )
-
   const domain = {
     name: multiSigDetails ? String(multiSigDetails[0]) : 'MyMultiSigFactory',
     version: multiSigDetails ? String(multiSigDetails[1]) : '0.0.7',
@@ -67,7 +66,7 @@ const useSignedMultiSigRequest = (
     value: BigNumber.from(args.value),
     data: args.data,
     gas: BigNumber.from(args.txnGas),
-    nonce: BigNumber.from(multiSigDetails ? multiSigDetails[2] : 0)
+    nonce: BigNumber.from(multiSigDetails ? multiSigDetails[4] : 0)
   } as const
 
   const { data, isError, isLoading, isSuccess, signTypedData } = useSignTypedData({

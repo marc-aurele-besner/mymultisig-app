@@ -6,6 +6,7 @@ import SignRequest from '../buttons/SignRequest'
 import ExecuteRequest from '../buttons/ExecuteRequest'
 import useMultiSigRequestDetails from '../../hooks/useMultiSigRequestDetails'
 import useDeleteMultiSigRequest from '../../hooks/useDeleteMultiSigRequest'
+import useResetMultiSigRequest from '../../hooks/useResetMultiSigRequest'
 
 interface MultiSigRequestDetailProps {
   multiSigAddress: `0x${string}`
@@ -23,8 +24,10 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
   setSelectRequest
 }) => {
   const [isDeleted, setIsDeleted] = useState(false)
+  const [isReset, setIsReset] = useState(false)
   const requestDetails = useMultiSigRequestDetails(multiSigRequestId)
   const deleted = useDeleteMultiSigRequest(multiSigRequestId, requestDetails?.ref['@ref'].id, isDeleted)
+  useResetMultiSigRequest(multiSigRequestId, requestDetails?.ref['@ref'].id, isReset)
   if (deleted) setSelectRequest(null)
 
   if (requestDetails == null) return null
@@ -60,7 +63,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
           <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
             Data
           </Text>
-          <Textarea isReadOnly>{requestDetails.data.request.data}</Textarea>
+          <Textarea isReadOnly defaultValue={requestDetails.data.request.data} />
         </HStack>
         <HStack key={`Request-Value`}>
           <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
@@ -91,18 +94,18 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
             <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
               Execute this request
             </Text>
-            <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-              <ExecuteRequest multiSigAddress={multiSigAddress} args={requestDetails.data.request} />
-            </Text>
+            <ExecuteRequest multiSigAddress={multiSigAddress} args={requestDetails.data.request} />
           </HStack>
         )}
         <HStack key={`Request-Sign`}>
           <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
             Sign this request
           </Text>
-          <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+          <>
             {requestDetails.data.ownerSigners.find((signature) => signature === address) ? (
-              <Text color='green'>You already signed this request</Text>
+              <Text color='green' fontSize='xl' fontWeight='bold' m='0.5rem' pt='0.5rem'>
+                You already signed this request
+              </Text>
             ) : (
               <SignRequest
                 multiSigAddress={multiSigAddress}
@@ -112,6 +115,16 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
                 existingRequestRef={requestDetails.data.id}
               />
             )}
+          </>
+        </HStack>
+        <HStack key={`Request-ClearSignatures`}>
+          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+            Clear signatures
+          </Text>
+          <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+            <Button colorScheme='orange' m='1rem' mr='2rem' onClick={() => setIsReset(true)}>
+              Reset signatures
+            </Button>
           </Text>
         </HStack>
         <HStack key={`Request-Delete`}>
