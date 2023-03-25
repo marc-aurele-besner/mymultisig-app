@@ -113,7 +113,8 @@ const useSignedMultiSigRequest = (
             isActive: true,
             isExecuted: false,
             isCancelled: false,
-            isConfirmed: false
+            isConfirmed: false,
+            isSuccessful: false
           }
       if (existingRequest && existingRequestRef)
         signData({
