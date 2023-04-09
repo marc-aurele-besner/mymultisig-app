@@ -62,9 +62,9 @@
     leven "^3.1.0"
 
 "@arcxmoney/analytics@^1.8.1":
-  version "1.8.3"
-  resolved "https://registry.yarnpkg.com/@arcxmoney/analytics/-/analytics-1.8.3.tgz#287597596303bf61d2e0510de71c23d8237cf3b7"
-  integrity sha512-jonlfYM1aqE5RuPwIK+XCeDuHUsCaeJJB8npdFEuIfpMgG2ErFOyGznHGtGiSWdfENtuGUNm7EKqbxz0UkH6SA==
+  version "1.8.4"
+  resolved "https://registry.yarnpkg.com/@arcxmoney/analytics/-/analytics-1.8.4.tgz#cf6aab574d4c48f780f4f6eba95cd633a72d92d9"
+  integrity sha512-X0cUTPuPItM9GSSN6vRLMBYKYFO5ssUCvqv4DVZfIWNr7SiZrMCLQpXnnBUpKro/UYnOJI3bDKS+5CixIYRmfA==
   dependencies:
     "@restless/sanitizers" "^0.2.5"
     socket.io-client "^4.5.4"
