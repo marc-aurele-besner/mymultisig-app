@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Fragment } from 'react'
 import { Button, Center, VStack, HStack, Text, Textarea } from '@chakra-ui/react'
 
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
@@ -24,7 +24,7 @@ const ExecuteRequest: React.FC<ExecuteRequestProps> = ({
     existingRequestRef
   )
   return (
-    <>
+    <Fragment>
       <Center>
         {isError && (
           <Text fontSize='xl' fontWeight='bold' color='red' m='0.5rem' pt='0.5rem'>
@@ -62,7 +62,7 @@ const ExecuteRequest: React.FC<ExecuteRequestProps> = ({
           </VStack>
         )}
       </Center>
-    </>
+    </Fragment>
   )
 }
 

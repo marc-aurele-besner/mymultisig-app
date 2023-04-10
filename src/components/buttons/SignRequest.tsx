@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Fragment } from 'react'
 import { Button, Center, Text, VStack } from '@chakra-ui/react'
 
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
@@ -23,7 +23,7 @@ const SignRequest: React.FC<MultiSigListProps> = ({
     useSignedMultiSigRequest(multiSigAddress, args, description, requestDetails, existingRequestRef)
 
   return (
-    <>
+    <Fragment>
       <Center>
         {isPrepareError || isError ? (
           <VStack>
@@ -55,7 +55,7 @@ const SignRequest: React.FC<MultiSigListProps> = ({
           </Button>
         )}
       </Center>
-    </>
+    </Fragment>
   )
 }
 

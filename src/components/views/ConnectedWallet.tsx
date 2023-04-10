@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Fragment } from 'react'
 import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from 'wagmi'
 import { Text } from '@chakra-ui/react'
 
@@ -15,7 +15,7 @@ const ConnectedWallet: React.FC = () => {
   }
 
   return (
-    <>
+    <Fragment>
       {ensName ? (
         <Text fontSize='2xl' fontWeight='bold' color='white' pt='1rem'>
           Wallet: {ensName}
@@ -41,7 +41,7 @@ const ConnectedWallet: React.FC = () => {
         // isLoading={isLoading}
         // isDisabled={isLoading}
       />
-    </>
+    </Fragment>
   )
 }
 

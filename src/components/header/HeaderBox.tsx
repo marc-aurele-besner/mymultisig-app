@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import React from 'react'
+import React, { Fragment } from 'react'
 import {
   Box,
   HStack,
@@ -11,7 +11,7 @@ import {
   MenuList,
   MenuItem,
   useColorMode,
-  useStyleConfig,
+  useStyleConfig
 } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
 
@@ -21,7 +21,7 @@ import HeaderNetworkSelector from './HeaderNetworkSelector'
 const HeaderBox: React.FC = () => {
   const [isLargerThan800] = useMediaQuery('(min-width: 800px)', {
     ssr: true,
-    fallback: false, // return false on the server, and re-evaluate on the client side
+    fallback: false // return false on the server, and re-evaluate on the client side
   })
   const { colorMode, toggleColorMode } = useColorMode()
 
@@ -31,18 +31,18 @@ const HeaderBox: React.FC = () => {
     {
       name: 'Create a MultiSig',
       link: '/createMultiSig',
-      imagePath: '/images/create.png',
+      imagePath: '/images/create.png'
     },
     {
       name: 'Use your MultiSig',
       link: '/useYourMultiSig',
-      imagePath: '/images/use.png',
+      imagePath: '/images/use.png'
     },
     {
       name: 'Integration',
       link: '/integration',
-      imagePath: '/images/integration.png',
-    },
+      imagePath: '/images/integration.png'
+    }
   ]
 
   return (
@@ -50,12 +50,12 @@ const HeaderBox: React.FC = () => {
       <HStack>
         <HeaderLink name='MyMultiSig.app' link='/' imagePath='/icons/android-icon-512x512.png' />
         {isLargerThan800 ? (
-          <>
+          <Fragment>
             {menu.map((item) => (
               <HeaderLink key={`Link-${item.name}`} name={item.name} link={item.link} imagePath={item.imagePath} />
             ))}
             <Button onClick={toggleColorMode}>Toggle {colorMode === 'light' ? 'Dark' : 'Light'}</Button>
-          </>
+          </Fragment>
         ) : (
           <Box ml='2rem'>
             <Menu>
@@ -66,11 +66,11 @@ const HeaderBox: React.FC = () => {
                 bg='transparent'
                 _focus={{
                   outline: 'none',
-                  color: 'cyan.600',
+                  color: 'cyan.600'
                 }}
                 _active={{
                   outline: 'none',
-                  color: 'cyan.600',
+                  color: 'cyan.600'
                 }}>
                 Menu
               </MenuButton>
@@ -85,7 +85,7 @@ const HeaderBox: React.FC = () => {
                         color='cyan.900'
                         pl='1rem'
                         _hover={{
-                          color: 'cyan.600',
+                          color: 'cyan.600'
                         }}>
                         {item.name}
                       </Text>

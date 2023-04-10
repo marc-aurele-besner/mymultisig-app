@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Fragment } from 'react'
 import Link from 'next/link'
 import { Box, Button, HStack, Text } from '@chakra-ui/react'
 
@@ -18,7 +18,7 @@ const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({ multiSigAddre
   if (multiSigDetails == null || requests == null) return null
 
   return (
-    <>
+    <Fragment>
       <Box border='1px' borderColor='white' borderRadius='5px' p='1rem'>
         {requests.length > 0 ? (
           requests.map((request) => (
@@ -41,7 +41,7 @@ const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({ multiSigAddre
           </Text>
         )}
       </Box>
-    </>
+    </Fragment>
   )
 }
 

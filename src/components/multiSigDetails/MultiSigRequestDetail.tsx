@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { Fragment, useState } from 'react'
 import Link from 'next/link'
 import { Box, Button, Center, HStack, Text, Textarea } from '@chakra-ui/react'
 
@@ -33,7 +33,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
   if (requestDetails == null || multiSigDetails == null) return null
 
   return (
-    <>
+    <Fragment>
       <HStack pl='1.5rem' pr='1.5rem'>
         <Link href={`/multisig/${requestDetails.data.multiSigAddress}/buildRequest`}>
           <Button colorScheme='blue' m='1rem' mr='2rem'>
@@ -112,7 +112,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
             </HStack>
           </>
         ) : (
-          <>
+          <Fragment>
             {requestDetails.data.signatures.length >= multiSigDetails.threshold && (
               <HStack key={`Request-Execute`}>
                 <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
@@ -130,7 +130,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
               <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
                 Sign this request
               </Text>
-              <>
+              <Fragment>
                 {requestDetails.data.ownerSigners.find((signature) => signature === address) ? (
                   <Text color='green' fontSize='xl' fontWeight='bold' m='0.5rem' pt='0.5rem'>
                     You already signed this request
@@ -144,7 +144,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
                     existingRequestRef={requestDetails.data.id}
                   />
                 )}
-              </>
+              </Fragment>
             </HStack>
             <HStack key={`Request-ClearSignatures`}>
               <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
@@ -166,7 +166,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
                 </Button>
               </Text>
             </HStack>
-          </>
+          </Fragment>
         )}
       </Box>
       <Center>
@@ -178,7 +178,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
           </Button>
         </Link>
       </Center>
-    </>
+    </Fragment>
   )
 }
 

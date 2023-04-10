@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Fragment } from 'react'
 import Link from 'next/link'
 import { Box, Button, HStack, Center } from '@chakra-ui/react'
 
@@ -18,7 +18,7 @@ const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, addres
   if (multiSigDetails == null) return null
 
   return (
-    <>
+    <Fragment>
       <Box>
         <HStack pl='1.5rem' pr='1.5rem'>
           <Center>
@@ -41,7 +41,7 @@ const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, addres
           Select a different MultiSig to use
         </Button>
       </Link>
-    </>
+    </Fragment>
   )
 }
 
