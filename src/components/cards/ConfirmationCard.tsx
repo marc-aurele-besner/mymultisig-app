@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { Fragment, useEffect } from 'react'
 import { Text } from '@chakra-ui/react'
 
 import useConfirmation from '../../hooks/useConfirmation'
@@ -31,13 +31,13 @@ const ConfirmationWithEventDetailCard: React.FC<ConfirmationCardProps> = ({
   }, [multiSigAddress, constructorArgs])
 
   return (
-    <>
+    <Fragment>
       {multiSigAddress && (
         <Text fontSize='lg' fontWeight='bold' color='white'>
           Address: {multiSigAddress}
         </Text>
       )}
-    </>
+    </Fragment>
   )
 }
 
@@ -46,7 +46,7 @@ const ConfirmationCard: React.FC<ConfirmationCardProps> = ({ hash, multiSigFacto
 
   console.log('data', data)
   return (
-    <>
+    <Fragment>
       {isLoading && (
         <Text fontSize='lg' fontWeight='bold' color='white'>
           Loading...
@@ -58,7 +58,7 @@ const ConfirmationCard: React.FC<ConfirmationCardProps> = ({ hash, multiSigFacto
         </Text>
       )}
       {isSuccess && (
-        <>
+        <Fragment>
           <Text fontSize='lg' fontWeight='bold' color='white'>
             Your multisig contract has been deployed!
           </Text>
@@ -67,9 +67,9 @@ const ConfirmationCard: React.FC<ConfirmationCardProps> = ({ hash, multiSigFacto
             multiSigFactoryAddress={multiSigFactoryAddress}
             constructorArgs={constructorArgs}
           />
-        </>
+        </Fragment>
       )}
-    </>
+    </Fragment>
   )
 }
 

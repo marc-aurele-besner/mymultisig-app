@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { Fragment, useState } from 'react'
 import { Box, Button, Center, HStack, Text } from '@chakra-ui/react'
 import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 import { JsonFragment } from '@ethersproject/abi'
@@ -60,7 +60,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
   }
 
   return (
-    <>
+    <Fragment>
       {selectedContract == 'newContract' && <NewContract />}
       <Box border='1px' borderColor='white' borderRadius='5px' p='1rem'>
         <HStack>
@@ -72,7 +72,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
           </Button>
         </HStack>
         {type === 'contract' ? (
-          <>
+          <Fragment>
             <HStack>
               <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
                 Contract to call:
@@ -113,7 +113,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
                   ))}
                 </>
               )}
-          </>
+          </Fragment>
         ) : (
           <HStack>
             <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
@@ -177,7 +177,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
           </Center>
         )}
       </Box>
-    </>
+    </Fragment>
   )
 }
 

@@ -2,10 +2,11 @@ import { useNetwork, usePrepareContractWrite, useContractEvent } from 'wagmi'
 import { BigNumber } from 'ethers'
 import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
 
-import { MultiSigConstructorArgs } from '../models/MultiSigs'
+import { MultiSigConstructorArgs, MultiSig } from '../models/MultiSigs'
 import useMultiSigs from '../states/multiSigs'
 import { useNotification } from './notifications'
 import useFinalizeTransaction from './useFinalizeTransaction'
+import { signData, addContent } from '../utils'
 
 const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFactoryAddress: `0x${string}`) => {
   const { chain } = useNetwork()
@@ -27,8 +28,7 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
     listener: (creator, contractAddress, contractIndex, contractName, originalOwners) => {
       console.log('MyMultiSigCreated', creator, contractAddress, contractIndex, contractName, originalOwners)
       if (chain) {
-        // setMultiSigAddress(String(contractAddress))
-        addMultiSig({
+        const dataToAdd: MultiSig = {
           chainId: chain?.id || 0,
           chainName: chain?.name || 'unknown',
           factoryAddress: multiSigFactoryAddress,
@@ -41,6 +41,19 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
           nonce: 0,
           owners: Array(originalOwners).map((owner) => String(owner)),
           isDeployed: true
+        }
+        signData({
+          action: 'createMultiSigWallet',
+          chainId: chain.id,
+          collection: 'multisig-wallets',
+          data: dataToAdd,
+          details: 'Add MultiSig Wallets',
+          signatureExpiry: 0
+        }).then(async (dataSigned) => {
+          addContent(dataSigned.message).then(() => {
+            // setMultiSigAddress(String(contractAddress))
+            addMultiSig(dataToAdd)
+          })
         })
       }
     }

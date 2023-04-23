@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Fragment } from 'react'
 import { Text } from '@chakra-ui/react'
 import { useNetwork } from 'wagmi'
 
@@ -41,7 +41,7 @@ const ImportConfirmationCard: React.FC<ImportConfirmationCardProps> = ({
 
   console.log('data', data)
   return (
-    <>
+    <Fragment>
       {isLoading && (
         <Text fontSize='lg' fontWeight='bold' color='white'>
           Loading...
@@ -53,13 +53,13 @@ const ImportConfirmationCard: React.FC<ImportConfirmationCardProps> = ({
         </Text>
       )}
       {isSuccess && (
-        <>
+        <Fragment>
           <Text fontSize='lg' fontWeight='bold' color='white'>
             Your multisig contract has been imported!
           </Text>
-        </>
+        </Fragment>
       )}
-    </>
+    </Fragment>
   )
 }
 

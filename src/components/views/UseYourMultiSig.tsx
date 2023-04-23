@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { Fragment, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Center, VStack, Text, Box } from '@chakra-ui/react'
 import { useAccount, useNetwork } from 'wagmi'
@@ -33,19 +33,19 @@ const UseYourMultiSig: React.FC = () => {
               Use your multiSig
             </Text>
             {!hasMounted || !isConnected || address === undefined ? (
-              <>
+              <Fragment>
                 <ErrorCard>Please connect your wallet first</ErrorCard>
                 <ConnectWallet />
-              </>
+              </Fragment>
             ) : (
-              <>
+              <Fragment>
                 {filteredMultiSigs.length === 0 ? (
                   <ErrorCard>
                     You don&apos;t have seem to have any multi-signatures contract on this network. <br />
                     Please create one first or import one.
                   </ErrorCard>
                 ) : (
-                  <>
+                  <Fragment>
                     <Text fontSize='2xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
                       Select a MultiSig to use
                     </Text>
@@ -56,7 +56,7 @@ const UseYourMultiSig: React.FC = () => {
                         address={address}
                       />
                     ))}
-                  </>
+                  </Fragment>
                 )}
                 <Text fontSize='2xl' fontWeight='bold' color='white' m='0.5rem'>
                   Other options
@@ -73,7 +73,7 @@ const UseYourMultiSig: React.FC = () => {
                     />
                   )}
                 </Box>
-              </>
+              </Fragment>
             )}
           </VStack>
         </Center>
