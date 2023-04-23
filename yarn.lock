@@ -10126,9 +10126,9 @@ bsert@~0.0.10:
   integrity sha512-NHNwlac+WPy4t2LoNh8pXk8uaIGH3NSaIUbTTRXGpE2WEbq0te/tDykYHkFK57YKLPjv/aGHmbqvnGeVWDz57Q==
 
 bson@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/bson/-/bson-5.0.1.tgz#4cd3eeeabf6652ef0d6ab600f9a18212d39baac3"
-  integrity sha512-y09gBGusgHtinMon/GVbv1J6FrXhnr/+6hqLlSmEFzkz6PodqF6TxjyvfvY3AfO+oG1mgUtbC86xSbOlwvM62Q==
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/bson/-/bson-5.2.0.tgz#c81d35dd30e2798203e5422a639780ea98dd25ba"
+  integrity sha512-HevkSpDbpUfsrHWmWiAsNavANKYIErV2ePXllp1bwq5CDreAaFVj6RVlZpJnxK4WWDCJ/5jMUpaY6G526q3Hjg==
 
 btoa-lite@^1.0.0:
   version "1.0.0"
@@ -18787,10 +18787,10 @@ mongodb@5.1.0:
   optionalDependencies:
     saslprep "^1.0.3"
 
-mongoose@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-7.0.0.tgz#4b1394fdd56fcf0d6e78c7be9768edcc3254cc26"
-  integrity sha512-U0YPURDld+k/nvvSG1mRClQSjZMRXwQKSU5yb9PslRnOmVz0UlBD7SjSnjUuGT0yk+7BH+kJNimsKqMxYAKkMA==
+mongoose@^7.0.3:
+  version "7.0.4"
+  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-7.0.4.tgz#7f6c31e12d86eed516ab5d1f5e6f8196d3682ed2"
+  integrity sha512-MEmQOOqQUvW1PJcji64NtA2EFGHrEvk9o4g//isVYSJW2+8Y8u49C2qFBKzn1t6/l9onQn012o/PcFqR6ixQpQ==
   dependencies:
     bson "^5.0.1"
     kareem "2.5.1"
@@ -22527,14 +22527,14 @@ sisteransi@^1.0.5:
   integrity sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==
 
 slack-utility@^0.1.28:
-  version "0.1.28"
-  resolved "https://registry.yarnpkg.com/slack-utility/-/slack-utility-0.1.28.tgz#f34001661187a902dd2739132b6c434f485598d5"
-  integrity sha512-3vSZTiDwn+qfZqELAK1bbV0XhDAE4z3MEgmqoylcF0T1QdB8Vc7Zpglg/aCXt4yVUBJzO2WayOtf67qAkIS0KA==
+  version "0.1.29"
+  resolved "https://registry.yarnpkg.com/slack-utility/-/slack-utility-0.1.29.tgz#7a74c74b53562bd91e1caa9dd6dc2502aa810714"
+  integrity sha512-ZEqIPgByWNeWbsYFa4y9OFEgZeprWxtkgsrnY7i7NFerF1DlIDRUE+18m4C1nsU6I76UkqxVrpqEQR3KXiP1bA==
   dependencies:
     "@slack/web-api" "^6.8.1"
     ethers "^5.7.2"
     faunadb-utility "^0.2.1"
-    mongoose "^7.0.0"
+    mongoose "^7.0.3"
     uuid "^9.0.0"
 
 slash@^2.0.0:
