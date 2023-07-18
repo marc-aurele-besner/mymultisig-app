@@ -69,7 +69,7 @@
     "react-dom": "^18.2.0",
     "react-merge-refs": "^2.0.1",
     "slack-utility": "^0.1.28",
-    "styled-components": "^5.3.8",
+    "styled-components": "^6.0.0",
     "uuid": "^9.0.0",
     "wagmi": "^0.12.0"
   },
