@@ -123,7 +123,7 @@
     "next": "^13.2.4",
     "next-auth": "^4.20.1",
     "postcss": "^8.4.21",
-    "prettier": "^2.8.4",
+    "prettier": "^3.0.0",
     "storybook-dark-mode": "^3.0.0",
     "ts-jest": "^29.0.5",
     "tsc": "^2.0.4",
