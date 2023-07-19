@@ -4978,9 +4978,9 @@
     yargs "^17.6.0"
 
 "@netlify/config@^20.6.0":
-  version "20.6.1"
-  resolved "https://registry.yarnpkg.com/@netlify/config/-/config-20.6.1.tgz#1a16d644fefd08901c9a604763ecfd22797d6288"
-  integrity sha512-NVVPYEJhooyBWmLOiu/o9mVO7R95plgDLXLFhfQ2EIpjrjTTYU1BFTvvZF+SlQ42rBiIMPLVdHMe4O89hWQ5lg==
+  version "20.6.3"
+  resolved "https://registry.yarnpkg.com/@netlify/config/-/config-20.6.3.tgz#3137dd0e518411e8e1ce36814bc6b670c6e20b53"
+  integrity sha512-0pfljbl9lRJqqU6F8q+Ef0WKe9rXp01sOvBlGNzQvW4CXCymX70Yq/jDG79qy7dtDy90uIzy5K31ppcN8fz98Q==
   dependencies:
     chalk "^5.0.0"
     cron-parser "^4.1.0"
@@ -5291,10 +5291,15 @@
   dependencies:
     execa "^6.0.0"
 
-"@netlify/serverless-functions-api@1.5.1", "@netlify/serverless-functions-api@^1.5.1":
+"@netlify/serverless-functions-api@1.5.1":
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/@netlify/serverless-functions-api/-/serverless-functions-api-1.5.1.tgz#8087e130f0f9391b917286cd941de16ecf2bb98a"
   integrity sha512-c8RjIu+fkpfOGLaW0Z0iFG39GUK7sCa6M3Qy3fqouMpT00TaiheiyssnnDZGSLkNp4o+UtbRnITB1zuwDeHMLw==
+
+"@netlify/serverless-functions-api@^1.5.1":
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/@netlify/serverless-functions-api/-/serverless-functions-api-1.5.2.tgz#cb78ad64c1474b70c14c14fcc06ad832c1cd86f8"
+  integrity sha512-E9ZqnuWwGftXgO0JhGOl6h05bpnrH5EswQOuHIdTXBmhi4LedXjTNZ6xoSMgnhsE+x13WWq2P0yhaAl8Ly9lKw==
 
 "@netlify/zip-it-and-ship-it@9.13.0":
   version "9.13.0"
@@ -6523,9 +6528,9 @@
   integrity sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==
 
 "@sindresorhus/is@^5.2.0":
-  version "5.5.1"
-  resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-5.5.1.tgz#a18b694ca8e9f45d64f578a4779568dd74d232b8"
-  integrity sha512-wTsEUhqTXg1NDW+o9aWANj4LxELwWjqN0F3ltsWwpYoh0NSlMWo+u7FluRrSF2E2uaPYx7dJ3FnTf69git/0ug==
+  version "5.5.2"
+  resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-5.5.2.tgz#cbfd816d556b941f65d32cfc6d708359b826e7ea"
+  integrity sha512-8ZMK+V6YpeZFfW6hU9uAeWVuq8v3t7BaG276gIO+kVqnAcLrHCXdFUOf7kgouyfAarkZtuavIqY3RsXTsTWviw==
 
 "@sindresorhus/slugify@^2.0.0":
   version "2.2.1"
@@ -13255,9 +13260,9 @@ detect-browser@5.3.0, detect-browser@^5.3.0:
   integrity sha512-53rsFbGdwMwlF7qvCt0ypLM5V5/Mbl0szB7GPN8y9NCcbknYOeVVXdrXEq+90IwAfrrzt6Hd+u2E2ntakICU8w==
 
 detect-libc@^2.0.0:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/detect-libc/-/detect-libc-2.0.1.tgz#e1897aa88fa6ad197862937fbc0441ef352ee0cd"
-  integrity sha512-463v3ZeIrcWtdgIg6vI6XUncguvr2TnGl4SzDXinkt9mSLpBJKXT3mW6xT3VQdDN11+WVs29pgvivTc4Lp8v+w==
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/detect-libc/-/detect-libc-2.0.2.tgz#8ccf2ba9315350e1241b88d0ac3b0e1fbd99605d"
+  integrity sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==
 
 detect-newline@^3.0.0:
   version "3.1.0"
@@ -14836,9 +14841,9 @@ fastest-levenshtein@1.0.16:
   integrity sha512-eRnCtTTtGZFpQCwhJiUOuxPQWRXVKYDn0b2PeHfXL6/Zi53SLAzAHfVhVWK2AryC/WH05kGfxhFIPvTF0SXQzg==
 
 fastify-plugin@^4.0.0:
-  version "4.5.0"
-  resolved "https://registry.yarnpkg.com/fastify-plugin/-/fastify-plugin-4.5.0.tgz#8b853923a0bba6ab6921bb8f35b81224e6988d91"
-  integrity sha512-79ak0JxddO0utAXAQ5ccKhvs6vX2MGyHHMMsmZkBANrq3hXc1CHzvNPHOcvTsVMEPl5I+NT+RO4YKMGehOfSIg==
+  version "4.5.1"
+  resolved "https://registry.yarnpkg.com/fastify-plugin/-/fastify-plugin-4.5.1.tgz#44dc6a3cc2cce0988bc09e13f160120bbd91dbee"
+  integrity sha512-stRHYGeuqpEZTL1Ef0Ovr2ltazUT9g844X5z/zEBFLG8RYlpDiOCIG+ATvYEp+/zmc7sN29mcIMp8gvYplYPIQ==
 
 fastify@4.17.0:
   version "4.17.0"
@@ -20132,9 +20137,9 @@ nested-error-stacks@^2.0.0, nested-error-stacks@^2.1.0, nested-error-stacks@^2.1
   integrity sha512-9iN1ka/9zmX1ZvLV9ewJYEk9h7RyRRtqdK0woXcqohu8EWIerfPUjYJPg0ULy0UqP7cslmdGc8xKDJcojlKiaw==
 
 netlify-cli@^15.0.0:
-  version "15.9.0"
-  resolved "https://registry.yarnpkg.com/netlify-cli/-/netlify-cli-15.9.0.tgz#360c0de423ae6093c6000372214112c7324f953b"
-  integrity sha512-AqeT+3vb8dWErhVBtso7VjxGdszwaWH9AGnwn8tvyknjxN+qNtlXGb5PxcfI1COaL2BlSphMMGjt/jl7C1NBkQ==
+  version "15.9.1"
+  resolved "https://registry.yarnpkg.com/netlify-cli/-/netlify-cli-15.9.1.tgz#bd87f4aea5a640bc954dd366b246b15b683b7771"
+  integrity sha512-R9a1se5n2yDEs5mWyEF1TBGEEMUuQ8ejQywt1HFjIL3wU/SEZPN0rEhmj8e1pM8+wBBhLeTA+PCjGE85N8jtUQ==
   dependencies:
     "@bugsnag/js" "7.20.2"
     "@fastify/static" "6.10.2"
