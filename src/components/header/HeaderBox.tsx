@@ -66,11 +66,11 @@ const HeaderBox: React.FC = () => {
                 bg='transparent'
                 _focus={{
                   outline: 'none',
-                  color: 'cyan.600'
+                  color: 'gray.600'
                 }}
                 _active={{
                   outline: 'none',
-                  color: 'cyan.600'
+                  color: 'gray.600'
                 }}>
                 Menu
               </MenuButton>
@@ -82,10 +82,10 @@ const HeaderBox: React.FC = () => {
                         key={`LinkText-${item.link}`}
                         fontSize='lg'
                         fontWeight='bold'
-                        color='cyan.900'
+                        color='gray.900'
                         pl='1rem'
                         _hover={{
-                          color: 'cyan.600'
+                          color: 'gray.600'
                         }}>
                         {item.name}
                       </Text>

@@ -26,21 +26,21 @@ const HeaderNetworkSelector: React.FC = () => {
           _hover={{
             border: '1px solid white',
             borderRadius: '10px',
-            color: 'cyan.900',
+            color: 'gray.900'
           }}
           _focus={{
             outline: 'none',
             background: 'transparent',
-            color: 'cyan.900',
+            color: 'gray.900',
             border: '1px solid white',
-            borderRadius: '10px',
+            borderRadius: '10px'
           }}
           _active={{
             outline: 'none',
             background: 'transparent',
-            color: 'cyan.900',
+            color: 'gray.900',
             border: '1px solid white',
-            borderRadius: '10px',
+            borderRadius: '10px'
           }}>
           {chain.name}
         </MenuButton>
@@ -48,17 +48,17 @@ const HeaderNetworkSelector: React.FC = () => {
           {chains.map((item) => (
             <MenuItem
               key={`MenuItem-${item.name}`}
-              bg='cyan.200'
-              color='cyan.900'
+              bg='gray.200'
+              color='gray.900'
               onClick={() => switchNetwork !== undefined && switchNetwork(item.id)}>
               <Text
                 key={`LinkText-${item.name}`}
                 fontSize='lg'
                 fontWeight='bold'
-                color='cyan.900'
+                color='gray.900'
                 pl='1rem'
                 _hover={{
-                  color: 'cyan.600',
+                  color: 'gray.600'
                 }}>
                 {item.name}
               </Text>
