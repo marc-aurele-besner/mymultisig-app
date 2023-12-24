@@ -54,7 +54,7 @@
     ]
   },
   "dependencies": {
-    "@arcxmoney/analytics": "^1.8.1",
+    "@arcxmoney/analytics": "^2.0.0",
     "@chakra-ui/color-mode": "^2.1.11",
     "@chakra-ui/core": "^0.8.0",
     "@chakra-ui/icons": "^2.0.17",

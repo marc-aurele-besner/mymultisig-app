@@ -66,10 +66,10 @@
     jsonpointer "^5.0.0"
     leven "^3.1.0"
 
-"@arcxmoney/analytics@^1.8.1":
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/@arcxmoney/analytics/-/analytics-1.9.1.tgz#c3415ff20a4bb6758da5e1eae13204a456717ab4"
-  integrity sha512-I2SLyqOLl46Kpk3AuYZLjqicn2nBUWAJhSt2cT/1eKChylpy7bhynh5VsWLSXuyuWC33aa4MUqP5XHO1p16KgA==
+"@arcxmoney/analytics@^2.0.0":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@arcxmoney/analytics/-/analytics-2.0.3.tgz#a7a43e27024a2033a584a466d377087e6f92571e"
+  integrity sha512-HFrJR59T0rYtK9/BxoO83WuKlsVjFv/ybsWRA+tkQ31/ZiG600mUKIpYBRsYxG+i6lKm18e2IUvvcz6fMHZoWA==
   dependencies:
     "@restless/sanitizers" "^0.2.5"
     socket.io-client "^4.5.4"
