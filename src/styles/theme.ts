@@ -1,5 +1,6 @@
 import { extendTheme, defineStyleConfig, type ThemeConfig } from '@chakra-ui/react'
 import { mode, StyleFunctionProps } from '@chakra-ui/theme-tools'
+import { cardColors } from './colors'
 
 const config: ThemeConfig = {
   initialColorMode: 'light',
@@ -34,8 +35,7 @@ const theme = extendTheme({
       baseStyle: {
         borderRadius: 10,
         fontSize: 'sm',
-        boxShadow: 'dark-lg',
-        bgGradient: ['linear(to-r, cyan.200, cyan.500, purple.200)']
+        ...cardColors
       },
       sizes: {
         sm: {
