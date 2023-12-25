@@ -14,9 +14,9 @@ import {
   useStyleConfig
 } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
-
 import HeaderLink from './HeaderLink'
 import HeaderNetworkSelector from './HeaderNetworkSelector'
+import { HeaderWalletSelector } from './HeaderWalletSelector'
 
 const HeaderBox: React.FC = () => {
   const [isLargerThan800] = useMediaQuery('(min-width: 800px)', {
@@ -97,6 +97,7 @@ const HeaderBox: React.FC = () => {
           </Box>
         )}
         <HeaderNetworkSelector />
+        <HeaderWalletSelector />
       </HStack>
     </Box>
   )
