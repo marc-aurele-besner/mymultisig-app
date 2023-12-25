@@ -1,7 +1,7 @@
 import React, { Fragment, useEffect } from 'react'
 import { useAccount, useNetwork, useDisconnect, useEnsAvatar, useEnsName, useSwitchNetwork } from 'wagmi'
 import { Text } from '@chakra-ui/react'
-
+import { textColors } from '../../styles/colors'
 import networks from '../../constants/networks'
 import ImageButton from '../buttons/ImageButton'
 
@@ -27,20 +27,20 @@ const ConnectedWallet: React.FC = () => {
   return (
     <Fragment>
       {ensName ? (
-        <Text fontSize='2xl' fontWeight='bold' color='white' pt='1rem'>
+        <Text fontSize='2xl' fontWeight='bold' pt='1rem' {...textColors}>
           Wallet: {ensName}
         </Text>
       ) : (
-        <Text fontSize='2xl' fontWeight='bold' color='white' pt='1rem'>
+        <Text fontSize='2xl' fontWeight='bold' pt='1rem' {...textColors}>
           Wallet: {address}
         </Text>
       )}
-      <Text fontSize='2xl' fontWeight='bold' color='white' pt='1rem'>
+      <Text fontSize='2xl' fontWeight='bold' pt='1rem' {...textColors}>
         Connected with {connector && connector.name}
       </Text>
 
       {ensAvatar && (
-        <Text fontSize='2xl' fontWeight='bold' color='white' pt='1rem'>
+        <Text fontSize='2xl' fontWeight='bold' pt='1rem' {...textColors}>
           ENS avatar {ensAvatar}
         </Text>
       )}
