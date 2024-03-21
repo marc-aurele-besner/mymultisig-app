@@ -4513,9 +4513,9 @@
     superstruct "^1.0.3"
 
 "@mongodb-js/saslprep@^1.1.0":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@mongodb-js/saslprep/-/saslprep-1.1.1.tgz#9a6c2516bc9188672c4d953ec99760ba49970da7"
-  integrity sha512-t7c5K033joZZMspnHg/gWPE4kandgc2OxE74aYOtGKfgB9VPuVJPix0H6fhmm2erj5PBJ21mqcx34lpIGtUCsQ==
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@mongodb-js/saslprep/-/saslprep-1.1.5.tgz#0c48a96c8d799e81fae311b7251aa5c1dc7c6e95"
+  integrity sha512-XLNOMH66KhJzUJNwT/qlMnS4WsNDWD5ASdyaSH3EtK+F4r/CFGa3jT4GNi4mfOitGvWXtdLgQJkQjxSVrio+jA==
   dependencies:
     sparse-bitfield "^3.0.3"
 
@@ -6699,15 +6699,15 @@
   integrity sha512-UlIrDWvuLaDly3QZhCPnwUSI/KYmV1N9LyhuH6EDKCRS1HWZhyTG3Ja46T3D0rYfqdltKYFXbJSSRPwZpwO0cQ==
 
 "@slack/web-api@^6.8.1":
-  version "6.11.0"
-  resolved "https://registry.yarnpkg.com/@slack/web-api/-/web-api-6.11.0.tgz#cb28d833df4452144f6d9942c36971db8c434028"
-  integrity sha512-DLShYUc2dE8QrhmrJZ7YuhAuh/VW88Dt3LL7s2KrkEOyxbdfjAtF9bzPOBMlXuWmO6nWLGVevPuhShcYyjwTEw==
+  version "6.12.0"
+  resolved "https://registry.yarnpkg.com/@slack/web-api/-/web-api-6.12.0.tgz#d0487d90e3db2f7bfabe3430fa5da0cc03d2d9cb"
+  integrity sha512-RPw6F8rWfGveGkZEJ4+4jUin5iazxRK2q3FpQDz/FvdgzC3nZmPyLx8WRzc6nh0w3MBjEbphNnp2VZksfhpBIQ==
   dependencies:
     "@slack/logger" "^3.0.0"
     "@slack/types" "^2.11.0"
     "@types/is-stream" "^1.1.0"
     "@types/node" ">=12.0.0"
-    axios "^1.6.0"
+    axios "^1.6.5"
     eventemitter3 "^3.1.0"
     form-data "^2.5.0"
     is-electron "2.2.2"
@@ -8891,12 +8891,11 @@
     anymatch "^3.0.0"
     source-map "^0.6.0"
 
-"@types/whatwg-url@^8.2.1":
-  version "8.2.2"
-  resolved "https://registry.yarnpkg.com/@types/whatwg-url/-/whatwg-url-8.2.2.tgz#749d5b3873e845897ada99be4448041d4cc39e63"
-  integrity sha512-FtQu10RWgn3D9U4aazdwIE2yzphmTJREDqNdODHrbrZmmMqI0vMheC/6NE/J1Yveaj8H+ela+YwWTjq5PGmuhA==
+"@types/whatwg-url@^11.0.2":
+  version "11.0.4"
+  resolved "https://registry.yarnpkg.com/@types/whatwg-url/-/whatwg-url-11.0.4.tgz#ffed0dc8d89d91f62e3f368fcbda222a487c4f63"
+  integrity sha512-lXCmTWSHJvf0TRSO58nm978b8HJ/EdsSsEKLd3ODHFjo+3VGAyyTp4v50nWvwtzBxSMQrVOK7tcuN0zGPLICMw==
   dependencies:
-    "@types/node" "*"
     "@types/webidl-conversions" "*"
 
 "@types/ws@^7.4.4":
@@ -10824,12 +10823,21 @@ axios@^0.26.0:
   dependencies:
     follow-redirects "^1.14.8"
 
-axios@^1.1.3, axios@^1.3.4, axios@^1.6.0:
+axios@^1.1.3, axios@^1.3.4:
   version "1.6.2"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.2.tgz#de67d42c755b571d3e698df1b6504cde9b0ee9f2"
   integrity sha512-7i24Ri4pmDRfJTR7LDBhsOTtcm+9kjX5WiY1X3wIisx6G9So3pfMkEiU7emUBe46oceVImccTEM3k6C5dbVW8A==
   dependencies:
     follow-redirects "^1.15.0"
+    form-data "^4.0.0"
+    proxy-from-env "^1.1.0"
+
+axios@^1.6.5:
+  version "1.6.8"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.8.tgz#66d294951f5d988a00e87a0ffb955316a619ea66"
+  integrity sha512-v/ZHtJDU39mDpyBoFVkETcd/uNdxrWRrg3bKpOKzXFA6Bvqopts6ALSMU3y6ijYxbw2B+wPrIv46egTzJXCLGQ==
+  dependencies:
+    follow-redirects "^1.15.6"
     form-data "^4.0.0"
     proxy-from-env "^1.1.0"
 
@@ -11494,10 +11502,10 @@ bsert@~0.0.10:
   resolved "https://registry.yarnpkg.com/bsert/-/bsert-0.0.12.tgz#157c6a6beb1548af3b14d484fcd2a78eb440599d"
   integrity sha512-lUB0EMu4KhIf+VQ6RZJ7J3dFdohYSeta+gNgDi00Hi/t3k/W6xZlwm9PSSG0q7hJ2zW9Rsn5yaMPymETxroTRw==
 
-bson@^5.5.0:
-  version "5.5.1"
-  resolved "https://registry.yarnpkg.com/bson/-/bson-5.5.1.tgz#f5849d405711a7f23acdda9a442375df858e6833"
-  integrity sha512-ix0EwukN2EpC0SRWIj/7B5+A6uQMQy6KMREI9qQqvgpkV2frH63T0UDVd1SYedL6dNCmDBYB3QtXi4ISk9YT+g==
+bson@^6.2.0:
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/bson/-/bson-6.5.0.tgz#fc4828d065e64e48ea442b1a23099b2e52f7ff0b"
+  integrity sha512-DXf1BTAS8vKyR90BO4x5v3rKVarmkdkzwOrnYDFdjAY694ILNDkmA3uRh1xXJEl+C1DAh8XCvAQ+Gh3kzubtpg==
 
 btoa-lite@^1.0.0:
   version "1.0.0"
@@ -15655,7 +15663,7 @@ folder-walker@3.2.0:
   dependencies:
     from2 "^2.1.0"
 
-follow-redirects@^1.0.0, follow-redirects@^1.15.0:
+follow-redirects@^1.0.0:
   version "1.15.3"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.3.tgz#fe2f3ef2690afce7e82ed0b44db08165b207123a"
   integrity sha512-1VzOtuEM8pC9SFU1E+8KfTjZyMztRsgEfwQl44z8A25uy13jSzTj6dyK2Df52iV0vgHCfBwLhDWevLn95w5v6Q==
@@ -15664,6 +15672,11 @@ follow-redirects@^1.12.1, follow-redirects@^1.14.0, follow-redirects@^1.14.8:
   version "1.15.2"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.2.tgz#b460864144ba63f2681096f274c4e57026da2c13"
   integrity sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==
+
+follow-redirects@^1.15.0, follow-redirects@^1.15.6:
+  version "1.15.6"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.6.tgz#7f815c0cda4249c74ff09e95ef97c23b5fd0399b"
+  integrity sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==
 
 for-each@^0.3.3:
   version "0.3.3"
@@ -20228,33 +20241,31 @@ moize@^6.1.0, moize@^6.1.3:
     fast-equals "^3.0.1"
     micro-memoize "^4.1.2"
 
-mongodb-connection-string-url@^2.6.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/mongodb-connection-string-url/-/mongodb-connection-string-url-2.6.0.tgz#57901bf352372abdde812c81be47b75c6b2ec5cf"
-  integrity sha512-WvTZlI9ab0QYtTYnuMLgobULWhokRjtC7db9LtcVfJ+Hsnyr5eo6ZtNAt3Ly24XZScGMelOcGtm7lSn0332tPQ==
+mongodb-connection-string-url@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/mongodb-connection-string-url/-/mongodb-connection-string-url-3.0.0.tgz#b4f87f92fd8593f3b9365f592515a06d304a1e9c"
+  integrity sha512-t1Vf+m1I5hC2M5RJx/7AtxgABy1cZmIPQRMXw+gEIPn/cZNF3Oiy+l0UIypUwVB5trcWHq3crg2g3uAR9aAwsQ==
   dependencies:
-    "@types/whatwg-url" "^8.2.1"
-    whatwg-url "^11.0.0"
+    "@types/whatwg-url" "^11.0.2"
+    whatwg-url "^13.0.0"
 
-mongodb@5.9.1:
-  version "5.9.1"
-  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-5.9.1.tgz#da03ea253b0972bf8097301fa5f65e34acad18fa"
-  integrity sha512-NBGA8AfJxGPeB12F73xXwozt8ZpeIPmCUeWRwl9xejozTXFes/3zaep9zhzs1B/nKKsw4P3I4iPfXl3K7s6g+Q==
+mongodb@6.3.0:
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-6.3.0.tgz#ec9993b19f7ed2ea715b903fcac6171c9d1d38ca"
+  integrity sha512-tt0KuGjGtLUhLoU263+xvQmPHEGTw5LbcNC73EoFRYgSHwZt5tsoJC110hDyO1kjQzpgNrpdcSza9PknWN4LrA==
   dependencies:
-    bson "^5.5.0"
-    mongodb-connection-string-url "^2.6.0"
-    socks "^2.7.1"
-  optionalDependencies:
     "@mongodb-js/saslprep" "^1.1.0"
+    bson "^6.2.0"
+    mongodb-connection-string-url "^3.0.0"
 
-mongoose@^7.0.0:
-  version "7.6.7"
-  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-7.6.7.tgz#1ca9650e6a5e0222d3e4b8e45a6b530d5dd21996"
-  integrity sha512-6Ihl7Y7OlSEMiwyjar3N8sMKRZa3LNGcayES8I+Hluo0sV6j1SVOo8MXXnwi+z3+Hcyk4zO47+xL87fBTNlWVw==
+mongoose@^8.0.0:
+  version "8.2.2"
+  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-8.2.2.tgz#8079857d906aab5b94a5f7ae7600b7401efdbfdc"
+  integrity sha512-6sMxe1d3k/dBjiOX4ExNTNOP0g1x0iq8eXyg+ttgIXM3HLnQ0IUyXRwVVAPFFY6O4/8uYN5dB0Ec72FrexbPpw==
   dependencies:
-    bson "^5.5.0"
+    bson "^6.2.0"
     kareem "2.5.1"
-    mongodb "5.9.1"
+    mongodb "6.3.0"
     mpath "0.9.0"
     mquery "5.0.0"
     ms "2.1.3"
@@ -22594,7 +22605,7 @@ punycode@^1.2.4, punycode@^1.4.1:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-1.4.1.tgz#c0d5a63b2718800ad8e1eb0fa5269c84dd41845e"
   integrity sha512-jmYNElW7yvO7TV33CjSmvSiE2yco3bV2czu/OzDKdMNVZQWfxCblURLhf+47syQRBntjfLdd/H0egrzIG+oaFQ==
 
-punycode@^2.1.0, punycode@^2.1.1:
+punycode@^2.1.0, punycode@^2.1.1, punycode@^2.3.0:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
@@ -24109,14 +24120,14 @@ sisteransi@^1.0.5:
   integrity sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==
 
 slack-utility@^0.1.28:
-  version "0.1.32"
-  resolved "https://registry.yarnpkg.com/slack-utility/-/slack-utility-0.1.32.tgz#a8a03c556b1f9da4d5cd2c11d8676182f6b4d4f1"
-  integrity sha512-D9I6gsGIHLozMRZpuPEqD6Dg5SrMYy7RwAIH71HNkABvlVsKyjDhzRLKM3ovVrDK/IMzfKuXXU/k4qNog4msQw==
+  version "0.1.33"
+  resolved "https://registry.yarnpkg.com/slack-utility/-/slack-utility-0.1.33.tgz#373f2567a1bfc4c54c7177f6ddaec8c98d486ffc"
+  integrity sha512-X7DlN1rdxevg26upb8DCvFkVcA2Gx14FWkFMK0UKfh0Z7KSnf0cW2dm1YqbPTZCLxF+qkgMgKf3xtiyOhz8DSw==
   dependencies:
     "@slack/web-api" "^6.8.1"
     ethers "^5.7.2"
     faunadb-utility "^0.2.1"
-    mongoose "^7.0.0"
+    mongoose "^8.0.0"
     uuid "^9.0.0"
 
 slash@^2.0.0:
@@ -24155,11 +24166,6 @@ slice-ansi@^5.0.0:
   dependencies:
     ansi-styles "^6.0.0"
     is-fullwidth-code-point "^4.0.0"
-
-smart-buffer@^4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.2.0.tgz#6e1d71fa4f18c05f7d0ff216dd16a481d0e8d9ae"
-  integrity sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==
 
 snapdragon-node@^2.0.1:
   version "2.1.1"
@@ -24208,14 +24214,6 @@ socket.io-parser@~4.2.4:
   dependencies:
     "@socket.io/component-emitter" "~3.1.0"
     debug "~4.3.1"
-
-socks@^2.7.1:
-  version "2.7.1"
-  resolved "https://registry.yarnpkg.com/socks/-/socks-2.7.1.tgz#d8e651247178fde79c0663043e07240196857d55"
-  integrity sha512-7maUZy1N7uo6+WVEX6psASxtNlKaNVMlGQKkG/63nEDdLOWNbiUMoLK7X4uYoLhQstau72mLgfEWcXcwsaHbYQ==
-  dependencies:
-    ip "^2.0.0"
-    smart-buffer "^4.2.0"
 
 solc@0.7.3:
   version "0.7.3"
@@ -25507,12 +25505,12 @@ tr46@^1.0.1:
   dependencies:
     punycode "^2.1.0"
 
-tr46@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/tr46/-/tr46-3.0.0.tgz#555c4e297a950617e8eeddef633c87d4d9d6cbf9"
-  integrity sha512-l7FvfAHlcmulp8kr+flpQZmVwtu7nfRV7NZujtN0OqES8EL4O4e0qqzL0DC5gAvx/ZC/9lk6rhcUwYvkBnBnYA==
+tr46@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/tr46/-/tr46-4.1.1.tgz#281a758dcc82aeb4fe38c7dfe4d11a395aac8469"
+  integrity sha512-2lv/66T7e5yNyhAAC4NaKe5nVavzuGJQVVtRYLyQ2OI8tsJ61PMLlelehb0wi2Hx6+hT/OJUWZcw8MjlSRnxvw==
   dependencies:
-    punycode "^2.1.1"
+    punycode "^2.3.0"
 
 tr46@~0.0.3:
   version "0.0.3"
@@ -26693,12 +26691,12 @@ well-known-symbols@^2.0.0:
   resolved "https://registry.yarnpkg.com/well-known-symbols/-/well-known-symbols-2.0.0.tgz#e9c7c07dbd132b7b84212c8174391ec1f9871ba5"
   integrity sha512-ZMjC3ho+KXo0BfJb7JgtQ5IBuvnShdlACNkKkdsqBmYw3bPAaJfPeYUo6tLUaT5tG/Gkh7xkpBhKRQ9e7pyg9Q==
 
-whatwg-url@^11.0.0:
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/whatwg-url/-/whatwg-url-11.0.0.tgz#0a849eebb5faf2119b901bb76fd795c2848d4018"
-  integrity sha512-RKT8HExMpoYx4igMiVMY83lN6UeITKJlBQ+vR/8ZJ8OCdSiN3RwCq+9gH0+Xzj0+5IrM6i4j/6LuvzbZIQgEcQ==
+whatwg-url@^13.0.0:
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/whatwg-url/-/whatwg-url-13.0.0.tgz#b7b536aca48306394a34e44bda8e99f332410f8f"
+  integrity sha512-9WWbymnqj57+XEuqADHrCJ2eSXzn8WXIW/YSGaZtb2WKAInQ6CHfaUUcTyyver0p8BDg5StLQq8h1vtZuwmOig==
   dependencies:
-    tr46 "^3.0.0"
+    tr46 "^4.1.1"
     webidl-conversions "^7.0.0"
 
 whatwg-url@^5.0.0:
