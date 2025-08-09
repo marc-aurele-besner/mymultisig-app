@@ -17,6 +17,7 @@ import { ChevronDownIcon } from '@chakra-ui/icons'
 import HeaderLink from './HeaderLink'
 import HeaderNetworkSelector from './HeaderNetworkSelector'
 import { HeaderWalletSelector } from './HeaderWalletSelector'
+import { menuItemColors, menuListColors } from '../../styles/colors'
 
 const HeaderBox: React.FC = () => {
   const [isLargerThan800] = useMediaQuery('(min-width: 800px)', {
@@ -54,7 +55,17 @@ const HeaderBox: React.FC = () => {
             {menu.map((item) => (
               <HeaderLink key={`Link-${item.name}`} name={item.name} link={item.link} imagePath={item.imagePath} />
             ))}
-            <Button onClick={toggleColorMode}>Toggle {colorMode === 'light' ? 'Dark' : 'Light'}</Button>
+            <Button
+              onClick={toggleColorMode}
+              bgGradient='linear(to-r, teal.400, purple.500)'
+              color='white'
+              boxShadow='xl'
+              transition='all 200ms ease-out'
+              _hover={{ bgGradient: 'linear(to-r, pink.400, purple.500)', transform: 'translateY(-2px) scale(1.02)' }}
+              _active={{ transform: 'translateY(0) scale(0.98)' }}
+            >
+              Toggle {colorMode === 'light' ? 'Dark' : 'Light'}
+            </Button>
           </Fragment>
         ) : (
           <Box ml='2rem'>
@@ -74,9 +85,9 @@ const HeaderBox: React.FC = () => {
                 }}>
                 Menu
               </MenuButton>
-              <MenuList bg='cyan.200'>
+              <MenuList {...menuListColors}>
                 {menu.map((item) => (
-                  <MenuItem key={`MenuItem-${item.link}`} bg='cyan.100' color='cyan.900'>
+                  <MenuItem key={`MenuItem-${item.link}`} {...menuItemColors}>
                     <Link key={`Link-${item.link}`} href={item.link}>
                       <Text
                         key={`LinkText-${item.link}`}

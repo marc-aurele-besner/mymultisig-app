@@ -1,37 +1,49 @@
 export const cardColors = {
-  boxShadow: 'dark-lg',
-  bgGradient: 'linear(to-r, cardBack.800, cardBack.900, cardBack.800)'
+  boxShadow: 'xl',
+  bgGradient: 'linear(to-br, cardBack.800, cardBack.900, cardBack.800)',
+  border: '1px solid',
+  borderColor: 'whiteAlpha.300',
+  backdropFilter: 'blur(6px)'
 }
 
 export const linkColors = {
-  color: 'brandText.700',
+  color: 'brandText.800',
   _hover: {
-    color: 'brandText.500'
+    color: 'pink.300'
   }
 }
 
 export const buttonColors = {
-  color: 'brandText.700',
-  bg: 'cardBack.100',
-  boxShadow: 'dark-lg',
+  color: 'white',
+  bgGradient: 'linear(to-r, teal.400, purple.500)',
+  boxShadow: 'xl',
+  transition: 'all 200ms ease-out',
   _hover: {
-    bg: 'brandText.500'
+    transform: 'translateY(-2px) scale(1.02)',
+    bgGradient: 'linear(to-r, pink.400, purple.500)'
+  },
+  _active: {
+    transform: 'translateY(0) scale(0.99)',
+    boxShadow: 'md'
   }
 }
 
 export const menuListColors = {
-  background: 'cardBack.800',
-  boxShadow: 'dark-lg'
+  background: 'rgba(0,0,0,0.4)',
+  backdropFilter: 'blur(6px)',
+  borderColor: 'whiteAlpha.300',
+  boxShadow: 'xl'
 }
 
 export const menuItemColors = {
-  background: 'cardBack.600',
-  color: 'brandText.700',
+  background: 'transparent',
+  color: 'brandText.800',
   _hover: {
-    color: 'brandText.500'
+    color: 'pink.300',
+    bg: 'whiteAlpha.200'
   }
 }
 
 export const textColors = {
-  color: 'brandText.700'
+  color: 'brandText.800'
 }
