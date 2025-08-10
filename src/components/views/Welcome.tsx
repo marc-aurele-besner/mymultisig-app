@@ -25,7 +25,7 @@ const Welcome: React.FC = () => {
               fontSize='3xl'
               fontWeight='extrabold'
               pb='1rem'
-              bgGradient='linear(to-r, teal.300, purple.400, pink.300)'
+              bgGradient='linear(to-r, blue.500, blue.300)'
               bgClip='text'
             >
               Welcome to MyMultiSig.app

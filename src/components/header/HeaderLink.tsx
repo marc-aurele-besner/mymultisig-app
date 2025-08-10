@@ -16,7 +16,7 @@ const HeaderLink: React.FC<HeaderLinkProps> = ({ name, link, imagePath }) => {
         border={'1px solid transparent'}
         _hover={{
           border: '1px solid',
-          borderColor: 'pink.300',
+          borderColor: 'blue.300',
           borderRadius: '12px',
           transform: 'translateY(-2px)',
           transition: 'all 200ms ease-out'

@@ -1,26 +1,26 @@
 export const cardColors = {
-  boxShadow: 'xl',
+  boxShadow: 'lg',
   bgGradient: 'linear(to-br, cardBack.800, cardBack.900, cardBack.800)',
   border: '1px solid',
-  borderColor: 'whiteAlpha.300',
+  borderColor: 'whiteAlpha.200',
   backdropFilter: 'blur(6px)'
 }
 
 export const linkColors = {
   color: 'brandText.800',
   _hover: {
-    color: 'pink.300'
+    color: 'blue.300'
   }
 }
 
 export const buttonColors = {
   color: 'white',
-  bgGradient: 'linear(to-r, teal.400, purple.500)',
-  boxShadow: 'xl',
-  transition: 'all 200ms ease-out',
+  bgGradient: 'linear(to-r, blue.500, blue.600)',
+  boxShadow: 'lg',
+  transition: 'all 180ms ease-out',
   _hover: {
-    transform: 'translateY(-2px) scale(1.02)',
-    bgGradient: 'linear(to-r, pink.400, purple.500)'
+    transform: 'translateY(-1px) scale(1.01)',
+    bgGradient: 'linear(to-r, blue.600, blue.700)'
   },
   _active: {
     transform: 'translateY(0) scale(0.99)',
@@ -29,9 +29,9 @@ export const buttonColors = {
 }
 
 export const menuListColors = {
-  background: 'rgba(0,0,0,0.4)',
-  backdropFilter: 'blur(6px)',
-  borderColor: 'whiteAlpha.300',
+  background: 'rgba(13, 17, 23, 0.6)',
+  backdropFilter: 'blur(8px)',
+  borderColor: 'whiteAlpha.200',
   boxShadow: 'xl'
 }
 
@@ -39,7 +39,7 @@ export const menuItemColors = {
   background: 'transparent',
   color: 'brandText.800',
   _hover: {
-    color: 'pink.300',
+    color: 'blue.300',
     bg: 'whiteAlpha.200'
   }
 }

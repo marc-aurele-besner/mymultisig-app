@@ -57,11 +57,11 @@ const HeaderBox: React.FC = () => {
             ))}
             <Button
               onClick={toggleColorMode}
-              bgGradient='linear(to-r, teal.400, purple.500)'
+              bgGradient='linear(to-r, blue.500, blue.600)'
               color='white'
               boxShadow='xl'
               transition='all 200ms ease-out'
-              _hover={{ bgGradient: 'linear(to-r, pink.400, purple.500)', transform: 'translateY(-2px) scale(1.02)' }}
+              _hover={{ bgGradient: 'linear(to-r, blue.600, blue.700)', transform: 'translateY(-2px) scale(1.02)' }}
               _active={{ transform: 'translateY(0) scale(0.98)' }}
             >
               Toggle {colorMode === 'light' ? 'Dark' : 'Light'}
