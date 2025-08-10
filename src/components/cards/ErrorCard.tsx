@@ -1,6 +1,5 @@
 import React from 'react'
 import { Box, Text } from '@chakra-ui/react'
-import { cardColors } from '../../styles/colors'
 
 interface ErrorCardProps {
   children: React.ReactNode
