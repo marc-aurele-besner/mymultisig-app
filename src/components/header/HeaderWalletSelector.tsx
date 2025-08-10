@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Text, Menu, MenuButton, Button, MenuList, MenuItem, Portal } from '@chakra-ui/react'
+import { Box, Text, Menu, MenuButton, Button, MenuList, MenuItem, Portal, HStack } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { WalletIcon } from '../icons/wallet'
@@ -23,37 +23,43 @@ export const HeaderWalletSelector: React.FC = () => {
         <MenuButton
           as={Button}
           rightIcon={<ChevronDownIcon />}
-          {...textColors}
+          color={connector ? textColors.color : 'white'}
           bg='transparent'
           border={'1px solid transparent'}
           _hover={{
             border: '1px solid white',
             borderRadius: '10px',
-            color: 'gray.900'
+            color: 'white'
           }}
           _focus={{
             outline: 'none',
             background: 'transparent',
-            color: 'gray.900',
+            color: 'white',
             border: '1px solid white',
             borderRadius: '10px'
           }}
           _active={{
             outline: 'none',
             background: 'transparent',
-            color: 'gray.900',
+            color: 'white',
             border: '1px solid white',
             borderRadius: '10px'
           }}>
-          {connector ? connector.name : <WalletIcon color={textColors.color} width='36px' height='36px' />}
+          {connector ? (
+            connector.name
+          ) : (
+            <HStack spacing='2'>
+              <WalletIcon color={'white'} width='24px' height='24px' />
+              <Text color={'white'} fontWeight='bold'>Connect Wallet</Text>
+            </HStack>
+          )}
         </MenuButton>
         <Portal>
           <MenuList {...menuListColors}>
             {connectors.map((item) => (
               <MenuItem
                 key={`MenuItem-${item.name}`}
-                bg='gray.200'
-                color='gray.900'
+                {...menuItemColors}
                 onClick={() =>
                   connect !== undefined &&
                   connect({ connector: connectors.find((connector) => connector.id === item.id) })
@@ -62,11 +68,7 @@ export const HeaderWalletSelector: React.FC = () => {
                   key={`LinkText-${item.name}`}
                   fontSize='lg'
                   fontWeight='bold'
-                  color='gray.900'
-                  pl='1rem'
-                  _hover={{
-                    color: 'gray.600'
-                  }}>
+                  pl='1rem'>
                   {item.name}
                 </Text>
               </MenuItem>
@@ -80,11 +82,7 @@ export const HeaderWalletSelector: React.FC = () => {
                   key={`LinkText-disconnect`}
                   fontSize='lg'
                   fontWeight='bold'
-                  color='gray.900'
-                  pl='1rem'
-                  _hover={{
-                    color: 'gray.600'
-                  }}>
+                  pl='1rem'>
                   Disconnect
                 </Text>
               </MenuItem>

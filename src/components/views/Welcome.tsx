@@ -21,7 +21,13 @@ const Welcome: React.FC = () => {
       <BigCard w='80vw' h='80vh'>
         <Center>
           <VStack>
-            <Text fontSize='2xl' fontWeight='bold' pb='1rem' {...textColors}>
+            <Text
+              fontSize='3xl'
+              fontWeight='extrabold'
+              pb='1rem'
+              bgGradient='linear(to-r, blue.500, blue.300)'
+              bgClip='text'
+            >
               Welcome to MyMultiSig.app
             </Text>
             <Text fontSize='xl' fontWeight='bold' m='4rem' pt='2rem' {...textColors}>
