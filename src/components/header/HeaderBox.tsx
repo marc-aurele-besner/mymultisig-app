@@ -11,7 +11,8 @@ import {
   MenuList,
   MenuItem,
   useColorMode,
-  useStyleConfig
+  useStyleConfig,
+  useColorModeValue
 } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
 import HeaderLink from './HeaderLink'
@@ -46,6 +47,8 @@ const HeaderBox: React.FC = () => {
     }
   ]
 
+  const mobileMenuColor = useColorModeValue('gray.900', 'white')
+
   return (
     <Box w='80vw' h='100%' p={4} m={2} mt={4} __css={styles}>
       <HStack>
@@ -73,7 +76,7 @@ const HeaderBox: React.FC = () => {
               <MenuButton
                 as={Button}
                 rightIcon={<ChevronDownIcon />}
-                color={'white'}
+                color={mobileMenuColor}
                 bg='transparent'
                 _focus={{
                   outline: 'none',
@@ -93,11 +96,8 @@ const HeaderBox: React.FC = () => {
                         key={`LinkText-${item.link}`}
                         fontSize='lg'
                         fontWeight='bold'
-                        color='gray.900'
                         pl='1rem'
-                        _hover={{
-                          color: 'gray.600'
-                        }}>
+                        color='inherit'>
                         {item.name}
                       </Text>
                     </Link>
