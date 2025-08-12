@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Text, Menu, MenuButton, Button, MenuList, MenuItem, Portal, HStack, useColorModeValue } from '@chakra-ui/react'
+import { Box, Text, Menu, MenuButton, Button, MenuList, MenuItem, Portal, HStack, useColorModeValue, useToken } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { WalletIcon } from '../icons/wallet'
@@ -11,8 +11,10 @@ export const HeaderWalletSelector: React.FC = () => {
   const { connect, connectors } = useConnect()
   const { disconnect } = useDisconnect()
 
-  const idleTextColor = useColorModeValue('gray.900', 'white')
-  const hoverTextColor = useColorModeValue('gray.700', 'white')
+  const [gray900, gray700, white] = useToken('colors', ['gray.900', 'gray.700', 'white'])
+
+  const idleTextColor = useColorModeValue(gray900, white)
+  const hoverTextColor = useColorModeValue(gray700, white)
 
   useEffect(() => {
     setHasMounted(true)
