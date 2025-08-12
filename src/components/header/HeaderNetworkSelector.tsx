@@ -27,19 +27,19 @@ const HeaderNetworkSelector: React.FC = () => {
           _hover={{
             border: '1px solid white',
             borderRadius: '10px',
-            color: 'gray.900'
+            color: 'white'
           }}
           _focus={{
             outline: 'none',
             background: 'transparent',
-            color: 'gray.900',
+            color: 'white',
             border: '1px solid white',
             borderRadius: '10px'
           }}
           _active={{
             outline: 'none',
             background: 'transparent',
-            color: 'gray.900',
+            color: 'white',
             border: '1px solid white',
             borderRadius: '10px'
           }}>
@@ -56,11 +56,8 @@ const HeaderNetworkSelector: React.FC = () => {
                   key={`LinkText-${item.name}`}
                   fontSize='lg'
                   fontWeight='bold'
-                  color='gray.900'
                   pl='1rem'
-                  _hover={{
-                    color: 'gray.600'
-                  }}>
+                  color='inherit'>
                   {item.name}
                 </Text>
               </MenuItem>

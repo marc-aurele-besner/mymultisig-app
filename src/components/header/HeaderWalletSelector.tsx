@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Text, Menu, MenuButton, Button, MenuList, MenuItem, Portal, HStack } from '@chakra-ui/react'
+import { Box, Text, Menu, MenuButton, Button, MenuList, MenuItem, Portal, HStack, useColorModeValue, useToken } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { WalletIcon } from '../icons/wallet'
@@ -10,6 +10,11 @@ export const HeaderWalletSelector: React.FC = () => {
   const { connector } = useAccount()
   const { connect, connectors } = useConnect()
   const { disconnect } = useDisconnect()
+
+  const [gray900, gray700, white] = useToken('colors', ['gray.900', 'gray.700', 'white'])
+
+  const idleTextColor = useColorModeValue(gray900, white)
+  const hoverTextColor = useColorModeValue(gray700, white)
 
   useEffect(() => {
     setHasMounted(true)
@@ -23,25 +28,25 @@ export const HeaderWalletSelector: React.FC = () => {
         <MenuButton
           as={Button}
           rightIcon={<ChevronDownIcon />}
-          color={connector ? textColors.color : 'white'}
+          color={connector ? textColors.color : idleTextColor}
           bg='transparent'
           border={'1px solid transparent'}
           _hover={{
             border: '1px solid white',
             borderRadius: '10px',
-            color: 'white'
+            color: connector ? 'white' : hoverTextColor
           }}
           _focus={{
             outline: 'none',
             background: 'transparent',
-            color: 'white',
+            color: connector ? 'white' : hoverTextColor,
             border: '1px solid white',
             borderRadius: '10px'
           }}
           _active={{
             outline: 'none',
             background: 'transparent',
-            color: 'white',
+            color: connector ? 'white' : hoverTextColor,
             border: '1px solid white',
             borderRadius: '10px'
           }}>
@@ -49,8 +54,8 @@ export const HeaderWalletSelector: React.FC = () => {
             connector.name
           ) : (
             <HStack spacing='2'>
-              <WalletIcon color={'white'} width='24px' height='24px' />
-              <Text color={'white'} fontWeight='bold'>Connect Wallet</Text>
+              <WalletIcon color={idleTextColor} width='24px' height='24px' />
+              <Text color={idleTextColor} fontWeight='bold'>Connect Wallet</Text>
             </HStack>
           )}
         </MenuButton>
