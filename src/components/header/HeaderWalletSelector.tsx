@@ -23,13 +23,15 @@ export const HeaderWalletSelector: React.FC = () => {
   if (!hasMounted) return <></>
 
   return (
-    <Box ml='2rem'>
+    <Box ml={{ base: 0, md: '2rem' }}>
       <Menu>
         <MenuButton
           as={Button}
           rightIcon={<ChevronDownIcon />}
           color={connector ? textColors.color : idleTextColor}
           bg='transparent'
+          size={{ base: 'sm', md: 'md' }}
+          px={{ base: 2, md: 4 }}
           border={'1px solid transparent'}
           _hover={{
             border: '1px solid white',
@@ -54,8 +56,8 @@ export const HeaderWalletSelector: React.FC = () => {
             connector.name
           ) : (
             <HStack spacing='2'>
-              <WalletIcon color={idleTextColor} width='24px' height='24px' />
-              <Text color={idleTextColor} fontWeight='bold'>Connect Wallet</Text>
+              <WalletIcon color={idleTextColor} width='20px' height='20px' />
+              <Text color={idleTextColor} fontWeight='bold' fontSize={{ base: 'sm', md: 'md' }}>Connect Wallet</Text>
             </HStack>
           )}
         </MenuButton>

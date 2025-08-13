@@ -32,7 +32,8 @@ export const menuListColors = {
   background: 'rgba(13, 17, 23, 0.6)',
   backdropFilter: 'blur(8px)',
   borderColor: 'whiteAlpha.200',
-  boxShadow: 'xl'
+  boxShadow: 'xl',
+  zIndex: 1600 as unknown as number,
 }
 
 export const menuItemColors = {
