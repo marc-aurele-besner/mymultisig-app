@@ -13,9 +13,10 @@ import {
   useColorMode,
   useStyleConfig,
   useColorModeValue,
-  Portal
+  Portal,
+  IconButton
 } from '@chakra-ui/react'
-import { ChevronDownIcon } from '@chakra-ui/icons'
+import { ChevronDownIcon, HamburgerIcon } from '@chakra-ui/icons'
 import HeaderLink from './HeaderLink'
 import HeaderNetworkSelector from './HeaderNetworkSelector'
 import { HeaderWalletSelector } from './HeaderWalletSelector'
@@ -52,7 +53,7 @@ const HeaderBox: React.FC = () => {
 
   return (
     <Box w={{ base: '100%', md: '90vw', lg: '80vw' }} maxW='1200px' h='100%' p={4} m={2} mt={4} position='relative' zIndex={20} overflow='visible' __css={styles}>
-      <HStack w='100%' align='center' justify='space-between' flexWrap={{ base: 'wrap', md: 'nowrap' }} spacing={{ base: 2, md: 4 }}>
+      <HStack w='100%' align='center' justify='space-between' flexWrap={{ base: 'nowrap', md: 'nowrap' }} spacing={{ base: 2, md: 4 }}>
         <HStack spacing={{ base: 2, md: 4 }} align='center'>
           <HeaderLink name='MyMultiSig.app' link='/' imagePath='/icons/android-icon-512x512.png' />
           {isLargerThan800 ? (
@@ -75,12 +76,12 @@ const HeaderBox: React.FC = () => {
           ) : (
             <Menu>
               <MenuButton
-                as={Button}
-                rightIcon={<ChevronDownIcon />}
+                as={IconButton}
+                aria-label='Open menu'
+                icon={<HamburgerIcon />}
                 color={mobileMenuColor}
                 bg='transparent'
-                size={{ base: 'sm', md: 'md' }}
-                px={{ base: 2, md: 4 }}
+                size='sm'
                 _focus={{
                   outline: 'none',
                   color: 'gray.600'
@@ -88,9 +89,8 @@ const HeaderBox: React.FC = () => {
                 _active={{
                   outline: 'none',
                   color: 'gray.600'
-                }}>
-                Menu
-              </MenuButton>
+                }}
+              />
               <Portal>
                 <MenuList {...menuListColors} zIndex={1600}>
                   {menu.map((item) => (
@@ -113,7 +113,9 @@ const HeaderBox: React.FC = () => {
           )}
         </HStack>
         <HStack spacing={{ base: 2, md: 4 }} ml={{ base: 0, md: 'auto' }} align='center'>
-          <HeaderNetworkSelector />
+          <Box display={{ base: 'none', md: 'block' }}>
+            <HeaderNetworkSelector />
+          </Box>
           <HeaderWalletSelector />
         </HStack>
       </HStack>

@@ -53,11 +53,11 @@ export const HeaderWalletSelector: React.FC = () => {
             borderRadius: '10px'
           }}>
           {connector ? (
-            connector.name
+            <Text fontSize={{ base: 'sm', md: 'md' }}>{connector.name}</Text>
           ) : (
             <HStack spacing='2'>
               <WalletIcon color={idleTextColor} width='20px' height='20px' />
-              <Text color={idleTextColor} fontWeight='bold' fontSize={{ base: 'sm', md: 'md' }}>Connect Wallet</Text>
+              <Text display={{ base: 'none', md: 'block' }} color={idleTextColor} fontWeight='bold' fontSize={{ base: 'sm', md: 'md' }}>Connect Wallet</Text>
             </HStack>
           )}
         </MenuButton>
