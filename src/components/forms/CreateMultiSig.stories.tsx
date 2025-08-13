@@ -6,12 +6,17 @@ import CreateMultiSig from './CreateMultiSigForm'
 export default {
   title: 'Forms/CreateMultiSig',
   component: CreateMultiSig,
-  argTypes: {
-    backgroundColor: { control: 'color' },
-  },
 } as ComponentMeta<typeof CreateMultiSig>
 
 export const Basic: ComponentStory<typeof CreateMultiSig> = (args) => <CreateMultiSig {...args} />
-CreateMultiSig.bind({
+Basic.args = {
   owner01: '0x0000000000000000000000000000000000000000',
-})
+  factory: {
+    chainId: 5,
+    chainName: 'Goerli',
+    address: '0x1111111111111111111111111111111111111111',
+    name: 'MyMultiSigFactory',
+    version: '1.0.0',
+    multiSigCount: 1,
+  },
+}

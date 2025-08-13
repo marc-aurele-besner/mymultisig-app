@@ -7,12 +7,9 @@ import ErrorCard from './ErrorCard'
 export default {
   title: 'Cards/ErrorCard',
   component: ErrorCard,
-  argTypes: {
-    backgroundColor: { control: 'color' },
-  },
 } as ComponentMeta<typeof ErrorCard>
 
 export const Basic: ComponentStory<typeof ErrorCard> = (args) => <ErrorCard {...args} />
-ErrorCard.bind({
+Basic.args = {
   children: <Text>Hello World</Text>,
-})
+}

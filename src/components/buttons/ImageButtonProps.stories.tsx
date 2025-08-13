@@ -6,9 +6,6 @@ import ImageButton from './ImageButton'
 export default {
   title: 'Buttons/ImageButton',
   component: ImageButton,
-  argTypes: {
-    backgroundColor: { control: 'color' },
-  },
 } as ComponentMeta<typeof ImageButton>
 
 export const MetaMask: ComponentStory<typeof ImageButton> = () => (

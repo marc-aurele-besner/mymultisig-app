@@ -7,12 +7,9 @@ import BigCard from './BigCard'
 export default {
   title: 'Cards/BigCard',
   component: BigCard,
-  argTypes: {
-    backgroundColor: { control: 'color' },
-  },
 } as ComponentMeta<typeof BigCard>
 
 export const Basic: ComponentStory<typeof BigCard> = (args) => <BigCard {...args} />
-BigCard.bind({
+Basic.args = {
   children: <Text>Hello World</Text>,
-})
+}

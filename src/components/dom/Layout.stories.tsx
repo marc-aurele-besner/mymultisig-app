@@ -9,7 +9,8 @@ export default {
   title: 'DOM/Layout',
   component: Layout,
   parameters: {
-    layout: 'fullscreen'
+    layout: 'fullscreen',
+    backgrounds: { default: 'Dark' },
   }
 } as ComponentMeta<typeof Layout>
 

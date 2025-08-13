@@ -7,9 +7,6 @@ import Web3Provider from '../web3/Web3Provider'
 export default {
   title: 'Header/HeaderBox',
   component: HeaderBox,
-  argTypes: {
-    backgroundColor: { control: 'color' },
-  },
 } as ComponentMeta<typeof HeaderBox>
 
 export const Basic: ComponentStory<typeof HeaderBox> = (args) => (
