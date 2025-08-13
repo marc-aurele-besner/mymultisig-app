@@ -1,0 +1,28 @@
+import { Meta, Story, Canvas, ArgsTable } from '@storybook/addon-docs'
+import { Stack, Box, Text, Button } from '@chakra-ui/react'
+
+<Meta title="Theme/Overview" />
+
+# Theme overview
+
+Quick look at brand colors and a couple of primitives as they render in Storybook.
+
+## Brand colors
+
+<Canvas>
+  <Stack direction="row" spacing={4}>
+    <Box w="100px" h="60px" bg="blue.500" borderRadius="md" />
+    <Box w="100px" h="60px" bg="blue.600" borderRadius="md" />
+    <Box w="100px" h="60px" bg="blue.700" borderRadius="md" />
+    <Box w="100px" h="60px" bg="whiteAlpha.200" borderRadius="md" border="1px solid #fff3" />
+  </Stack>
+</Canvas>
+
+## Buttons
+
+<Canvas>
+  <Stack direction="row" spacing={4}>
+    <Button colorScheme="blue">Primary</Button>
+    <Button variant="outline" colorScheme="blue">Outline</Button>
+  </Stack>
+</Canvas>
