@@ -16,7 +16,7 @@ import {
   Portal,
   IconButton
 } from '@chakra-ui/react'
-import { ChevronDownIcon, HamburgerIcon } from '@chakra-ui/icons'
+import { HamburgerIcon } from '@chakra-ui/icons'
 import HeaderLink from './HeaderLink'
 import HeaderNetworkSelector from './HeaderNetworkSelector'
 import { HeaderWalletSelector } from './HeaderWalletSelector'
