@@ -40,7 +40,7 @@ const FooterBox: React.FC = () => {
   ]
 
   return (
-    <Box w='80vw' h='100%' p={4} m={2} mt={4} borderRadius={10} __css={styles}>
+    <Box w={{ base: '100%', md: '90vw', lg: '80vw' }} maxW='1200px' h='100%' p={4} m={2} mt={4} borderRadius={10} __css={styles}>
       <HStack>
         <FooterLink name='MyMultiSig.app' link='/' imagePath='/icons/android-icon-512x512.png' />
         {isLargerThan800 ? (

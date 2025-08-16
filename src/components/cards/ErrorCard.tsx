@@ -8,7 +8,7 @@ interface ErrorCardProps {
 const ErrorCard: React.FC<ErrorCardProps> = ({ children }) => {
   return (
     <Box
-      w='94%'
+      w={{ base: '100%', md: '94%' }}
       p={4}
       m={2}
       mt={4}

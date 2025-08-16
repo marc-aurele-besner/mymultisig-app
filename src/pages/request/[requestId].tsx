@@ -18,7 +18,7 @@ const Page: React.FC = () => {
 
   return (
     <Center>
-      <BigCard w='80vw' h='max'>
+      <BigCard maxW='1200px'>
         <Center>
           <VStack>
             <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
