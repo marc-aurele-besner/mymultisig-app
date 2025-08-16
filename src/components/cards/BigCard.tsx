@@ -1,16 +1,14 @@
 import React from 'react'
-import { Box } from '@chakra-ui/react'
+import { Box, BoxProps } from '@chakra-ui/react'
 import { cardColors } from '../../styles/colors'
 
-interface BigCardProps {
+interface BigCardProps extends BoxProps {
   children: React.ReactNode
-  w?: string
-  h?: string
 }
 
-const BigCard: React.FC<BigCardProps> = ({ children, w = '98vw', h = '80vh' }) => {
+const BigCard: React.FC<BigCardProps> = ({ children, w = '100%', h = 'auto', maxW = '1200px', ...rest }) => {
   return (
-    <Box w={w} h={h} p={4} m={2} mt={4} borderRadius={10} {...cardColors}>
+    <Box w={w} h={h} maxW={maxW} p={{ base: 3, md: 4 }} m={{ base: 2, md: 2 }} mt={{ base: 3, md: 4 }} borderRadius={10} {...cardColors} {...rest}>
       {children}
     </Box>
   )

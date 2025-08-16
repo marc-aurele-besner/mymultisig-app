@@ -21,12 +21,12 @@ const Switch: React.FC<SwitchProps> = ({
   isInvalid
 }) => {
   return (
-    <FormControl w='94%' display='flex' alignItems='center'>
+    <FormControl w={{ base: '100%', md: '94%' }} display='flex' alignItems='center'>
       <FormLabel htmlFor='email-alerts' mb='0'>
         {placeholder}
       </FormLabel>
       <ChakraSwitch
-        w='40%'
+        w={{ base: '50%', md: '40%' }}
         p={4}
         m={2}
         mt={4}
