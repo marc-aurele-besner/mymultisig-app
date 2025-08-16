@@ -7,12 +7,9 @@ import BasicCard from './BasicCard'
 export default {
   title: 'Cards/BasicCard',
   component: BasicCard,
-  argTypes: {
-    backgroundColor: { control: 'color' },
-  },
 } as ComponentMeta<typeof BasicCard>
 
 export const Basic: ComponentStory<typeof BasicCard> = (args) => <BasicCard {...args} />
-BasicCard.bind({
+Basic.args = {
   children: <Text>Hello World</Text>,
-})
+}

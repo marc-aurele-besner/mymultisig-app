@@ -11,9 +11,9 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <Center>
-      <VStack w='100%' h='100%' p={1}>
+      <VStack w='100%' h='100%' p={1} position='relative' zIndex={0} overflow='visible'>
         <HeaderBox />
-        <Box w='100%' h='100%' p={1}>
+        <Box w='100%' h='100%' p={1} position='relative' zIndex={1} overflow='visible'>
           {children}
         </Box>
         <FooterBox />

@@ -12,9 +12,11 @@ import {
   MenuItem,
   useColorMode,
   useStyleConfig,
-  useColorModeValue
+  useColorModeValue,
+  Portal,
+  IconButton
 } from '@chakra-ui/react'
-import { ChevronDownIcon } from '@chakra-ui/icons'
+import { HamburgerIcon } from '@chakra-ui/icons'
 import HeaderLink from './HeaderLink'
 import HeaderNetworkSelector from './HeaderNetworkSelector'
 import { HeaderWalletSelector } from './HeaderWalletSelector'
@@ -50,34 +52,36 @@ const HeaderBox: React.FC = () => {
   const mobileMenuColor = useColorModeValue('gray.900', 'white')
 
   return (
-    <Box w='80vw' h='100%' p={4} m={2} mt={4} __css={styles}>
-      <HStack>
-        <HeaderLink name='MyMultiSig.app' link='/' imagePath='/icons/android-icon-512x512.png' />
-        {isLargerThan800 ? (
-          <Fragment>
-            {menu.map((item) => (
-              <HeaderLink key={`Link-${item.name}`} name={item.name} link={item.link} imagePath={item.imagePath} />
-            ))}
-            <Button
-              onClick={toggleColorMode}
-              bgGradient='linear(to-r, blue.500, blue.600)'
-              color='white'
-              boxShadow='xl'
-              transition='all 200ms ease-out'
-              _hover={{ bgGradient: 'linear(to-r, blue.600, blue.700)', transform: 'translateY(-2px) scale(1.02)' }}
-              _active={{ transform: 'translateY(0) scale(0.98)' }}
-            >
-              Toggle {colorMode === 'light' ? 'Dark' : 'Light'}
-            </Button>
-          </Fragment>
-        ) : (
-          <Box ml='2rem'>
+    <Box w={{ base: '100%', md: '90vw', lg: '80vw' }} maxW='1200px' h='100%' p={4} m={2} mt={4} position='relative' zIndex={20} overflow='visible' __css={styles}>
+      <HStack w='100%' align='center' justify='space-between' flexWrap={{ base: 'nowrap', md: 'nowrap' }} spacing={{ base: 2, md: 4 }}>
+        <HStack spacing={{ base: 2, md: 4 }} align='center'>
+          <HeaderLink name='MyMultiSig.app' link='/' imagePath='/icons/android-icon-512x512.png' />
+          {isLargerThan800 ? (
+            <Fragment>
+              {menu.map((item) => (
+                <HeaderLink key={`Link-${item.name}`} name={item.name} link={item.link} imagePath={item.imagePath} />
+              ))}
+              <Button
+                onClick={toggleColorMode}
+                bgGradient='linear(to-r, blue.500, blue.600)'
+                color='white'
+                boxShadow='xl'
+                transition='all 200ms ease-out'
+                _hover={{ bgGradient: 'linear(to-r, blue.600, blue.700)', transform: 'translateY(-2px) scale(1.02)' }}
+                _active={{ transform: 'translateY(0) scale(0.98)' }}
+              >
+                Toggle {colorMode === 'light' ? 'Dark' : 'Light'}
+              </Button>
+            </Fragment>
+          ) : (
             <Menu>
               <MenuButton
-                as={Button}
-                rightIcon={<ChevronDownIcon />}
+                as={IconButton}
+                aria-label='Open menu'
+                icon={<HamburgerIcon />}
                 color={mobileMenuColor}
                 bg='transparent'
+                size='sm'
                 _focus={{
                   outline: 'none',
                   color: 'gray.600'
@@ -85,30 +89,35 @@ const HeaderBox: React.FC = () => {
                 _active={{
                   outline: 'none',
                   color: 'gray.600'
-                }}>
-                Menu
-              </MenuButton>
-              <MenuList {...menuListColors}>
-                {menu.map((item) => (
-                  <MenuItem key={`MenuItem-${item.link}`} {...menuItemColors}>
-                    <Link key={`Link-${item.link}`} href={item.link}>
-                      <Text
-                        key={`LinkText-${item.link}`}
-                        fontSize='lg'
-                        fontWeight='bold'
-                        pl='1rem'
-                        color='inherit'>
-                        {item.name}
-                      </Text>
-                    </Link>
-                  </MenuItem>
-                ))}
-              </MenuList>
+                }}
+              />
+              <Portal>
+                <MenuList {...menuListColors} zIndex={1600}>
+                  {menu.map((item) => (
+                    <MenuItem key={`MenuItem-${item.link}`} {...menuItemColors}>
+                      <Link key={`Link-${item.link}`} href={item.link}>
+                        <Text
+                          key={`LinkText-${item.link}`}
+                          fontSize='lg'
+                          fontWeight='bold'
+                          pl='1rem'
+                          color='inherit'>
+                          {item.name}
+                        </Text>
+                      </Link>
+                    </MenuItem>
+                  ))}
+                </MenuList>
+              </Portal>
             </Menu>
+          )}
+        </HStack>
+        <HStack spacing={{ base: 2, md: 4 }} ml={{ base: 0, md: 'auto' }} align='center'>
+          <Box display={{ base: 'none', md: 'block' }}>
+            <HeaderNetworkSelector />
           </Box>
-        )}
-        <HeaderNetworkSelector />
-        <HeaderWalletSelector />
+          <HeaderWalletSelector />
+        </HStack>
       </HStack>
     </Box>
   )

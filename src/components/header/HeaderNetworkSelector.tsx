@@ -16,13 +16,15 @@ const HeaderNetworkSelector: React.FC = () => {
   if (!hasMounted || !chain || !chains) return <></>
 
   return (
-    <Box ml='2rem'>
+    <Box ml={{ base: 0, md: '2rem' }}>
       <Menu>
         <MenuButton
           as={Button}
           rightIcon={<ChevronDownIcon />}
           {...textColors}
           bg='transparent'
+          size={{ base: 'sm', md: 'md' }}
+          px={{ base: 2, md: 4 }}
           border={'1px solid transparent'}
           _hover={{
             border: '1px solid white',

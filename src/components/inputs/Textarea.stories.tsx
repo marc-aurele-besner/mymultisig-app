@@ -7,11 +7,13 @@ export default {
   title: 'Inputs/Textarea',
   component: Textarea,
   argTypes: {
-    backgroundColor: { control: 'color' }
+    isDisabled: { control: 'boolean' },
+    isReadOnly: { control: 'boolean' },
+    isInvalid: { control: 'boolean' }
   }
 } as ComponentMeta<typeof Textarea>
 
 export const Basic: ComponentStory<typeof Textarea> = (args) => <Textarea {...args} />
-Textarea.bind({
+Basic.args = {
   placeholder: 'Hello World'
-})
+}
