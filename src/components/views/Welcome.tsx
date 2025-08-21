@@ -18,7 +18,7 @@ const Welcome: React.FC = () => {
   return (
     <Center>
       <Disclaimer />
-      <BigCard w='80vw' h='80vh'>
+      <BigCard maxW='1200px' minH='60vh'>
         <Center>
           <VStack>
             <Text
@@ -30,7 +30,7 @@ const Welcome: React.FC = () => {
             >
               Welcome to MyMultiSig.app
             </Text>
-            <Text fontSize='xl' fontWeight='bold' m='4rem' pt='2rem' {...textColors}>
+            <Text fontSize='xl' fontWeight='bold' m={{ base: '1rem', md: '2rem', lg: '4rem' }} pt={{ base: '1rem', md: '2rem' }} {...textColors}>
               A minimalistic Solidity smart contract for secure and streamlined transactions.
             </Text>
             <Text fontSize='xl' fontWeight='bold' pb='1rem' {...textColors}>

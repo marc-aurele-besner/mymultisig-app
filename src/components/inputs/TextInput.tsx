@@ -22,7 +22,7 @@ const TextInput: React.FC<TextInputProps> = ({
 }) => {
   return (
     <Input
-      w='94%'
+      w={{ base: '100%', md: '94%' }}
       p={4}
       m={2}
       mt={4}
