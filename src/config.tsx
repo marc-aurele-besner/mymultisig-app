@@ -23,9 +23,9 @@ const Header = ({ title = titleDefault }) => {
       <meta name='robots' content='index,follow' />
       <meta name='distribution' content='web' />
       <meta name='og:title' content={title} />
-      <meta name='og:type' content='site' />
+      <meta name='og:type' content='website' />
       <meta name='og:url' content={url} />
-      <meta name='og:image' content={'/icons/share.png'} />
+      <meta name='og:image' content={'/icons/android-chrome-512x512.png'} />
       <meta name='og:site_name' content={title} />
       <meta name='og:description' content={description} />
 
@@ -44,8 +44,11 @@ const Header = ({ title = titleDefault }) => {
       <meta name='theme-color' content='#000' />
       <link rel='shortcut icon' href='/icons/favicon.ico' />
 
-      <meta name='twitter:card' content='summary' />
+      <meta name='twitter:card' content='summary_large_image' />
       <meta name='twitter:site' content='@marcaureleb' />
+      <meta name='twitter:title' content={title} />
+      <meta name='twitter:description' content={description} />
+      <meta name='twitter:image' content={'/icons/android-chrome-512x512.png'} />
     </Head>
   )
 }
