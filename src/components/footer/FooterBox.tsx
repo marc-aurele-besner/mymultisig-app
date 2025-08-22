@@ -12,7 +12,7 @@ import {
   MenuItem,
   useStyleConfig
 } from '@chakra-ui/react'
-import { ChevronDownIcon } from '@chakra-ui/icons'
+import { ChevronDownIcon, LockIcon, ExternalLinkIcon } from '@chakra-ui/icons'
 
 import FooterLink from './FooterLink'
 
@@ -28,13 +28,13 @@ const FooterBox: React.FC = () => {
     {
       name: 'Smart Contract Repository',
       link: 'https://github.com/marc-aurele-besner/mymultisig-contract',
-      imagePath: '/images/github.png',
+      icon: <ExternalLinkIcon boxSize={4} />,
       target: '_blank'
     },
     {
       name: 'This Repository',
       link: 'https://github.com/marc-aurele-besner/mymultisig-app',
-      imagePath: '/images/github.png',
+      icon: <ExternalLinkIcon boxSize={4} />,
       target: '_blank'
     }
   ]
@@ -42,7 +42,7 @@ const FooterBox: React.FC = () => {
   return (
     <Box w={{ base: '100%', md: '90vw', lg: '80vw' }} maxW='1200px' h='100%' p={4} m={2} mt={4} borderRadius={10} __css={styles}>
       <HStack>
-        <FooterLink name='MyMultiSig.app' link='/' imagePath='/icons/android-icon-512x512.png' />
+        <FooterLink name='MyMultiSig.app' link='/' icon={<LockIcon boxSize={4} />} />
         {isLargerThan800 ? (
           <Fragment>
             {menu.map((item) => (
@@ -50,7 +50,7 @@ const FooterBox: React.FC = () => {
                 key={`Link-${item.name}`}
                 name={item.name}
                 link={item.link}
-                imagePath={item.imagePath}
+                icon={item.icon}
                 target={item.target}
               />
             ))}
