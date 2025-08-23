@@ -15,7 +15,7 @@ import {
   Portal,
   IconButton
 } from '@chakra-ui/react'
-import { HamburgerIcon, MoonIcon, SunIcon, AddIcon, CheckCircleIcon, LinkIcon, LockIcon } from '@chakra-ui/icons'
+import { HamburgerIcon, MoonIcon, SunIcon, AddIcon, CheckCircleIcon, LinkIcon, LockIcon, InfoOutlineIcon } from '@chakra-ui/icons'
 import HeaderLink from './HeaderLink'
 import HeaderNetworkSelector from './HeaderNetworkSelector'
 import { HeaderWalletSelector } from './HeaderWalletSelector'
@@ -45,6 +45,11 @@ const HeaderBox: React.FC = () => {
       name: 'Integration',
       link: '/integration',
       icon: <LinkIcon boxSize={5} />
+    },
+    {
+      name: 'About',
+      link: '/about',
+      icon: <InfoOutlineIcon boxSize={5} />
     }
   ]
 
