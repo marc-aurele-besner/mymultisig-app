@@ -2,6 +2,10 @@
 
 Build, sign, and execute multi-signature transactions across popular EVM networks with a minimal, fast UI.
 
+<p align="center">
+  <img alt="MyMultiSig.app screenshot" src="@.github/images/screenshot.png" width="800" />
+</p>
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/5a18eb88-556e-417c-a1c8-70c257b53499/deploy-status)](https://app.netlify.com/sites/mymultisig/deploys)
 [![Next Build](https://github.com/marc-aurele-besner/mymultisig-app/actions/workflows/next-build.yml/badge.svg)](https://github.com/marc-aurele-besner/mymultisig-app/actions/workflows/next-build.yml)
