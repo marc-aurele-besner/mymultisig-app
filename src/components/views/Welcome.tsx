@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react'
-import { Center, VStack, Text, Heading, Stack, Button, Link as ChakraLink, Box, SimpleGrid } from '@chakra-ui/react'
+import {
+  Center,
+  VStack,
+  Text,
+  Heading,
+  Stack,
+  Button,
+  Link as ChakraLink,
+  Box,
+  SimpleGrid,
+  useColorModeValue
+} from '@chakra-ui/react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useAccount } from 'wagmi'
@@ -55,6 +66,19 @@ const Welcome: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
   const { isConnected } = useAccount()
 
+  // Color mode values
+  const headingColor = useColorModeValue('gray.800', 'white')
+  const textColor = useColorModeValue('gray.700', 'whiteAlpha.800')
+  const mutedTextColor = useColorModeValue('gray.600', 'whiteAlpha.700')
+  const featureBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.50')
+  const featureBorder = useColorModeValue('gray.200', 'whiteAlpha.100')
+  const featureHoverBg = useColorModeValue('blackAlpha.100', 'whiteAlpha.100')
+  const featureHoverBorder = useColorModeValue('gray.300', 'whiteAlpha.200')
+  const borderColor = useColorModeValue('gray.200', 'whiteAlpha.100')
+  const ghostHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
+  const brandTextColor = useColorModeValue('brand.600', 'brand.300')
+  const brandHoverColor = useColorModeValue('brand.700', 'brand.200')
+
   useEffect(() => {
     setHasMounted(true)
   }, [])
@@ -79,11 +103,11 @@ const Welcome: React.FC = () => {
                 fontWeight='800'
                 lineHeight='1.1'
                 mb={4}>
-                <Text as='span' bgGradient='linear(to-r, brand.300, accent.400, brand.400)' bgClip='text'>
+                <Text as='span' bgGradient='linear(to-r, brand.400, accent.500, brand.500)' bgClip='text'>
                   Secure Multi-Signature
                 </Text>
                 <br />
-                <Text as='span' color='white'>
+                <Text as='span' color={headingColor}>
                   for the Modern Web3
                 </Text>
               </Heading>
@@ -93,7 +117,7 @@ const Welcome: React.FC = () => {
                 fontWeight='500'
                 maxW='700px'
                 mx='auto'
-                color='whiteAlpha.800'
+                color={textColor}
                 lineHeight='tall'>
                 A minimalistic Solidity smart contract for secure and streamlined multi-signature transactions. Simple,
                 auditable, and powerful.
@@ -119,8 +143,8 @@ const Welcome: React.FC = () => {
                     size='lg'
                     px={8}
                     variant='ghost'
-                    color='brand.300'
-                    _hover={{ bg: 'whiteAlpha.100', color: 'brand.200' }}>
+                    color={brandTextColor}
+                    _hover={{ bg: ghostHoverBg, color: brandHoverColor }}>
                     Integration
                   </Button>
                 </ChakraLink>
@@ -136,28 +160,28 @@ const Welcome: React.FC = () => {
                     variants={itemVariants}
                     p={{ base: 5, md: 6 }}
                     borderRadius='xl'
-                    bg='whiteAlpha.50'
+                    bg={featureBg}
                     border='1px solid'
-                    borderColor='whiteAlpha.100'
+                    borderColor={featureBorder}
                     sx={{ transition: 'all 0.3s ease' }}
                     _hover={{
-                      bg: 'whiteAlpha.100',
-                      borderColor: 'whiteAlpha.200',
+                      bg: featureHoverBg,
+                      borderColor: featureHoverBorder,
                       transform: 'translateY(-4px)',
-                      boxShadow: '0 12px 30px rgba(0, 0, 0, 0.2)'
+                      boxShadow: '0 12px 30px rgba(0, 0, 0, 0.15)'
                     }}>
                     <VStack align='flex-start' spacing={3}>
                       <Box
                         p={3}
                         borderRadius='lg'
                         bg='linear-gradient(135deg, rgba(56, 178, 172, 0.2) 0%, rgba(0, 132, 255, 0.2) 100%)'
-                        color='brand.300'>
+                        color={brandTextColor}>
                         {feature.icon}
                       </Box>
-                      <Text fontSize='lg' fontWeight='600' color='white'>
+                      <Text fontSize='lg' fontWeight='600' color={headingColor}>
                         {feature.title}
                       </Text>
-                      <Text fontSize='sm' color='whiteAlpha.700' lineHeight='tall'>
+                      <Text fontSize='sm' color={mutedTextColor} lineHeight='tall'>
                         {feature.description}
                       </Text>
                     </VStack>
@@ -172,7 +196,7 @@ const Welcome: React.FC = () => {
               w='100%'
               pt={{ base: 4, md: 6 }}
               borderTop='1px solid'
-              borderColor='whiteAlpha.100'
+              borderColor={borderColor}
               mt={{ base: 4, md: 6 }}>
               {hasMounted && <VStack spacing={4}>{!isConnected ? <ConnectWallet /> : <ConnectedWallet />}</VStack>}
             </MotionBox>

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import React from 'react'
-import { HStack, Text, Box } from '@chakra-ui/react'
+import { HStack, Text, Box, useColorModeValue } from '@chakra-ui/react'
 
 interface HeaderLinkProps {
   name: string
@@ -11,6 +11,12 @@ interface HeaderLinkProps {
 }
 
 const HeaderLink: React.FC<HeaderLinkProps> = ({ name, link, icon, isLogo }) => {
+  const hoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
+  const iconColor = useColorModeValue('gray.500', 'whiteAlpha.700')
+  const textColor = useColorModeValue('gray.700', 'whiteAlpha.800')
+  const textHoverColor = useColorModeValue('gray.900', 'white')
+  const brandColor = useColorModeValue('brand.600', 'brand.400')
+
   return (
     <Link key={`Link-${link}`} href={link}>
       <HStack
@@ -21,31 +27,28 @@ const HeaderLink: React.FC<HeaderLinkProps> = ({ name, link, icon, isLogo }) => 
         sx={{ transition: 'all 0.2s ease' }}
         bg='transparent'
         _hover={{
-          bg: isLogo ? 'transparent' : 'whiteAlpha.100',
+          bg: isLogo ? 'transparent' : hoverBg,
           transform: isLogo ? 'scale(1.02)' : 'translateY(-1px)'
-        }}
-      >
+        }}>
         {icon && (
           <Box
             as='span'
-            color={isLogo ? 'brand.400' : 'whiteAlpha.700'}
+            color={isLogo ? brandColor : iconColor}
             sx={{ transition: 'color 0.2s ease' }}
-            _groupHover={{ color: 'brand.300' }}
-          >
+            _groupHover={{ color: brandColor }}>
             {icon}
           </Box>
         )}
         <Text
           fontSize={isLogo ? 'lg' : 'sm'}
           fontWeight={isLogo ? '700' : '500'}
-          color={isLogo ? 'white' : 'whiteAlpha.800'}
-          bgGradient={isLogo ? 'linear(to-r, brand.300, accent.400)' : undefined}
+          color={isLogo ? undefined : textColor}
+          bgGradient={isLogo ? 'linear(to-r, brand.400, accent.500)' : undefined}
           bgClip={isLogo ? 'text' : undefined}
           sx={{ transition: 'color 0.2s ease' }}
           _hover={{
-            color: isLogo ? undefined : 'white'
-          }}
-        >
+            color: isLogo ? undefined : textHoverColor
+          }}>
           {name}
         </Text>
       </HStack>

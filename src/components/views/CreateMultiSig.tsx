@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Center, VStack, Text, Heading, Box } from '@chakra-ui/react'
+import { Center, VStack, Text, Heading, Box, useColorModeValue } from '@chakra-ui/react'
 import { useAccount, useNetwork } from 'wagmi'
 import { motion } from 'framer-motion'
 
@@ -37,6 +37,11 @@ const CreateMultiSig: React.FC = () => {
   const { chain } = useNetwork()
   const multiSigFactory = multiSigFactories.find((factory) => factory.chainId === chain?.id)
 
+  // Color mode values
+  const mutedTextColor = useColorModeValue('gray.600', 'whiteAlpha.700')
+  const cardBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.50')
+  const cardBorder = useColorModeValue('gray.200', 'whiteAlpha.100')
+
   useEffect(() => {
     setHasMounted(true)
   }, [])
@@ -57,11 +62,11 @@ const CreateMultiSig: React.FC = () => {
             py={{ base: 4, md: 6 }}>
             <MotionBox variants={itemVariants} textAlign='center' w='100%'>
               <Heading as='h1' fontSize={{ base: '2xl', md: '4xl' }} fontWeight='800' mb={2}>
-                <Text as='span' bgGradient='linear(to-r, brand.300, accent.400)' bgClip='text'>
+                <Text as='span' bgGradient='linear(to-r, brand.400, accent.500)' bgClip='text'>
                   Create Your MultiSig
                 </Text>
               </Heading>
-              <Text fontSize='md' color='whiteAlpha.700'>
+              <Text fontSize='md' color={mutedTextColor}>
                 Set up a new multi-signature wallet in just a few steps
               </Text>
             </MotionBox>
@@ -73,13 +78,7 @@ const CreateMultiSig: React.FC = () => {
                   {multiSigFactory === undefined && isConnected && (
                     <ErrorCard>No MultiSig Factory contract detected on this network</ErrorCard>
                   )}
-                  <Box
-                    w='100%'
-                    p={6}
-                    borderRadius='xl'
-                    bg='whiteAlpha.50'
-                    border='1px solid'
-                    borderColor='whiteAlpha.100'>
+                  <Box w='100%' p={6} borderRadius='xl' bg={cardBg} border='1px solid' borderColor={cardBorder}>
                     <ConnectWallet />
                   </Box>
                 </VStack>

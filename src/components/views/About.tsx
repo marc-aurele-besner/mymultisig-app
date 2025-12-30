@@ -1,5 +1,17 @@
 import React from 'react'
-import { Center, VStack, Text, Heading, Stack, Button, Link as ChakraLink, Box, SimpleGrid, HStack } from '@chakra-ui/react'
+import {
+  Center,
+  VStack,
+  Text,
+  Heading,
+  Stack,
+  Button,
+  Link as ChakraLink,
+  Box,
+  SimpleGrid,
+  HStack,
+  useColorModeValue
+} from '@chakra-ui/react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { AddIcon, CheckCircleIcon, ExternalLinkIcon, LockIcon, ViewIcon, StarIcon, SettingsIcon } from '@chakra-ui/icons'
@@ -54,6 +66,18 @@ const features = [
 ]
 
 const About: React.FC = () => {
+  // Color mode values
+  const textColor = useColorModeValue('gray.700', 'whiteAlpha.800')
+  const mutedTextColor = useColorModeValue('gray.600', 'whiteAlpha.700')
+  const headingColor = useColorModeValue('gray.800', 'white')
+  const featureBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.50')
+  const featureBorder = useColorModeValue('gray.200', 'whiteAlpha.100')
+  const featureHoverBg = useColorModeValue('blackAlpha.100', 'whiteAlpha.100')
+  const featureHoverBorder = useColorModeValue('gray.300', 'whiteAlpha.200')
+  const brandTextColor = useColorModeValue('brand.600', 'brand.300')
+  const brandHoverColor = useColorModeValue('brand.700', 'brand.200')
+  const ghostHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
+
   return (
     <Center>
       <BigCard maxW='1200px' minH='60vh'>
@@ -64,44 +88,32 @@ const About: React.FC = () => {
             animate='visible'
             spacing={{ base: 6, md: 8 }}
             w='100%'
-            py={{ base: 4, md: 8 }}
-          >
+            py={{ base: 4, md: 8 }}>
             {/* Header */}
             <MotionBox variants={itemVariants} textAlign='center'>
-              <Heading
-                as='h1'
-                fontSize={{ base: '3xl', md: '5xl' }}
-                fontWeight='800'
-                lineHeight='1.2'
-                mb={4}
-              >
-                <Text
-                  as='span'
-                  bgGradient='linear(to-r, brand.300, accent.400)'
-                  bgClip='text'
-                >
+              <Heading as='h1' fontSize={{ base: '3xl', md: '5xl' }} fontWeight='800' lineHeight='1.2' mb={4}>
+                <Text as='span' bgGradient='linear(to-r, brand.400, accent.500)' bgClip='text'>
                   About MyMultiSig
                 </Text>
               </Heading>
-              
+
               <Text
                 fontSize={{ base: 'lg', md: 'xl' }}
                 fontWeight='500'
                 maxW='700px'
                 mx='auto'
-                color='whiteAlpha.800'
-                lineHeight='tall'
-              >
-                A minimalistic, open-source multisig smart contract and web app 
-                focused on security, simplicity, and auditability.
+                color={textColor}
+                lineHeight='tall'>
+                A minimalistic, open-source multisig smart contract and web app focused on security, simplicity, and
+                auditability.
               </Text>
             </MotionBox>
 
             {/* Description */}
             <MotionBox variants={itemVariants} maxW='800px' textAlign='center'>
-              <Text fontSize='md' color='whiteAlpha.700' lineHeight='tall'>
-                Create a multisig, manage signers, and approve transactions with a clean UI. 
-                The contracts are designed to be easy to read and verify, making audits straightforward.
+              <Text fontSize='md' color={mutedTextColor} lineHeight='tall'>
+                Create a multisig, manage signers, and approve transactions with a clean UI. The contracts are designed
+                to be easy to read and verify, making audits straightforward.
               </Text>
             </MotionBox>
 
@@ -114,30 +126,28 @@ const About: React.FC = () => {
                     variants={itemVariants}
                     p={5}
                     borderRadius='xl'
-                    bg='whiteAlpha.50'
+                    bg={featureBg}
                     border='1px solid'
-                    borderColor='whiteAlpha.100'
+                    borderColor={featureBorder}
                     sx={{ transition: 'all 0.3s ease' }}
                     _hover={{
-                      bg: 'whiteAlpha.100',
-                      borderColor: 'whiteAlpha.200',
+                      bg: featureHoverBg,
+                      borderColor: featureHoverBorder,
                       transform: 'translateY(-2px)'
-                    }}
-                  >
+                    }}>
                     <HStack spacing={4} align='flex-start'>
                       <Box
                         p={3}
                         borderRadius='lg'
                         bg='linear-gradient(135deg, rgba(56, 178, 172, 0.2) 0%, rgba(0, 132, 255, 0.2) 100%)'
-                        color='brand.300'
-                      >
+                        color={brandTextColor}>
                         {feature.icon}
                       </Box>
                       <VStack align='flex-start' spacing={1}>
-                        <Text fontSize='md' fontWeight='600' color='white'>
+                        <Text fontSize='md' fontWeight='600' color={headingColor}>
                           {feature.title}
                         </Text>
-                        <Text fontSize='sm' color='whiteAlpha.700'>
+                        <Text fontSize='sm' color={mutedTextColor}>
                           {feature.description}
                         </Text>
                       </VStack>
@@ -149,45 +159,28 @@ const About: React.FC = () => {
 
             {/* CTA Buttons */}
             <MotionBox variants={itemVariants} pt={4}>
-              <Stack
-                direction={{ base: 'column', sm: 'row' }}
-                spacing={4}
-                justify='center'
-                align='center'
-              >
+              <Stack direction={{ base: 'column', sm: 'row' }} spacing={4} justify='center' align='center'>
                 <ChakraLink as={Link} href='/createMultiSig' _hover={{ textDecoration: 'none' }}>
-                  <Button
-                    leftIcon={<AddIcon />}
-                    size='lg'
-                    px={8}
-                    {...buttonColors}
-                  >
+                  <Button leftIcon={<AddIcon />} size='lg' px={8} {...buttonColors}>
                     Create a MultiSig
                   </Button>
                 </ChakraLink>
                 <ChakraLink as={Link} href='/useYourMultiSig' _hover={{ textDecoration: 'none' }}>
-                  <Button
-                    leftIcon={<CheckCircleIcon />}
-                    size='lg'
-                    px={8}
-                    {...glassButtonColors}
-                  >
+                  <Button leftIcon={<CheckCircleIcon />} size='lg' px={8} {...glassButtonColors}>
                     Use your MultiSig
                   </Button>
                 </ChakraLink>
                 <ChakraLink
                   href='https://github.com/marc-aurele-besner/mymultisig-contract'
                   target='_blank'
-                  _hover={{ textDecoration: 'none' }}
-                >
+                  _hover={{ textDecoration: 'none' }}>
                   <Button
                     leftIcon={<ExternalLinkIcon />}
                     size='lg'
                     px={8}
                     variant='ghost'
-                    color='brand.300'
-                    _hover={{ bg: 'whiteAlpha.100', color: 'brand.200' }}
-                  >
+                    color={brandTextColor}
+                    _hover={{ bg: ghostHoverBg, color: brandHoverColor }}>
                     View Smart Contracts
                   </Button>
                 </ChakraLink>

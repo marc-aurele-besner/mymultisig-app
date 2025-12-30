@@ -6,6 +6,7 @@ import {
   Text,
   useMediaQuery,
   useColorMode,
+  useColorModeValue,
   IconButton,
   Drawer,
   DrawerBody,
@@ -32,6 +33,29 @@ const HeaderBox: React.FC = () => {
   })
   const { colorMode, toggleColorMode } = useColorMode()
   const { isOpen, onOpen, onClose } = useDisclosure()
+
+  // Color mode values
+  const headerBg = useColorModeValue(
+    'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)',
+    'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)'
+  )
+  const borderColor = useColorModeValue('gray.200', 'whiteAlpha.100')
+  const boxShadow = useColorModeValue(
+    '0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+    '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+  )
+  const iconColor = useColorModeValue('gray.700', 'whiteAlpha.900')
+  const iconHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
+  const iconActiveBg = useColorModeValue('blackAlpha.100', 'whiteAlpha.200')
+  const dividerColor = useColorModeValue('gray.200', 'whiteAlpha.200')
+  const drawerBg = useColorModeValue(
+    'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%)',
+    'linear-gradient(135deg, rgba(13, 26, 63, 0.98) 0%, rgba(26, 26, 46, 0.98) 100%)'
+  )
+  const drawerBorderColor = useColorModeValue('gray.200', 'whiteAlpha.100')
+  const drawerTextColor = useColorModeValue('gray.800', 'whiteAlpha.900')
+  const drawerHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
+  const brandColor = useColorModeValue('brand.600', 'brand.400')
 
   const menu = [
     {
@@ -67,29 +91,27 @@ const HeaderBox: React.FC = () => {
       m={2}
       mt={{ base: 3, md: 4 }}
       borderRadius='2xl'
-      bg='linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)'
+      bg={headerBg}
       backdropFilter='blur(20px) saturate(180%)'
       border='1px solid'
-      borderColor='whiteAlpha.100'
-      boxShadow='0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+      borderColor={borderColor}
+      boxShadow={boxShadow}
       position='relative'
       zIndex={20}
-      overflow='visible'
-    >
+      overflow='visible'>
       <HStack w='100%' align='center' justify='space-between' spacing={{ base: 2, md: 4 }}>
         <HStack spacing={{ base: 2, md: 3 }} align='center'>
           <HeaderLink name='MyMultiSig' link='/' icon={<LockIcon boxSize={5} />} isLogo />
-          
+
           {isLargerThan800 ? (
             <Fragment>
-              <Box h='24px' w='1px' bg='whiteAlpha.200' mx={2} />
+              <Box h='24px' w='1px' bg={dividerColor} mx={2} />
               {menu.map((item, index) => (
                 <MotionBox
                   key={`Link-${item.name}`}
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-                >
+                  transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}>
                   <HeaderLink name={item.name} link={item.link} icon={item.icon} />
                 </MotionBox>
               ))}
@@ -101,30 +123,24 @@ const HeaderBox: React.FC = () => {
                 icon={<HamburgerIcon boxSize={5} />}
                 onClick={onOpen}
                 variant='ghost'
-                color='whiteAlpha.900'
+                color={iconColor}
                 size='sm'
-                _hover={{ bg: 'whiteAlpha.100' }}
-                _active={{ bg: 'whiteAlpha.200' }}
+                _hover={{ bg: iconHoverBg }}
+                _active={{ bg: iconActiveBg }}
               />
-              
+
               <Drawer isOpen={isOpen} placement='left' onClose={onClose} size='xs'>
                 <DrawerOverlay backdropFilter='blur(10px)' bg='blackAlpha.600' />
                 <DrawerContent
-                  bg='linear-gradient(135deg, rgba(13, 26, 63, 0.98) 0%, rgba(26, 26, 46, 0.98) 100%)'
+                  bg={drawerBg}
                   backdropFilter='blur(20px)'
                   borderRight='1px solid'
-                  borderColor='whiteAlpha.100'
-                >
-                  <DrawerCloseButton color='whiteAlpha.700' _hover={{ color: 'white' }} />
-                  <DrawerHeader borderBottomWidth='1px' borderColor='whiteAlpha.100'>
+                  borderColor={drawerBorderColor}>
+                  <DrawerCloseButton color={iconColor} _hover={{ color: brandColor }} />
+                  <DrawerHeader borderBottomWidth='1px' borderColor={drawerBorderColor}>
                     <HStack spacing={2}>
-                      <LockIcon color='brand.400' boxSize={5} />
-                      <Text
-                        fontSize='xl'
-                        fontWeight='700'
-                        bgGradient='linear(to-r, brand.300, accent.400)'
-                        bgClip='text'
-                      >
+                      <LockIcon color={brandColor} boxSize={5} />
+                      <Text fontSize='xl' fontWeight='700' bgGradient='linear(to-r, brand.400, accent.500)' bgClip='text'>
                         MyMultiSig
                       </Text>
                     </HStack>
@@ -137,8 +153,7 @@ const HeaderBox: React.FC = () => {
                           key={`MenuItem-${item.link}`}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.3, delay: index * 0.05 }}
-                        >
+                          transition={{ duration: 0.3, delay: index * 0.05 }}>
                           <Link href={item.link} onClick={onClose}>
                             <HStack
                               p={3}
@@ -146,21 +161,20 @@ const HeaderBox: React.FC = () => {
                               spacing={3}
                               sx={{ transition: 'all 0.2s ease' }}
                               _hover={{
-                                bg: 'whiteAlpha.100',
+                                bg: drawerHoverBg,
                                 transform: 'translateX(4px)'
-                              }}
-                            >
-                              <Box color='brand.400'>{item.icon}</Box>
-                              <Text fontSize='md' fontWeight='500' color='whiteAlpha.900'>
+                              }}>
+                              <Box color={brandColor}>{item.icon}</Box>
+                              <Text fontSize='md' fontWeight='500' color={drawerTextColor}>
                                 {item.name}
                               </Text>
                             </HStack>
                           </Link>
                         </MotionBox>
                       ))}
-                      
-                      <Divider borderColor='whiteAlpha.100' my={4} />
-                      
+
+                      <Divider borderColor={drawerBorderColor} my={4} />
+
                       <Box px={3}>
                         <HeaderNetworkSelector />
                       </Box>
@@ -181,14 +195,14 @@ const HeaderBox: React.FC = () => {
                 onClick={toggleColorMode}
                 icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
                 variant='ghost'
-                color='whiteAlpha.800'
+                color={iconColor}
                 size='sm'
                 borderRadius='lg'
                 _hover={{
-                  bg: 'whiteAlpha.100',
-                  color: 'brand.300'
+                  bg: iconHoverBg,
+                  color: brandColor
                 }}
-                _active={{ bg: 'whiteAlpha.200' }}
+                _active={{ bg: iconActiveBg }}
               />
             </>
           )}

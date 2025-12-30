@@ -1,14 +1,17 @@
-// Glass-morphism card styles
+// Note: These are static color objects. For color-mode awareness,
+// use useColorModeValue in components or semantic tokens in theme.
+
+// Glass-morphism card styles (works in both modes due to semantic tokens)
 export const cardColors = {
-  bg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+  bg: 'surface.card',
   backdropFilter: 'blur(20px) saturate(180%)',
   border: '1px solid',
-  borderColor: 'whiteAlpha.100',
-  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+  borderColor: 'border.subtle',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   _hover: {
-    borderColor: 'whiteAlpha.200',
-    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08)'
+    borderColor: 'border.muted',
+    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)'
   }
 }
 
@@ -29,18 +32,18 @@ export const glowCardColors = {
   }
 }
 
-// Link styles
+// Link styles (uses semantic tokens)
 export const linkColors = {
-  color: 'whiteAlpha.900',
+  color: 'text.primary',
   fontWeight: '500',
   transition: 'all 0.2s ease',
   _hover: {
-    color: 'brand.300',
+    color: 'brand.text',
     textDecoration: 'none'
   }
 }
 
-// Primary button - teal gradient
+// Primary button - teal gradient (always has white text)
 export const buttonColors = {
   bg: 'linear-gradient(135deg, #38b2ac 0%, #319795 50%, #2c7a7b 100%)',
   color: 'white',
@@ -65,7 +68,7 @@ export const buttonColors = {
   }
 }
 
-// Secondary button - blue accent
+// Secondary button - blue accent (always has white text)
 export const secondaryButtonColors = {
   bg: 'linear-gradient(135deg, #0084ff 0%, #006acc 100%)',
   color: 'white',
@@ -83,23 +86,22 @@ export const secondaryButtonColors = {
   }
 }
 
-// Glass button - transparent with blur
+// Glass button - uses semantic colors for mode-aware styling
 export const glassButtonColors = {
-  bg: 'whiteAlpha.100',
+  bg: 'surface.overlay',
   backdropFilter: 'blur(10px)',
-  color: 'white',
+  color: 'text.primary',
   fontWeight: '600',
   borderRadius: 'xl',
   border: '1px solid',
-  borderColor: 'whiteAlpha.200',
+  borderColor: 'border.muted',
   transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
   _hover: {
-    bg: 'whiteAlpha.200',
-    borderColor: 'whiteAlpha.300',
+    bg: 'surface.cardHover',
+    borderColor: 'brand.400',
     transform: 'translateY(-1px)'
   },
   _active: {
-    bg: 'whiteAlpha.150',
     transform: 'translateY(0)'
   }
 }
@@ -107,7 +109,7 @@ export const glassButtonColors = {
 // Outline button
 export const outlineButtonColors = {
   bg: 'transparent',
-  color: 'brand.300',
+  color: 'brand.text',
   fontWeight: '600',
   borderRadius: 'xl',
   border: '2px solid',
@@ -126,12 +128,12 @@ export const outlineButtonColors = {
 
 // Menu list styles
 export const menuListColors = {
-  bg: 'linear-gradient(135deg, rgba(13, 26, 63, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%)',
+  bg: 'surface.card',
   backdropFilter: 'blur(20px) saturate(180%)',
   border: '1px solid',
-  borderColor: 'whiteAlpha.100',
+  borderColor: 'border.subtle',
   borderRadius: 'xl',
-  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
   py: 2,
   zIndex: 1600 as unknown as number
 }
@@ -139,47 +141,47 @@ export const menuListColors = {
 // Menu item styles
 export const menuItemColors = {
   bg: 'transparent',
-  color: 'whiteAlpha.900',
+  color: 'text.primary',
   fontWeight: '500',
   px: 4,
   py: 3,
   transition: 'all 0.2s ease',
   _hover: {
-    bg: 'whiteAlpha.100',
-    color: 'brand.300'
+    bg: 'surface.overlay',
+    color: 'brand.text'
   },
   _focus: {
-    bg: 'whiteAlpha.100'
+    bg: 'surface.overlay'
   }
 }
 
 // Text colors for different emphasis levels
 export const textColors = {
-  color: 'whiteAlpha.900'
+  color: 'text.primary'
 }
 
 export const mutedTextColors = {
-  color: 'whiteAlpha.700'
+  color: 'text.secondary'
 }
 
 export const subtleTextColors = {
-  color: 'whiteAlpha.500'
+  color: 'text.muted'
 }
 
 // Input styles
 export const inputColors = {
-  bg: 'whiteAlpha.50',
+  bg: 'surface.overlay',
   border: '1px solid',
-  borderColor: 'whiteAlpha.200',
+  borderColor: 'border.muted',
   borderRadius: 'xl',
-  color: 'white',
+  color: 'text.primary',
   backdropFilter: 'blur(10px)',
   transition: 'all 0.2s ease',
   _placeholder: {
-    color: 'whiteAlpha.400'
+    color: 'text.muted'
   },
   _hover: {
-    borderColor: 'whiteAlpha.300'
+    borderColor: 'brand.400'
   },
   _focus: {
     borderColor: 'brand.400',
@@ -190,7 +192,7 @@ export const inputColors = {
 
 // Gradient text utility
 export const gradientText = {
-  bgGradient: 'linear(to-r, brand.300, accent.400, brand.400)',
+  bgGradient: 'linear(to-r, brand.400, accent.500, brand.500)',
   bgClip: 'text',
   fill: 'transparent'
 }
@@ -200,7 +202,7 @@ export const successColors = {
   bg: 'linear-gradient(135deg, rgba(72, 187, 120, 0.2) 0%, rgba(56, 161, 105, 0.2) 100%)',
   border: '1px solid',
   borderColor: 'green.400',
-  color: 'green.300'
+  color: 'green.500'
 }
 
 // Error colors
@@ -208,7 +210,7 @@ export const errorColors = {
   bg: 'linear-gradient(135deg, rgba(245, 101, 101, 0.2) 0%, rgba(229, 62, 62, 0.2) 100%)',
   border: '1px solid',
   borderColor: 'red.400',
-  color: 'red.300'
+  color: 'red.500'
 }
 
 // Warning colors
@@ -216,5 +218,5 @@ export const warningColors = {
   bg: 'linear-gradient(135deg, rgba(237, 137, 54, 0.2) 0%, rgba(221, 107, 32, 0.2) 100%)',
   border: '1px solid',
   borderColor: 'orange.400',
-  color: 'orange.300'
+  color: 'orange.500'
 }

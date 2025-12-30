@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, BoxProps } from '@chakra-ui/react'
+import { Box, BoxProps, useColorModeValue } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 
 interface BigCardProps extends BoxProps {
@@ -8,6 +8,20 @@ interface BigCardProps extends BoxProps {
 }
 
 const BigCard: React.FC<BigCardProps> = ({ children, w = '100%', h = 'auto', maxW = '1200px', hasGlow = false, ...rest }) => {
+  const cardBg = useColorModeValue(
+    'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)',
+    'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)'
+  )
+  const borderColor = useColorModeValue('gray.200', 'whiteAlpha.100')
+  const boxShadow = useColorModeValue(
+    '0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+    '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+  )
+  const topGlowBg = useColorModeValue(
+    'linear-gradient(90deg, transparent, rgba(56, 178, 172, 0.3), transparent)',
+    'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)'
+  )
+
   return (
     <Box
       as={motion.div}
@@ -22,11 +36,11 @@ const BigCard: React.FC<BigCardProps> = ({ children, w = '100%', h = 'auto', max
       m={{ base: 2, md: 3 }}
       borderRadius='2xl'
       position='relative'
-      bg='linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)'
+      bg={cardBg}
       backdropFilter='blur(20px) saturate(180%)'
       border='1px solid'
-      borderColor='whiteAlpha.100'
-      boxShadow='0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+      borderColor={borderColor}
+      boxShadow={boxShadow}
       overflow='hidden'
       _before={hasGlow ? {
         content: '""',
@@ -56,7 +70,7 @@ const BigCard: React.FC<BigCardProps> = ({ children, w = '100%', h = 'auto', max
         left='10%'
         right='10%'
         h='1px'
-        bg='linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)'
+        bg={topGlowBg}
         pointerEvents='none'
       />
       {children}

@@ -60,6 +60,19 @@ const colors = {
     800: 'rgba(255, 255, 255, 0.80)',
     900: 'rgba(255, 255, 255, 0.92)'
   },
+  // Light mode surface colors
+  surfaceLight: {
+    50: 'rgba(0, 0, 0, 0.02)',
+    100: 'rgba(0, 0, 0, 0.04)',
+    200: 'rgba(0, 0, 0, 0.06)',
+    300: 'rgba(0, 0, 0, 0.08)',
+    400: 'rgba(0, 0, 0, 0.12)',
+    500: 'rgba(0, 0, 0, 0.16)',
+    600: 'rgba(0, 0, 0, 0.24)',
+    700: 'rgba(0, 0, 0, 0.36)',
+    800: 'rgba(0, 0, 0, 0.48)',
+    900: 'rgba(0, 0, 0, 0.64)'
+  },
   // Glow colors for effects
   glow: {
     teal: 'rgba(56, 178, 172, 0.4)',
@@ -74,10 +87,65 @@ const fonts = {
   mono: '"JetBrains Mono", "Fira Code", monospace'
 }
 
+// Semantic tokens for color mode switching
+const semanticTokens = {
+  colors: {
+    // Text colors
+    'text.primary': {
+      default: 'gray.800',
+      _dark: 'whiteAlpha.900'
+    },
+    'text.secondary': {
+      default: 'gray.600',
+      _dark: 'whiteAlpha.700'
+    },
+    'text.muted': {
+      default: 'gray.500',
+      _dark: 'whiteAlpha.500'
+    },
+    'text.inverse': {
+      default: 'white',
+      _dark: 'gray.900'
+    },
+    // Surface colors
+    'surface.card': {
+      default: 'rgba(255, 255, 255, 0.8)',
+      _dark: 'rgba(255, 255, 255, 0.08)'
+    },
+    'surface.cardHover': {
+      default: 'rgba(255, 255, 255, 0.9)',
+      _dark: 'rgba(255, 255, 255, 0.12)'
+    },
+    'surface.overlay': {
+      default: 'rgba(0, 0, 0, 0.04)',
+      _dark: 'whiteAlpha.100'
+    },
+    // Border colors
+    'border.subtle': {
+      default: 'gray.200',
+      _dark: 'whiteAlpha.100'
+    },
+    'border.muted': {
+      default: 'gray.300',
+      _dark: 'whiteAlpha.200'
+    },
+    // Brand with mode awareness
+    'brand.text': {
+      default: 'brand.600',
+      _dark: 'brand.300'
+    },
+    'accent.text': {
+      default: 'accent.600',
+      _dark: 'accent.400'
+    }
+  }
+}
+
 const theme = extendTheme({
   config,
   colors,
   fonts,
+  semanticTokens,
   styles: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global: (props: Record<string, any> | StyleFunctionProps) => ({
@@ -87,7 +155,7 @@ const theme = extendTheme({
           'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)',
           'linear-gradient(135deg, #0a0f1a 0%, #0d1a3f 25%, #1a1a2e 50%, #16213e 75%, #0a0f1a 100%)'
         )(props),
-        color: mode('#1a202c', '#f7fafc')(props),
+        color: mode('gray.800', 'whiteAlpha.900')(props),
         fontSize: 'sm',
         lineHeight: 'tall',
         fontFamily: fonts.body,
@@ -110,10 +178,10 @@ const theme = extendTheme({
         }
       },
       a: {
-        color: mode('#2c7a7b', '#81e6d9')(props),
+        color: mode('brand.600', 'brand.300')(props),
         transition: 'color 0.2s ease',
         _hover: {
-          color: mode('#319795', '#4fd1c5')(props),
+          color: mode('brand.700', 'brand.200')(props),
           textDecoration: 'none'
         }
       },
@@ -129,10 +197,10 @@ const theme = extendTheme({
         bg: 'transparent'
       },
       '::-webkit-scrollbar-thumb': {
-        bg: 'whiteAlpha.300',
+        bg: mode('blackAlpha.300', 'whiteAlpha.300')(props),
         borderRadius: 'full',
         '&:hover': {
-          bg: 'whiteAlpha.400'
+          bg: mode('blackAlpha.400', 'whiteAlpha.400')(props)
         }
       }
     })
@@ -143,11 +211,11 @@ const theme = extendTheme({
         container: {
           borderRadius: '2xl',
           fontSize: 'sm',
-          bg: 'surface.100',
+          bg: 'surface.card',
           backdropFilter: 'blur(20px) saturate(180%)',
           border: '1px solid',
-          borderColor: 'whiteAlpha.100',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+          borderColor: 'border.subtle',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
         }
       },
       sizes: {
@@ -212,26 +280,25 @@ const theme = extendTheme({
           }
         },
         glass: {
-          bg: 'whiteAlpha.100',
+          bg: 'surface.overlay',
           backdropFilter: 'blur(10px)',
-          color: 'white',
+          color: 'text.primary',
           border: '1px solid',
-          borderColor: 'whiteAlpha.200',
+          borderColor: 'border.muted',
           _hover: {
-            bg: 'whiteAlpha.200',
-            borderColor: 'whiteAlpha.300',
+            bg: 'surface.cardHover',
+            borderColor: 'border.muted',
             transform: 'translateY(-1px)'
           },
           _active: {
-            bg: 'whiteAlpha.150',
             transform: 'translateY(0)'
           }
         },
         ghost: {
-          color: 'brand.300',
+          color: 'brand.text',
           _hover: {
-            bg: 'whiteAlpha.100',
-            color: 'brand.200'
+            bg: 'surface.overlay',
+            color: 'brand.text'
           }
         }
       },
@@ -243,17 +310,17 @@ const theme = extendTheme({
       variants: {
         glass: {
           field: {
-            bg: 'whiteAlpha.50',
+            bg: 'surface.overlay',
             border: '1px solid',
-            borderColor: 'whiteAlpha.200',
+            borderColor: 'border.muted',
             borderRadius: 'xl',
-            color: 'white',
+            color: 'text.primary',
             backdropFilter: 'blur(10px)',
             _placeholder: {
-              color: 'whiteAlpha.500'
+              color: 'text.muted'
             },
             _hover: {
-              borderColor: 'whiteAlpha.300'
+              borderColor: 'brand.400'
             },
             _focus: {
               borderColor: 'brand.400',
@@ -269,26 +336,26 @@ const theme = extendTheme({
     Modal: defineStyleConfig({
       baseStyle: {
         dialog: {
-          bg: 'linear-gradient(135deg, rgba(13, 26, 63, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%)',
+          bg: 'surface.card',
           backdropFilter: 'blur(20px) saturate(180%)',
           border: '1px solid',
-          borderColor: 'whiteAlpha.100',
+          borderColor: 'border.subtle',
           borderRadius: '2xl',
-          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)'
+          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)'
         },
         header: {
-          color: 'white',
+          color: 'text.primary',
           fontWeight: '700',
           fontSize: 'xl'
         },
         body: {
-          color: 'whiteAlpha.900'
+          color: 'text.secondary'
         },
         closeButton: {
-          color: 'whiteAlpha.700',
+          color: 'text.muted',
           _hover: {
-            bg: 'whiteAlpha.100',
-            color: 'white'
+            bg: 'surface.overlay',
+            color: 'text.primary'
           }
         }
       }
@@ -296,24 +363,24 @@ const theme = extendTheme({
     Menu: defineStyleConfig({
       baseStyle: {
         list: {
-          bg: 'linear-gradient(135deg, rgba(13, 26, 63, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%)',
+          bg: 'surface.card',
           backdropFilter: 'blur(20px) saturate(180%)',
           border: '1px solid',
-          borderColor: 'whiteAlpha.100',
+          borderColor: 'border.subtle',
           borderRadius: 'xl',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
           py: 2
         },
         item: {
           bg: 'transparent',
-          color: 'whiteAlpha.900',
+          color: 'text.primary',
           fontWeight: '500',
           _hover: {
-            bg: 'whiteAlpha.100',
-            color: 'brand.300'
+            bg: 'surface.overlay',
+            color: 'brand.text'
           },
           _focus: {
-            bg: 'whiteAlpha.100'
+            bg: 'surface.overlay'
           }
         }
       }
@@ -321,7 +388,8 @@ const theme = extendTheme({
     Heading: defineStyleConfig({
       baseStyle: {
         fontWeight: '700',
-        letterSpacing: '-0.02em'
+        letterSpacing: '-0.02em',
+        color: 'text.primary'
       }
     }),
     Text: defineStyleConfig({
