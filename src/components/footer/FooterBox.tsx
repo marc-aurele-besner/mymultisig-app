@@ -1,55 +1,60 @@
 import Link from 'next/link'
-import React from 'react'
-import { Box, HStack, Text, useMediaQuery, Menu, MenuButton, Button, MenuList, MenuItem } from '@chakra-ui/react'
-import { ChevronDownIcon } from '@chakra-ui/icons'
+import React, { Fragment } from 'react'
+import {
+  Box,
+  HStack,
+  Text,
+  useMediaQuery,
+  Menu,
+  MenuButton,
+  Button,
+  MenuList,
+  MenuItem,
+  useStyleConfig
+} from '@chakra-ui/react'
+import { ChevronDownIcon, LockIcon, ExternalLinkIcon } from '@chakra-ui/icons'
 
 import FooterLink from './FooterLink'
 
 const FooterBox: React.FC = () => {
   const [isLargerThan800] = useMediaQuery('(min-width: 800px)', {
     ssr: true,
-    fallback: false, // return false on the server, and re-evaluate on the client side
+    fallback: false // return false on the server, and re-evaluate on the client side
   })
+
+  const styles = useStyleConfig('Card')
 
   const menu = [
     {
       name: 'Smart Contract Repository',
       link: 'https://github.com/marc-aurele-besner/mymultisig-contract',
-      imagePath: '/images/github.png',
-      target: '_blank',
+      icon: <ExternalLinkIcon boxSize={4} />,
+      target: '_blank'
     },
     {
       name: 'This Repository',
       link: 'https://github.com/marc-aurele-besner/mymultisig-app',
-      imagePath: '/images/github.png',
-      target: '_blank',
-    },
+      icon: <ExternalLinkIcon boxSize={4} />,
+      target: '_blank'
+    }
   ]
 
   return (
-    <Box
-      w='80vw'
-      h='100%'
-      p={4}
-      m={2}
-      mt={4}
-      borderRadius={10}
-      boxShadow='dark-lg'
-      bgGradient='linear(to-r, cyan.300, cyan.600, purple.300)'>
+    <Box w={{ base: '100%', md: '90vw', lg: '80vw' }} maxW='1200px' h='100%' p={4} m={2} mt={4} borderRadius={10} __css={styles}>
       <HStack>
-        <FooterLink name='MyMultiSig.app' link='/' imagePath='/icons/android-icon-512x512.png' />
+        <FooterLink name='MyMultiSig.app' link='/' icon={<LockIcon boxSize={4} />} />
         {isLargerThan800 ? (
-          <>
+          <Fragment>
             {menu.map((item) => (
               <FooterLink
                 key={`Link-${item.name}`}
                 name={item.name}
                 link={item.link}
-                imagePath={item.imagePath}
+                icon={item.icon}
                 target={item.target}
               />
             ))}
-          </>
+          </Fragment>
         ) : (
           <Box ml='2rem'>
             <Menu>
@@ -60,11 +65,11 @@ const FooterBox: React.FC = () => {
                 bg='transparent'
                 _focus={{
                   outline: 'none',
-                  color: 'cyan.600',
+                  color: 'cyan.600'
                 }}
                 _active={{
                   outline: 'none',
-                  color: 'cyan.600',
+                  color: 'cyan.600'
                 }}>
                 Menu
               </MenuButton>
@@ -79,7 +84,7 @@ const FooterBox: React.FC = () => {
                         color='cyan.900'
                         pl='1rem'
                         _hover={{
-                          color: 'cyan.600',
+                          color: 'cyan.600'
                         }}>
                         {item.name}
                       </Text>

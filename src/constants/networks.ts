@@ -1,24 +1,45 @@
-import { mainnet, goerli, hardhat, Chain } from 'wagmi/chains'
+import {
+  mainnet,
+  goerli,
+  sepolia,
+  polygon,
+  polygonMumbai,
+  optimism,
+  optimismGoerli,
+  arbitrum,
+  arbitrumGoerli,
+  avalanche,
+  avalancheFuji,
+  bsc,
+  bscTestnet,
+  gnosis,
+  gnosisChiado,
+  Chain
+} from 'wagmi/chains'
 
-const anvil9999: Chain = {
-  id: 9999,
-  network: 'anvil9999',
-  name: 'anvil9999',
-  nativeCurrency: {
-    name: 'Ether',
-    symbol: 'ETH',
-    decimals: 18
-  },
-  rpcUrls: {
-    default: {
-      http: ['http://localhost:8545']
-    },
-    public: {
-      http: ['http://localhost:8545']
-    }
-  }
-}
-
-const networks: Chain[] = [mainnet, hardhat, goerli, anvil9999]
+const networks: Chain[] = [
+  // Ethereum
+  mainnet,
+  sepolia,
+  goerli,
+  // Polygon
+  polygon,
+  polygonMumbai,
+  // Optimism
+  optimism,
+  optimismGoerli,
+  // Arbitrum
+  arbitrum,
+  arbitrumGoerli,
+  // Avalanche
+  avalanche,
+  avalancheFuji,
+  // BNB Chain
+  bsc,
+  bscTestnet,
+  // Gnosis
+  gnosis,
+  gnosisChiado
+]
 
 export default networks

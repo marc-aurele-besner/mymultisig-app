@@ -30,8 +30,8 @@ const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       new WalletConnectConnector({
         chains,
         options: {
-          projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? '',
-          qrcode: true
+          projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID ?? '',
+          showQrModal: true
         }
       }),
       new InjectedConnector({

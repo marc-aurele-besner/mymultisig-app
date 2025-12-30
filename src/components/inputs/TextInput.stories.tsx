@@ -7,11 +7,13 @@ export default {
   title: 'Inputs/TextInput',
   component: TextInput,
   argTypes: {
-    backgroundColor: { control: 'color' },
+    isDisabled: { control: 'boolean' },
+    isReadOnly: { control: 'boolean' },
+    isInvalid: { control: 'boolean' },
   },
 } as ComponentMeta<typeof TextInput>
 
 export const Basic: ComponentStory<typeof TextInput> = (args) => <TextInput {...args} />
-TextInput.bind({
+Basic.args = {
   placeholder: 'Hello World',
-})
+}

@@ -8,15 +8,17 @@ interface ErrorCardProps {
 const ErrorCard: React.FC<ErrorCardProps> = ({ children }) => {
   return (
     <Box
-      w='94%'
+      w={{ base: '100%', md: '94%' }}
       p={4}
       m={2}
       mt={4}
       borderRadius={10}
-      borderColor='red.500'
-      boxShadow='dark-lg'
-      bgGradient='linear(to-r, cyan.100, cyan.200, purple.100)'>
-      <Text fontSize='lg' fontWeight='bold' color='red.500'>
+      borderColor='red.400'
+      bgGradient='linear(to-r, red.500, orange.400)'
+      color='white'
+      boxShadow='xl'
+    >
+      <Text fontSize='lg' fontWeight='bold'>
         Error: {children}
       </Text>
     </Box>

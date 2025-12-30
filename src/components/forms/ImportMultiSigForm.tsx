@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { Fragment, useState } from 'react'
 import { VStack, Text } from '@chakra-ui/react'
 import { useAccount } from 'wagmi'
 
@@ -29,7 +29,7 @@ const ImportMultiSigForm: React.FC<ImportMultiSigFormProps> = ({ factory }) => {
       {importClicked && address ? (
         <ImportConfirmationCard factoryAddress={factory.address} multiSigAddress={multiSigAddress} address={address} />
       ) : (
-        <>
+        <Fragment>
           <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
             The multi sig contract address
           </Text>
@@ -41,7 +41,7 @@ const ImportMultiSigForm: React.FC<ImportMultiSigFormProps> = ({ factory }) => {
             // isLoading={isLoading}
             isDisabled={multiSigAddress !== `0x`}
           />
-        </>
+        </Fragment>
       )}
       {/* {isLoading && (
         <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>

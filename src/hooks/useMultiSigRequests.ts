@@ -26,7 +26,7 @@ const useMultiSigRequests = (multiSigAddress: `0x${string}`) => {
         data: {
           multiSigAddress
         },
-        details: 'Add MultiSig Request',
+        details: 'Get MultiSig Request',
         signatureExpiry: 0
       }).then(async (dataSigned) => {
         getContent(dataSigned.message).then((data) => {

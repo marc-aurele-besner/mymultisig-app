@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { Fragment, useState, useEffect } from 'react'
 import { Center, VStack, Text } from '@chakra-ui/react'
 import { useAccount, useNetwork } from 'wagmi'
 
@@ -22,20 +22,20 @@ const CreateMultiSig: React.FC = () => {
 
   return (
     <Center>
-      <BigCard w='80vw' h='85vh'>
+      <BigCard maxW='1200px' minH='70vh'>
         <Center>
           <VStack>
             <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
               Create your multiSig
             </Text>
             {!hasMounted || !isConnected || address === undefined || multiSigFactory === undefined ? (
-              <>
+              <Fragment>
                 {!isConnected || (address === undefined && <ErrorCard>Please connect your wallet first</ErrorCard>)}
                 {multiSigFactory === undefined && (
                   <ErrorCard>No MultiSig Factory contract detected on this network</ErrorCard>
                 )}
                 <ConnectWallet />
-              </>
+              </Fragment>
             ) : (
               <CreateMultiSigForm owner01={address.toString()} factory={multiSigFactory} />
             )}

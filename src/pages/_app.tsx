@@ -1,6 +1,7 @@
 import React from 'react'
+import Script from 'next/script'
 import { AppProps } from 'next/app'
-import { ArcxAnalyticsProvider } from '@arcxmoney/analytics'
+// import { ArcxAnalyticsProvider } from '@arcxmoney/analytics'
 import { ChakraProvider } from '@chakra-ui/react'
 import { ColorModeScript } from '@chakra-ui/color-mode'
 
@@ -11,7 +12,8 @@ import Layout from '../components/dom/Layout'
 
 const App: React.FC<AppProps> = ({ Component, pageProps = { title: 'MyMultiSig' } }) => {
   return (
-    <ArcxAnalyticsProvider apiKey={process.env.NEXT_PUBLIC_ARCX_API_KEY || ''}>
+    <>
+      {/* <ArcxAnalyticsProvider apiKey={process.env.NEXT_PUBLIC_ARCX_API_KEY || ''}> */}
       <ChakraProvider theme={theme}>
         <ColorModeScript initialColorMode={theme.config.initialColorMode} />
         <Header title={pageProps.title} />
@@ -21,7 +23,21 @@ const App: React.FC<AppProps> = ({ Component, pageProps = { title: 'MyMultiSig' 
           </Layout>
         </Web3Provider>
       </ChakraProvider>
-    </ArcxAnalyticsProvider>
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_APP_GTAG}`}
+        strategy='afterInteractive'
+      />
+      <Script id='google-analytics' strategy='afterInteractive'>
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){window.dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', '${process.env.NEXT_PUBLIC_APP_GTAG}');
+        `}
+      </Script>
+      {/* </ArcxAnalyticsProvider> */}
+    </>
   )
 }
 

@@ -1,5 +1,6 @@
 import React from 'react'
 import { Button, HStack, Image, Text } from '@chakra-ui/react'
+import { buttonColors } from '../../styles/colors'
 
 interface ImageButtonProps {
   placeholder: string
@@ -13,20 +14,15 @@ const ImageButton: React.FC<ImageButtonProps> = ({ placeholder, imagePath, onCli
   return (
     <Button
       key={placeholder}
-      w='94%'
+      w={{ base: '100%', md: '94%' }}
       p={4}
       m={2}
       mt={4}
       borderRadius={10}
-      color='gray.700'
-      bg='cyan.100'
-      boxShadow='dark-lg'
       onClick={onClick}
       isLoading={isLoading}
       isDisabled={isDisabled}
-      _hover={{
-        bg: 'cyan.300'
-      }}>
+      {...buttonColors}>
       <HStack w='100%' justifyContent='center'>
         <Image src={imagePath} alt={placeholder} width={25} height={25} borderRadius='3px' />
         <Text>{placeholder}</Text>

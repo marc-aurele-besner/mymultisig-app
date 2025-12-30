@@ -1,15 +1,15 @@
-import React from 'react'
+import React, { Fragment } from 'react'
 import { Text } from '@chakra-ui/react'
 import { useConnect } from 'wagmi'
-
+import { textColors } from '../../styles/colors'
 import ErrorCard from '../cards/ErrorCard'
 import ImageButton from '../buttons/ImageButton'
 
 const ConnectWallet: React.FC = () => {
   const { connect, connectors, error, isLoading, pendingConnector } = useConnect()
   return (
-    <>
-      <Text fontSize='2xl' fontWeight='bold' color='white' pt='2rem' pb='2rem'>
+    <Fragment>
+      <Text fontSize='2xl' fontWeight='bold' pt='2rem' pb='2rem' {...textColors}>
         Connect your wallet
       </Text>
       <ImageButton
@@ -42,7 +42,7 @@ const ConnectWallet: React.FC = () => {
       />
 
       {error && <ErrorCard>{error.message}</ErrorCard>}
-    </>
+    </Fragment>
   )
 }
 

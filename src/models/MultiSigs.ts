@@ -50,6 +50,7 @@ export type MultiSigTransactionRequest = {
   isExecuted: boolean
   isCancelled: boolean
   isConfirmed: boolean
+  isSuccessful: boolean
 }
 
 export type MultiSigOnChainData = {
@@ -65,4 +66,12 @@ export type MultiSigRequestDB = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ref: any
   data: MultiSigTransactionRequest
+}
+
+export type BuildMultiSigRequest = {
+  to: `0x${string}`
+  value: string
+  txnGas: string
+  description: string
+  arguments: object
 }

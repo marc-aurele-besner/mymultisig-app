@@ -1,70 +1,166 @@
-# MyMultiSig.app Next.js Web App 🚀
+# MyMultiSig.app — Next.js Web App
 
-A powerful and scalable web application built using Next.js and Storybook, providing a seamless user experience with server-side rendering and modular architecture. Explore the UI components in an isolated environment with Storybook, or experience the live app online. Deployment is made easy with 1-click options on Netlify.
+Build, sign, and execute multi-signature transactions across popular EVM networks with a minimal, fast UI.
 
-[![license](https://img.shields.io/github/license/jamesisaac/react-native-background-task.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/5a18eb88-556e-417c-a1c8-70c257b53499/deploy-status)](https://app.netlify.com/sites/mymultisig/deploys)
+[![Next Build](https://github.com/marc-aurele-besner/mymultisig-app/actions/workflows/next-build.yml/badge.svg)](https://github.com/marc-aurele-besner/mymultisig-app/actions/workflows/next-build.yml)
+[![Storybook Build](https://github.com/marc-aurele-besner/mymultisig-app/actions/workflows/storybook-build.yml/badge.svg)](https://github.com/marc-aurele-besner/mymultisig-app/actions/workflows/storybook-build.yml)
 
-## Online Version 🌍
+## Live
 
-Access the live version of this web app, hosted on the web and available to users anywhere, anytime.
+- App: [MyMultiSig.app](https://MyMultiSig.app/)
+- Storybook: [storybook.mymultisig.app](https://storybook.mymultisig.app)
 
-[MyMultiSig.app](https://MyMultiSig.app/)
+## 1‑Click Deploy (Netlify)
 
-## 1-Click Deployment on Netlify 💻
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/marc-aurele-besner/mymultisig-app)
 
-Easily deploy this web app to the cloud with a single click using the power of Netlify.
+## Features
 
-[![Netlify 1-Click Deployment](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/marc-aurele-besner/mymultisig-app)
+- Create a new multi-signature wallet (owners and threshold)
+- Import an existing multi-signature by address
+- Build requests to:
+  - Call any contract function (ABI-driven)
+  - Send regular ETH transfers
+- Share request links for review/signing
+- Execute transactions once threshold is met
+- Wallets: MetaMask, WalletConnect v2, Coinbase Wallet, Injected, Ledger
+- Progressive Web App (PWA) with offline support
+- Optional analytics via Google Analytics
 
-## Install Dependencies 📦
+## Supported Networks
 
-Install the necessary packages and dependencies to run and build this web app.
+- Ethereum: Mainnet, Sepolia, Goerli
+- Polygon: Mainnet, Mumbai
+- Optimism: Mainnet, Goerli
+- Arbitrum: One, Goerli
+- Avalanche: C-Chain, Fuji
+- BNB Chain: Mainnet, Testnet
+- Gnosis: Mainnet, Chiado
 
-```shell
+(Driven by `src/constants/networks.ts` and factory addresses from `mymultisig-contract`.)
+
+## Tech Stack
+
+- Next.js 13, React 18, TypeScript
+- Chakra UI
+- wagmi + WalletConnect
+- Zustand
+- next-pwa
+- Storybook
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 16+ (CI uses Node 16)
+- Yarn 1.x
+- Netlify CLI (optional, for `yarn netlify dev`): `npm i -g netlify-cli`
+
+### Setup
+
+```bash
 yarn
+cp .env.example .env.local
+# Fill in the values in .env.local
 ```
 
-## Start the Development Environment Locally 💻
+### Run
 
-Launch the development environment for this web app on your local machine, allowing you to test and debug the app in a live environment.
+- Next.js dev server:
 
-```shell
+```bash
 yarn dev
 ```
 
-## Start the Development Environment Locally with Netlify 🔧
+- Netlify dev (proxies serverless functions locally):
 
-Use Netlify to run the development environment for this web app locally, making it easier to test and debug the app.
-
-```shell
+```bash
 yarn netlify dev
 ```
 
-## Build the Web App for Deployment 🚀
+### Build
 
-Create a production-ready build of this web app, ready for deployment to a web server.
-
-```shell
+```bash
 yarn build
 ```
 
-## Start Storybook 📖
+### Storybook
 
-Launch the local instance of Storybook to develop and document the UI components of this web app in an isolated environment.
-
-```shell
+```bash
 yarn storybook
+# or build static storybook
+yarn build-storybook
 ```
 
-## Online Storybook 🌎
+## Environment Variables
 
-Interactively explore and test the UI components of this web app in a live environment, available online.
+Create `.env.local` (see `.env.example` for a full list and guidance).
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/958cf6e3-835b-42b3-8491-acc708b29891/deploy-status)](https://app.netlify.com/sites/mymultisig-storybook/deploys)
+Public (client) variables:
 
-[Storybook](https://storybook.mymultisig.app)
+- `NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID` — WalletConnect v2 Project ID (recommended)
+- `NEXT_PUBLIC_ALCHEMY_API_KEY` — optional, improves RPC performance
+- `NEXT_PUBLIC_INFURA_API_KEY` — optional, improves RPC performance
+- `NEXT_PUBLIC_APP_GTAG` — optional, Google Analytics ID
 
-## 🙏 Acknowledgements
+Server-only variables:
 
-Powered by [Next.js](https://nextjs.org/), this web app utilizes the power of server-side rendering and modular architecture to provide a seamless user experience. The UI components of this web app are developed using [Storybook](https://storybook.js.org/), which allows for interactive development and documentation of UI components in isolation.
+- `ETHERSCAN_API_KEY` — required for ABI fetch in `/api/getABI`
+- `FAUNADB_SERVER_SECRET` — required for storing/retrieving requests
+- `PRIVATE_KEY` — backend signer used to sign messages; do NOT use a key with funds
+- `RPC_ETHEREUM` — RPC URL used by the backend signer
+- `SLACK_TOKEN` and `SLACK_CONVERSATION_ID` — optional notifications
+
+Auth (optional; used by `/api/auth/[...nextauth]`):
+
+- `GITHUB_ID`, `GITHUB_SECRET`
+- `GOOGLE_ID`, `GOOGLE_SECRET`
+- `DISCORD_ID`, `DISCORD_SECRET`
+- `TWITTER_ID`, `TWITTER_SECRET`
+- `SLACK_ID`, `SLACK_SECRET`
+
+## Common Tasks
+
+- Create a wallet: `Create` page → choose name, owners, and threshold → confirm in wallet
+- Import a wallet: `Import` page → paste wallet address → confirm
+- Build a request: open a wallet → “Build a request” → select contract/function or regular tx → enter args → “Sign request”
+- Share/Sign: share the request link (`/request/[requestId]`) with owners to collect signatures
+- Execute: once threshold is met, execute from the request page or the wallet view
+
+## Project Structure
+
+- `src/pages` — Next.js routes (including API routes under `pages/api`)
+- `src/components` — UI components and views
+- `src/constants` — networks, providers, factory addresses
+- `src/hooks` — wagmi hooks and domain hooks
+- `src/models` — TypeScript models
+- `src/states` — Zustand stores (persisted in LocalStorage)
+- `public` — PWA manifest and icons
+
+## Scripts
+
+- `yarn dev` — start Next.js dev server
+- `yarn netlify dev` — start with Netlify dev
+- `yarn build` — production build
+- `yarn analyze` — bundle analyzer
+- `yarn storybook` / `yarn build-storybook`
+
+## CI
+
+- Next build check and Storybook build run on PRs via GitHub Actions.
+
+## Security & Disclaimer
+
+This project is under active development. Use at your own risk. Always test with small amounts and/or on test networks first.
+
+## License
+
+MIT © MyMultiSig.app
+
+## Acknowledgements
+
+- Built with [Next.js](https://nextjs.org/) and [Chakra UI](https://chakra-ui.com/)
+- Contract ABIs and factory addresses from `mymultisig-contract`
+- Stories documented in [Storybook](https://storybook.js.org/)

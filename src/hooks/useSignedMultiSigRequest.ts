@@ -12,6 +12,7 @@ import { signData, addContent, updateContent } from '../utils'
 const useSignedMultiSigRequest = (
   multiSigAddress: `0x${string}`,
   args: MultiSigExecTransactionArgs,
+  description: string,
   existingRequest?: MultiSigTransactionRequest,
   existingRequestRef?: string
 ) => {
@@ -28,7 +29,6 @@ const useSignedMultiSigRequest = (
     'Successfully Signing MultiSig Request',
     'You signed the MultiSig request successfully.'
   )
-
   const domain = {
     name: multiSigDetails ? String(multiSigDetails[0]) : 'MyMultiSigFactory',
     version: multiSigDetails ? String(multiSigDetails[1]) : '0.0.7',
@@ -61,15 +61,23 @@ const useSignedMultiSigRequest = (
     ]
   } as const
 
+  const isNumber = (value: string | number): boolean =>
+    value != null && value !== '' && !isNaN(Number(value.toString()))
+
+  const valueCheck = BigNumber.isBigNumber(args.value) || isNumber(args.value) ? true : false
+  const gasCheck = BigNumber.isBigNumber(args.txnGas) || isNumber(args.txnGas) ? true : false
+
+  const valueAndGasCheck = valueCheck && gasCheck ? true : false
+
   const value = {
     to: args.to,
-    value: BigNumber.from(args.value),
+    value: valueCheck ? BigNumber.from(args.value) : BigNumber.from(0),
     data: args.data,
-    gas: BigNumber.from(args.txnGas),
-    nonce: BigNumber.from(multiSigDetails ? multiSigDetails[2] : 0)
+    gas: gasCheck ? BigNumber.from(args.txnGas) : BigNumber.from(0),
+    nonce: BigNumber.from(multiSigDetails ? multiSigDetails[4] : 0)
   } as const
 
-  const { data, isError, isLoading, isSuccess, signTypedData } = useSignTypedData({
+  const { data, isError, isLoading, isSuccess, error, signTypedData, reset } = useSignTypedData({
     domain,
     types,
     value,
@@ -82,7 +90,7 @@ const useSignedMultiSigRequest = (
   })
 
   useEffect(() => {
-    if (isSuccess && chain && !dataAdded) {
+    if (isSuccess && data && chain && !dataAdded) {
       setDataAdded(true)
       const dataToAdd: MultiSigTransactionRequest = existingRequest
         ? {
@@ -104,7 +112,7 @@ const useSignedMultiSigRequest = (
               ...args,
               signatures: args.signatures === '' ? data || '0x' : args.signatures + data?.substring(2)
             },
-            description: 'Add MultiSig Request',
+            description,
             submitter: address || '0x',
             signatures: [data || '0x'],
             ownerSigners: [address || '0x'],
@@ -113,7 +121,8 @@ const useSignedMultiSigRequest = (
             isActive: true,
             isExecuted: false,
             isCancelled: false,
-            isConfirmed: false
+            isConfirmed: false,
+            isSuccessful: false
           }
       if (existingRequest && existingRequestRef)
         signData({
@@ -142,6 +151,7 @@ const useSignedMultiSigRequest = (
           })
         })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     existingRequest,
     dataAdded,
@@ -151,10 +161,21 @@ const useSignedMultiSigRequest = (
     address,
     chain,
     args,
+    description,
     addMultiSigTransactionRequest
   ])
 
-  return { data, isError, isLoading, isSuccess, signTypedData }
+  return {
+    isPrepareError: !valueAndGasCheck,
+    data,
+    isError,
+    isLoading,
+    isSuccess,
+    prepareError: !valueAndGasCheck ? null : 'Invalid value or gas',
+    error,
+    signTypedData,
+    reset
+  }
 }
 
 export default useSignedMultiSigRequest
