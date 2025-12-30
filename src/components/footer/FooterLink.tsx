@@ -23,7 +23,7 @@ const FooterLink: React.FC<FooterLinkProps> = ({ name, link, imagePath, target, 
         p='0.2rem'
         ml='1rem'>
         {icon ? <Box as='span' lineHeight='0'>{icon}</Box> : imagePath ? <Image src={imagePath} alt={name} h='2rem' /> : null}
-        <Text key={`LinkText-${link}`} fontSize='lg' fontWeight='bold' {...linkColors}>
+        <Text key={`LinkText-${link}`} fontSize='lg' {...linkColors}>
           {name}
         </Text>
       </HStack>

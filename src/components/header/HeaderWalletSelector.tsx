@@ -1,98 +1,121 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Text, Menu, MenuButton, Button, MenuList, MenuItem, Portal, HStack, useColorModeValue, useToken } from '@chakra-ui/react'
-import { ChevronDownIcon } from '@chakra-ui/icons'
+import { Box, Text, Menu, MenuButton, Button, MenuList, MenuItem, Portal, HStack } from '@chakra-ui/react'
+import { ChevronDownIcon, CheckIcon } from '@chakra-ui/icons'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { motion } from 'framer-motion'
 import { WalletIcon } from '../icons/wallet'
-import { textColors, menuListColors, menuItemColors } from '../../styles/colors'
+import { menuListColors, menuItemColors } from '../../styles/colors'
+
+const MotionButton = motion(Button)
 
 export const HeaderWalletSelector: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
-  const { connector } = useAccount()
+  const { connector, address } = useAccount()
   const { connect, connectors } = useConnect()
   const { disconnect } = useDisconnect()
-
-  const [gray900, gray700, white] = useToken('colors', ['gray.900', 'gray.700', 'white'])
-
-  const idleTextColor = useColorModeValue(gray900, white)
-  const hoverTextColor = useColorModeValue(gray700, white)
 
   useEffect(() => {
     setHasMounted(true)
   }, [])
 
-  if (!hasMounted) return <></>
+  if (!hasMounted) return null
+
+  const truncateAddress = (addr: string) => {
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+  }
 
   return (
-    <Box ml={{ base: 0, md: '2rem' }}>
+    <Box>
       <Menu>
         <MenuButton
-          as={Button}
+          as={MotionButton}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           rightIcon={<ChevronDownIcon />}
-          color={connector ? textColors.color : idleTextColor}
-          bg='transparent'
           size={{ base: 'sm', md: 'md' }}
-          px={{ base: 2, md: 4 }}
-          border={'1px solid transparent'}
+          px={{ base: 3, md: 4 }}
+          py={2}
+          borderRadius='xl'
+          fontWeight='600'
+          bg={connector ? 'linear-gradient(135deg, #38b2ac 0%, #319795 100%)' : 'whiteAlpha.100'}
+          color='white'
+          border='1px solid'
+          borderColor={connector ? 'transparent' : 'whiteAlpha.200'}
+          boxShadow={connector ? '0 4px 20px rgba(56, 178, 172, 0.3)' : 'none'}
+          backdropFilter={connector ? 'none' : 'blur(10px)'}
+          sx={{ transition: 'all 0.2s ease' }}
           _hover={{
-            border: '1px solid white',
-            borderRadius: '10px',
-            color: connector ? 'white' : hoverTextColor
+            bg: connector ? 'linear-gradient(135deg, #4fd1c5 0%, #38b2ac 100%)' : 'whiteAlpha.200',
+            borderColor: connector ? 'transparent' : 'whiteAlpha.300',
+            boxShadow: connector ? '0 6px 25px rgba(56, 178, 172, 0.4)' : '0 4px 15px rgba(0, 0, 0, 0.2)'
+          }}
+          _active={{
+            transform: 'scale(0.98)'
           }}
           _focus={{
             outline: 'none',
-            background: 'transparent',
-            color: connector ? 'white' : hoverTextColor,
-            border: '1px solid white',
-            borderRadius: '10px'
+            boxShadow: connector ? '0 4px 20px rgba(56, 178, 172, 0.3)' : '0 0 0 2px rgba(56, 178, 172, 0.3)'
           }}
-          _active={{
-            outline: 'none',
-            background: 'transparent',
-            color: connector ? 'white' : hoverTextColor,
-            border: '1px solid white',
-            borderRadius: '10px'
-          }}>
-          {connector ? (
-            <Text fontSize={{ base: 'sm', md: 'md' }}>{connector.name}</Text>
+        >
+          {connector && address ? (
+            <HStack spacing={2}>
+              <Box w='8px' h='8px' borderRadius='full' bg='green.400' boxShadow='0 0 8px rgba(72, 187, 120, 0.6)' />
+              <Text fontSize={{ base: 'xs', md: 'sm' }}>{truncateAddress(address)}</Text>
+            </HStack>
           ) : (
-            <HStack spacing='2'>
-              <WalletIcon color={idleTextColor} width='20px' height='20px' />
-              <Text display={{ base: 'none', md: 'block' }} color={idleTextColor} fontWeight='bold' fontSize={{ base: 'sm', md: 'md' }}>Connect Wallet</Text>
+            <HStack spacing={2}>
+              <WalletIcon color='white' width='18px' height='18px' />
+              <Text display={{ base: 'none', md: 'block' }} fontSize='sm'>Connect</Text>
             </HStack>
           )}
         </MenuButton>
         <Portal>
-          <MenuList {...menuListColors}>
-            {connectors.map((item) => (
-              <MenuItem
-                key={`MenuItem-${item.name}`}
-                {...menuItemColors}
-                onClick={() =>
-                  connect !== undefined &&
-                  connect({ connector: connectors.find((connector) => connector.id === item.id) })
-                }>
-                <Text
-                  key={`LinkText-${item.name}`}
-                  fontSize='lg'
-                  fontWeight='bold'
-                  pl='1rem'>
-                  {item.name}
-                </Text>
-              </MenuItem>
-            ))}
-            {connector && (
-              <MenuItem
-                key={`MenuItem-disconnect`}
-                {...menuItemColors}
-                onClick={() => disconnect !== undefined && disconnect()}>
-                <Text
-                  key={`LinkText-disconnect`}
-                  fontSize='lg'
-                  fontWeight='bold'
-                  pl='1rem'>
-                  Disconnect
-                </Text>
-              </MenuItem>
+          <MenuList
+            {...menuListColors}
+            minW='200px'
+            p={2}
+          >
+            {!connector ? (
+              connectors.map((item) => (
+                <MenuItem
+                  key={`MenuItem-${item.name}`}
+                  {...menuItemColors}
+                  borderRadius='lg'
+                  onClick={() => connect?.({ connector: connectors.find((c) => c.id === item.id) })}
+                >
+                  <Text fontSize='md' fontWeight='500'>
+                    {item.name}
+                  </Text>
+                </MenuItem>
+              ))
+            ) : (
+              <>
+                <Box px={3} py={2} mb={2}>
+                  <Text fontSize='xs' color='whiteAlpha.500' textTransform='uppercase' letterSpacing='wider'>
+                    Connected with
+                  </Text>
+                  <HStack mt={1}>
+                    <CheckIcon color='green.400' boxSize={3} />
+                    <Text fontSize='sm' color='white' fontWeight='500'>
+                      {connector.name}
+                    </Text>
+                  </HStack>
+                </Box>
+                <MenuItem
+                  {...menuItemColors}
+                  borderRadius='lg'
+                  onClick={() => disconnect?.()}
+                  color='red.300'
+                  _hover={{
+                    bg: 'rgba(245, 101, 101, 0.15)',
+                    color: 'red.200'
+                  }}
+                >
+                  <Text fontSize='md' fontWeight='500'>
+                    Disconnect
+                  </Text>
+                </MenuItem>
+              </>
             )}
           </MenuList>
         </Portal>
