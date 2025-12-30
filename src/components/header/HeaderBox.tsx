@@ -5,125 +5,211 @@ import {
   HStack,
   Text,
   useMediaQuery,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   useColorMode,
-  useStyleConfig,
   useColorModeValue,
-  Portal,
-  IconButton
+  IconButton,
+  Drawer,
+  DrawerBody,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  useDisclosure,
+  VStack,
+  Divider
 } from '@chakra-ui/react'
 import { HamburgerIcon, MoonIcon, SunIcon, AddIcon, CheckCircleIcon, LinkIcon, LockIcon, InfoOutlineIcon } from '@chakra-ui/icons'
+import { motion } from 'framer-motion'
 import HeaderLink from './HeaderLink'
 import HeaderNetworkSelector from './HeaderNetworkSelector'
 import { HeaderWalletSelector } from './HeaderWalletSelector'
-import { menuItemColors, menuListColors } from '../../styles/colors'
+
+const MotionBox = motion(Box)
 
 const HeaderBox: React.FC = () => {
   const [isLargerThan800] = useMediaQuery('(min-width: 800px)', {
     ssr: true,
-    fallback: false // return false on the server, and re-evaluate on the client side
+    fallback: false
   })
   const { colorMode, toggleColorMode } = useColorMode()
+  const { isOpen, onOpen, onClose } = useDisclosure()
 
-  const styles = useStyleConfig('Card')
+  // Color mode values
+  const headerBg = useColorModeValue(
+    'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)',
+    'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)'
+  )
+  const borderColor = useColorModeValue('gray.200', 'whiteAlpha.100')
+  const boxShadow = useColorModeValue(
+    '0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+    '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+  )
+  const iconColor = useColorModeValue('gray.700', 'whiteAlpha.900')
+  const iconHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
+  const iconActiveBg = useColorModeValue('blackAlpha.100', 'whiteAlpha.200')
+  const dividerColor = useColorModeValue('gray.200', 'whiteAlpha.200')
+  const drawerBg = useColorModeValue(
+    'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%)',
+    'linear-gradient(135deg, rgba(13, 26, 63, 0.98) 0%, rgba(26, 26, 46, 0.98) 100%)'
+  )
+  const drawerBorderColor = useColorModeValue('gray.200', 'whiteAlpha.100')
+  const drawerTextColor = useColorModeValue('gray.800', 'whiteAlpha.900')
+  const drawerHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
+  const brandColor = useColorModeValue('brand.600', 'brand.400')
 
   const menu = [
     {
       name: 'Create a MultiSig',
       link: '/createMultiSig',
-      icon: <AddIcon boxSize={5} />
+      icon: <AddIcon boxSize={4} />
     },
     {
       name: 'Use your MultiSig',
       link: '/useYourMultiSig',
-      icon: <CheckCircleIcon boxSize={5} />
+      icon: <CheckCircleIcon boxSize={4} />
     },
     {
       name: 'Integration',
       link: '/integration',
-      icon: <LinkIcon boxSize={5} />
+      icon: <LinkIcon boxSize={4} />
     },
     {
       name: 'About',
       link: '/about',
-      icon: <InfoOutlineIcon boxSize={5} />
+      icon: <InfoOutlineIcon boxSize={4} />
     }
   ]
 
-  const mobileMenuColor = useColorModeValue('gray.900', 'white')
-
   return (
-    <Box w={{ base: '100%', md: '90vw', lg: '80vw' }} maxW='1200px' h='100%' p={4} m={2} mt={4} position='relative' zIndex={20} overflow='visible' __css={styles}>
-      <HStack w='100%' align='center' justify='space-between' flexWrap={{ base: 'nowrap', md: 'nowrap' }} spacing={{ base: 2, md: 4 }}>
-        <HStack spacing={{ base: 2, md: 4 }} align='center'>
-          <HeaderLink name='MyMultiSig.app' link='/' icon={<LockIcon boxSize={5} />} />
+    <MotionBox
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      w={{ base: '95%', md: '90vw', lg: '85vw' }}
+      maxW='1400px'
+      p={{ base: 3, md: 4 }}
+      m={2}
+      mt={{ base: 3, md: 4 }}
+      borderRadius='2xl'
+      bg={headerBg}
+      backdropFilter='blur(20px) saturate(180%)'
+      border='1px solid'
+      borderColor={borderColor}
+      boxShadow={boxShadow}
+      position='relative'
+      zIndex={20}
+      overflow='visible'>
+      <HStack w='100%' align='center' justify='space-between' spacing={{ base: 2, md: 4 }}>
+        <HStack spacing={{ base: 2, md: 3 }} align='center'>
+          <HeaderLink name='MyMultiSig' link='/' icon={<LockIcon boxSize={5} />} isLogo />
+
           {isLargerThan800 ? (
             <Fragment>
-              {menu.map((item) => (
-                <HeaderLink key={`Link-${item.name}`} name={item.name} link={item.link} icon={item.icon} />
+              <Box h='24px' w='1px' bg={dividerColor} mx={2} />
+              {menu.map((item, index) => (
+                <MotionBox
+                  key={`Link-${item.name}`}
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}>
+                  <HeaderLink name={item.name} link={item.link} icon={item.icon} />
+                </MotionBox>
               ))}
+            </Fragment>
+          ) : (
+            <>
+              <IconButton
+                aria-label='Open menu'
+                icon={<HamburgerIcon boxSize={5} />}
+                onClick={onOpen}
+                variant='ghost'
+                color={iconColor}
+                size='sm'
+                _hover={{ bg: iconHoverBg }}
+                _active={{ bg: iconActiveBg }}
+              />
+
+              <Drawer isOpen={isOpen} placement='left' onClose={onClose} size='xs'>
+                <DrawerOverlay backdropFilter='blur(10px)' bg='blackAlpha.600' />
+                <DrawerContent
+                  bg={drawerBg}
+                  backdropFilter='blur(20px)'
+                  borderRight='1px solid'
+                  borderColor={drawerBorderColor}>
+                  <DrawerCloseButton color={iconColor} _hover={{ color: brandColor }} />
+                  <DrawerHeader borderBottomWidth='1px' borderColor={drawerBorderColor}>
+                    <HStack spacing={2}>
+                      <LockIcon color={brandColor} boxSize={5} />
+                      <Text fontSize='xl' fontWeight='700' bgGradient='linear(to-r, brand.400, accent.500)' bgClip='text'>
+                        MyMultiSig
+                      </Text>
+                    </HStack>
+                  </DrawerHeader>
+
+                  <DrawerBody py={6}>
+                    <VStack spacing={2} align='stretch'>
+                      {menu.map((item, index) => (
+                        <MotionBox
+                          key={`MenuItem-${item.link}`}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3, delay: index * 0.05 }}>
+                          <Link href={item.link} onClick={onClose}>
+                            <HStack
+                              p={3}
+                              borderRadius='lg'
+                              spacing={3}
+                              sx={{ transition: 'all 0.2s ease' }}
+                              _hover={{
+                                bg: drawerHoverBg,
+                                transform: 'translateX(4px)'
+                              }}>
+                              <Box color={brandColor}>{item.icon}</Box>
+                              <Text fontSize='md' fontWeight='500' color={drawerTextColor}>
+                                {item.name}
+                              </Text>
+                            </HStack>
+                          </Link>
+                        </MotionBox>
+                      ))}
+
+                      <Divider borderColor={drawerBorderColor} my={4} />
+
+                      <Box px={3}>
+                        <HeaderNetworkSelector />
+                      </Box>
+                    </VStack>
+                  </DrawerBody>
+                </DrawerContent>
+              </Drawer>
+            </>
+          )}
+        </HStack>
+
+        <HStack spacing={{ base: 2, md: 3 }} align='center'>
+          {isLargerThan800 && (
+            <>
+              <HeaderNetworkSelector />
               <IconButton
                 aria-label='Toggle color mode'
                 onClick={toggleColorMode}
                 icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
-                bgGradient='linear(to-r, blue.500, blue.600)'
-                color='white'
-                boxShadow='xl'
-                transition='all 200ms ease-out'
-                _hover={{ bgGradient: 'linear(to-r, blue.600, blue.700)', transform: 'translateY(-2px) scale(1.02)' }}
-                _active={{ transform: 'translateY(0) scale(0.98)' }}
-              />
-            </Fragment>
-          ) : (
-            <Menu>
-              <MenuButton
-                as={IconButton}
-                aria-label='Open menu'
-                icon={<HamburgerIcon />}
-                color={mobileMenuColor}
-                bg='transparent'
+                variant='ghost'
+                color={iconColor}
                 size='sm'
-                _focus={{
-                  outline: 'none',
-                  color: 'gray.600'
+                borderRadius='lg'
+                _hover={{
+                  bg: iconHoverBg,
+                  color: brandColor
                 }}
-                _active={{
-                  outline: 'none',
-                  color: 'gray.600'
-                }}
+                _active={{ bg: iconActiveBg }}
               />
-              <Portal>
-                <MenuList {...menuListColors} zIndex={1600}>
-                  {menu.map((item) => (
-                    <MenuItem key={`MenuItem-${item.link}`} {...menuItemColors}>
-                      <Link key={`Link-${item.link}`} href={item.link}>
-                        <Text
-                          key={`LinkText-${item.link}`}
-                          fontSize='lg'
-                          fontWeight='bold'
-                          pl='1rem'
-                          color='inherit'>
-                          {item.name}
-                        </Text>
-                      </Link>
-                    </MenuItem>
-                  ))}
-                </MenuList>
-              </Portal>
-            </Menu>
+            </>
           )}
-        </HStack>
-        <HStack spacing={{ base: 2, md: 4 }} ml={{ base: 0, md: 'auto' }} align='center'>
-          <Box display={{ base: 'none', md: 'block' }}>
-            <HeaderNetworkSelector />
-          </Box>
           <HeaderWalletSelector />
         </HStack>
       </HStack>
-    </Box>
+    </MotionBox>
   )
 }
 

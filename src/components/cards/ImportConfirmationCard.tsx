@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react'
-import { Text } from '@chakra-ui/react'
+import { Text, useColorModeValue } from '@chakra-ui/react'
 import { useNetwork } from 'wagmi'
 
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
@@ -20,6 +20,9 @@ const ImportConfirmationCard: React.FC<ImportConfirmationCardProps> = ({
   const { chain } = useNetwork()
   const { data, isLoading, error, isSuccess } = useMultiSigDetails(multiSigAddress, address)
   const { addMultiSig } = useMultiSigs()
+
+  const textColor = useColorModeValue('gray.800', 'white')
+  const successColor = useColorModeValue('green.600', 'green.300')
 
   if (data && data.length == 6 && chain) {
     const newMultiSig: MultiSig = {
@@ -43,18 +46,18 @@ const ImportConfirmationCard: React.FC<ImportConfirmationCardProps> = ({
   return (
     <Fragment>
       {isLoading && (
-        <Text fontSize='lg' fontWeight='bold' color='white'>
+        <Text fontSize='lg' fontWeight='bold' color={textColor}>
           Loading...
         </Text>
       )}
       {error && (
-        <Text fontSize='lg' fontWeight='bold' color='white'>
+        <Text fontSize='lg' fontWeight='bold' color={textColor}>
           Error: {error.message}
         </Text>
       )}
       {isSuccess && (
         <Fragment>
-          <Text fontSize='lg' fontWeight='bold' color='white'>
+          <Text fontSize='lg' fontWeight='bold' color={successColor}>
             Your multisig contract has been imported!
           </Text>
         </Fragment>

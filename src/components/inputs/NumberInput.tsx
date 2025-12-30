@@ -26,7 +26,7 @@ interface NumberInputProps {
 
 const NumberInput: React.FC<NumberInputProps> = ({
   placeholder,
-  size,
+  size = 'md',
   defaultValue,
   value,
   min,
@@ -43,14 +43,12 @@ const NumberInput: React.FC<NumberInputProps> = ({
   return (
     <ChakraNumberInput
       w={{ base: '100%', md: '94%' }}
-      p={4}
       m={2}
-      mt={4}
       size={size}
-      borderRadius={10}
-      bg='cyan.100'
-      color={'gray.700'}
-      boxShadow='dark-lg'
+      borderRadius='xl'
+      bg='whiteAlpha.50'
+      backdropFilter='blur(10px)'
+      color='white'
       placeholder={placeholder}
       defaultValue={defaultValue}
       min={min}
@@ -62,12 +60,49 @@ const NumberInput: React.FC<NumberInputProps> = ({
       isDisabled={isDisabled}
       isReadOnly={isReadOnly}
       isInvalid={isInvalid}
-      allowMouseWheel={allowMouseWheel}>
-      <NumberInputField />
+      allowMouseWheel={allowMouseWheel}
+    >
+      <NumberInputField
+        h='auto'
+        py={4}
+        px={5}
+        borderRadius='xl'
+        border='1px solid'
+        borderColor={isInvalid ? 'red.400' : 'whiteAlpha.200'}
+        fontSize='md'
+        fontWeight='500'
+        _placeholder={{
+          color: 'whiteAlpha.400',
+          fontWeight: '400'
+        }}
+        _hover={{
+          borderColor: isInvalid ? 'red.300' : 'whiteAlpha.300'
+        }}
+        _focus={{
+          borderColor: isInvalid ? 'red.400' : 'brand.400',
+          boxShadow: isInvalid
+            ? '0 0 0 1px rgba(245, 101, 101, 0.5), 0 0 20px rgba(245, 101, 101, 0.15)'
+            : '0 0 0 1px rgba(56, 178, 172, 0.5), 0 0 20px rgba(56, 178, 172, 0.15)',
+          outline: 'none'
+        }}
+      />
       {hasStepper && (
-        <NumberInputStepper>
-          <NumberIncrementStepper />
-          <NumberDecrementStepper />
+        <NumberInputStepper
+          border='none'
+          pr={2}
+        >
+          <NumberIncrementStepper
+            color='whiteAlpha.600'
+            border='none'
+            _hover={{ color: 'brand.300' }}
+            _active={{ color: 'brand.400' }}
+          />
+          <NumberDecrementStepper
+            color='whiteAlpha.600'
+            border='none'
+            _hover={{ color: 'brand.300' }}
+            _active={{ color: 'brand.400' }}
+          />
         </NumberInputStepper>
       )}
     </ChakraNumberInput>
