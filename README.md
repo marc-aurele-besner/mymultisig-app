@@ -3,7 +3,7 @@
 Build, sign, and execute multi-signature transactions across popular EVM networks with a minimal, fast UI.
 
 <p align="center">
-  <img alt="MyMultiSig.app screenshot" src="@.github/images/screenshot.png" width="800" />
+  <img alt="MyMultiSig.app screenshot" src=".github/images/screenshot.png" width="800" />
 </p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
