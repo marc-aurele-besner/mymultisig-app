@@ -1,10 +1,10 @@
 import React from 'react'
-import { ComponentMeta, ComponentStory } from '@storybook/react'
+import type { Meta, StoryFn } from '@storybook/react'
 
 import NewContract from './NewContract'
 import Web3Provider from '../web3/Web3Provider'
 
-export default {
+const meta: Meta<typeof NewContract> = {
   title: 'Modals/NewContract',
   component: NewContract,
   parameters: {
@@ -15,13 +15,15 @@ export default {
       }
     }
   }
-} as ComponentMeta<typeof NewContract>
+}
 
-const Template: ComponentStory<typeof NewContract> = () => <NewContract />
+export default meta
+
+const Template: StoryFn<typeof NewContract> = () => <NewContract />
 
 export const Disconnected = Template.bind({})
 
-export const WithWeb3Provider: ComponentStory<typeof NewContract> = () => (
+export const WithWeb3Provider: StoryFn<typeof NewContract> = () => (
   <Web3Provider>
     <NewContract />
   </Web3Provider>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Select } from '@chakra-ui/react'
+import { Select } from '@chakra-ui/select'
 
 import useContracts from '../../states/contracts'
 
@@ -14,7 +14,7 @@ const SelectContract: React.FC<SelectContractProps> = ({ onChange }) => {
     <Select
       placeholder='Select contract'
       color='white'
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)}
       _focus={{
         color: 'white'
       }}>

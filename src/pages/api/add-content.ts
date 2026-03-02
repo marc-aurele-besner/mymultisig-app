@@ -1,8 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { providers, Wallet } from 'ethers'
 import fauna from 'faunadb-utility'
-import { slackBuilder, slackUtils } from 'slack-utility'
-import { TBlock } from 'slack-utility/src/types'
 import { v4 as uuid } from 'uuid'
 
 import signData from '../../utils/signData'
@@ -17,7 +15,7 @@ const { FAUNADB_SERVER_SECRET, SLACK_TOKEN, SLACK_CONVERSATION_ID } = process.en
 
 const FUNCTION = 'add-content'
 
-// eslint-disable-next-line
+ 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('Function `%s` invoked', FUNCTION)
   const data = JSON.parse(req.body)
@@ -34,14 +32,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     data.signature !== undefined &&
     data.signatureExpiry !== undefined
   ) {
-    if (process.env.SLACK_TOKEN && process.env.SLACK_CONVERSATION_ID)
-      await slackUtils.slackPostMessage(
-        process.env.SLACK_TOKEN,
-        process.env.SLACK_CONVERSATION_ID,
-        'Add Content function called',
-        [slackBuilder.buildSimpleSlackHeaderMsg(`Someone is adding data on MyMultiSig.app (${data.action})`)],
-        true
-      )
+    // if (process.env.SLACK_TOKEN && process.env.SLACK_CONVERSATION_ID)
+    //   await slackUtils.slackPostMessage(
+    //     process.env.SLACK_TOKEN,
+    //     process.env.SLACK_CONVERSATION_ID,
+    //     'Add Content function called',
+    //     [slackBuilder.buildSimpleSlackHeaderMsg(`Someone is adding data on MyMultiSig.app (${data.action})`)],
+    //     true
+    //   )
 
     const matchingUISignData = await signData(
       process.env.PRIVATE_KEY,
@@ -72,25 +70,25 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
      * To-Do: Check the user signature
      */
     let classes: string[] = []
-    let slackMessageTitle = ''
-    let slackMessageBlocks: TBlock[] = []
+    // let slackMessageTitle = ''
+    // let slackMessageBlocks: TBlock[] = []
     switch (data.action) {
       case 'addMultiSigRequest':
         classes = ['multisig-requests']
-        slackMessageTitle = 'A new MultiSig request has been created'
-        slackMessageBlocks = [slackBuilder.buildSimpleSlackHeaderMsg(`A new MultiSig request has been created`)]
+        // slackMessageTitle = 'A new MultiSig request has been created'
+        // slackMessageBlocks = [slackBuilder.buildSimpleSlackHeaderMsg(`A new MultiSig request has been created`)]
         break
       case 'createMultiSigWallet':
         classes = ['multisig-wallets']
-        ;(slackMessageTitle = 'New MultiSig wallet was created'),
-          (slackMessageBlocks = [slackBuilder.buildSimpleSlackHeaderMsg(`New MultiSig wallet was created`)])
+        // ;(slackMessageTitle = 'New MultiSig wallet was created'),
+        //   (slackMessageBlocks = [slackBuilder.buildSimpleSlackHeaderMsg(`New MultiSig wallet was created`)])
         break
       default:
         break
     }
-    if (slackMessageTitle && slackMessageBlocks && slackMessageBlocks.length > 0) {
-      await slackUtils.slackPostMessage(SLACK_TOKEN, SLACK_CONVERSATION_ID, slackMessageTitle, slackMessageBlocks, true)
-    }
+    // if (slackMessageTitle && slackMessageBlocks && slackMessageBlocks.length > 0) {
+    //   await slackUtils.slackPostMessage(SLACK_TOKEN, SLACK_CONVERSATION_ID, slackMessageTitle, slackMessageBlocks, true)
+    // }
     if (classes.length == 1) {
       await fauna.createFaunaDocument(FAUNADB_SERVER_SECRET, classes[0], {
         id: uuid(),

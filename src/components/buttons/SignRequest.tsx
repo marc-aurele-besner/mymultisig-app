@@ -1,5 +1,7 @@
 import React, { Fragment } from 'react'
 import { Button, Center, Text, VStack } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
 
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
 import useSignedMultiSigRequest from '../../hooks/useSignedMultiSigRequest'
@@ -19,7 +21,7 @@ const SignRequest: React.FC<MultiSigListProps> = ({
   requestDetails,
   existingRequestRef
 }) => {
-  const { isPrepareError, isError, prepareError, error, isLoading, isSuccess, signTypedData, reset } =
+  const { isPrepareError, isError, prepareError, error, isPending, isSuccess, signTypedData, reset } =
     useSignedMultiSigRequest(multiSigAddress, args, description, requestDetails, existingRequestRef)
 
   return (
@@ -40,7 +42,7 @@ const SignRequest: React.FC<MultiSigListProps> = ({
                 {prepareError}
               </Text>
             )}
-            <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => reset()} isDisabled={isLoading || isSuccess}>
+                <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => reset()} disabled={isPending || isSuccess}>
               Try again
             </Button>
           </VStack>
@@ -50,7 +52,7 @@ const SignRequest: React.FC<MultiSigListProps> = ({
             m='1rem'
             mr='2rem'
             onClick={() => signTypedData()}
-            isDisabled={isLoading || isSuccess}>
+                disabled={isPending || isSuccess}>
             Sign transaction request
           </Button>
         )}

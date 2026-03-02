@@ -5,19 +5,20 @@ import {
   HStack,
   Text,
   useMediaQuery,
-  useColorMode,
-  useColorModeValue,
   IconButton,
+  useDisclosure,
+  VStack,
+} from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import { useColorMode, useColorModeValue } from '@chakra-ui/color-mode'
+import {
   Drawer,
   DrawerBody,
   DrawerHeader,
   DrawerOverlay,
   DrawerContent,
   DrawerCloseButton,
-  useDisclosure,
-  VStack,
-  Divider
-} from '@chakra-ui/react'
+} from '@chakra-ui/drawer'
 import { HamburgerIcon, MoonIcon, SunIcon, AddIcon, CheckCircleIcon, LinkIcon, LockIcon, InfoOutlineIcon } from '@chakra-ui/icons'
 import { motion } from 'framer-motion'
 import HeaderLink from './HeaderLink'
@@ -27,12 +28,12 @@ import { HeaderWalletSelector } from './HeaderWalletSelector'
 const MotionBox = motion(Box)
 
 const HeaderBox: React.FC = () => {
-  const [isLargerThan800] = useMediaQuery('(min-width: 800px)', {
+  const [isLargerThan800] = useMediaQuery(['(min-width: 800px)'], {
     ssr: true,
-    fallback: false
+    fallback: [false]
   })
   const { colorMode, toggleColorMode } = useColorMode()
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { open, onOpen, onClose } = useDisclosure()
 
   // Color mode values
   const headerBg = useColorModeValue(
@@ -99,8 +100,8 @@ const HeaderBox: React.FC = () => {
       position='relative'
       zIndex={20}
       overflow='visible'>
-      <HStack w='100%' align='center' justify='space-between' spacing={{ base: 2, md: 4 }}>
-        <HStack spacing={{ base: 2, md: 3 }} align='center'>
+      <HStack w='100%' align='center' justify='space-between' gap={{ base: 2, md: 4 }}>
+        <HStack gap={{ base: 2, md: 3 }} align='center'>
           <HeaderLink name='MyMultiSig' link='/' icon={<LockIcon boxSize={5} />} isLogo />
 
           {isLargerThan800 ? (
@@ -120,16 +121,17 @@ const HeaderBox: React.FC = () => {
             <>
               <IconButton
                 aria-label='Open menu'
-                icon={<HamburgerIcon boxSize={5} />}
                 onClick={onOpen}
                 variant='ghost'
                 color={iconColor}
                 size='sm'
                 _hover={{ bg: iconHoverBg }}
                 _active={{ bg: iconActiveBg }}
-              />
+              >
+                <HamburgerIcon boxSize={5} />
+              </IconButton>
 
-              <Drawer isOpen={isOpen} placement='left' onClose={onClose} size='xs'>
+              <Drawer isOpen={open} placement='left' onClose={onClose}>
                 <DrawerOverlay backdropFilter='blur(10px)' bg='blackAlpha.600' />
                 <DrawerContent
                   bg={drawerBg}
@@ -138,7 +140,7 @@ const HeaderBox: React.FC = () => {
                   borderColor={drawerBorderColor}>
                   <DrawerCloseButton color={iconColor} _hover={{ color: brandColor }} />
                   <DrawerHeader borderBottomWidth='1px' borderColor={drawerBorderColor}>
-                    <HStack spacing={2}>
+                    <HStack gap={2}>
                       <LockIcon color={brandColor} boxSize={5} />
                       <Text fontSize='xl' fontWeight='700' bgGradient='linear(to-r, brand.400, accent.500)' bgClip='text'>
                         MyMultiSig
@@ -147,7 +149,7 @@ const HeaderBox: React.FC = () => {
                   </DrawerHeader>
 
                   <DrawerBody py={6}>
-                    <VStack spacing={2} align='stretch'>
+                    <VStack gap={2} align='stretch'>
                       {menu.map((item, index) => (
                         <MotionBox
                           key={`MenuItem-${item.link}`}
@@ -158,13 +160,9 @@ const HeaderBox: React.FC = () => {
                             <HStack
                               p={3}
                               borderRadius='lg'
-                              spacing={3}
-                              sx={{ transition: 'all 0.2s ease' }}
-                              _hover={{
-                                bg: drawerHoverBg,
-                                transform: 'translateX(4px)'
-                              }}>
-                              <Box color={brandColor}>{item.icon}</Box>
+                              gap={3}
+                            >
+                              {item.icon && <Box color={brandColor}>{item.icon}</Box>}
                               <Text fontSize='md' fontWeight='500' color={drawerTextColor}>
                                 {item.name}
                               </Text>
@@ -173,7 +171,7 @@ const HeaderBox: React.FC = () => {
                         </MotionBox>
                       ))}
 
-                      <Divider borderColor={drawerBorderColor} my={4} />
+                      <Box borderTop="1px" borderColor={drawerBorderColor} w="100%" my={4} />
 
                       <Box px={3}>
                         <HeaderNetworkSelector />
@@ -186,14 +184,13 @@ const HeaderBox: React.FC = () => {
           )}
         </HStack>
 
-        <HStack spacing={{ base: 2, md: 3 }} align='center'>
+        <HStack gap={{ base: 2, md: 3 }} align='center'>
           {isLargerThan800 && (
             <>
               <HeaderNetworkSelector />
               <IconButton
                 aria-label='Toggle color mode'
                 onClick={toggleColorMode}
-                icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
                 variant='ghost'
                 color={iconColor}
                 size='sm'
@@ -203,7 +200,9 @@ const HeaderBox: React.FC = () => {
                   color: brandColor
                 }}
                 _active={{ bg: iconActiveBg }}
-              />
+              >
+                {colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
+              </IconButton>
             </>
           )}
           <HeaderWalletSelector />

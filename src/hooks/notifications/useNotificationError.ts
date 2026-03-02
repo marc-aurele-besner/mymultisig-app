@@ -1,4 +1,4 @@
-import { useToast } from '@chakra-ui/react'
+import { useToast } from '@chakra-ui/toast'
 
 const useNotificationError = (title?: string, description?: string) => {
   const toast = useToast()

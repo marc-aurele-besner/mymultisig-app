@@ -1,5 +1,7 @@
 import React, { Fragment } from 'react'
 import { Button, Center, VStack, HStack, Text, Textarea } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
 
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
 import useExecTransaction from '../../hooks/useExecTransaction'
@@ -17,7 +19,7 @@ const ExecuteRequest: React.FC<ExecuteRequestProps> = ({
   requestDetails,
   existingRequestRef
 }) => {
-  const { preparationError, preparationIsError, isError, isLoading, isSuccess, write, reset } = useExecTransaction(
+  const { preparationError, preparationIsError, isError, isPending, isSuccess, writeContract, reset } = useExecTransaction(
     args,
     multiSigAddress,
     requestDetails,
@@ -31,8 +33,8 @@ const ExecuteRequest: React.FC<ExecuteRequestProps> = ({
             Something went wrong
           </Text>
         )}
-        {write && !preparationIsError ? (
-          <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => write()} isDisabled={isLoading || isSuccess}>
+        {!preparationIsError ? (
+              <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => writeContract()} disabled={isPending || isSuccess}>
             Execute transaction request
           </Button>
         ) : (
@@ -46,7 +48,7 @@ const ExecuteRequest: React.FC<ExecuteRequestProps> = ({
               <Textarea
                 color={preparationIsError ? 'red' : 'white'}
                 w='100%'
-                isReadOnly
+                readOnly
                 defaultValue={
                   JSON.parse(JSON.stringify(preparationError))
                     ? JSON.parse(JSON.stringify(preparationError)).reason

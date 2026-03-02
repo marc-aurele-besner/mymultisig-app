@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import React from 'react'
-import { HStack, Text, Box, useColorModeValue } from '@chakra-ui/react'
+import { HStack, Text, Box } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import { useColorModeValue } from '@chakra-ui/color-mode'
 
 interface HeaderLinkProps {
   name: string
@@ -23,19 +25,13 @@ const HeaderLink: React.FC<HeaderLinkProps> = ({ name, link, icon, isLogo }) => 
         px={isLogo ? 2 : 3}
         py={2}
         borderRadius='lg'
-        spacing={2}
-        sx={{ transition: 'all 0.2s ease' }}
-        bg='transparent'
-        _hover={{
-          bg: isLogo ? 'transparent' : hoverBg,
-          transform: isLogo ? 'scale(1.02)' : 'translateY(-1px)'
-        }}>
+        gap={2}
+      >
         {icon && (
           <Box
             as='span'
             color={isLogo ? brandColor : iconColor}
-            sx={{ transition: 'color 0.2s ease' }}
-            _groupHover={{ color: brandColor }}>
+          >
             {icon}
           </Box>
         )}
@@ -45,10 +41,7 @@ const HeaderLink: React.FC<HeaderLinkProps> = ({ name, link, icon, isLogo }) => 
           color={isLogo ? undefined : textColor}
           bgGradient={isLogo ? 'linear(to-r, brand.400, accent.500)' : undefined}
           bgClip={isLogo ? 'text' : undefined}
-          sx={{ transition: 'color 0.2s ease' }}
-          _hover={{
-            color: isLogo ? undefined : textHoverColor
-          }}>
+        >
           {name}
         </Text>
       </HStack>

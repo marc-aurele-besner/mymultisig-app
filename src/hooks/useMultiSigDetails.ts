@@ -1,17 +1,17 @@
-import { useNetwork, useContractReads } from 'wagmi'
+import { useChainId, useChains, useReadContracts } from 'wagmi'
 import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 
 import { MultiSigOnChainData } from '../models/MultiSigs'
 
 const useMultiSigDetails = (multiSigAddress: `0x${string}`, address: `0x${string}`) => {
-  const { chain } = useNetwork()
+  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const myMultiSig = {
     address: multiSigAddress,
     abi: MyMultiSig,
     chainId: chain?.id
   }
-  const { data, error, isIdle, isError, isLoading, isSuccess, isFetched, isRefetching, refetch, status } =
-    useContractReads({
+  const { data, error, isError, isLoading, isSuccess, isFetched, isRefetching, refetch, status } =
+    useReadContracts({
       contracts: [
         {
           ...myMultiSig,
@@ -39,7 +39,9 @@ const useMultiSigDetails = (multiSigAddress: `0x${string}`, address: `0x${string
           args: [address]
         }
       ],
-      enabled: true
+      query: {
+        enabled: true
+      }
     })
 
   if (data) {
@@ -52,33 +54,31 @@ const useMultiSigDetails = (multiSigAddress: `0x${string}`, address: `0x${string
       owners: [address]
     }
     return {
-      multiSigDetails,
-      data,
-      error,
-      isError,
-      isIdle,
-      isLoading,
-      isSuccess,
-      isFetched,
-      isRefetching,
-      refetch,
-      status
-    }
-  } else {
+          multiSigDetails,
+          data,
+          error,
+          isError,
+          isLoading,
+          isSuccess,
+          isFetched,
+          isRefetching,
+          refetch,
+          status
+        }
+      } else {
     return {
-      multiSigDetails: null,
-      data,
-      error,
-      isError,
-      isIdle,
-      isLoading,
-      isSuccess,
-      isFetched,
-      isRefetching,
-      refetch,
-      status
+          multiSigDetails: null,
+          data,
+          error,
+          isError,
+          isLoading,
+          isSuccess,
+          isFetched,
+          isRefetching,
+          refetch,
+          status
+        }
+      }
     }
-  }
-}
 
-export default useMultiSigDetails
+    export default useMultiSigDetails

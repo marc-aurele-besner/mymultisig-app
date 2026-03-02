@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { VStack, Text, Box, HStack, Divider, Button, Badge } from '@chakra-ui/react'
-import { useNetwork } from 'wagmi'
+import { VStack, Text, Box, HStack, Button, Badge } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
+import { useChainId, useChains } from 'wagmi'
 import { ExternalLinkIcon, CheckCircleIcon, AddIcon, InfoIcon } from '@chakra-ui/icons'
 import { motion } from 'framer-motion'
 
@@ -20,7 +22,7 @@ interface CreateMultiSigFormProps {
 }
 
 const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factory }) => {
-  const { chain } = useNetwork()
+  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const [multiSig, setMultiSig] = useState<MultiSig>({
     chainId: chain ? chain.id : 1,
     chainName: chain ? chain.name : 'Ethereum',
@@ -42,7 +44,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
     threshold: multiSig.threshold
   }
 
-  const { data, isLoading, isSuccess, write } = useCreateMultiSig(constructorArgs, factory.address)
+  const { data, isPending, isSuccess, writeContract } = useCreateMultiSig(constructorArgs, factory.address)
 
   const handleOwnersChange = (event: React.ChangeEvent<HTMLInputElement>, input: number) => {
     setMultiSig({
@@ -58,13 +60,15 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
   }
 
   const handleCreateMultiSig = () => {
-    write?.()
+    if (writeContract) {
+      writeContract()
+    }
   }
 
   const truncateAddress = (addr: string) => `${addr.slice(0, 10)}...${addr.slice(-8)}`
 
   return (
-    <VStack spacing={6} w='100%'>
+    <VStack gap={6} w='100%'>
       {/* Step 1: Name */}
       <Box w='100%'>
         <HStack mb={3}>
@@ -88,7 +92,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
         />
       </Box>
 
-      <Divider borderColor='whiteAlpha.100' />
+      <Box borderTop="1px" borderColor='whiteAlpha.100' w="100%" my={4} />
 
       {/* Step 2: Owners */}
       <Box w='100%'>
@@ -111,12 +115,12 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
           Add wallet addresses that will have signing authority
         </Text>
         
-        <VStack spacing={3} w='100%'>
+        <VStack gap={3} w='100%'>
           <Box w='100%' position='relative'>
             <TextInput
               placeholder={truncateAddress(owner01)}
               defaultValue={truncateAddress(owner01)}
-              isReadOnly
+              readOnly
             />
             <Badge
               position='absolute'
@@ -141,7 +145,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
         </VStack>
       </Box>
 
-      <Divider borderColor='whiteAlpha.100' />
+      <Box borderTop="1px" borderColor='whiteAlpha.100' w="100%" my={4} />
 
       {/* Step 3: Threshold */}
       <Box w='100%'>
@@ -160,7 +164,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
             Set Threshold
           </Text>
         </HStack>
-        <HStack spacing={2} mb={4}>
+        <HStack gap={2} mb={4}>
           <InfoIcon color='whiteAlpha.600' boxSize={3} />
           <Text fontSize='sm' color='whiteAlpha.600'>
             Number of signatures required to execute a transaction
@@ -179,20 +183,22 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
         />
       </Box>
 
-      <Divider borderColor='whiteAlpha.100' />
+      <Box borderTop="1px" borderColor='whiteAlpha.100' w="100%" my={4} />
 
       {/* Create Button */}
       <Box w='100%' pt={2}>
         <Button
           w='100%'
           size='lg'
-          leftIcon={<AddIcon />}
           onClick={handleCreateMultiSig}
-          isLoading={isLoading}
-          isDisabled={!write || !multiSig.name}
+          loading={isPending}
+          disabled={!writeContract || !multiSig.name}
           {...buttonColors}
         >
-          Create MultiSig
+          <HStack gap={2}>
+            <AddIcon />
+            <Text>Create MultiSig</Text>
+          </HStack>
         </Button>
         
         {!multiSig.name && (
@@ -203,7 +209,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
       </Box>
 
       {/* Loading State */}
-      {isLoading && (
+      {isPending && (
         <MotionBox
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -214,19 +220,13 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
           border='1px solid'
           borderColor='brand.400'
         >
-          <HStack spacing={3} justify='center'>
+          <HStack gap={3} justify='center'>
             <Box
               w={3}
               h={3}
               borderRadius='full'
               bg='brand.400'
               animation='pulse 1.5s infinite'
-              sx={{
-                '@keyframes pulse': {
-                  '0%, 100%': { opacity: 1 },
-                  '50%': { opacity: 0.5 }
-                }
-              }}
             />
             <Text fontSize='md' fontWeight='500' color='brand.300'>
               Please confirm the transaction in your wallet...
@@ -236,13 +236,13 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
       )}
 
       {/* Success State */}
-      {isSuccess && data?.hash && (
+      {isSuccess && data && (
         <MotionBox
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           w='100%'
         >
-          <VStack spacing={4}>
+          <VStack gap={4}>
             <Box
               w='100%'
               p={4}
@@ -251,31 +251,33 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
               border='1px solid'
               borderColor='green.400'
             >
-              <HStack spacing={3}>
+              <HStack gap={3}>
                 <CheckCircleIcon color='green.400' boxSize={5} />
-                <VStack align='flex-start' spacing={0}>
+                <VStack align='flex-start' gap={0}>
                   <Text fontSize='md' fontWeight='600' color='green.300'>
                     Transaction Submitted!
                   </Text>
                   <Text fontSize='xs' color='whiteAlpha.600'>
-                    Hash: {data.hash.slice(0, 20)}...{data.hash.slice(-10)}
+                    Hash: {data.slice(0, 20)}...{data.slice(-10)}
                   </Text>
                 </VStack>
               </HStack>
             </Box>
             
-            <Link href={`https://goerli.etherscan.io/tx/${data.hash}`} target='_blank'>
+            <Link href={`https://goerli.etherscan.io/tx/${data}`} target='_blank'>
               <Button
-                leftIcon={<ExternalLinkIcon />}
                 {...glassButtonColors}
                 size='md'
               >
-                View on Explorer
+                <HStack gap={2}>
+                  <ExternalLinkIcon />
+                  <Text>View on Explorer</Text>
+                </HStack>
               </Button>
             </Link>
 
             <ConfirmationCard
-              hash={data.hash}
+              hash={data}
               multiSigFactoryAddress={factory.address}
               constructorArgs={constructorArgs}
             />

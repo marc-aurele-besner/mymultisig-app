@@ -1,15 +1,14 @@
-import { useWaitForTransaction } from 'wagmi'
+import { useWaitForTransactionReceipt } from 'wagmi'
 
 const useConfirmation = (hash: `0x${string}`) => {
-  const { data, error, isIdle, isLoading, isError, isSuccess, isFetched, isRefetching, refetch, status } =
-    useWaitForTransaction({
+  const { data, error, isLoading, isError, isSuccess, isFetched, isRefetching, refetch, status } =
+    useWaitForTransactionReceipt({
       hash
     })
 
   return {
     data,
     error,
-    isIdle,
     isError,
     isLoading,
     isSuccess,

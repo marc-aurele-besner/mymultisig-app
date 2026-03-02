@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import React from 'react'
-import { Box, HStack, Text, VStack, useColorModeValue } from '@chakra-ui/react'
+import { Box, HStack, Text, VStack } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import { useColorModeValue } from '@chakra-ui/color-mode'
 import { LockIcon, ExternalLinkIcon } from '@chakra-ui/icons'
 import { motion } from 'framer-motion'
 
@@ -40,14 +42,14 @@ const FooterBox: React.FC = () => {
       boxShadow={boxShadow}>
       <HStack justify='space-between' align='center' flexWrap={{ base: 'wrap', md: 'nowrap' }} gap={4}>
         {/* Logo and copyright */}
-        <HStack spacing={3}>
+        <HStack gap={3}>
           <Box
             p={2}
             borderRadius='lg'
             bg='linear-gradient(135deg, rgba(56, 178, 172, 0.2) 0%, rgba(0, 132, 255, 0.2) 100%)'>
             <LockIcon color={brandColor} boxSize={4} />
           </Box>
-          <VStack align='flex-start' spacing={0}>
+          <VStack align='flex-start' gap={0}>
             <Text fontSize='md' fontWeight='700' bgGradient='linear(to-r, brand.400, accent.500)' bgClip='text'>
               MyMultiSig.app
             </Text>
@@ -58,18 +60,14 @@ const FooterBox: React.FC = () => {
         </HStack>
 
         {/* Links */}
-        <HStack spacing={4}>
+        <HStack gap={4}>
           <Link href='https://github.com/marc-aurele-besner/mymultisig-contract' target='_blank' rel='noopener noreferrer'>
             <HStack
               px={3}
               py={2}
               borderRadius='lg'
-              spacing={2}
-              sx={{ transition: 'all 0.2s ease' }}
-              _hover={{
-                bg: linkHoverBg,
-                transform: 'translateY(-1px)'
-              }}>
+              gap={2}
+            >
               <Text fontSize='sm' fontWeight='500' color={linkTextColor} display={{ base: 'none', sm: 'block' }}>
                 Smart Contracts
               </Text>
@@ -81,12 +79,8 @@ const FooterBox: React.FC = () => {
               px={3}
               py={2}
               borderRadius='lg'
-              spacing={2}
-              sx={{ transition: 'all 0.2s ease' }}
-              _hover={{
-                bg: linkHoverBg,
-                transform: 'translateY(-1px)'
-              }}>
+              gap={2}
+            >
               <Text fontSize='sm' fontWeight='500' color={linkTextColor} display={{ base: 'none', sm: 'block' }}>
                 Web App
               </Text>

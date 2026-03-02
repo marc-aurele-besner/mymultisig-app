@@ -5,7 +5,8 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper
-} from '@chakra-ui/react'
+} from '@chakra-ui/number-input'
+import {} from '@chakra-ui/color-mode'
 
 interface NumberInputProps {
   placeholder: string
@@ -18,7 +19,7 @@ interface NumberInputProps {
   step?: number
   onChange?: (valueAsString: string, valueAsNumber: number) => void
   isDisabled?: boolean
-  isReadOnly?: boolean
+  readOnly?: boolean
   isInvalid?: boolean
   hasStepper?: boolean
   allowMouseWheel?: boolean
@@ -35,7 +36,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
   step,
   onChange,
   isDisabled,
-  isReadOnly,
+  readOnly,
   isInvalid,
   hasStepper,
   allowMouseWheel
@@ -49,7 +50,6 @@ const NumberInput: React.FC<NumberInputProps> = ({
       bg='whiteAlpha.50'
       backdropFilter='blur(10px)'
       color='white'
-      placeholder={placeholder}
       defaultValue={defaultValue}
       min={min}
       max={max}
@@ -57,9 +57,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
       step={step}
       value={value}
       onChange={onChange}
-      isDisabled={isDisabled}
-      isReadOnly={isReadOnly}
-      isInvalid={isInvalid}
+      _invalid={{ borderColor: "red.500" }}
       allowMouseWheel={allowMouseWheel}
     >
       <NumberInputField
@@ -71,6 +69,9 @@ const NumberInput: React.FC<NumberInputProps> = ({
         borderColor={isInvalid ? 'red.400' : 'whiteAlpha.200'}
         fontSize='md'
         fontWeight='500'
+        placeholder={placeholder}
+        disabled={isDisabled}
+        readOnly={readOnly}
         _placeholder={{
           color: 'whiteAlpha.400',
           fontWeight: '400'

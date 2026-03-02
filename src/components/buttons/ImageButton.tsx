@@ -1,13 +1,15 @@
 import React from 'react'
 import { Button, HStack, Image, Text } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
 import { motion } from 'framer-motion'
 
 interface ImageButtonProps {
   placeholder: string
   imagePath: string
   onClick?: () => void
-  isLoading?: boolean
-  isDisabled?: boolean
+  loading?: boolean
+  disabled?: boolean
   variant?: 'primary' | 'secondary' | 'glass'
 }
 
@@ -17,8 +19,8 @@ const ImageButton: React.FC<ImageButtonProps> = ({
   placeholder,
   imagePath,
   onClick,
-  isLoading,
-  isDisabled,
+  loading: isLoading,
+  disabled: isDisabled,
   variant = 'primary'
 }) => {
   const variants = {
@@ -69,8 +71,8 @@ const ImageButton: React.FC<ImageButtonProps> = ({
       fontWeight='600'
       fontSize='md'
       onClick={onClick}
-      isLoading={isLoading}
-      isDisabled={isDisabled}
+      loading={isLoading}
+      disabled={isDisabled}
       _disabled={{
         opacity: 0.5,
         cursor: 'not-allowed',
@@ -78,7 +80,7 @@ const ImageButton: React.FC<ImageButtonProps> = ({
       }}
       {...selectedVariant}
     >
-      <HStack w='100%' justifyContent='center' spacing={3}>
+      <HStack w='100%' justifyContent='center' gap={3}>
         <Image
           src={imagePath}
           alt={placeholder}

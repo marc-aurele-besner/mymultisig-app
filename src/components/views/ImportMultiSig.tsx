@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Center, VStack, Text } from '@chakra-ui/react'
-import { useNetwork } from 'wagmi'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
+import { useChainId, useChains } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
 import ErrorCard from '../cards/ErrorCard'
@@ -9,7 +11,7 @@ import multiSigFactories from '../../constants/multiSigFactory'
 
 const ImportMultiSig: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
-  const { chain } = useNetwork()
+  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const multiSigFactory = multiSigFactories.find((factory) => factory.chainId === chain?.id)
 
   useEffect(() => {

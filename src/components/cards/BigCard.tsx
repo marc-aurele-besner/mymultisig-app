@@ -1,5 +1,7 @@
 import React from 'react'
-import { Box, BoxProps, useColorModeValue } from '@chakra-ui/react'
+import { Box, BoxProps } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import { useColorModeValue } from '@chakra-ui/color-mode'
 import { motion } from 'framer-motion'
 
 interface BigCardProps extends BoxProps {
@@ -55,12 +57,6 @@ const BigCard: React.FC<BigCardProps> = ({ children, w = '100%', h = 'auto', max
         pointerEvents: 'none',
         animation: 'borderGlow 4s ease-in-out infinite'
       } : undefined}
-      sx={{
-        '@keyframes borderGlow': {
-          '0%, 100%': { opacity: 0.5 },
-          '50%': { opacity: 1 }
-        }
-      }}
       {...rest}
     >
       {/* Inner glow effect at top */}

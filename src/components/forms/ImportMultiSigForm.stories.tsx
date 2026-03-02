@@ -1,14 +1,16 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { StoryFn, Meta } from '@storybook/react'
 
 import ImportMultiSigForm from './ImportMultiSigForm'
 
-export default {
+const meta: Meta<typeof ImportMultiSigForm> = {
   title: 'Forms/ImportMultiSig',
   component: ImportMultiSigForm,
-} as ComponentMeta<typeof ImportMultiSigForm>
+}
 
-export const Basic: ComponentStory<typeof ImportMultiSigForm> = (args) => <ImportMultiSigForm {...args} />
+export default meta
+
+export const Basic: StoryFn<typeof ImportMultiSigForm> = (args: React.ComponentProps<typeof ImportMultiSigForm>) => <ImportMultiSigForm {...args} />
 Basic.args = {
   factory: {
     chainId: 5,

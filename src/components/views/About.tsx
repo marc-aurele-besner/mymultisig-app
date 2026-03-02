@@ -10,8 +10,9 @@ import {
   Box,
   SimpleGrid,
   HStack,
-  useColorModeValue
 } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import { useColorModeValue } from '@chakra-ui/color-mode'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { AddIcon, CheckCircleIcon, ExternalLinkIcon, LockIcon, ViewIcon, StarIcon, SettingsIcon } from '@chakra-ui/icons'
@@ -86,7 +87,7 @@ const About: React.FC = () => {
             variants={containerVariants}
             initial='hidden'
             animate='visible'
-            spacing={{ base: 6, md: 8 }}
+            gap={{ base: 6, md: 8 }}
             w='100%'
             py={{ base: 4, md: 8 }}>
             {/* Header */}
@@ -119,7 +120,7 @@ const About: React.FC = () => {
 
             {/* Features Grid */}
             <MotionBox variants={itemVariants} w='100%' pt={4}>
-              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} w='100%'>
+              <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} w='100%'>
                 {features.map((feature) => (
                   <MotionBox
                     key={feature.title}
@@ -129,13 +130,8 @@ const About: React.FC = () => {
                     bg={featureBg}
                     border='1px solid'
                     borderColor={featureBorder}
-                    sx={{ transition: 'all 0.3s ease' }}
-                    _hover={{
-                      bg: featureHoverBg,
-                      borderColor: featureHoverBorder,
-                      transform: 'translateY(-2px)'
-                    }}>
-                    <HStack spacing={4} align='flex-start'>
+                  >
+                    <HStack gap={4} align='flex-start'>
                       <Box
                         p={3}
                         borderRadius='lg'
@@ -143,7 +139,7 @@ const About: React.FC = () => {
                         color={brandTextColor}>
                         {feature.icon}
                       </Box>
-                      <VStack align='flex-start' spacing={1}>
+                      <VStack align='flex-start' gap={1}>
                         <Text fontSize='md' fontWeight='600' color={headingColor}>
                           {feature.title}
                         </Text>
@@ -159,15 +155,21 @@ const About: React.FC = () => {
 
             {/* CTA Buttons */}
             <MotionBox variants={itemVariants} pt={4}>
-              <Stack direction={{ base: 'column', sm: 'row' }} spacing={4} justify='center' align='center'>
+              <Stack direction={{ base: 'column', sm: 'row' }} gap={4} justify='center' align='center'>
                 <ChakraLink as={Link} href='/createMultiSig' _hover={{ textDecoration: 'none' }}>
-                  <Button leftIcon={<AddIcon />} size='lg' px={8} {...buttonColors}>
-                    Create a MultiSig
+                  <Button size='lg' px={8} {...buttonColors}>
+                    <HStack gap={2}>
+                      <AddIcon />
+                      <Text>Create a MultiSig</Text>
+                    </HStack>
                   </Button>
                 </ChakraLink>
                 <ChakraLink as={Link} href='/useYourMultiSig' _hover={{ textDecoration: 'none' }}>
-                  <Button leftIcon={<CheckCircleIcon />} size='lg' px={8} {...glassButtonColors}>
-                    Use your MultiSig
+                  <Button size='lg' px={8} {...glassButtonColors}>
+                    <HStack gap={2}>
+                      <CheckCircleIcon />
+                      <Text>Use your MultiSig</Text>
+                    </HStack>
                   </Button>
                 </ChakraLink>
                 <ChakraLink
@@ -175,13 +177,16 @@ const About: React.FC = () => {
                   target='_blank'
                   _hover={{ textDecoration: 'none' }}>
                   <Button
-                    leftIcon={<ExternalLinkIcon />}
                     size='lg'
                     px={8}
                     variant='ghost'
                     color={brandTextColor}
-                    _hover={{ bg: ghostHoverBg, color: brandHoverColor }}>
-                    View Smart Contracts
+                    _hover={{ bg: ghostHoverBg, color: brandHoverColor }}
+                  >
+                    <HStack gap={2}>
+                      <ExternalLinkIcon />
+                      <Text>View Smart Contracts</Text>
+                    </HStack>
                   </Button>
                 </ChakraLink>
               </Stack>

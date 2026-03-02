@@ -1,15 +1,17 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { StoryFn, Meta } from '@storybook/react'
 
 import Page from '../pages/createMultiSig'
 import Web3Provider from '../components/web3/Web3Provider'
 
-export default {
+const meta: Meta<typeof Page> = {
   title: 'Pages/createMultiSig',
   component: Page,
-} as ComponentMeta<typeof Page>
+}
 
-export const Basic: ComponentStory<typeof Page> = (args) => (
+export default meta
+
+export const Basic: StoryFn<typeof Page> = (args: React.ComponentProps<typeof Page>) => (
   <Web3Provider>
     <Page {...args} />
   </Web3Provider>

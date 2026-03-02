@@ -1,5 +1,7 @@
 import React from 'react'
 import { Box, Center, VStack } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
 
 import HeaderBox from '../header/HeaderBox'
 import FooterBox from '../footer/FooterBox'
@@ -15,6 +17,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       position='relative'
       overflow='hidden'
     >
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -20px) scale(1.05); }
+          66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+        @keyframes floatReverse {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(-40px, 30px) scale(1.08); }
+          66% { transform: translate(30px, -25px) scale(0.92); }
+        }
+        @keyframes floatSlow {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          50% { transform: translate(-50px, 30px) rotate(180deg); }
+        }
+      `}</style>
       {/* Animated background orbs */}
       <Box
         position='fixed'
@@ -29,13 +47,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         filter='blur(60px)'
         pointerEvents='none'
         animation='float 20s ease-in-out infinite'
-        sx={{
-          '@keyframes float': {
-            '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
-            '33%': { transform: 'translate(30px, -20px) scale(1.05)' },
-            '66%': { transform: 'translate(-20px, 20px) scale(0.95)' }
-          }
-        }}
       />
       <Box
         position='fixed'
@@ -50,13 +61,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         filter='blur(80px)'
         pointerEvents='none'
         animation='floatReverse 25s ease-in-out infinite'
-        sx={{
-          '@keyframes floatReverse': {
-            '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
-            '33%': { transform: 'translate(-40px, 30px) scale(1.08)' },
-            '66%': { transform: 'translate(30px, -25px) scale(0.92)' }
-          }
-        }}
       />
       <Box
         position='fixed'
@@ -71,12 +75,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         filter='blur(50px)'
         pointerEvents='none'
         animation='floatSlow 30s ease-in-out infinite'
-        sx={{
-          '@keyframes floatSlow': {
-            '0%, 100%': { transform: 'translate(0, 0) rotate(0deg)' },
-            '50%': { transform: 'translate(-50px, 30px) rotate(180deg)' }
-          }
-        }}
       />
       
       {/* Grid pattern overlay */}
@@ -94,7 +92,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <VStack
           w='100%'
           minH='100vh'
-          spacing={0}
+          gap={0}
           justify='space-between'
         >
           <HeaderBox />

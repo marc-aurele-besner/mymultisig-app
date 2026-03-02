@@ -9,8 +9,10 @@ import {
   Link as ChakraLink,
   Box,
   SimpleGrid,
-  useColorModeValue
+  HStack,
 } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import { useColorModeValue } from '@chakra-ui/color-mode'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useAccount } from 'wagmi'
@@ -92,7 +94,7 @@ const Welcome: React.FC = () => {
             variants={containerVariants}
             initial='hidden'
             animate='visible'
-            spacing={{ base: 6, md: 8 }}
+            gap={{ base: 6, md: 8 }}
             w='100%'
             py={{ base: 4, md: 8 }}>
             {/* Hero Section */}
@@ -126,26 +128,35 @@ const Welcome: React.FC = () => {
 
             {/* CTA Buttons */}
             <MotionBox variants={itemVariants}>
-              <Stack direction={{ base: 'column', sm: 'row' }} spacing={4} justify='center' align='center'>
+              <Stack direction={{ base: 'column', sm: 'row' }} gap={4} justify='center' align='center'>
                 <ChakraLink as={Link} href='/createMultiSig' _hover={{ textDecoration: 'none' }}>
-                  <Button leftIcon={<AddIcon />} size='lg' px={8} {...buttonColors}>
-                    Create a MultiSig
+                  <Button size='lg' px={8} {...buttonColors}>
+                    <HStack gap={2}>
+                      <AddIcon />
+                      <Text>Create a MultiSig</Text>
+                    </HStack>
                   </Button>
                 </ChakraLink>
                 <ChakraLink as={Link} href='/useYourMultiSig' _hover={{ textDecoration: 'none' }}>
-                  <Button leftIcon={<CheckCircleIcon />} size='lg' px={8} {...glassButtonColors}>
-                    Use your MultiSig
+                  <Button size='lg' px={8} {...glassButtonColors}>
+                    <HStack gap={2}>
+                      <CheckCircleIcon />
+                      <Text>Use your MultiSig</Text>
+                    </HStack>
                   </Button>
                 </ChakraLink>
                 <ChakraLink as={Link} href='/integration' _hover={{ textDecoration: 'none' }}>
                   <Button
-                    leftIcon={<LinkIcon />}
                     size='lg'
                     px={8}
                     variant='ghost'
                     color={brandTextColor}
-                    _hover={{ bg: ghostHoverBg, color: brandHoverColor }}>
-                    Integration
+                    _hover={{ bg: ghostHoverBg, color: brandHoverColor }}
+                  >
+                    <HStack gap={2}>
+                      <LinkIcon />
+                      <Text>Integration</Text>
+                    </HStack>
                   </Button>
                 </ChakraLink>
               </Stack>
@@ -153,7 +164,7 @@ const Welcome: React.FC = () => {
 
             {/* Features Grid */}
             <MotionBox variants={itemVariants} w='100%' pt={{ base: 4, md: 8 }}>
-              <SimpleGrid columns={{ base: 1, md: 3 }} spacing={{ base: 4, md: 6 }} w='100%'>
+              <SimpleGrid columns={{ base: 1, md: 3 }} gap={{ base: 4, md: 6 }} w='100%'>
                 {features.map((feature) => (
                   <MotionBox
                     key={feature.title}
@@ -163,14 +174,8 @@ const Welcome: React.FC = () => {
                     bg={featureBg}
                     border='1px solid'
                     borderColor={featureBorder}
-                    sx={{ transition: 'all 0.3s ease' }}
-                    _hover={{
-                      bg: featureHoverBg,
-                      borderColor: featureHoverBorder,
-                      transform: 'translateY(-4px)',
-                      boxShadow: '0 12px 30px rgba(0, 0, 0, 0.15)'
-                    }}>
-                    <VStack align='flex-start' spacing={3}>
+                  >
+                    <VStack align='flex-start' gap={3}>
                       <Box
                         p={3}
                         borderRadius='lg'
@@ -198,7 +203,7 @@ const Welcome: React.FC = () => {
               borderTop='1px solid'
               borderColor={borderColor}
               mt={{ base: 4, md: 6 }}>
-              {hasMounted && <VStack spacing={4}>{!isConnected ? <ConnectWallet /> : <ConnectedWallet />}</VStack>}
+              {hasMounted && <VStack gap={4}>{!isConnected ? <ConnectWallet /> : <ConnectedWallet />}</VStack>}
             </MotionBox>
           </MotionVStack>
         </Center>

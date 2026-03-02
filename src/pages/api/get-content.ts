@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { providers, Wallet } from 'ethers'
 import fauna from 'faunadb-utility'
-import { slackBuilder, slackUtils } from 'slack-utility'
-import { TBlock } from 'slack-utility/src/types'
+// import { slackBuilder, slackUtils } from 'slack-utility'
+// import { TBlock } from 'slack-utility/src/types'
 
 import signData from '../../utils/signData'
 
@@ -32,14 +32,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     data.signature !== undefined &&
     data.signatureExpiry !== undefined
   ) {
-    if (process.env.SLACK_TOKEN && process.env.SLACK_CONVERSATION_ID)
-      await slackUtils.slackPostMessage(
-        process.env.SLACK_TOKEN,
-        process.env.SLACK_CONVERSATION_ID,
-        'Add Content function called',
-        [slackBuilder.buildSimpleSlackHeaderMsg(`Someone is querying data on MyMultiSig.app (${data.action})`)],
-        true
-      )
+    // if (process.env.SLACK_TOKEN && process.env.SLACK_CONVERSATION_ID)
+    //   await slackUtils.slackPostMessage(
+    //     process.env.SLACK_TOKEN,
+    //     process.env.SLACK_CONVERSATION_ID,
+    //     'Add Content function called',
+    //     [slackBuilder.buildSimpleSlackHeaderMsg(`Someone is querying data on MyMultiSig.app (${data.action})`)],
+    //     true
+    //   )
 
     const matchingUISignData = await signData(
       process.env.PRIVATE_KEY,
@@ -71,33 +71,33 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
      */
     let classes: string[] = []
     let indexes: string[] = []
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     let terms: any[] = []
-    let slackMessageTitle = ''
-    const slackMessageBlocks: TBlock[] = []
+    // let slackMessageTitle = ''
+    // const slackMessageBlocks: TBlock[] = []
     switch (data.action) {
       case 'getMultiSigRequests':
         classes = ['multisig-requests']
         indexes = ['multisig-requests_by_multiSigAddress_and_isActive']
         terms = [data.data.multiSigAddress, true]
-        slackMessageTitle = 'Someone is querying MultiSig Request by multiSigAddress and isActive'
-        slackMessageBlocks.push(
-          slackBuilder.buildSimpleSlackHeaderMsg(`Someone is querying MultiSig Request by multiSigAddress and isActive`)
-        )
+        // slackMessageTitle = 'Someone is querying MultiSig Request by multiSigAddress and isActive'
+        // slackMessageBlocks.push(
+        //   slackBuilder.buildSimpleSlackHeaderMsg(`Someone is querying MultiSig Request by multiSigAddress and isActive`)
+        // )
         break
       case 'getMultiSigRequestById':
         classes = ['multisig-requests']
         indexes = ['multisig-requests_by_id']
         terms = [data.data.multiSigRequestId]
-        slackMessageTitle = 'Someone is querying MultiSig Request by ID'
-        slackMessageBlocks.push(slackBuilder.buildSimpleSlackHeaderMsg(`Someone is querying MultiSig Request by ID`))
+        // slackMessageTitle = 'Someone is querying MultiSig Request by ID'
+        // slackMessageBlocks.push(slackBuilder.buildSimpleSlackHeaderMsg(`Someone is querying MultiSig Request by ID`))
         break
       default:
         break
     }
-    if (slackMessageTitle && slackMessageBlocks && slackMessageBlocks.length > 0) {
-      await slackUtils.slackPostMessage(SLACK_TOKEN, SLACK_CONVERSATION_ID, slackMessageTitle, slackMessageBlocks, true)
-    }
+    // if (slackMessageTitle && slackMessageBlocks && slackMessageBlocks.length > 0) {
+    //   await slackUtils.slackPostMessage(SLACK_TOKEN, SLACK_CONVERSATION_ID, slackMessageTitle, slackMessageBlocks, true)
+    // }
     if (classes.length == 1) {
       if (terms.length == 0) {
         const findData = await fauna.queryTermByFaunaIndexes(FAUNADB_SERVER_SECRET, indexes[0], terms[0])

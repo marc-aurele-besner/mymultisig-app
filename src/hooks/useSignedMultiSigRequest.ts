@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useAccount, useNetwork, useSignTypedData } from 'wagmi'
+import { useAccount, useChainId, useChains, useSignTypedData } from 'wagmi'
 import { BigNumber } from 'ethers'
 import { v4 } from 'uuid'
 
@@ -16,7 +16,9 @@ const useSignedMultiSigRequest = (
   existingRequest?: MultiSigTransactionRequest,
   existingRequestRef?: string
 ) => {
-  const { chain } = useNetwork()
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find(c => c.id === chainId)
   const { address } = useAccount()
   const { addMultiSigTransactionRequest, updateMultiSigTransactionRequest } = useMultiSigs()
   const { data: multiSigDetails } = useMultiSigDetails(multiSigAddress, address || '0x')
@@ -71,23 +73,25 @@ const useSignedMultiSigRequest = (
 
   const value = {
     to: args.to,
-    value: valueCheck ? BigNumber.from(args.value) : BigNumber.from(0),
+    value: valueCheck ? (BigNumber.isBigNumber(args.value) ? args.value.toBigInt() : BigInt(args.value)) : BigInt(0),
     data: args.data,
-    gas: gasCheck ? BigNumber.from(args.txnGas) : BigNumber.from(0),
-    nonce: BigNumber.from(multiSigDetails ? multiSigDetails[4] : 0)
+    gas: gasCheck ? (BigNumber.isBigNumber(args.txnGas) ? args.txnGas.toBigInt() : BigInt(args.txnGas)) : BigInt(0),
+    nonce: BigNumber.from(multiSigDetails ? multiSigDetails[4] : 0).toBigInt()
   } as const
 
-  const { data, isError, isLoading, isSuccess, error, signTypedData, reset } = useSignTypedData({
-    domain,
-    types,
-    value,
-    onError() {
+  const { data, isError, isPending, isSuccess, error, signTypedData, reset } = useSignTypedData()
+  
+  useEffect(() => {
+    if (error) {
       notificationError()
-    },
-    onSuccess() {
+    }
+  }, [error, notificationError])
+  
+  useEffect(() => {
+    if (isSuccess && data) {
       notificationSuccess()
     }
-  })
+  }, [isSuccess, data, notificationSuccess])
 
   useEffect(() => {
     if (isSuccess && data && chain && !dataAdded) {
@@ -169,11 +173,11 @@ const useSignedMultiSigRequest = (
     isPrepareError: !valueAndGasCheck,
     data,
     isError,
-    isLoading,
+    isPending,
     isSuccess,
     prepareError: !valueAndGasCheck ? null : 'Invalid value or gas',
     error,
-    signTypedData,
+    signTypedData: () => signTypedData({ domain, types, primaryType: 'Transaction', message: value }),
     reset
   }
 }

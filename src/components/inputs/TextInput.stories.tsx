@@ -1,19 +1,21 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { StoryFn, Meta } from '@storybook/react'
 
 import TextInput from './TextInput'
 
-export default {
+const meta: Meta<typeof TextInput> = {
   title: 'Inputs/TextInput',
   component: TextInput,
   argTypes: {
     isDisabled: { control: 'boolean' },
-    isReadOnly: { control: 'boolean' },
+    readOnly: { control: 'boolean' },
     isInvalid: { control: 'boolean' },
   },
-} as ComponentMeta<typeof TextInput>
+}
 
-export const Basic: ComponentStory<typeof TextInput> = (args) => <TextInput {...args} />
+export default meta
+
+export const Basic: StoryFn<typeof TextInput> = (args: React.ComponentProps<typeof TextInput>) => <TextInput {...args} />
 Basic.args = {
   placeholder: 'Hello World',
 }

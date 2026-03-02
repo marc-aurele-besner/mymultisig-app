@@ -1,5 +1,7 @@
 import React from 'react'
 import { Textarea as ChakraTextarea } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
 
 interface TextareaProps {
   placeholder: string
@@ -7,7 +9,7 @@ interface TextareaProps {
   value?: string
   onChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void
   isDisabled?: boolean
-  isReadOnly?: boolean
+  readOnly?: boolean
   isInvalid?: boolean
 }
 
@@ -17,7 +19,7 @@ const Textarea: React.FC<TextareaProps> = ({
   value,
   onChange,
   isDisabled,
-  isReadOnly,
+  readOnly,
   isInvalid
 }) => {
   return (
@@ -35,9 +37,8 @@ const Textarea: React.FC<TextareaProps> = ({
       defaultValue={defaultValue}
       value={value}
       onChange={onChange}
-      isDisabled={isDisabled}
-      isReadOnly={isReadOnly}
-      isInvalid={isInvalid}
+      disabled={isDisabled}
+      readOnly={readOnly}
       _placeholder={{
         color: 'gray.200'
       }}

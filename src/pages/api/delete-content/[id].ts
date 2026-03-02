@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { providers, Wallet } from 'ethers'
 import fauna from 'faunadb-utility'
-import { slackBuilder, slackUtils } from 'slack-utility'
-import { TBlock } from 'slack-utility/src/types'
+// import { slackBuilder, slackUtils } from 'slack-utility'
+// import { TBlock } from 'slack-utility/src/types'
 
 import signData from '../../../utils/signData'
 
@@ -36,14 +36,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     data.signature !== undefined &&
     data.signatureExpiry !== undefined
   ) {
-    if (process.env.SLACK_TOKEN && process.env.SLACK_CONVERSATION_ID)
-      await slackUtils.slackPostMessage(
-        process.env.SLACK_TOKEN,
-        process.env.SLACK_CONVERSATION_ID,
-        'Delete Content function called',
-        [slackBuilder.buildSimpleSlackHeaderMsg(`Someone is deleting data on MyMultiSig.app (${data.action})`)],
-        true
-      )
+    // if (process.env.SLACK_TOKEN && process.env.SLACK_CONVERSATION_ID)
+    //   await slackUtils.slackPostMessage(
+    //     process.env.SLACK_TOKEN,
+    //     process.env.SLACK_CONVERSATION_ID,
+    //     'Delete Content function called',
+    //     [slackBuilder.buildSimpleSlackHeaderMsg(`Someone is deleting data on MyMultiSig.app (${data.action})`)],
+    //     true
+    //   )
 
     const matchingUISignData = await signData(
       process.env.PRIVATE_KEY,
@@ -74,23 +74,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
      * To-Do: Check the user signature
      */
     let classes: string[] = []
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     let terms: any[] = []
-    let slackMessageTitle = ''
-    const slackMessageBlocks: TBlock[] = []
+    // let slackMessageTitle = ''
+    // const slackMessageBlocks: TBlock[] = []
     switch (data.action) {
       case 'deleteMultiSigRequest':
         classes = ['multisig-requests']
         terms = [data.data.existingRequestRef]
-        slackMessageTitle = 'Someone is deleting a MultiSig Request'
-        slackMessageBlocks.push(slackBuilder.buildSimpleSlackHeaderMsg(`Someone is deleting a MultiSig Request`))
+        // slackMessageTitle = 'Someone is deleting a MultiSig Request'
+        // slackMessageBlocks.push(slackBuilder.buildSimpleSlackHeaderMsg(`Someone is deleting a MultiSig Request`))
         break
       default:
         break
     }
-    if (slackMessageTitle && slackMessageBlocks && slackMessageBlocks.length > 0) {
-      await slackUtils.slackPostMessage(SLACK_TOKEN, SLACK_CONVERSATION_ID, slackMessageTitle, slackMessageBlocks, true)
-    }
+    // if (slackMessageTitle && slackMessageBlocks && slackMessageBlocks.length > 0) {
+    //   await slackUtils.slackPostMessage(SLACK_TOKEN, SLACK_CONVERSATION_ID, slackMessageTitle, slackMessageBlocks, true)
+    // }
     if (classes.length == 1) {
       await fauna.deleteFaunaDocument(FAUNADB_SERVER_SECRET, classes[0], terms[0])
       res.status(200).json({

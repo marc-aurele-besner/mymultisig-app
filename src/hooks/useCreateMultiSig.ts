@@ -1,4 +1,4 @@
-import { useNetwork, usePrepareContractWrite, useContractEvent } from 'wagmi'
+import { useChainId, useChains, useWatchContractEvent } from 'wagmi'
 import { BigNumber } from 'ethers'
 import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
 
@@ -9,23 +9,30 @@ import useFinalizeTransaction from './useFinalizeTransaction'
 import { signData, addContent } from '../utils'
 
 const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFactoryAddress: `0x${string}`) => {
-  const { chain } = useNetwork()
+  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const { addMultiSig } = useMultiSigs()
   const { notificationInfo, notificationError, notificationSuccess } = useNotification()
-  const { config } = usePrepareContractWrite({
+  const config = {
     chainId: chain?.id,
     address: multiSigFactoryAddress,
     abi: MyMultiSigFactory,
-    functionName: 'createMultiSig',
-    args: [constructorArgs.contractName, constructorArgs.owners, constructorArgs.threshold]
-  })
-  const { data, error, isError, isIdle, isLoading, isSuccess, write, writeAsync, reset, status, dataFinal, isFinal } =
+    functionName: 'createMultiSig' as const,
+    args: [constructorArgs.contractName, constructorArgs.owners, constructorArgs.threshold] as const
+  }
+  const { data, error, isError, isPending, isSuccess, writeContract, writeContractAsync, reset, status, dataFinal, isFinal } =
     useFinalizeTransaction(config, notificationInfo, notificationSuccess, notificationError)
-  useContractEvent({
+  useWatchContractEvent({
     address: multiSigFactoryAddress,
     abi: MyMultiSigFactory,
     eventName: 'MyMultiSigCreated',
-    listener: (creator, contractAddress, contractIndex, contractName, originalOwners) => {
+    onLogs: (logs) => {
+      logs.forEach((log: any) => {
+        const args = log.args || (log as any)
+        const creator = args.creator || args[0]
+        const contractAddress = args.contractAddress || args[1]
+        const contractIndex = args.contractIndex || args[2]
+        const contractName = args.contractName || args[3]
+        const originalOwners = args.originalOwners || args[4]
       console.log('MyMultiSigCreated', creator, contractAddress, contractIndex, contractName, originalOwners)
       if (chain) {
         const dataToAdd: MultiSig = {
@@ -56,17 +63,17 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
           })
         })
       }
+      })
     }
   })
   return {
     data,
     error,
     isError,
-    isIdle,
-    isLoading,
+    isPending,
     isSuccess,
-    write,
-    writeAsync,
+    writeContract,
+    writeContractAsync,
     reset,
     status,
     dataFinal,

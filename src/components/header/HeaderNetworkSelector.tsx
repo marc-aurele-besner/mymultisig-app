@@ -2,25 +2,30 @@ import React, { useState, useEffect } from 'react'
 import {
   Box,
   Text,
-  Menu,
-  MenuButton,
   Button,
   Portal,
+  HStack,
+} from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import { useColorModeValue } from '@chakra-ui/color-mode'
+import {
+  Menu,
+  MenuButton,
   MenuList,
   MenuItem,
-  HStack,
-  useColorModeValue
-} from '@chakra-ui/react'
+} from '@chakra-ui/menu'
 import { ChevronDownIcon, CheckIcon } from '@chakra-ui/icons'
-import { useNetwork, useSwitchNetwork } from 'wagmi'
+import { useChainId, useChains, useSwitchChain } from 'wagmi'
 import { motion } from 'framer-motion'
 
 const MotionButton = motion(Button)
 
 const HeaderNetworkSelector: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
-  const { chain } = useNetwork()
-  const { chains, switchNetwork } = useSwitchNetwork()
+  const chainId = useChainId()
+  const allChains = useChains()
+  const chain = allChains.find(c => c.id === chainId)
+  const { chains: switchableChains, switchChain } = useSwitchChain()
 
   // Color mode values
   const buttonBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
@@ -44,7 +49,7 @@ const HeaderNetworkSelector: React.FC = () => {
     setHasMounted(true)
   }, [])
 
-  if (!hasMounted || !chain || !chains) return null
+  if (!hasMounted || !chain || !switchableChains) return null
 
   return (
     <Box>
@@ -53,7 +58,6 @@ const HeaderNetworkSelector: React.FC = () => {
           as={MotionButton}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          rightIcon={<ChevronDownIcon />}
           size={{ base: 'sm', md: 'md' }}
           px={{ base: 3, md: 4 }}
           py={2}
@@ -64,11 +68,6 @@ const HeaderNetworkSelector: React.FC = () => {
           border='1px solid'
           borderColor={borderColor}
           backdropFilter='blur(10px)'
-          sx={{ transition: 'all 0.2s ease' }}
-          _hover={{
-            bg: buttonHoverBg,
-            borderColor: borderHoverColor
-          }}
           _active={{
             transform: 'scale(0.98)'
           }}
@@ -76,9 +75,10 @@ const HeaderNetworkSelector: React.FC = () => {
             outline: 'none',
             boxShadow: '0 0 0 2px rgba(56, 178, 172, 0.3)'
           }}>
-          <HStack spacing={2}>
+          <HStack gap={2}>
             <Box w='8px' h='8px' borderRadius='full' bg={brandColor} />
             <Text fontSize={{ base: 'xs', md: 'sm' }}>{chain.name}</Text>
+            <ChevronDownIcon />
           </HStack>
         </MenuButton>
         <Portal>
@@ -93,7 +93,7 @@ const HeaderNetworkSelector: React.FC = () => {
             minW='180px'
             p={2}
             zIndex={1600}>
-            {chains.map((item) => (
+            {switchableChains.map((item) => (
               <MenuItem
                 key={`MenuItem-${item.name}`}
                 bg='transparent'
@@ -102,15 +102,10 @@ const HeaderNetworkSelector: React.FC = () => {
                 px={4}
                 py={3}
                 borderRadius='lg'
-                sx={{ transition: 'all 0.2s ease' }}
-                _hover={{
-                  bg: menuItemHoverBg,
-                  color: menuItemHoverColor
-                }}
                 _focus={{
                   bg: menuItemHoverBg
                 }}
-                onClick={() => switchNetwork?.(item.id)}>
+                onClick={() => switchChain({ chainId: item.id })}>
                 <HStack w='100%' justify='space-between'>
                   <Text fontSize='md' fontWeight='500'>
                     {item.name}

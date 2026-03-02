@@ -1,6 +1,8 @@
 import React, { Fragment, useState } from 'react'
 import Link from 'next/link'
 import { Box, Button, Center, HStack, Text, Textarea } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
 
 import SignRequest from '../buttons/SignRequest'
 import ExecuteRequest from '../buttons/ExecuteRequest'
@@ -75,7 +77,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
           <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
             Data
           </Text>
-          <Textarea isReadOnly defaultValue={requestDetails.data.request.data} />
+          <Textarea readOnly defaultValue={requestDetails.data.request.data} />
         </HStack>
         <HStack key={`Request-Value`}>
           <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>

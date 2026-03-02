@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { useAccount, useNetwork } from 'wagmi'
+import { useAccount, useChainId, useChains } from 'wagmi'
 
 import { useNotificationSuccess, useNotificationError } from './notifications'
 import useMultiSigs from '../states/multiSigs'
 import { signData, updateContent } from '../utils'
 
 const useResetMultiSigRequest = (multiSigRequestId: string, existingRequestRef: string, isConfirmed: boolean) => {
-  const { chain } = useNetwork()
+  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const { address } = useAccount()
   const { removeMultiSigTransactionRequest } = useMultiSigs()
   const [isDeleted, setIsDeleted] = useState(false)

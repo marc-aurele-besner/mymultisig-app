@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Text, Menu, MenuButton, Button, MenuList, MenuItem, Portal, HStack, useColorModeValue } from '@chakra-ui/react'
+import { Box, Text, Button, Portal, HStack } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import { useColorModeValue } from '@chakra-ui/color-mode'
+import {
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+} from '@chakra-ui/menu'
 import { ChevronDownIcon, CheckIcon } from '@chakra-ui/icons'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { motion } from 'framer-motion'
@@ -50,7 +58,6 @@ export const HeaderWalletSelector: React.FC = () => {
           as={MotionButton}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          rightIcon={<ChevronDownIcon />}
           size={{ base: 'sm', md: 'md' }}
           px={{ base: 3, md: 4 }}
           py={2}
@@ -62,12 +69,6 @@ export const HeaderWalletSelector: React.FC = () => {
           borderColor={connector ? 'transparent' : disconnectedBorderColor}
           boxShadow={connector ? '0 4px 20px rgba(56, 178, 172, 0.3)' : 'none'}
           backdropFilter={connector ? 'none' : 'blur(10px)'}
-          sx={{ transition: 'all 0.2s ease' }}
-          _hover={{
-            bg: connector ? 'linear-gradient(135deg, #4fd1c5 0%, #38b2ac 100%)' : disconnectedHoverBg,
-            borderColor: connector ? 'transparent' : disconnectedBorderHoverColor,
-            boxShadow: connector ? '0 6px 25px rgba(56, 178, 172, 0.4)' : '0 4px 15px rgba(0, 0, 0, 0.1)'
-          }}
           _active={{
             transform: 'scale(0.98)'
           }}
@@ -76,12 +77,13 @@ export const HeaderWalletSelector: React.FC = () => {
             boxShadow: connector ? '0 4px 20px rgba(56, 178, 172, 0.3)' : '0 0 0 2px rgba(56, 178, 172, 0.3)'
           }}>
           {connector && address ? (
-            <HStack spacing={2}>
+            <HStack gap={2}>
               <Box w='8px' h='8px' borderRadius='full' bg='green.400' boxShadow='0 0 8px rgba(72, 187, 120, 0.6)' />
               <Text fontSize={{ base: 'xs', md: 'sm' }}>{truncateAddress(address)}</Text>
+              <ChevronDownIcon />
             </HStack>
           ) : (
-            <HStack spacing={2}>
+            <HStack gap={2}>
               <WalletIcon color={walletIconColor} width='18px' height='18px' />
               <Text display={{ base: 'none', md: 'block' }} fontSize='sm'>
                 Connect
@@ -111,15 +113,13 @@ export const HeaderWalletSelector: React.FC = () => {
                   px={4}
                   py={3}
                   borderRadius='lg'
-                  sx={{ transition: 'all 0.2s ease' }}
-                  _hover={{
-                    bg: menuItemHoverBg,
-                    color: menuItemHoverColor
-                  }}
                   _focus={{
                     bg: menuItemHoverBg
                   }}
-                  onClick={() => connect?.({ connector: connectors.find((c) => c.id === item.id) })}>
+                  onClick={() => {
+                    const connector = connectors.find((c) => c.id === item.id)
+                    if (connector) connect({ connector })
+                  }}>
                   <Text fontSize='md' fontWeight='500'>
                     {item.name}
                   </Text>
@@ -145,11 +145,6 @@ export const HeaderWalletSelector: React.FC = () => {
                   px={4}
                   py={3}
                   borderRadius='lg'
-                  sx={{ transition: 'all 0.2s ease' }}
-                  _hover={{
-                    bg: 'rgba(245, 101, 101, 0.15)',
-                    color: 'red.600'
-                  }}
                   _focus={{
                     bg: 'rgba(245, 101, 101, 0.15)'
                   }}

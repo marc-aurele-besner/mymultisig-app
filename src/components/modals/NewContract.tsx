@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import {
+  Button,
+  Text,
+  useDisclosure
+} from '@chakra-ui/react'
+import {
   Modal,
   ModalOverlay,
   ModalContent,
@@ -7,21 +12,20 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
-  Button,
-  Text,
-  useDisclosure
-} from '@chakra-ui/react'
+} from '@chakra-ui/modal'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
 import { v4 } from 'uuid'
-import { useAccount, useNetwork } from 'wagmi'
+import { useAccount, useChainId, useChains } from 'wagmi'
 
 import { Contract } from '../../models/Contracts'
 import AddContactForm from '../forms/AddContactForm'
 import useContracts from '../../states/contracts'
 
 const NewContract: React.FC = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { open, onOpen, onClose } = useDisclosure()
   const { address } = useAccount()
-  const { chain } = useNetwork()
+  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const addContract = useContracts((state) => state.addContract)
   const [contract, setContract] = useState<Contract>({
     chainId: chain ? chain.id : 1,
@@ -51,7 +55,7 @@ const NewContract: React.FC = () => {
   if (!address) return <Text>Not connected</Text>
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={open} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>New Contract</ModalHeader>

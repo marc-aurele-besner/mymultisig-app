@@ -1,5 +1,7 @@
 import React from 'react'
 import { Center, VStack, Text } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
 
 import BigCard from '../cards/BigCard'
 

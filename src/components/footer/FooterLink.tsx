@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import React from 'react'
 import { HStack, Text, Image, Box } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
 import { linkColors } from '../../styles/colors'
 
 interface FooterLinkProps {

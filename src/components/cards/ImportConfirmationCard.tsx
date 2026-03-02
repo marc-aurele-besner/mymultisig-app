@@ -1,6 +1,8 @@
 import React, { Fragment } from 'react'
-import { Text, useColorModeValue } from '@chakra-ui/react'
-import { useNetwork } from 'wagmi'
+import { Text } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import { useColorModeValue } from '@chakra-ui/color-mode'
+import { useChainId, useChains } from 'wagmi'
 
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import { MultiSig } from '../../models/MultiSigs'
@@ -17,7 +19,9 @@ const ImportConfirmationCard: React.FC<ImportConfirmationCardProps> = ({
   multiSigAddress,
   address
 }) => {
-  const { chain } = useNetwork()
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find(c => c.id === chainId)
   const { data, isLoading, error, isSuccess } = useMultiSigDetails(multiSigAddress, address)
   const { addMultiSig } = useMultiSigs()
 

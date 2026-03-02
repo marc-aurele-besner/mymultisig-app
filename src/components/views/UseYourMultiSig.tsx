@@ -1,7 +1,9 @@
 import React, { Fragment, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Center, VStack, Text, Heading, Box, HStack, Button } from '@chakra-ui/react'
-import { useAccount, useNetwork } from 'wagmi'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
+import { useAccount, useChainId, useChains } from 'wagmi'
 import { DownloadIcon, DeleteIcon } from '@chakra-ui/icons'
 import { motion } from 'framer-motion'
 
@@ -13,6 +15,7 @@ import useMultiSigs from '../../states/multiSigs'
 import { glassButtonColors } from '../../styles/colors'
 
 const MotionBox = motion(Box)
+const MotionVStack = motion(VStack)
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -37,7 +40,7 @@ const itemVariants = {
 const UseYourMultiSig: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
   const { isConnected, address } = useAccount()
-  const { chain } = useNetwork()
+  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const { multiSigs, clearAllMultiSig } = useMultiSigs()
 
   const filteredMultiSigs = chain ? multiSigs.filter((multiSig) => multiSig.chainId === chain.id) : []
@@ -52,12 +55,11 @@ const UseYourMultiSig: React.FC = () => {
     <Center>
       <BigCard maxW='1000px'>
         <Center>
-          <VStack
-            as={motion.div}
+          <MotionVStack
             variants={containerVariants}
             initial='hidden'
             animate='visible'
-            spacing={6}
+            gap={6}
             w='100%'
             py={{ base: 4, md: 6 }}
           >
@@ -83,7 +85,7 @@ const UseYourMultiSig: React.FC = () => {
 
             {!isConnected || address === undefined ? (
               <MotionBox variants={itemVariants} w='100%'>
-                <VStack spacing={4}>
+                <VStack gap={4}>
                   <ErrorCard>Please connect your wallet first</ErrorCard>
                   <Box
                     w='100%'
@@ -101,7 +103,7 @@ const UseYourMultiSig: React.FC = () => {
               <Fragment>
                 {filteredMultiSigs.length === 0 ? (
                   <MotionBox variants={itemVariants} w='100%'>
-                    <VStack spacing={4}>
+                    <VStack gap={4}>
                       <Box
                         w='100%'
                         p={6}
@@ -123,7 +125,7 @@ const UseYourMultiSig: React.FC = () => {
                   </MotionBox>
                 ) : (
                   <MotionBox variants={itemVariants} w='100%'>
-                    <VStack spacing={3} w='100%'>
+                    <VStack gap={3} w='100%'>
                       <Text
                         fontSize='sm'
                         color='whiteAlpha.600'
@@ -159,7 +161,7 @@ const UseYourMultiSig: React.FC = () => {
                   borderTop='1px solid'
                   borderColor='whiteAlpha.100'
                 >
-                  <VStack spacing={3}>
+                  <VStack gap={3}>
                     <Text
                       fontSize='sm'
                       color='whiteAlpha.600'
@@ -169,19 +171,20 @@ const UseYourMultiSig: React.FC = () => {
                     >
                       Actions
                     </Text>
-                    <HStack spacing={3} w='100%' flexWrap='wrap'>
+                    <HStack gap={3} w='100%' flexWrap='wrap'>
                       <Link href='/importMultiSig'>
                         <Button
-                          leftIcon={<DownloadIcon />}
                           {...glassButtonColors}
                           size='md'
                         >
-                          Import a MultiSig
+                          <HStack gap={2}>
+                            <DownloadIcon />
+                            <Text>Import a MultiSig</Text>
+                          </HStack>
                         </Button>
                       </Link>
                       {multiSigs.length > 0 && (
                         <Button
-                          leftIcon={<DeleteIcon />}
                           onClick={() => clearAllMultiSig()}
                           size='md'
                           bg='rgba(245, 101, 101, 0.15)'
@@ -193,7 +196,10 @@ const UseYourMultiSig: React.FC = () => {
                             color: 'red.200'
                           }}
                         >
-                          Clear All
+                          <HStack gap={2}>
+                            <DeleteIcon />
+                            <Text>Clear All</Text>
+                          </HStack>
                         </Button>
                       )}
                     </HStack>
@@ -201,7 +207,7 @@ const UseYourMultiSig: React.FC = () => {
                 </MotionBox>
               </Fragment>
             )}
-          </VStack>
+          </MotionVStack>
         </Center>
       </BigCard>
     </Center>

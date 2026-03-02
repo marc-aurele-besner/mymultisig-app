@@ -14,8 +14,8 @@ import {
   bscTestnet,
   gnosis,
   gnosisChiado,
-  Chain
-} from 'wagmi/chains'
+  type Chain
+} from 'viem/chains'
 
 const networks: Chain[] = [
   // Ethereum

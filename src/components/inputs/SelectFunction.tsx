@@ -1,5 +1,6 @@
 import React from 'react'
-import { Select } from '@chakra-ui/react'
+import { Select } from '@chakra-ui/select'
+import {} from '@chakra-ui/color-mode'
 import { JsonFragment } from '@ethersproject/abi'
 
 import { buildRawSignatureFromFunction } from '../../utils/buildFunctionSignature'
@@ -20,7 +21,7 @@ const SelectFunction: React.FC<SelectFunctionProps> = ({ abi, onChange }) => {
     <Select
       placeholder='Select Function'
       color='white'
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)}
       _focus={{
         color: 'white'
       }}>

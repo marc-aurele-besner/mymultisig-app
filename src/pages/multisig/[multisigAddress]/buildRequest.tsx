@@ -2,6 +2,8 @@ import React, { useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { Center, VStack, Text, Button } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
 import { useAccount } from 'wagmi'
 
 import BigCard from '../../../components/cards/BigCard'

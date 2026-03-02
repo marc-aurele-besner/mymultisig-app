@@ -1,5 +1,14 @@
 import React, { useEffect } from 'react'
 import {
+  Button,
+  Text,
+  useDisclosure,
+  VStack,
+  HStack,
+  Box
+} from '@chakra-ui/react'
+import { List } from '@chakra-ui/react'
+import {
   Modal,
   ModalOverlay,
   ModalContent,
@@ -7,15 +16,8 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
-  Button,
-  Text,
-  UnorderedList,
-  ListItem,
-  useDisclosure,
-  VStack,
-  HStack,
-  Box
-} from '@chakra-ui/react'
+} from '@chakra-ui/modal'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
 import { WarningTwoIcon } from '@chakra-ui/icons'
 import { motion } from 'framer-motion'
 import { buttonColors } from '../../styles/colors'
@@ -23,19 +25,20 @@ import { buttonColors } from '../../styles/colors'
 const MotionModalContent = motion(ModalContent)
 
 const Disclaimer: React.FC = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { open, onOpen, onClose } = useDisclosure()
 
   useEffect(() => {
     onOpen()
   }, [onOpen])
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered size='lg'>
+    <Modal isOpen={open} onClose={onClose} isCentered>
       <ModalOverlay
         bg='blackAlpha.700'
         backdropFilter='blur(10px)'
       />
       <MotionModalContent
+        maxW='600px'
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -48,7 +51,7 @@ const Disclaimer: React.FC = () => {
         mx={4}
       >
         <ModalHeader pt={6} pb={2}>
-          <HStack spacing={3}>
+          <HStack gap={3}>
             <Box
               p={2}
               borderRadius='lg'
@@ -73,41 +76,25 @@ const Disclaimer: React.FC = () => {
         />
         
         <ModalBody py={4}>
-          <VStack align='stretch' spacing={4}>
+          <VStack align='stretch' gap={4}>
             <Text fontSize='md' color='whiteAlpha.900' lineHeight='tall'>
               Welcome to MyMultiSig. Please note that this is a work in development and some features may be incomplete
               or not functioning as intended. By using this app, you acknowledge and accept that:
             </Text>
             
-            <UnorderedList
-              spacing={3}
-              pl={4}
-              styleType='none'
-              sx={{
-                '& li': {
-                  position: 'relative',
-                  pl: 4,
-                  '&::before': {
-                    content: '"→"',
-                    position: 'absolute',
-                    left: 0,
-                    color: 'brand.400'
-                  }
-                }
-              }}
-            >
-              <ListItem color='whiteAlpha.800' fontSize='sm' lineHeight='tall'>
+            <VStack align='stretch' gap={3} pl={4}>
+              <Box as='li' color='whiteAlpha.800' fontSize='sm' lineHeight='tall' listStyleType='none'>
                 The app may contain bugs, errors, or other issues that could potentially affect your experience or data.
-              </ListItem>
-              <ListItem color='whiteAlpha.800' fontSize='sm' lineHeight='tall'>
+              </Box>
+              <Box as='li' color='whiteAlpha.800' fontSize='sm' lineHeight='tall' listStyleType='none'>
                 We make no guarantees or warranties regarding the reliability, accuracy, or completeness of the app&apos;s
                 features or content.
-              </ListItem>
-              <ListItem color='whiteAlpha.800' fontSize='sm' lineHeight='tall'>
+              </Box>
+              <Box as='li' color='whiteAlpha.800' fontSize='sm' lineHeight='tall' listStyleType='none'>
                 You assume all risks associated with using the app, and we are not responsible for any damages, losses, or
                 liabilities that may result from your use of the app.
-              </ListItem>
-            </UnorderedList>
+              </Box>
+            </VStack>
             
             <Box
               p={4}

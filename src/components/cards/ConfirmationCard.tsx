@@ -1,5 +1,7 @@
 import React, { Fragment, useEffect } from 'react'
-import { Text, useColorModeValue } from '@chakra-ui/react'
+import { Text } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import { useColorModeValue } from '@chakra-ui/color-mode'
 
 import useConfirmation from '../../hooks/useConfirmation'
 import useMyMultiSigCreated from '../../hooks/useMyMultiSigCreated'

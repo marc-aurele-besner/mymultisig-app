@@ -1,5 +1,7 @@
 import React from 'react'
-import { Box, BoxProps, useColorModeValue } from '@chakra-ui/react'
+import { Box, BoxProps } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import { useColorModeValue } from '@chakra-ui/color-mode'
 import { motion } from 'framer-motion'
 
 interface BasicCardProps extends BoxProps {
@@ -38,9 +40,6 @@ const BasicCard: React.FC<BasicCardProps> = ({ children, ...rest }) => {
       border='1px solid'
       borderColor={borderColor}
       boxShadow={boxShadow}
-      sx={{
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-      }}
       _hover={{
         borderColor: hoverBorderColor,
         boxShadow: hoverBoxShadow,

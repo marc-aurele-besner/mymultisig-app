@@ -1,5 +1,7 @@
 import React, { Fragment, useState } from 'react'
 import { VStack, Text } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
 import { useAccount } from 'wagmi'
 
 import TextInput from '../inputs/TextInput'
@@ -38,8 +40,8 @@ const ImportMultiSigForm: React.FC<ImportMultiSigFormProps> = ({ factory }) => {
             placeholder='Import'
             imagePath='/images/import.png'
             onClick={() => handleImportMultiSig()}
-            // isLoading={isLoading}
-            isDisabled={multiSigAddress !== `0x`}
+            // loading={isLoading}
+            disabled={multiSigAddress !== `0x`}
           />
         </Fragment>
       )}

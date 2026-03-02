@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { Center, VStack, Text, Heading, Box, useColorModeValue } from '@chakra-ui/react'
-import { useAccount, useNetwork } from 'wagmi'
+import {Center, VStack, Text, Heading, Box, } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import { useColorModeValue } from '@chakra-ui/color-mode'
+import { useAccount, useChainId, useChains } from 'wagmi'
 import { motion } from 'framer-motion'
 
 import BigCard from '../cards/BigCard'
@@ -10,6 +12,7 @@ import CreateMultiSigForm from '../forms/CreateMultiSigForm'
 import multiSigFactories from '../../constants/multiSigFactory'
 
 const MotionBox = motion(Box)
+const MotionVStack = motion(VStack)
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -34,7 +37,7 @@ const itemVariants = {
 const CreateMultiSig: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
   const { isConnected, address } = useAccount()
-  const { chain } = useNetwork()
+  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const multiSigFactory = multiSigFactories.find((factory) => factory.chainId === chain?.id)
 
   // Color mode values
@@ -52,12 +55,11 @@ const CreateMultiSig: React.FC = () => {
     <Center>
       <BigCard maxW='900px' minH='60vh'>
         <Center>
-          <VStack
-            as={motion.div}
+          <MotionVStack
             variants={containerVariants}
             initial='hidden'
             animate='visible'
-            spacing={6}
+            gap={6}
             w='100%'
             py={{ base: 4, md: 6 }}>
             <MotionBox variants={itemVariants} textAlign='center' w='100%'>
@@ -73,7 +75,7 @@ const CreateMultiSig: React.FC = () => {
 
             {!isConnected || address === undefined || multiSigFactory === undefined ? (
               <MotionBox variants={itemVariants} w='100%'>
-                <VStack spacing={4}>
+                <VStack gap={4}>
                   {(!isConnected || address === undefined) && <ErrorCard>Please connect your wallet first</ErrorCard>}
                   {multiSigFactory === undefined && isConnected && (
                     <ErrorCard>No MultiSig Factory contract detected on this network</ErrorCard>
@@ -88,7 +90,7 @@ const CreateMultiSig: React.FC = () => {
                 <CreateMultiSigForm owner01={address.toString()} factory={multiSigFactory} />
               </MotionBox>
             )}
-          </VStack>
+          </MotionVStack>
         </Center>
       </BigCard>
     </Center>

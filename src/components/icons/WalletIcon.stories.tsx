@@ -1,9 +1,9 @@
 import React from 'react'
-import { ComponentMeta, ComponentStory } from '@storybook/react'
+import type { Meta, StoryFn } from '@storybook/react'
 
 import { WalletIcon } from './wallet'
 
-export default {
+const meta: Meta<typeof React> = {
   title: 'Icons/Wallet',
   component: WalletIcon,
   argTypes: {
@@ -11,9 +11,9 @@ export default {
     width: { control: 'text' },
     height: { control: 'text' }
   }
-} as ComponentMeta<typeof WalletIcon>
+} as Meta<typeof WalletIcon>
 
-const Template: ComponentStory<typeof WalletIcon> = (args) => <WalletIcon {...args} />
+const Template: StoryFn<typeof WalletIcon> = (args: React.ComponentProps<typeof WalletIcon>) => <WalletIcon {...args} />
 
 export const Basic = Template.bind({})
 Basic.args = {

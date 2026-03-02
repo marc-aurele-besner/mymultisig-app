@@ -1,5 +1,6 @@
 import React from 'react'
-import { FormControl, FormLabel, Switch as ChakraSwitch } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import { Switch as ChakraSwitch } from '@chakra-ui/switch'
 
 interface SwitchProps {
   placeholder: string
@@ -7,7 +8,7 @@ interface SwitchProps {
   value?: string
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
   isDisabled?: boolean
-  isReadOnly?: boolean
+  readOnly?: boolean
   isInvalid?: boolean
 }
 
@@ -17,7 +18,7 @@ const Switch: React.FC<SwitchProps> = ({
   value,
   onChange,
   isDisabled,
-  isReadOnly,
+  readOnly,
   isInvalid
 }) => {
   return (
@@ -39,9 +40,9 @@ const Switch: React.FC<SwitchProps> = ({
         defaultValue={defaultValue}
         value={value}
         onChange={onChange}
-        isDisabled={isDisabled}
-        isReadOnly={isReadOnly}
-        isInvalid={isInvalid}
+        disabled={isDisabled}
+        readOnly={readOnly}
+        _invalid={{ borderColor: "red.500" }}
         _placeholder={{
           color: 'gray.200'
         }}

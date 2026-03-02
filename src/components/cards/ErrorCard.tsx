@@ -1,5 +1,7 @@
 import React from 'react'
-import { Box, HStack, Text, useColorModeValue } from '@chakra-ui/react'
+import { Box, HStack, Text } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import { useColorModeValue } from '@chakra-ui/color-mode'
 import { WarningIcon } from '@chakra-ui/icons'
 import { motion } from 'framer-motion'
 
@@ -36,7 +38,7 @@ const ErrorCard: React.FC<ErrorCardProps> = ({ children }) => {
       border='1px solid'
       borderColor={borderColor}
       boxShadow={boxShadow}>
-      <HStack spacing={3} align='flex-start'>
+      <HStack gap={3} align='flex-start'>
         <WarningIcon color={iconColor} boxSize={5} mt={0.5} />
         <Text fontSize='md' fontWeight='500' color={textColor} lineHeight='tall'>
           {children}

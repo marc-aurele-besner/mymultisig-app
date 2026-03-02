@@ -1,5 +1,7 @@
 import React from 'react'
 import { Input, InputProps } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
+import {} from '@chakra-ui/color-mode'
 
 interface TextInputProps extends Omit<InputProps, 'onChange'> {
   placeholder: string
@@ -7,7 +9,7 @@ interface TextInputProps extends Omit<InputProps, 'onChange'> {
   value?: string
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
   isDisabled?: boolean
-  isReadOnly?: boolean
+  readOnly?: boolean
   isInvalid?: boolean
 }
 
@@ -17,7 +19,7 @@ const TextInput: React.FC<TextInputProps> = ({
   value,
   onChange,
   isDisabled,
-  isReadOnly,
+  readOnly,
   isInvalid,
   ...rest
 }) => {
@@ -40,14 +42,9 @@ const TextInput: React.FC<TextInputProps> = ({
       defaultValue={defaultValue}
       value={value}
       onChange={onChange}
-      isDisabled={isDisabled}
-      isReadOnly={isReadOnly}
-      isInvalid={isInvalid}
-      sx={{ transition: 'all 0.2s ease' }}
-      _placeholder={{
-        color: 'whiteAlpha.400',
-        fontWeight: '400'
-      }}
+      disabled={isDisabled}
+      readOnly={readOnly}
+      _invalid={{ borderColor: "red.500" }}
       _hover={{
         borderColor: isInvalid ? 'red.300' : 'whiteAlpha.300',
         bg: 'whiteAlpha.80'
