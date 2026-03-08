@@ -1,4 +1,3 @@
-const webpack = require('webpack')
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true'
 })
@@ -15,64 +14,6 @@ const nextConfig = {
   experimental: {},
   images: {},
   reactStrictMode: true,
-  webpack(config, { isServer }) {
-    // Fix for @chakra-ui/icons compatibility with Chakra UI v3
-    // @chakra-ui/icons v2 tries to import createIcon, Icon, and forwardRef from @chakra-ui/react.
-    // We use NormalModuleReplacementPlugin to only replace imports from @chakra-ui/icons.
-    
-    const shimPath = require.resolve('./chakra-react-shim.mjs')
-    const path = require('path')
-    const shimAbsolutePath = path.resolve(shimPath)
-    const shimDir = path.dirname(shimAbsolutePath)
-    
-    // Create an alias so the shim can import the real package without interception
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@chakra-ui/react-real': require.resolve('@chakra-ui/react')
-    }
-    
-    config.plugins.push(
-      new webpack.NormalModuleReplacementPlugin(
-        /^@chakra-ui\/react$/,
-        (resource) => {
-          // Get the issuer/resource information from multiple sources
-          const context = resource.context || ''
-          const issuer = resource.contextInfo?.issuer || ''
-          const resourcePath = resource.resource || ''
-          const createData = resource.createData || {}
-          const userRequest = createData.userRequest || resource.request || ''
-          
-          // Check if the import is from the shim itself (avoid circular dependency)
-          const normalizedContext = context ? path.normalize(context) : ''
-          const normalizedIssuer = issuer ? path.normalize(issuer) : ''
-          const normalizedShimDir = path.normalize(shimDir)
-          const normalizedShimPath = path.normalize(shimAbsolutePath)
-          
-          const isFromShim = 
-            normalizedContext === normalizedShimDir ||
-            normalizedIssuer === normalizedShimPath ||
-            normalizedContext.includes('chakra-react-shim') ||
-            normalizedIssuer.includes('chakra-react-shim') ||
-            resourcePath.includes('chakra-react-shim') ||
-            userRequest === shimPath ||
-            userRequest.includes('chakra-react-shim')
-          
-          // Only replace if the import is coming from @chakra-ui/icons
-          const isFromIcons = (context.includes('@chakra-ui/icons') || 
-                               issuer.includes('@chakra-ui/icons') ||
-                               resourcePath.includes('@chakra-ui/icons') ||
-                               userRequest.includes('@chakra-ui/icons')) &&
-                              !isFromShim
-          
-          if (isFromIcons) {
-            resource.request = shimPath
-          }
-        }
-      )
-    )
-
-    return config
-  }
 }
 
 // manage i18n

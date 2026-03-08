@@ -5,7 +5,6 @@ import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 // import actionsList from '../../slackActions'
 // import multiSigFactories from '../../constants/multiSigFactory'
 
-if (!process.env.FAUNADB_SERVER_SECRET) throw new Error('No FAUNADB_SERVER_SECRET in .env file')
 if (!process.env.SLACK_TOKEN) throw new Error('No SLACK_TOKEN in .env file')
 if (!process.env.SLACK_CONVERSATION_ID) throw new Error('No SLACK_CONVERSATION_ID in .env file')
 if (!process.env.PRIVATE_KEY) throw new Error('No PRIVATE_KEY in .env file')

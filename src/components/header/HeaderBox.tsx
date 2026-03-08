@@ -19,7 +19,7 @@ import {
   DrawerContent,
   DrawerCloseButton,
 } from '@chakra-ui/drawer'
-import { HamburgerIcon, MoonIcon, SunIcon, AddIcon, CheckCircleIcon, LinkIcon, LockIcon, InfoOutlineIcon } from '@chakra-ui/icons'
+import { HamburgerIcon, MoonIcon, SunIcon, AddIcon, CheckCircleIcon, LinkIcon, LockIcon, InfoOutlineIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
 import HeaderLink from './HeaderLink'
 import HeaderNetworkSelector from './HeaderNetworkSelector'

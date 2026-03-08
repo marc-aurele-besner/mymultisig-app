@@ -4,7 +4,7 @@ import { Text, Box, HStack, VStack, Button, useClipboard } from '@chakra-ui/reac
 import { Avatar } from '@chakra-ui/avatar'
 import { Tooltip } from '@chakra-ui/tooltip'
 import { useColorModeValue } from '@chakra-ui/color-mode'
-import { CheckIcon, CopyIcon, ExternalLinkIcon } from '@chakra-ui/icons'
+import { CheckIcon, CopyIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
 import networks from '../../constants/networks'
 

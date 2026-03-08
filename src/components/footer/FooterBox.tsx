@@ -3,7 +3,7 @@ import React from 'react'
 import { Box, HStack, Text, VStack } from '@chakra-ui/react'
 import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
 import { useColorModeValue } from '@chakra-ui/color-mode'
-import { LockIcon, ExternalLinkIcon } from '@chakra-ui/icons'
+import { LockIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
 
 const MotionBox = motion(Box)

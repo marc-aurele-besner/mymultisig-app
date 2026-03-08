@@ -18,7 +18,7 @@ import {
   ModalCloseButton,
 } from '@chakra-ui/modal'
 import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import { WarningTwoIcon } from '@chakra-ui/icons'
+import { WarningTwoIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
 import { buttonColors } from '../../styles/colors'
 

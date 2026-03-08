@@ -4,7 +4,7 @@ import { Center, VStack, Text, Heading, Box, HStack, Button } from '@chakra-ui/r
 import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
 import {} from '@chakra-ui/color-mode'
 import { useAccount, useChainId, useChains } from 'wagmi'
-import { DownloadIcon, DeleteIcon } from '@chakra-ui/icons'
+import { DownloadIcon, DeleteIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
 
 import BigCard from '../cards/BigCard'

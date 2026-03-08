@@ -26,7 +26,7 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 ### UI Layer
 - **Chakra UI v3** with custom theme in `src/styles/theme.ts` (dark mode default)
 - Shared style objects (card, button, input variants) in `src/styles/colors.ts`
-- **Webpack shim required**: `chakra-react-shim.mjs` fixes `@chakra-ui/icons` v2 compatibility with Chakra v3, applied via `NormalModuleReplacementPlugin` in `next.config.js`. Do not remove these shim files.
+- **Icons**: Use `src/components/icons/ChakraIcons.tsx` (react-icons + Chakra Icon) instead of `@chakra-ui/icons`; the latter is incompatible with Chakra v3 (forwardRef export removed).
 
 ### Web3
 - **wagmi v3 + viem v2** for all on-chain reads/writes
@@ -41,7 +41,8 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 - `src/states/multiSigs.ts` — multisig factories, deployed multisigs, selected address, transaction requests
 
 ### Backend / Data Persistence
-- **FaunaDB** via `faunadb-utility` for storing multisig wallets and transaction requests
+- **Neon PostgreSQL** via `@neondatabase/serverless` for storing multisig wallets and transaction requests
+- Schema in `src/lib/db/schema.sql`; client in `src/lib/db/neon.ts`
 - All writes verified with EIP-712 typed data signatures (server re-validates before writing)
 - API routes in `src/pages/api/` handle CRUD + signature verification
 
@@ -52,13 +53,13 @@ All contract writes follow the same flow:
 1. Domain hook (e.g., `useCreateMultiSig`, `useExecTransaction`) builds wagmi config
 2. Delegates to `useFinalizeTransaction` which wraps `useWriteContract` + `useWaitForTransactionReceipt`
 3. `useFinalizeTransaction` manages toast notifications (info → success/error)
-4. Domain hooks use `useWatchContractEvent` for on-chain events, then update FaunaDB via API routes and Zustand state locally
+4. Domain hooks use `useWatchContractEvent` for on-chain events, then update Neon via API routes and Zustand state locally
 
 ### Data Flow for Mutations
 1. User action triggers a wagmi write
 2. On success event, hook calls `signData` (client → `/api/signData`)
 3. Signed data sent to `addContent`/`updateContent` (→ `/api/add-content` or `/api/update-content/[id]`)
-4. API route re-validates signature server-side before writing to FaunaDB
+4. API route re-validates signature server-side before writing to Neon
 5. Zustand store updated locally on API success
 
 ### Component Conventions
@@ -75,7 +76,7 @@ All contract writes follow the same flow:
 - `NEXT_PUBLIC_ALCHEMY_API_KEY` / `NEXT_PUBLIC_INFURA_API_KEY` — optional RPC
 
 **Server-side:**
-- `FAUNADB_SERVER_SECRET` — FaunaDB secret (required for API routes)
+- `DATABASE_URL` — Neon PostgreSQL connection string (required for API routes)
 - `PRIVATE_KEY` — Backend EVM wallet for signing (do NOT fund)
 - `RPC_ETHEREUM` — Ethereum RPC for backend signer
 - `ETHERSCAN_API_KEY` — ABI fetching via `/api/getABI`

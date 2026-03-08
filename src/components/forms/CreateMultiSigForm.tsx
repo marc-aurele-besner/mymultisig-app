@@ -4,7 +4,7 @@ import { VStack, Text, Box, HStack, Button, Badge } from '@chakra-ui/react'
 import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
 import {} from '@chakra-ui/color-mode'
 import { useChainId, useChains } from 'wagmi'
-import { ExternalLinkIcon, CheckCircleIcon, AddIcon, InfoIcon } from '@chakra-ui/icons'
+import { ExternalLinkIcon, CheckCircleIcon, AddIcon, InfoIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
 
 import TextInput from '../inputs/TextInput'

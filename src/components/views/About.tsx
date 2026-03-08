@@ -15,7 +15,7 @@ import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakr
 import { useColorModeValue } from '@chakra-ui/color-mode'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { AddIcon, CheckCircleIcon, ExternalLinkIcon, LockIcon, ViewIcon, StarIcon, SettingsIcon } from '@chakra-ui/icons'
+import { AddIcon, CheckCircleIcon, ExternalLinkIcon, LockIcon, ViewIcon, StarIcon, SettingsIcon } from '../icons/ChakraIcons'
 
 import BigCard from '../cards/BigCard'
 import { buttonColors, glassButtonColors } from '../../styles/colors'

@@ -21,7 +21,7 @@ import BigCard from '../cards/BigCard'
 import ConnectWallet from './ConnectWallet'
 import ConnectedWallet from './ConnectedWallet'
 import Disclaimer from '../modals/Disclaimer'
-import { AddIcon, CheckCircleIcon, LinkIcon, LockIcon, StarIcon, ViewIcon } from '@chakra-ui/icons'
+import { AddIcon, CheckCircleIcon, LinkIcon, LockIcon, StarIcon, ViewIcon } from '../icons/ChakraIcons'
 
 const MotionBox = motion(Box)
 const MotionVStack = motion(VStack)

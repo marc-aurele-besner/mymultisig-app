@@ -112,7 +112,7 @@ Public (client) variables:
 Server-only variables:
 
 - `ETHERSCAN_API_KEY` — required for ABI fetch in `/api/getABI`
-- `FAUNADB_SERVER_SECRET` — required for storing/retrieving requests
+- `DATABASE_URL` — Neon PostgreSQL connection string (required for storing/retrieving requests)
 - `PRIVATE_KEY` — backend signer used to sign messages; do NOT use a key with funds
 - `RPC_ETHEREUM` — RPC URL used by the backend signer
 - `SLACK_TOKEN` and `SLACK_CONVERSATION_ID` — optional notifications

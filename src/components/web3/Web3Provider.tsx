@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider, createConfig, http } from 'wagmi'
 import { coinbaseWallet, injected, metaMask, walletConnect } from 'wagmi/connectors'
 import type { Chain } from 'viem/chains'
@@ -12,6 +13,8 @@ interface Web3ProviderProps {
 }
 
 const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
+  const [queryClient] = useState(() => new QueryClient())
+
   // Set up config
   const config = createConfig({
     chains: networks as [Chain, ...Chain[]],
@@ -39,7 +42,11 @@ const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     }, {} as Record<number, ReturnType<typeof http>>)
   })
 
-  return <WagmiProvider config={config}>{children}</WagmiProvider>
+  return (
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </WagmiProvider>
+  )
 }
 
 export default Web3Provider

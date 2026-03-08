@@ -1,18 +1,15 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { providers, Wallet } from 'ethers'
-import fauna from 'faunadb-utility'
-// import { slackBuilder, slackUtils } from 'slack-utility'
-// import { TBlock } from 'slack-utility/src/types'
 
+import { getSql } from '../../../lib/db/neon'
+import { rowToMultiSigRequestDB } from '../../../lib/db/mappers'
 import signData from '../../../utils/signData'
 
-if (!process.env.FAUNADB_SERVER_SECRET) throw new Error('No FAUNADB_SERVER_SECRET in .env file')
+if (!process.env.DATABASE_URL) throw new Error('No DATABASE_URL in .env file')
 if (!process.env.PRIVATE_KEY) throw new Error('No PRIVATE_KEY in .env file')
 if (!process.env.RPC_ETHEREUM) throw new Error('No RPC_ETHEREUM in .env file')
 if (!process.env.SLACK_TOKEN) throw new Error('No SLACK_TOKEN in .env file')
 if (!process.env.SLACK_CONVERSATION_ID) throw new Error('No SLACK_CONVERSATION_ID in .env file')
-
-const { FAUNADB_SERVER_SECRET, SLACK_TOKEN, SLACK_CONVERSATION_ID } = process.env
 
 const FUNCTION = 'update-content'
 
@@ -36,15 +33,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     data.signature !== undefined &&
     data.signatureExpiry !== undefined
   ) {
-    // if (process.env.SLACK_TOKEN && process.env.SLACK_CONVERSATION_ID)
-    //   await slackUtils.slackPostMessage(
-    //     process.env.SLACK_TOKEN,
-    //     process.env.SLACK_CONVERSATION_ID,
-    //     'Edit Content function called',
-    //     [slackBuilder.buildSimpleSlackHeaderMsg(`Someone is updating data on MyMultiSig.app (${data.action})`)],
-    //     true
-    //   )
-
     const matchingUISignData = await signData(
       process.env.PRIVATE_KEY,
       process.env.RPC_ETHEREUM,
@@ -66,70 +54,55 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       matchingUISignData.signature !== matchingUISignDataCheck2
     ) {
       console.log('Signature mismatch')
-      res.status(400).json({
+      return res.status(400).json({
         message: 'Signature does not match'
       })
     }
-    /**
-     * To-Do: Check the user signature
-     */
-    let classes: string[] = []
-    let indexes: string[] = []
-    // let slackMessageTitle = ''
-    // const slackMessageBlocks: TBlock[] = []
+
+    const sql = getSql()
+
     switch (data.action) {
       case 'updateMultiSigRequest':
-        classes = ['multisig-requests']
-        indexes = ['multisig-requests_by_id']
-        // slackMessageTitle = 'Someone has signed a request!'
-        // slackMessageBlocks.push(slackBuilder.buildSimpleSlackHeaderMsg(`Someone has signed a request!`))
-        break
-      case 'resetMultiSigRequest':
-        classes = ['multisig-requests']
-        indexes = ['multisig-requests_by_id']
-        // slackMessageTitle = 'Someone has reset a request!'
-        // slackMessageBlocks.push(slackBuilder.buildSimpleSlackHeaderMsg(`Someone has reset a request!`))
-        break
-      default:
-        break
-    }
-    // if (slackMessageTitle && slackMessageBlocks && slackMessageBlocks.length > 0) {
-    //   await slackUtils.slackPostMessage(SLACK_TOKEN, SLACK_CONVERSATION_ID, slackMessageTitle, slackMessageBlocks, true)
-    // }
-    if (classes.length == 1) {
-      const previousData = await fauna.queryTermByFaunaIndexes(FAUNADB_SERVER_SECRET, indexes[0], id)
-
-      if (previousData.statusCode == 200 && previousData.body) {
-        const foundedData = JSON.parse(previousData.body)
-        if (foundedData && foundedData.length == 1) {
-          const documentRef = foundedData[0].ref['@ref'].id
-          const newData = { ...foundedData[0].data, ...data.data }
-          const editData = await fauna.updateFaunaDocument(FAUNADB_SERVER_SECRET, classes[0], documentRef, newData)
-          res.status(200).json({
-            message: 'Data updated',
-            content: JSON.parse(editData.body)
-          })
-        } else {
-          console.log('Invalid document')
-          res.status(400).json({
-            message: 'Invalid document'
-          })
+      case 'resetMultiSigRequest': {
+        const rows = await sql`
+          SELECT * FROM multisig_requests WHERE id = ${id}
+        `
+        if (rows.length === 0) {
+          return res.status(400).json({ message: 'Invalid document id' })
         }
-      } else {
-        console.log('Invalid document id')
-        res.status(400).json({
-          message: 'Invalid document id'
+        const existing = rows[0]
+        const patch = data.data as Record<string, unknown>
+        const request = patch.request ?? existing.request
+        const signatures = patch.signatures ?? existing.signatures ?? []
+        const ownerSigners = patch.ownerSigners ?? existing.owner_signers ?? []
+        const dateExecuted = patch.dateExecuted ?? existing.date_executed ?? ''
+        const isExecuted = patch.isExecuted ?? existing.is_executed ?? false
+        const isSuccessful = patch.isSuccessful ?? patch.isSuccess ?? existing.is_successful ?? false
+
+        await sql`
+          UPDATE multisig_requests SET
+            request = ${JSON.stringify(request)},
+            signatures = ${JSON.stringify(signatures)},
+            owner_signers = ${JSON.stringify(ownerSigners)},
+            date_executed = ${dateExecuted},
+            is_executed = ${isExecuted},
+            is_successful = ${isSuccessful}
+          WHERE id = ${id}
+        `
+        const updated = await sql`
+          SELECT * FROM multisig_requests WHERE id = ${id}
+        `
+        return res.status(200).json({
+          message: 'Data updated',
+          content: rowToMultiSigRequestDB(updated[0]).data
         })
       }
-    } else {
-      console.log('Invalid collection')
-      res.status(400).json({
-        message: 'Invalid collection'
-      })
+      default:
+        return res.status(400).json({ message: 'Invalid collection' })
     }
   } else {
     console.log('Invalid data')
-    res.status(400).json({
+    return res.status(400).json({
       message: 'Invalid data'
     })
   }

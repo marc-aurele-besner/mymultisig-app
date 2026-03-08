@@ -14,7 +14,7 @@ import {
   MenuList,
   MenuItem,
 } from '@chakra-ui/menu'
-import { ChevronDownIcon, CheckIcon } from '@chakra-ui/icons'
+import { ChevronDownIcon, CheckIcon } from '../icons/ChakraIcons'
 import { useChainId, useChains, useSwitchChain } from 'wagmi'
 import { motion } from 'framer-motion'
 

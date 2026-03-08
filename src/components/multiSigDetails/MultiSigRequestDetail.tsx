@@ -26,10 +26,10 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
     address
   )
 
-  const deleted = useDeleteMultiSigRequest(multiSigRequestId, requestDetails?.ref['@ref'].id, isDeleted)
+  const deleted = useDeleteMultiSigRequest(multiSigRequestId, multiSigRequestId, isDeleted)
   const { setSelectedMultiSigTransactionRequest } = useMultiSigs()
 
-  useResetMultiSigRequest(multiSigRequestId, requestDetails?.ref['@ref'].id, isReset)
+  useResetMultiSigRequest(multiSigRequestId, multiSigRequestId, isReset)
   if (deleted) setSelectedMultiSigTransactionRequest(null)
 
   if (requestDetails == null || multiSigDetails == null) return null
