@@ -9,7 +9,7 @@ interface ErrorCardProps {
   children: React.ReactNode
 }
 
-const MotionBox = motion(Box)
+const MotionBox = motion.create(Box)
 
 const ErrorCard: React.FC<ErrorCardProps> = ({ children }) => {
   const bgGradient = useColorModeValue(

@@ -8,7 +8,7 @@ import { CheckIcon, CopyIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
 import networks from '../../constants/networks'
 
-const MotionBox = motion(Box)
+const MotionBox = motion.create(Box)
 
 const ConnectedWallet: React.FC = () => {
   const { address, connector, isConnected } = useAccount()

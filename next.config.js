@@ -14,6 +14,18 @@ const nextConfig = {
   experimental: {},
   images: {},
   reactStrictMode: true,
+  webpack: (config) => {
+    // Optional @wagmi/connectors peer deps we don't use (gemini, porto) — stub so build succeeds
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      '@gemini-wallet/core': false,
+      porto: false,
+      'porto/internal': false,
+      // MetaMask SDK optional React Native dep — not used in web
+      '@react-native-async-storage/async-storage': false
+    }
+    return config
+  }
 }
 
 // manage i18n

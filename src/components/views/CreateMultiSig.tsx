@@ -11,8 +11,8 @@ import ConnectWallet from './ConnectWallet'
 import CreateMultiSigForm from '../forms/CreateMultiSigForm'
 import multiSigFactories from '../../constants/multiSigFactory'
 
-const MotionBox = motion(Box)
-const MotionVStack = motion(VStack)
+const MotionBox = motion.create(Box)
+const MotionVStack = motion.create(VStack)
 
 const containerVariants = {
   hidden: { opacity: 0 },

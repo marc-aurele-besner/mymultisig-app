@@ -6,7 +6,7 @@ import { useConnect } from 'wagmi'
 import { motion } from 'framer-motion'
 import ErrorCard from '../cards/ErrorCard'
 
-const MotionBox = motion(Box)
+const MotionBox = motion.create(Box)
 
 const walletConfig = {
   metaMask: {

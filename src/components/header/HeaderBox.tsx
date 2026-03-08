@@ -25,7 +25,7 @@ import HeaderLink from './HeaderLink'
 import HeaderNetworkSelector from './HeaderNetworkSelector'
 import { HeaderWalletSelector } from './HeaderWalletSelector'
 
-const MotionBox = motion(Box)
+const MotionBox = motion.create(Box)
 
 const HeaderBox: React.FC = () => {
   const [isLargerThan800] = useMediaQuery(['(min-width: 800px)'], {

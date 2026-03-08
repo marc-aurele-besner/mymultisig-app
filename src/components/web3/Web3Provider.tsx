@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider, createConfig, http } from 'wagmi'
 import { coinbaseWallet, injected, metaMask, walletConnect } from 'wagmi/connectors'
@@ -12,35 +12,38 @@ interface Web3ProviderProps {
   children: React.ReactNode
 }
 
+const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID ?? ''
+
 const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
   const [queryClient] = useState(() => new QueryClient())
 
-  // Set up config
-  const config = createConfig({
-    chains: networks as [Chain, ...Chain[]],
-    connectors: [
+  const config = useMemo(() => {
+    const connectors = [
       metaMask(),
       coinbaseWallet({
         appName: 'wagmi'
       }),
-      walletConnect({
-        projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID ?? '',
-        showQrModal: true
-      }),
+      ...(projectId
+        ? [
+            walletConnect({
+              projectId,
+              showQrModal: false
+            })
+          ]
+        : []),
       injected({
         shimDisconnect: true
       })
-      // ledger() // TODO: Add ledger connector from @wagmi/connectors/ledger
-      // safe({
-      //   allowedDomains: [/gnosis-safe.io$/, /app.safe.global$/],
-      //   debug: false
-      // })
-    ],
-    transports: networks.reduce((acc, chain) => {
-      acc[chain.id] = http()
-      return acc
-    }, {} as Record<number, ReturnType<typeof http>>)
-  })
+    ]
+    return createConfig({
+      chains: networks as [Chain, ...Chain[]],
+      connectors,
+      transports: networks.reduce((acc, chain) => {
+        acc[chain.id] = http()
+        return acc
+      }, {} as Record<number, ReturnType<typeof http>>)
+    })
+  }, [])
 
   return (
     <WagmiProvider config={config}>

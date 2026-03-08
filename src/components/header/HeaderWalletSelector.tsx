@@ -13,7 +13,7 @@ import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { motion } from 'framer-motion'
 import { WalletIcon } from '../icons/wallet'
 
-const MotionButton = motion(Button)
+const MotionButton = motion.create(Button)
 
 export const HeaderWalletSelector: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)

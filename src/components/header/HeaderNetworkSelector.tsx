@@ -18,7 +18,7 @@ import { ChevronDownIcon, CheckIcon } from '../icons/ChakraIcons'
 import { useChainId, useChains, useSwitchChain } from 'wagmi'
 import { motion } from 'framer-motion'
 
-const MotionButton = motion(Button)
+const MotionButton = motion.create(Button)
 
 const HeaderNetworkSelector: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)

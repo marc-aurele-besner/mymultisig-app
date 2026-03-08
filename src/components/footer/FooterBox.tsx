@@ -6,7 +6,7 @@ import { useColorModeValue } from '@chakra-ui/color-mode'
 import { LockIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
 
-const MotionBox = motion(Box)
+const MotionBox = motion.create(Box)
 
 const FooterBox: React.FC = () => {
   const footerBg = useColorModeValue(

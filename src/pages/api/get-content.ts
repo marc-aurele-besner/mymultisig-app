@@ -59,11 +59,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     switch (data.action) {
       case 'getMultiSigRequests': {
-        const rows = await sql`
+        const rows = (await sql`
           SELECT * FROM multisig_requests
           WHERE multi_sig_address = ${data.data.multiSigAddress}
             AND is_active = true
-        `
+        `) as Record<string, unknown>[]
         const content = rows.map(rowToMultiSigRequestDB)
         return res.status(200).json({
           message: 'Data retrieved',
@@ -71,14 +71,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         })
       }
       case 'getMultiSigRequestById': {
-        const rows = await sql`
+        const arr = (await sql`
           SELECT * FROM multisig_requests
           WHERE id = ${data.data.multiSigRequestId}
-        `
-        if (rows.length === 0) {
+        `) as Record<string, unknown>[]
+        if (arr.length === 0) {
           return res.status(404).json({ message: 'Data not found' })
         }
-        const content = [rowToMultiSigRequestDB(rows[0])]
+        const content = [rowToMultiSigRequestDB(arr[0])]
         return res.status(200).json({
           message: 'Data retrieved',
           content

@@ -64,9 +64,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     switch (data.action) {
       case 'updateMultiSigRequest':
       case 'resetMultiSigRequest': {
-        const rows = await sql`
+        const rows = (await sql`
           SELECT * FROM multisig_requests WHERE id = ${id}
-        `
+        `) as Record<string, unknown>[]
         if (rows.length === 0) {
           return res.status(400).json({ message: 'Invalid document id' })
         }
@@ -89,9 +89,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             is_successful = ${isSuccessful}
           WHERE id = ${id}
         `
-        const updated = await sql`
+        const updated = (await sql`
           SELECT * FROM multisig_requests WHERE id = ${id}
-        `
+        `) as Record<string, unknown>[]
         return res.status(200).json({
           message: 'Data updated',
           content: rowToMultiSigRequestDB(updated[0]).data

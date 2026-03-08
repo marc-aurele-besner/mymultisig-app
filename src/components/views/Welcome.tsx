@@ -23,8 +23,8 @@ import ConnectedWallet from './ConnectedWallet'
 import Disclaimer from '../modals/Disclaimer'
 import { AddIcon, CheckCircleIcon, LinkIcon, LockIcon, StarIcon, ViewIcon } from '../icons/ChakraIcons'
 
-const MotionBox = motion(Box)
-const MotionVStack = motion(VStack)
+const MotionBox = motion.create(Box)
+const MotionVStack = motion.create(VStack)
 
 const containerVariants = {
   hidden: { opacity: 0 },

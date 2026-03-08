@@ -13,7 +13,7 @@ interface ImageButtonProps {
   variant?: 'primary' | 'secondary' | 'glass'
 }
 
-const MotionButton = motion(Button)
+const MotionButton = motion.create(Button)
 
 const ImageButton: React.FC<ImageButtonProps> = ({
   placeholder,

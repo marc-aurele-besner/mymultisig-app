@@ -14,7 +14,7 @@ import { MultiSigFactory, MultiSig, MultiSigConstructorArgs } from '../../models
 import useCreateMultiSig from '../../hooks/useCreateMultiSig'
 import { buttonColors, glassButtonColors } from '../../styles/colors'
 
-const MotionBox = motion(Box)
+const MotionBox = motion.create(Box)
 
 interface CreateMultiSigFormProps {
   owner01: string

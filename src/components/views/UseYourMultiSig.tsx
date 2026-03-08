@@ -14,8 +14,8 @@ import MultiSigList from '../multiSigDetails/MultiSigList'
 import useMultiSigs from '../../states/multiSigs'
 import { glassButtonColors } from '../../styles/colors'
 
-const MotionBox = motion(Box)
-const MotionVStack = motion(VStack)
+const MotionBox = motion.create(Box)
+const MotionVStack = motion.create(VStack)
 
 const containerVariants = {
   hidden: { opacity: 0 },
