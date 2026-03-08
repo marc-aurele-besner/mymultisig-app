@@ -1,8 +1,4 @@
 import React from 'react'
-import { Box, Center, VStack } from '@chakra-ui/react'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import {} from '@chakra-ui/color-mode'
-
 import HeaderBox from '../header/HeaderBox'
 import FooterBox from '../footer/FooterBox'
 
@@ -12,11 +8,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <Box
-      minH='100vh'
-      position='relative'
-      overflow='hidden'
-    >
+    <div className="relative min-h-screen overflow-hidden">
       <style>{`
         @keyframes float {
           0%, 100% { transform: translate(0, 0) scale(1); }
@@ -34,80 +26,51 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         }
       `}</style>
       {/* Animated background orbs */}
-      <Box
-        position='fixed'
-        top='-20%'
-        left='-10%'
-        w='50vw'
-        h='50vw'
-        maxW='600px'
-        maxH='600px'
-        borderRadius='full'
-        bg='radial-gradient(circle, rgba(56, 178, 172, 0.15) 0%, transparent 70%)'
-        filter='blur(60px)'
-        pointerEvents='none'
-        animation='float 20s ease-in-out infinite'
+      <div
+        className="fixed -top-[20%] -left-[10%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle, rgba(56, 178, 172, 0.15) 0%, transparent 70%)',
+          filter: 'blur(60px)',
+          animation: 'float 20s ease-in-out infinite'
+        }}
       />
-      <Box
-        position='fixed'
-        bottom='-20%'
-        right='-10%'
-        w='60vw'
-        h='60vw'
-        maxW='700px'
-        maxH='700px'
-        borderRadius='full'
-        bg='radial-gradient(circle, rgba(0, 132, 255, 0.12) 0%, transparent 70%)'
-        filter='blur(80px)'
-        pointerEvents='none'
-        animation='floatReverse 25s ease-in-out infinite'
+      <div
+        className="fixed -bottom-[20%] -right-[10%] w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle, rgba(0, 132, 255, 0.12) 0%, transparent 70%)',
+          filter: 'blur(80px)',
+          animation: 'floatReverse 25s ease-in-out infinite'
+        }}
       />
-      <Box
-        position='fixed'
-        top='40%'
-        right='20%'
-        w='30vw'
-        h='30vw'
-        maxW='400px'
-        maxH='400px'
-        borderRadius='full'
-        bg='radial-gradient(circle, rgba(138, 75, 255, 0.08) 0%, transparent 70%)'
-        filter='blur(50px)'
-        pointerEvents='none'
-        animation='floatSlow 30s ease-in-out infinite'
+      <div
+        className="fixed top-[40%] right-[20%] w-[30vw] h-[30vw] max-w-[400px] max-h-[400px] rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle, rgba(138, 75, 255, 0.08) 0%, transparent 70%)',
+          filter: 'blur(50px)',
+          animation: 'floatSlow 30s ease-in-out infinite'
+        }}
       />
-      
+
       {/* Grid pattern overlay */}
-      <Box
-        position='fixed'
-        inset={0}
-        pointerEvents='none'
-        opacity={0.03}
-        backgroundImage='linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px)'
-        backgroundSize='60px 60px'
+      <div
+        className="fixed inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px)',
+          backgroundSize: '60px 60px'
+        }}
       />
 
       {/* Main content */}
-      <Center position='relative' zIndex={1}>
-        <VStack
-          w='100%'
-          minH='100vh'
-          gap={0}
-          justify='space-between'
-        >
+      <div className="relative z-[1] flex justify-center">
+        <div className="flex w-full min-h-screen flex-col justify-between gap-0">
           <HeaderBox />
-          <Box
-            flex='1'
-            w='100%'
-            py={{ base: 4, md: 6 }}
-            px={{ base: 2, md: 4 }}
-          >
+          <div className="flex-1 w-full py-4 px-2 md:py-6 md:px-4">
             {children}
-          </Box>
+          </div>
           <FooterBox />
-        </VStack>
-      </Center>
-    </Box>
+        </div>
+      </div>
+    </div>
   )
 }
 

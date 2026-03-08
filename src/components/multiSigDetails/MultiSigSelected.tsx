@@ -1,9 +1,6 @@
-import React, { Fragment } from 'react'
+import React from 'react'
 import Link from 'next/link'
-import { Box, Button, HStack, Center } from '@chakra-ui/react'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import {} from '@chakra-ui/color-mode'
-
+import { Button } from '@/components/ui/button'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import CreateMultiSigRequestForm from '../forms/CreateMultiSigRequestForm'
 import useMultiSigs from '../../states/multiSigs'
@@ -20,30 +17,26 @@ const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, addres
   if (multiSigDetails == null) return null
 
   return (
-    <Fragment>
-      <Box>
-        <HStack pl='1.5rem' pr='1.5rem'>
-          <Center>
-            <Link href={`/multisig/${multiSigAddress}/buildRequest`}>
-              <Button colorScheme='blue' m='1rem' mr='2rem'>
-                Build a request
-              </Button>
-            </Link>
-            <Link href={`/multisig/${multiSigAddress}/requests`}>
-              <Button colorScheme='blue' m='1rem' mr='2rem'>
-                Consult requests
-              </Button>
-            </Link>
-          </Center>
-        </HStack>
+    <>
+      <div>
+        <div className="flex justify-center px-6">
+          <div className="flex gap-2">
+            <Button asChild>
+              <Link href={`/multisig/${multiSigAddress}/buildRequest`}>Build a request</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href={`/multisig/${multiSigAddress}/requests`}>Consult requests</Link>
+            </Button>
+          </div>
+        </div>
         <CreateMultiSigRequestForm multiSigAddress={multiSigAddress} />
-      </Box>
-      <Link href='/useYourMultiSig' onClick={() => setSelectedMultiSigAddress(null)}>
-        <Button colorScheme='blue' m='1rem' mr='2rem'>
+      </div>
+      <Button asChild variant="outline" className="mx-4 mt-4">
+        <Link href="/useYourMultiSig" onClick={() => setSelectedMultiSigAddress(null)}>
           Select a different MultiSig to use
-        </Button>
-      </Link>
-    </Fragment>
+        </Link>
+      </Button>
+    </>
   )
 }
 

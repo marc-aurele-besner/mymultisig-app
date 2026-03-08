@@ -1,57 +1,71 @@
 /**
- * Drop-in replacement for @chakra-ui/icons using react-icons + Chakra Box.
- * Uses Box with polymorphic "as" to avoid Chakra v3 Icon not forwarding "as"
- * correctly (which can cause "Functions are not valid as a React child").
+ * Icon exports for shadcn/Tailwind. Use className for size and color (e.g. "h-5 w-5 text-primary").
+ * Re-exports from lucide-react with the same names as before for drop-in replacement.
  */
-import React from 'react'
-import { Box, type BoxProps } from '@chakra-ui/react'
 import {
-  FiPlus,
-  FiCheckCircle,
-  FiExternalLink,
-  FiLock,
-  FiEye,
-  FiStar,
-  FiSettings,
-  FiCheck,
-  FiCopy,
-  FiChevronDown,
-  FiDownload,
-  FiTrash2,
-  FiAlertTriangle,
-  FiAlertCircle,
-  FiMenu,
-  FiMoon,
-  FiSun,
-  FiLink,
-  FiInfo
-} from 'react-icons/fi'
+  Plus as PlusIcon,
+  CheckCircle as CheckCircleIconLucide,
+  ExternalLink as ExternalLinkIconLucide,
+  Lock as LockIconLucide,
+  Eye as EyeIconLucide,
+  Star as StarIconLucide,
+  Settings as SettingsIconLucide,
+  Check as CheckIconLucide,
+  Copy as CopyIconLucide,
+  ChevronDown as ChevronDownIconLucide,
+  Download as DownloadIconLucide,
+  Trash2 as Trash2IconLucide,
+  TriangleAlert as TriangleAlertIconLucide,
+  AlertCircle as AlertCircleIconLucide,
+  Menu as MenuIconLucide,
+  Moon as MoonIconLucide,
+  Sun as SunIconLucide,
+  Link as LinkIconLucide,
+  Info as InfoIconLucide
+} from 'lucide-react'
+import React from 'react'
+import { cn } from '@/lib/utils'
 
-export type IconProps = BoxProps
-
-const createIcon = (IconComponent: React.ComponentType<IconProps>, displayName: string) => {
-  const WrappedIcon = (props: IconProps) => <Box as={IconComponent} display='inline-block' lineHeight='1em' {...props} />
-  WrappedIcon.displayName = displayName
-  return WrappedIcon
+export type IconProps = React.SVGProps<SVGSVGElement> & {
+  size?: number
+  boxSize?: number
+  className?: string
 }
 
-export const AddIcon = createIcon(FiPlus, 'AddIcon')
-export const CheckCircleIcon = createIcon(FiCheckCircle, 'CheckCircleIcon')
-export const ExternalLinkIcon = createIcon(FiExternalLink, 'ExternalLinkIcon')
-export const LockIcon = createIcon(FiLock, 'LockIcon')
-export const ViewIcon = createIcon(FiEye, 'ViewIcon')
-export const StarIcon = createIcon(FiStar, 'StarIcon')
-export const SettingsIcon = createIcon(FiSettings, 'SettingsIcon')
-export const CheckIcon = createIcon(FiCheck, 'CheckIcon')
-export const CopyIcon = createIcon(FiCopy, 'CopyIcon')
-export const ChevronDownIcon = createIcon(FiChevronDown, 'ChevronDownIcon')
-export const DownloadIcon = createIcon(FiDownload, 'DownloadIcon')
-export const DeleteIcon = createIcon(FiTrash2, 'DeleteIcon')
-export const WarningIcon = createIcon(FiAlertTriangle, 'WarningIcon')
-export const WarningTwoIcon = createIcon(FiAlertCircle, 'WarningTwoIcon')
-export const HamburgerIcon = createIcon(FiMenu, 'HamburgerIcon')
-export const MoonIcon = createIcon(FiMoon, 'MoonIcon')
-export const SunIcon = createIcon(FiSun, 'SunIcon')
-export const LinkIcon = createIcon(FiLink, 'LinkIcon')
-export const InfoIcon = createIcon(FiInfo, 'InfoIcon')
-export const InfoOutlineIcon = createIcon(FiInfo, 'InfoOutlineIcon')
+const withIcon = (Icon: React.ComponentType<IconProps>, displayName: string) => {
+  const Wrapped = ({ className, size, boxSize, ...props }: IconProps) => {
+    const dim = size ?? boxSize ?? 24
+    return (
+    <Icon
+      className={cn('inline-block shrink-0', className)}
+      size={dim}
+      width={dim}
+      height={dim}
+      {...props}
+    />
+    )
+  }
+  Wrapped.displayName = displayName
+  return Wrapped
+}
+
+export const AddIcon = withIcon(PlusIcon, 'AddIcon')
+export const CheckCircleIcon = withIcon(CheckCircleIconLucide, 'CheckCircleIcon')
+export const ExternalLinkIcon = withIcon(ExternalLinkIconLucide, 'ExternalLinkIcon')
+export const LockIcon = withIcon(LockIconLucide, 'LockIcon')
+export const ViewIcon = withIcon(EyeIconLucide, 'ViewIcon')
+export const StarIcon = withIcon(StarIconLucide, 'StarIcon')
+export const SettingsIcon = withIcon(SettingsIconLucide, 'SettingsIcon')
+export const CheckIcon = withIcon(CheckIconLucide, 'CheckIcon')
+export const CopyIcon = withIcon(CopyIconLucide, 'CopyIcon')
+export const ChevronDownIcon = withIcon(ChevronDownIconLucide, 'ChevronDownIcon')
+export const DownloadIcon = withIcon(DownloadIconLucide, 'DownloadIcon')
+export const DeleteIcon = withIcon(Trash2IconLucide, 'DeleteIcon')
+export const WarningIcon = withIcon(TriangleAlertIconLucide, 'WarningIcon')
+export const WarningTwoIcon = withIcon(AlertCircleIconLucide, 'WarningTwoIcon')
+export const HamburgerIcon = withIcon(MenuIconLucide, 'HamburgerIcon')
+export const MoonIcon = withIcon(MoonIconLucide, 'MoonIcon')
+export const SunIcon = withIcon(SunIconLucide, 'SunIcon')
+export const LinkIcon = withIcon(LinkIconLucide, 'LinkIcon')
+export const InfoIcon = withIcon(InfoIconLucide, 'InfoIcon')
+export const InfoOutlineIcon = withIcon(InfoIconLucide, 'InfoOutlineIcon')

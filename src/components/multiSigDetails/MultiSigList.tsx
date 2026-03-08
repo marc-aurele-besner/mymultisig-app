@@ -1,9 +1,6 @@
-import React, { Fragment } from 'react'
+import React from 'react'
 import Link from 'next/link'
-import { Box, Button, HStack, Text } from '@chakra-ui/react'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import {} from '@chakra-ui/color-mode'
-
+import { Button } from '@/components/ui/button'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 
 interface MultiSigListProps {
@@ -17,23 +14,19 @@ const MultiSigList: React.FC<MultiSigListProps> = ({ multiSigAddress, address })
   if (!data || !data[1] || !data[5]) return null
 
   return (
-    <Fragment>
-      <Box border='1px' borderColor='white' borderRadius='5px' p='1rem'>
-        <HStack>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            {data[0]?.toString()}
-          </Text>
-          <Text fontSize='sm' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            {multiSigAddress}
-          </Text>
-          <Link href={`/multisig/${multiSigAddress}`}>
-            <Button colorScheme='blue' m='1rem' mr='2rem'>
-              Select
-            </Button>
-          </Link>
-        </HStack>
-      </Box>
-    </Fragment>
+    <div className="rounded-lg border border-border p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="px-2 pt-2 text-xl font-bold text-foreground">
+          {data[0]?.toString()}
+        </span>
+        <span className="px-2 pt-2 text-sm font-bold text-muted-foreground">
+          {multiSigAddress}
+        </span>
+        <Link href={`/multisig/${multiSigAddress}`} className="ml-auto mr-8">
+          <Button>Select</Button>
+        </Link>
+      </div>
+    </div>
   )
 }
 

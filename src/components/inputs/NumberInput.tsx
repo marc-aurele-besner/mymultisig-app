@@ -1,12 +1,8 @@
 import React from 'react'
-import {
-  NumberInput as ChakraNumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper
-} from '@chakra-ui/number-input'
-import {} from '@chakra-ui/color-mode'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Minus, Plus } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface NumberInputProps {
   placeholder: string
@@ -27,86 +23,93 @@ interface NumberInputProps {
 
 const NumberInput: React.FC<NumberInputProps> = ({
   placeholder,
-  size = 'md',
   defaultValue,
   value,
   min,
   max,
-  precision,
-  step,
+  step = 1,
   onChange,
   isDisabled,
   readOnly,
   isInvalid,
-  hasStepper,
-  allowMouseWheel
+  hasStepper
 }) => {
+  const [internalValue, setInternalValue] = React.useState(
+    value ?? (defaultValue != null ? String(defaultValue) : '')
+  )
+
+  React.useEffect(() => {
+    if (value !== undefined) setInternalValue(value)
+  }, [value])
+
+  const numValue = parseFloat(internalValue) || 0
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value
+    setInternalValue(v)
+    const n = parseFloat(v)
+    if (!Number.isNaN(n)) onChange?.(v, n)
+  }
+
+  const increment = () => {
+    const next = numValue + step
+    const clamped = max != null ? Math.min(next, max) : next
+    const v = String(clamped)
+    setInternalValue(v)
+    onChange?.(v, clamped)
+  }
+
+  const decrement = () => {
+    const next = numValue - step
+    const clamped = min != null ? Math.max(next, min) : next
+    const v = String(clamped)
+    setInternalValue(v)
+    onChange?.(v, clamped)
+  }
+
   return (
-    <ChakraNumberInput
-      w={{ base: '100%', md: '94%' }}
-      m={2}
-      size={size}
-      borderRadius='xl'
-      bg='whiteAlpha.50'
-      backdropFilter='blur(10px)'
-      color='white'
-      defaultValue={defaultValue}
-      min={min}
-      max={max}
-      precision={precision}
-      step={step}
-      value={value}
-      onChange={onChange}
-      _invalid={{ borderColor: "red.500" }}
-      allowMouseWheel={allowMouseWheel}
-    >
-      <NumberInputField
-        h='auto'
-        py={4}
-        px={5}
-        borderRadius='xl'
-        border='1px solid'
-        borderColor={isInvalid ? 'red.400' : 'whiteAlpha.200'}
-        fontSize='md'
-        fontWeight='500'
+    <div className={cn('flex w-full items-center gap-0 md:w-[94%]', hasStepper && 'rounded-lg border border-input')}>
+      <input
+        type="number"
+        className={cn(
+          'flex h-auto w-full rounded-lg border border-input bg-transparent px-5 py-4 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
+          hasStepper && 'border-0 rounded-r-none',
+          isInvalid && 'border-destructive focus-visible:ring-destructive'
+        )}
         placeholder={placeholder}
+        value={internalValue}
+        onChange={handleChange}
+        min={min}
+        max={max}
+        step={step}
         disabled={isDisabled}
         readOnly={readOnly}
-        _placeholder={{
-          color: 'whiteAlpha.400',
-          fontWeight: '400'
-        }}
-        _hover={{
-          borderColor: isInvalid ? 'red.300' : 'whiteAlpha.300'
-        }}
-        _focus={{
-          borderColor: isInvalid ? 'red.400' : 'brand.400',
-          boxShadow: isInvalid
-            ? '0 0 0 1px rgba(245, 101, 101, 0.5), 0 0 20px rgba(245, 101, 101, 0.15)'
-            : '0 0 0 1px rgba(56, 178, 172, 0.5), 0 0 20px rgba(56, 178, 172, 0.15)',
-          outline: 'none'
-        }}
       />
       {hasStepper && (
-        <NumberInputStepper
-          border='none'
-          pr={2}
-        >
-          <NumberIncrementStepper
-            color='whiteAlpha.600'
-            border='none'
-            _hover={{ color: 'brand.300' }}
-            _active={{ color: 'brand.400' }}
-          />
-          <NumberDecrementStepper
-            color='whiteAlpha.600'
-            border='none'
-            _hover={{ color: 'brand.300' }}
-            _active={{ color: 'brand.400' }}
-          />
-        </NumberInputStepper>
+        <div className="flex flex-col border-l border-input">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-8 rounded-none border-0 text-muted-foreground hover:text-primary"
+            onClick={increment}
+            disabled={isDisabled || (max != null && numValue >= max)}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-8 rounded-none rounded-br-lg border-0 text-muted-foreground hover:text-primary"
+            onClick={decrement}
+            disabled={isDisabled || (min != null && numValue <= min)}
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+        </div>
       )}
-    </ChakraNumberInput>
+    </div>
   )
 }
 

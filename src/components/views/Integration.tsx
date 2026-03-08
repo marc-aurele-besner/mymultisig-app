@@ -1,26 +1,18 @@
 import React from 'react'
-import { Center, VStack, Text } from '@chakra-ui/react'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import {} from '@chakra-ui/color-mode'
-
 import BigCard from '../cards/BigCard'
 
 const Integration: React.FC = () => {
   return (
-    <Center>
-      <BigCard maxW='1200px' minH='50vh'>
-        <Center>
-          <VStack>
-            <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
-              Integration
-            </Text>
-            <Text fontSize='xl' fontWeight='bold' color='white' m='4rem' pt='2rem'>
-              This section is under construction
-            </Text>
-          </VStack>
-        </Center>
+    <div className="flex justify-center">
+      <BigCard className="min-h-[50vh] max-w-[1200px]">
+        <div className="flex flex-col items-center justify-center">
+          <h2 className="pb-4 text-2xl font-bold text-foreground">Integration</h2>
+          <p className="mt-16 pt-8 text-xl font-bold text-foreground">
+            This section is under construction
+          </p>
+        </div>
       </BigCard>
-    </Center>
+    </div>
   )
 }
 

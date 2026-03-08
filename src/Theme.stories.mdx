@@ -1,28 +1,30 @@
-import { Meta, Story, Canvas, ArgsTable } from '@storybook/addon-docs'
-import { Stack, Box, Text, Button } from '@chakra-ui/react'
+import { Meta, Story, Canvas } from '@storybook/addon-docs'
+import { Button } from './components/ui/button'
 
 <Meta title="Theme/Overview" />
 
 # Theme overview
 
-Quick look at brand colors and a couple of primitives as they render in Storybook.
+Quick look at theme colors and button variants (shadcn UI + Tailwind).
 
-## Brand colors
+## Colors
 
 <Canvas>
-  <Stack direction="row" spacing={4}>
-    <Box w="100px" h="60px" bg="blue.500" borderRadius="md" />
-    <Box w="100px" h="60px" bg="blue.600" borderRadius="md" />
-    <Box w="100px" h="60px" bg="blue.700" borderRadius="md" />
-    <Box w="100px" h="60px" bg="whiteAlpha.200" borderRadius="md" border="1px solid #fff3" />
-  </Stack>
+  <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+    <div className="w-[100px] h-[60px] rounded-md bg-primary" />
+    <div className="w-[100px] h-[60px] rounded-md bg-primary/80" />
+    <div className="w-[100px] h-[60px] rounded-md bg-secondary" />
+    <div className="w-[100px] h-[60px] rounded-md border border-border bg-muted" />
+  </div>
 </Canvas>
 
 ## Buttons
 
 <Canvas>
-  <Stack direction="row" spacing={4}>
-    <Button colorScheme="blue">Primary</Button>
-    <Button variant="outline" colorScheme="blue">Outline</Button>
-  </Stack>
+  <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+    <Button>Primary</Button>
+    <Button variant="outline">Outline</Button>
+    <Button variant="secondary">Secondary</Button>
+    <Button variant="ghost">Ghost</Button>
+  </div>
 </Canvas>

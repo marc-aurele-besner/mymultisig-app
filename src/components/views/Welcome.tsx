@@ -1,39 +1,19 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Center,
-  VStack,
-  Text,
-  Heading,
-  Stack,
-  Button,
-  Link as ChakraLink,
-  Box,
-  SimpleGrid,
-  HStack,
-} from '@chakra-ui/react'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import { useColorModeValue } from '@chakra-ui/color-mode'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useAccount } from 'wagmi'
-import { buttonColors, glassButtonColors } from '../../styles/colors'
+import { Button } from '@/components/ui/button'
 import BigCard from '../cards/BigCard'
 import ConnectWallet from './ConnectWallet'
 import ConnectedWallet from './ConnectedWallet'
 import Disclaimer from '../modals/Disclaimer'
 import { AddIcon, CheckCircleIcon, LinkIcon, LockIcon, StarIcon, ViewIcon } from '../icons/ChakraIcons'
 
-const MotionBox = motion.create(Box)
-const MotionVStack = motion.create(VStack)
-
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 }
   }
 }
 
@@ -48,17 +28,18 @@ const itemVariants = {
 
 const features = [
   {
-    icon: <LockIcon boxSize={6} />,
+    icon: <LockIcon boxSize={24} className="shrink-0" />,
     title: 'Secure by Design',
-    description: 'Minimalistic smart contract architecture for maximum security and auditability.'
+    description:
+      'Minimalistic smart contract architecture for maximum security and auditability.'
   },
   {
-    icon: <ViewIcon boxSize={6} />,
+    icon: <ViewIcon boxSize={24} className="shrink-0" />,
     title: 'Full Transparency',
     description: 'Open-source contracts with clear, readable logic for easy verification.'
   },
   {
-    icon: <StarIcon boxSize={6} />,
+    icon: <StarIcon boxSize={24} className="shrink-0" />,
     title: 'Gas Efficient',
     description: 'Optimized for low transaction costs without compromising on security.'
   }
@@ -68,147 +49,95 @@ const Welcome: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
   const { isConnected } = useAccount()
 
-  // Color mode values
-  const headingColor = useColorModeValue('gray.800', 'white')
-  const textColor = useColorModeValue('gray.700', 'whiteAlpha.800')
-  const mutedTextColor = useColorModeValue('gray.600', 'whiteAlpha.700')
-  const featureBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.50')
-  const featureBorder = useColorModeValue('gray.200', 'whiteAlpha.100')
-  const featureHoverBg = useColorModeValue('blackAlpha.100', 'whiteAlpha.100')
-  const featureHoverBorder = useColorModeValue('gray.300', 'whiteAlpha.200')
-  const borderColor = useColorModeValue('gray.200', 'whiteAlpha.100')
-  const ghostHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
-  const brandTextColor = useColorModeValue('brand.600', 'brand.300')
-  const brandHoverColor = useColorModeValue('brand.700', 'brand.200')
-
   useEffect(() => {
     setHasMounted(true)
   }, [])
 
   return (
-    <Center>
+    <div className="flex justify-center">
       <Disclaimer />
-      <BigCard maxW='1200px' minH='70vh' hasGlow>
-        <Center>
-          <MotionVStack
+      <BigCard className="min-h-[70vh] max-w-[1200px]" hasGlow>
+        <div className="flex w-full justify-center py-4 md:py-8">
+          <motion.div
             variants={containerVariants}
-            initial='hidden'
-            animate='visible'
-            gap={{ base: 6, md: 8 }}
-            w='100%'
-            py={{ base: 4, md: 8 }}>
-            {/* Hero Section */}
-            <MotionBox variants={itemVariants} textAlign='center'>
-              <Heading
-                as='h1'
-                fontSize={{ base: '3xl', md: '5xl', lg: '6xl' }}
-                fontWeight='800'
-                lineHeight='1.1'
-                mb={4}>
-                <Text as='span' bgGradient='linear(to-r, brand.400, accent.500, brand.500)' bgClip='text'>
+            initial="hidden"
+            animate="visible"
+            className="flex w-full flex-col gap-6 md:gap-8"
+          >
+            <motion.div variants={itemVariants} className="text-center">
+              <h1 className="mb-4 text-3xl font-extrabold leading-tight md:text-5xl lg:text-6xl">
+                <span className="bg-gradient-to-r from-primary via-primary/90 to-primary bg-clip-text text-transparent">
                   Secure Multi-Signature
-                </Text>
+                </span>
                 <br />
-                <Text as='span' color={headingColor}>
-                  for the Modern Web3
-                </Text>
-              </Heading>
+                <span className="text-foreground">for the Modern Web3</span>
+              </h1>
+              <p className="mx-auto max-w-[700px] text-lg font-medium leading-relaxed text-foreground md:text-xl">
+                A minimalistic Solidity smart contract for secure and streamlined multi-signature
+                transactions. Simple, auditable, and powerful.
+              </p>
+            </motion.div>
 
-              <Text
-                fontSize={{ base: 'lg', md: 'xl' }}
-                fontWeight='500'
-                maxW='700px'
-                mx='auto'
-                color={textColor}
-                lineHeight='tall'>
-                A minimalistic Solidity smart contract for secure and streamlined multi-signature transactions. Simple,
-                auditable, and powerful.
-              </Text>
-            </MotionBox>
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col items-center justify-center gap-4 sm:flex-row"
+            >
+              <Button size="lg" className="gap-2 px-8" asChild>
+                <Link href="/createMultiSig">
+                  <AddIcon className="h-4 w-4" />
+                  Create a MultiSig
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="gap-2 px-8" asChild>
+                <Link href="/useYourMultiSig">
+                  <CheckCircleIcon className="h-4 w-4" />
+                  Use your MultiSig
+                </Link>
+              </Button>
+              <Button size="lg" variant="ghost" className="gap-2 px-8 text-primary hover:bg-accent hover:text-primary" asChild>
+                <Link href="/integration">
+                  <LinkIcon className="h-4 w-4" />
+                  Integration
+                </Link>
+              </Button>
+            </motion.div>
 
-            {/* CTA Buttons */}
-            <MotionBox variants={itemVariants}>
-              <Stack direction={{ base: 'column', sm: 'row' }} gap={4} justify='center' align='center'>
-                <ChakraLink as={Link} href='/createMultiSig' _hover={{ textDecoration: 'none' }}>
-                  <Button size='lg' px={8} {...buttonColors}>
-                    <HStack gap={2}>
-                      <AddIcon />
-                      <Text>Create a MultiSig</Text>
-                    </HStack>
-                  </Button>
-                </ChakraLink>
-                <ChakraLink as={Link} href='/useYourMultiSig' _hover={{ textDecoration: 'none' }}>
-                  <Button size='lg' px={8} {...glassButtonColors}>
-                    <HStack gap={2}>
-                      <CheckCircleIcon />
-                      <Text>Use your MultiSig</Text>
-                    </HStack>
-                  </Button>
-                </ChakraLink>
-                <ChakraLink as={Link} href='/integration' _hover={{ textDecoration: 'none' }}>
-                  <Button
-                    size='lg'
-                    px={8}
-                    variant='ghost'
-                    color={brandTextColor}
-                    _hover={{ bg: ghostHoverBg, color: brandHoverColor }}
-                  >
-                    <HStack gap={2}>
-                      <LinkIcon />
-                      <Text>Integration</Text>
-                    </HStack>
-                  </Button>
-                </ChakraLink>
-              </Stack>
-            </MotionBox>
-
-            {/* Features Grid */}
-            <MotionBox variants={itemVariants} w='100%' pt={{ base: 4, md: 8 }}>
-              <SimpleGrid columns={{ base: 1, md: 3 }} gap={{ base: 4, md: 6 }} w='100%'>
+            <motion.div variants={itemVariants} className="w-full pt-4 md:pt-8">
+              <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
                 {features.map((feature) => (
-                  <MotionBox
+                  <motion.div
                     key={feature.title}
                     variants={itemVariants}
-                    p={{ base: 5, md: 6 }}
-                    borderRadius='xl'
-                    bg={featureBg}
-                    border='1px solid'
-                    borderColor={featureBorder}
+                    className="rounded-xl border border-border bg-muted/30 p-5 md:p-6"
                   >
-                    <VStack align='flex-start' gap={3}>
-                      <Box
-                        p={3}
-                        borderRadius='lg'
-                        bg='linear-gradient(135deg, rgba(56, 178, 172, 0.2) 0%, rgba(0, 132, 255, 0.2) 100%)'
-                        color={brandTextColor}>
+                    <div className="flex flex-col items-start gap-3">
+                      <div className="rounded-lg bg-primary/20 p-3 text-primary">
                         {feature.icon}
-                      </Box>
-                      <Text fontSize='lg' fontWeight='600' color={headingColor}>
-                        {feature.title}
-                      </Text>
-                      <Text fontSize='sm' color={mutedTextColor} lineHeight='tall'>
+                      </div>
+                      <h3 className="text-lg font-semibold text-foreground">{feature.title}</h3>
+                      <p className="text-sm leading-relaxed text-muted-foreground">
                         {feature.description}
-                      </Text>
-                    </VStack>
-                  </MotionBox>
+                      </p>
+                    </div>
+                  </motion.div>
                 ))}
-              </SimpleGrid>
-            </MotionBox>
+              </div>
+            </motion.div>
 
-            {/* Wallet Connection Section */}
-            <MotionBox
+            <motion.div
               variants={itemVariants}
-              w='100%'
-              pt={{ base: 4, md: 6 }}
-              borderTop='1px solid'
-              borderColor={borderColor}
-              mt={{ base: 4, md: 6 }}>
-              {hasMounted && <VStack gap={4}>{!isConnected ? <ConnectWallet /> : <ConnectedWallet />}</VStack>}
-            </MotionBox>
-          </MotionVStack>
-        </Center>
+              className="mt-4 w-full border-t border-border pt-4 md:mt-6 md:pt-6"
+            >
+              {hasMounted && (
+                <div className="flex flex-col gap-4">
+                  {!isConnected ? <ConnectWallet /> : <ConnectedWallet />}
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        </div>
       </BigCard>
-    </Center>
+    </div>
   )
 }
 

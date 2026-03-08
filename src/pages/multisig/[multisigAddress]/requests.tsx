@@ -1,10 +1,8 @@
 import React, { useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { Center, VStack, Text, Button } from '@chakra-ui/react'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import {} from '@chakra-ui/color-mode'
 import { useAccount } from 'wagmi'
+import { Button } from '@/components/ui/button'
 
 import BigCard from '../../../components/cards/BigCard'
 import MultiSigRequestList from '../../../components/multiSigDetails/MultiSigRequestList'
@@ -16,21 +14,22 @@ const Page: React.FC = () => {
   const { multisigAddress } = router.query
   const { address } = useAccount()
   const { multiSigDetails } = useMultiSigDetails(
-    multisigAddress != null && typeof multisigAddress == 'string' ? (multisigAddress as `0x${string}`) : '0x',
-    address ? (address as `0x${string}`) : '0x'
+    multisigAddress != null && typeof multisigAddress === 'string'
+      ? (multisigAddress as `0x${string}`)
+      : '0x',
+    address != null ? (address as `0x${string}`) : '0x'
   )
   const { setSelectedMultiSigAddress } = useMultiSigs()
 
   useEffect(() => {
-    if (multisigAddress && multisigAddress !== '0x') {
+    if (multisigAddress != null && multisigAddress !== '0x') {
       setSelectedMultiSigAddress(multisigAddress as `0x${string}`)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [multisigAddress])
+  }, [multisigAddress, setSelectedMultiSigAddress])
 
   if (
-    !address ||
-    !multisigAddress ||
+    address == null ||
+    multisigAddress == null ||
     multiSigDetails == null ||
     Array.isArray(multisigAddress) ||
     !multisigAddress.startsWith('0x')
@@ -38,30 +37,31 @@ const Page: React.FC = () => {
     return null
 
   return (
-    <Center>
-      <BigCard maxW='1200px'>
-        <Center>
-          <VStack>
-            <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
-              See the transactions requests
-            </Text>
-            <Center>
+    <div className="flex justify-center">
+      <BigCard className="max-w-[1200px]">
+        <div className="flex flex-col items-center">
+          <h2 className="pb-4 text-2xl font-bold text-foreground">
+            See the transactions requests
+          </h2>
+          <div className="flex gap-2">
+            <Button asChild>
               <Link href={`/multisig/${multisigAddress}/buildRequest`}>
-                <Button colorScheme='blue' m='1rem' mr='2rem'>
-                  Build a request
-                </Button>
+                Build a request
               </Link>
+            </Button>
+            <Button asChild variant="outline">
               <Link href={`/multisig/${multisigAddress}/requests`}>
-                <Button colorScheme='blue' m='1rem' mr='2rem'>
-                  Consult requests
-                </Button>
+                Consult requests
               </Link>
-            </Center>
-            <MultiSigRequestList multiSigAddress={multisigAddress as `0x${string}`} multiSigDetails={multiSigDetails} />
-          </VStack>
-        </Center>
+            </Button>
+          </div>
+          <MultiSigRequestList
+            multiSigAddress={multisigAddress as `0x${string}`}
+            multiSigDetails={multiSigDetails}
+          />
+        </div>
       </BigCard>
-    </Center>
+    </div>
   )
 }
 

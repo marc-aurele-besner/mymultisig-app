@@ -1,9 +1,6 @@
-import React, { Fragment } from 'react'
+import React from 'react'
 import Link from 'next/link'
-import { Box, Button, HStack, Text } from '@chakra-ui/react'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import {} from '@chakra-ui/color-mode'
-
+import { Button } from '@/components/ui/button'
 import { MultiSigOnChainData } from '../../models/MultiSigs'
 import useMultiSigRequests from '../../hooks/useMultiSigRequests'
 import useMultiSigs from '../../states/multiSigs'
@@ -13,37 +10,39 @@ interface MultiSigRequestListProps {
   multiSigDetails: MultiSigOnChainData
 }
 
-const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({ multiSigAddress, multiSigDetails }) => {
+const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({
+  multiSigAddress,
+  multiSigDetails
+}) => {
   const requests = useMultiSigRequests(multiSigAddress)
   const { setSelectedMultiSigTransactionRequest } = useMultiSigs()
 
   if (multiSigDetails == null || requests == null) return null
 
   return (
-    <Fragment>
-      <Box border='1px' borderColor='white' borderRadius='5px' p='1rem'>
-        {requests.length > 0 ? (
-          requests.map((request) => (
-            <HStack key={`Request-${request.data.id}`}>
-              <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-                {request.data.description}
-              </Text>
-              <Link
-                href={`/request/${request.data.id}`}
-                onClick={() => setSelectedMultiSigTransactionRequest(request.data.id)}>
-                <Button colorScheme='blue' m='1rem' mr='2rem'>
-                  Select
-                </Button>
-              </Link>
-            </HStack>
-          ))
-        ) : (
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            No requests
-          </Text>
-        )}
-      </Box>
-    </Fragment>
+    <div className="rounded-lg border border-border p-4">
+      {requests.length > 0 ? (
+        requests.map((request) => (
+          <div
+            key={`Request-${request.data.id}`}
+            className="flex flex-wrap items-center gap-2"
+          >
+            <span className="px-2 pt-2 text-xl font-bold text-foreground">
+              {request.data.description}
+            </span>
+            <Link
+              href={`/request/${request.data.id}`}
+              onClick={() => setSelectedMultiSigTransactionRequest(request.data.id)}
+              className="ml-auto mr-8"
+            >
+              <Button>Select</Button>
+            </Link>
+          </div>
+        ))
+      ) : (
+        <p className="px-2 pt-2 text-xl font-bold text-foreground">No requests</p>
+      )}
+    </div>
   )
 }
 

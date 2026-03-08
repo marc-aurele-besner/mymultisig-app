@@ -1,6 +1,11 @@
 import React from 'react'
-import { Select } from '@chakra-ui/select'
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import useContracts from '../../states/contracts'
 
 interface SelectContractProps {
@@ -9,32 +14,27 @@ interface SelectContractProps {
 
 const SelectContract: React.FC<SelectContractProps> = ({ onChange }) => {
   const contracts = useContracts((state) => state.contracts)
+  const [value, setValue] = React.useState<string>('')
 
   return (
     <Select
-      placeholder='Select contract'
-      color='white'
-      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)}
-      _focus={{
-        color: 'white'
-      }}>
-      {contracts.map((contract) => (
-        <option
-          key={contract.id}
-          value={contract.isMultiSig ? 'itSelf' : contract.id}
-          style={{
-            color: 'white'
-          }}>
-          {contract.name}
-        </option>
-      ))}
-      <option
-        value='newContract'
-        style={{
-          color: 'white'
-        }}>
-        + New contract
-      </option>
+      value={value}
+      onValueChange={(v) => {
+        setValue(v)
+        onChange(v)
+      }}
+    >
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder="Select contract" />
+      </SelectTrigger>
+      <SelectContent>
+        {contracts.map((contract) => (
+          <SelectItem key={contract.id} value={contract.isMultiSig ? 'itSelf' : contract.id}>
+            {contract.name}
+          </SelectItem>
+        ))}
+        <SelectItem value="newContract">+ New contract</SelectItem>
+      </SelectContent>
     </Select>
   )
 }

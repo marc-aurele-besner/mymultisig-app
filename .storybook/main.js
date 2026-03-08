@@ -13,7 +13,6 @@ module.exports = {
     '@storybook/addon-outline',
     '@storybook/addon-viewport',
     '@storybook/addon-storysource',
-    '@chakra-ui/storybook-addon',
     'storybook-dark-mode',
   ],
   framework: '@storybook/react',

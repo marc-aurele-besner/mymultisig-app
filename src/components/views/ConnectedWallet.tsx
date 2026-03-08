@@ -1,45 +1,40 @@
 import React, { useEffect, useState } from 'react'
-import { useAccount, useChainId, useChains, useDisconnect, useEnsAvatar, useEnsName, useSwitchChain } from 'wagmi'
-import { Text, Box, HStack, VStack, Button, useClipboard } from '@chakra-ui/react'
-import { Avatar } from '@chakra-ui/avatar'
-import { Tooltip } from '@chakra-ui/tooltip'
-import { useColorModeValue } from '@chakra-ui/color-mode'
+import {
+  useAccount,
+  useChainId,
+  useChains,
+  useDisconnect,
+  useEnsAvatar,
+  useEnsName,
+  useSwitchChain
+} from 'wagmi'
 import { CheckIcon, CopyIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
+import { Button } from '@/components/ui/button'
 import networks from '../../constants/networks'
-
-const MotionBox = motion.create(Box)
+import { cn } from '@/lib/utils'
 
 const ConnectedWallet: React.FC = () => {
   const { address, connector, isConnected } = useAccount()
   const chainId = useChainId()
   const chains = useChains()
-  const chain = chains.find(c => c.id === chainId)
+  const chain = chains.find((c) => c.id === chainId)
   const { switchChain } = useSwitchChain()
   const { data: ensName } = useEnsName({ address })
-  const { data: ensAvatar } = useEnsAvatar({ name: ensName || undefined })
+  const { data: ensAvatar } = useEnsAvatar({ name: ensName ?? undefined })
   const { disconnect } = useDisconnect()
-  const { copy } = useClipboard({ value: address || '' })
   const [hasCopied, setHasCopied] = useState(false)
-  
-  const onCopy = () => {
-    copy()
-    setHasCopied(true)
-    setTimeout(() => setHasCopied(false), 2000)
+
+  const onCopy = async () => {
+    if (address) {
+      await navigator.clipboard.writeText(address)
+      setHasCopied(true)
+      setTimeout(() => setHasCopied(false), 2000)
+    }
   }
 
-  // Color mode values
-  const cardBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.50')
-  const borderColor = useColorModeValue('gray.200', 'whiteAlpha.100')
-  const headingColor = useColorModeValue('gray.800', 'white')
-  const mutedColor = useColorModeValue('gray.500', 'whiteAlpha.600')
-  const iconColor = useColorModeValue('gray.500', 'whiteAlpha.700')
-  const iconHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
-  const iconHoverColor = useColorModeValue('gray.700', 'white')
-  const brandColor = useColorModeValue('brand.600', 'brand.300')
-
   useEffect(() => {
-    if (chain && switchChain && !networks.find((network) => network.id === chain.id)) {
+    if (chain && switchChain && !networks.find((n) => n.id === chain.id)) {
       switchChain({ chainId: networks[0].id })
     }
   }, [chain, switchChain])
@@ -51,101 +46,91 @@ const ConnectedWallet: React.FC = () => {
   const truncateAddress = (addr: string) => `${addr.slice(0, 8)}...${addr.slice(-6)}`
 
   return (
-    <MotionBox
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      w='100%'
-      maxW='500px'
-      mx='auto'>
-      <VStack gap={4} p={6} borderRadius='xl' bg={cardBg} border='1px solid' borderColor={borderColor}>
-        <HStack gap={4} w='100%'>
-          <Avatar
-            size='md'
-            src={ensAvatar || undefined}
-            name={ensName || address}
-            bg='linear-gradient(135deg, #38b2ac 0%, #0084ff 100%)'
-          />
-          <VStack align='flex-start' gap={1} flex={1}>
-            <HStack>
-              <Box w='8px' h='8px' borderRadius='full' bg='green.400' boxShadow='0 0 8px rgba(72, 187, 120, 0.6)' />
-              <Text fontSize='xs' color='green.500' fontWeight='500' textTransform='uppercase' letterSpacing='wider'>
+      className="mx-auto w-full max-w-[500px]"
+    >
+      <div className="flex flex-col gap-4 rounded-xl border border-border bg-muted/30 p-6">
+        <div className="flex w-full items-center gap-4">
+          {ensAvatar != null ? (
+            <img
+              src={ensAvatar}
+              alt={ensName ?? address}
+              className="h-10 w-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-500 text-lg font-bold text-white">
+              {(ensName ?? address).slice(2, 4).toUpperCase()}
+            </div>
+          )}
+          <div className="flex flex-1 flex-col items-start gap-1">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+              <span className="text-xs font-medium uppercase tracking-wider text-green-600 dark:text-green-400">
                 Connected
-              </Text>
-            </HStack>
-            <Text fontSize='lg' fontWeight='600' color={headingColor}>
-              {ensName || truncateAddress(address)}
-            </Text>
-            {ensName && (
-              <Text fontSize='xs' color={mutedColor}>
-                {truncateAddress(address)}
-              </Text>
+              </span>
+            </div>
+            <p className="text-lg font-semibold text-foreground">
+              {ensName ?? truncateAddress(address)}
+            </p>
+            {ensName != null && (
+              <p className="text-xs text-muted-foreground">{truncateAddress(address)}</p>
             )}
-          </VStack>
-        </HStack>
+          </div>
+        </div>
 
-        <HStack w='100%' justify='space-between' pt={2} borderTop='1px solid' borderColor={borderColor}>
-          <HStack gap={2}>
-            <Text fontSize='xs' color={mutedColor}>
-              via
-            </Text>
-            <Text fontSize='sm' fontWeight='500' color={brandColor}>
-              {connector?.name}
-            </Text>
-          </HStack>
+        <div className="flex w-full items-center justify-between border-t border-border pt-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">via</span>
+            <span className="text-sm font-medium text-primary">{connector?.name}</span>
+          </div>
 
-          <HStack gap={2}>
-            <Tooltip label={hasCopied ? 'Copied!' : 'Copy address'} placement='top'>
-              <Button
-                size='sm'
-                variant='ghost'
-                color={iconColor}
-                onClick={onCopy}
-                _hover={{ color: iconHoverColor, bg: iconHoverBg }}>
-                {hasCopied ? <CheckIcon boxSize={4} color='green.400' /> : <CopyIcon boxSize={4} />}
-              </Button>
-            </Tooltip>
-
-            {chain?.blockExplorers?.default && (
-              <Tooltip label='View on explorer' placement='top'>
-                <a
-                  href={`${chain.blockExplorers.default.url}/address/${address}`}
-                  target='_blank'
-                  rel='noopener noreferrer'
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-muted-foreground hover:bg-accent hover:text-foreground"
+              onClick={onCopy}
+              title={hasCopied ? 'Copied!' : 'Copy address'}
+            >
+              {hasCopied ? (
+                <CheckIcon className="h-4 w-4 text-green-500" />
+              ) : (
+                <CopyIcon className="h-4 w-4" />
+              )}
+            </Button>
+            {chain?.blockExplorers?.default != null && (
+              <a
+                href={`${chain.blockExplorers.default.url}/address/${address}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="View on explorer"
+              >
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-muted-foreground hover:bg-accent hover:text-foreground"
                 >
-                  <Button
-                    size='sm'
-                    variant='ghost'
-                    color={iconColor}
-                    _hover={{ color: iconHoverColor, bg: iconHoverBg }}
-                  >
-                    <ExternalLinkIcon boxSize={4} />
-                  </Button>
-                </a>
-              </Tooltip>
+                  <ExternalLinkIcon className="h-4 w-4" />
+                </Button>
+              </a>
             )}
-          </HStack>
-        </HStack>
+          </div>
+        </div>
 
         <Button
-          w='100%'
-          size='md'
+          className={cn(
+            'w-full border border-destructive/50 bg-destructive/15 text-destructive hover:bg-destructive/25 hover:text-destructive'
+          )}
+          size="default"
           onClick={() => disconnect()}
-          bg='rgba(245, 101, 101, 0.15)'
-          color='red.500'
-          border='1px solid'
-          borderColor='red.400'
-          _hover={{
-            bg: 'rgba(245, 101, 101, 0.25)',
-            color: 'red.400'
-          }}
-          _active={{
-            bg: 'rgba(245, 101, 101, 0.3)'
-          }}>
+        >
           Disconnect Wallet
         </Button>
-      </VStack>
-    </MotionBox>
+      </div>
+    </motion.div>
   )
 }
 

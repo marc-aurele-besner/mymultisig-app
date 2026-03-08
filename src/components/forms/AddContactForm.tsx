@@ -1,12 +1,9 @@
 import React from 'react'
-import { VStack, Text } from '@chakra-ui/react'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import {} from '@chakra-ui/color-mode'
-
 import { Contract } from '../../models/Contracts'
 import TextInput from '../inputs/TextInput'
 import Textarea from '../inputs/Textarea'
 import Switch from '../inputs/Switch'
+import { Label } from '@/components/ui/label'
 
 interface AddContactFormProps {
   contract: Contract
@@ -19,42 +16,39 @@ const AddContactForm: React.FC<AddContactFormProps> = ({ contract, setContract }
   }
 
   const handleChangeABI = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setContract({ ...contract, abi: JSON.parse(event.target.value) })
+    try {
+      setContract({ ...contract, abi: JSON.parse(event.target.value) })
+    } catch {
+      // ignore invalid JSON
+    }
   }
 
   return (
-    <VStack>
-      <Text fontSize='lg' fontWeight='bold' color='white' pb='1rem'>
-        Contract Name
-      </Text>
+    <div className="flex flex-col gap-4">
+      <Label className="text-base font-bold text-foreground">Contract Name</Label>
       <TextInput
-        placeholder='Contract Name'
-        onChange={(e) => {
-          handleValueChange(e, 'name')
-        }}
+        placeholder="Contract Name"
+        value={contract.name}
+        onChange={(e) => handleValueChange(e, 'name')}
       />
-      <Text fontSize='lg' fontWeight='bold' color='white' pb='1rem'>
-        Contract Address
-      </Text>
+      <Label className="text-base font-bold text-foreground">Contract Address</Label>
       <TextInput
-        placeholder='Contract Address'
-        onChange={(e) => {
-          handleValueChange(e, 'address')
-        }}
+        placeholder="Contract Address"
+        value={contract.address}
+        onChange={(e) => handleValueChange(e, 'address')}
       />
+      <Label className="text-base font-bold text-foreground">Contract ABI</Label>
       <Textarea
-        placeholder='Contract ABI'
-        onChange={(e) => {
-          handleChangeABI(e)
-        }}
+        placeholder="Contract ABI (JSON)"
+        value={JSON.stringify(contract.abi, null, 2)}
+        onChange={handleChangeABI}
       />
       <Switch
-        placeholder='Is Public'
-        onChange={(e) => {
-          handleValueChange(e, 'isPublic')
-        }}
+        placeholder="Is Public"
+        checked={contract.isPublic}
+        onCheckedChange={(checked) => setContract({ ...contract, isPublic: checked })}
       />
-    </VStack>
+    </div>
   )
 }
 

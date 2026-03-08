@@ -1,7 +1,6 @@
 import React from 'react'
-import { Textarea as ChakraTextarea } from '@chakra-ui/react'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import {} from '@chakra-ui/color-mode'
+import { Textarea as ShadcnTextarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 interface TextareaProps {
   placeholder: string
@@ -11,6 +10,7 @@ interface TextareaProps {
   isDisabled?: boolean
   readOnly?: boolean
   isInvalid?: boolean
+  className?: string
 }
 
 const Textarea: React.FC<TextareaProps> = ({
@@ -20,28 +20,21 @@ const Textarea: React.FC<TextareaProps> = ({
   onChange,
   isDisabled,
   readOnly,
-  isInvalid
+  isInvalid,
+  className
 }) => {
   return (
-    <ChakraTextarea
-      w={{ base: '100%', md: '94%' }}
-      p={4}
-      m={2}
-      mt={4}
-      borderRadius={10}
-      bg='cyan.100'
-      boxShadow='lg'
-      color={'white'}
-      backgroundColor='transparent'
+    <ShadcnTextarea
+      className={cn(
+        'mt-4 w-full p-4 md:w-[94%]',
+        isInvalid && 'border-destructive focus-visible:ring-destructive'
+      )}
       placeholder={placeholder}
       defaultValue={defaultValue}
       value={value}
       onChange={onChange}
       disabled={isDisabled}
       readOnly={readOnly}
-      _placeholder={{
-        color: 'gray.200'
-      }}
     />
   )
 }

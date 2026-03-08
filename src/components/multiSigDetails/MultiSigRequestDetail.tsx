@@ -1,9 +1,7 @@
 import React, { Fragment, useState } from 'react'
 import Link from 'next/link'
-import { Box, Button, Center, HStack, Text, Textarea } from '@chakra-ui/react'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import {} from '@chakra-ui/color-mode'
-
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import SignRequest from '../buttons/SignRequest'
 import ExecuteRequest from '../buttons/ExecuteRequest'
 import useMultiSigRequestDetails from '../../hooks/useMultiSigRequestDetails'
@@ -17,7 +15,10 @@ interface MultiSigRequestDetailProps {
   multiSigRequestId: string
 }
 
-const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, multiSigRequestId }) => {
+const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
+  address,
+  multiSigRequestId
+}) => {
   const [isDeleted, setIsDeleted] = useState(false)
   const [isReset, setIsReset] = useState(false)
   const requestDetails = useMultiSigRequestDetails(multiSigRequestId)
@@ -34,152 +35,114 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
 
   if (requestDetails == null || multiSigDetails == null) return null
 
+  const row = (label: string, value: React.ReactNode) => (
+    <div key={label} className="flex flex-wrap items-center gap-2">
+      <span className="px-2 pt-2 text-xl font-bold text-foreground">{label}</span>
+      <span className="px-2 pt-2 text-lg font-bold text-foreground">{value}</span>
+    </div>
+  )
+
   return (
     <Fragment>
-      <HStack pl='1.5rem' pr='1.5rem'>
-        <Link href={`/multisig/${requestDetails.data.multiSigAddress}/buildRequest`}>
-          <Button colorScheme='blue' m='1rem' mr='2rem'>
+      <div className="flex gap-2 px-6">
+        <Button asChild>
+          <Link href={`/multisig/${requestDetails.data.multiSigAddress}/buildRequest`}>
             Build a request
-          </Button>
-        </Link>
-        <Link href={`/multisig/${requestDetails.data.multiSigAddress}/requests`}>
-          <Button colorScheme='blue' m='1rem' mr='2rem'>
+          </Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href={`/multisig/${requestDetails.data.multiSigAddress}/requests`}>
             Consult requests
-          </Button>
-        </Link>
-      </HStack>
-      <Box border='1px' borderColor='white' borderRadius='5px' p='1rem'>
-        <HStack key={`Request-Title`}>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            Description
-          </Text>
-          <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            {requestDetails.data.description}
-          </Text>
-        </HStack>
-        <HStack key={`Request-SubmittedDate`}>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            Submitted date
-          </Text>
-          <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            {new Date(Number(requestDetails.data.dateSubmitted)).toLocaleDateString()}
-          </Text>
-        </HStack>
-        <HStack key={`Request-Target`}>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            Target
-          </Text>
-          <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            {requestDetails.data.request.to}
-          </Text>
-        </HStack>
-        <HStack key={`Request-Data`}>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            Data
-          </Text>
-          <Textarea readOnly defaultValue={requestDetails.data.request.data} />
-        </HStack>
-        <HStack key={`Request-Value`}>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            Value
-          </Text>
-          <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            {requestDetails.data.request.value}
-          </Text>
-        </HStack>
-        <HStack key={`Request-TxGas`}>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            Tx. Gas
-          </Text>
-          <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            {requestDetails.data.request.txnGas}
-          </Text>
-        </HStack>
-        <HStack key={`Request-SignaturesVsThreshold`}>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            Signatures qty. / Threshold
-          </Text>
-          <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            {requestDetails.data.signatures.length} / {multiSigDetails.threshold}
-          </Text>
-        </HStack>
+          </Link>
+        </Button>
+      </div>
+      <div className="mt-4 rounded-lg border border-border p-4">
+        {row('Description', requestDetails.data.description)}
+        {row(
+          'Submitted date',
+          new Date(Number(requestDetails.data.dateSubmitted)).toLocaleDateString()
+        )}
+        {row('Target', requestDetails.data.request.to)}
+        <div className="flex flex-wrap items-start gap-2">
+          <span className="px-2 pt-2 text-xl font-bold text-foreground">Data</span>
+          <Textarea
+            readOnly
+            defaultValue={requestDetails.data.request.data}
+            className="min-h-[80px] flex-1"
+          />
+        </div>
+        {row('Value', requestDetails.data.request.value)}
+        {row('Tx. Gas', requestDetails.data.request.txnGas)}
+        {row(
+          'Signatures qty. / Threshold',
+          `${requestDetails.data.signatures.length} / ${multiSigDetails.threshold}`
+        )}
         {requestDetails.data.isExecuted ? (
-          <>
-            <HStack key={`Request-Sign`}>
-              <Text fontSize='xl' fontWeight='bold' color='green' m='0.5rem' pt='0.5rem'>
-                This request has been executed
-                {requestDetails.data.dateExecuted &&
-                  ' on the ' + new Date(Number(requestDetails.data.dateExecuted)).toLocaleDateString()}
-              </Text>
-            </HStack>
-          </>
+          <div className="px-2 pt-2 text-xl font-bold text-green-600 dark:text-green-400">
+            This request has been executed
+            {requestDetails.data.dateExecuted != null &&
+              ` on the ${new Date(Number(requestDetails.data.dateExecuted)).toLocaleDateString()}`}
+          </div>
         ) : (
           <Fragment>
             {requestDetails.data.signatures.length >= multiSigDetails.threshold && (
-              <HStack key={`Request-Execute`}>
-                <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-2 pt-2 text-xl font-bold text-foreground">
                   Execute this request
-                </Text>
+                </span>
                 <ExecuteRequest
                   multiSigAddress={requestDetails.data.multiSigAddress}
                   args={requestDetails.data.request}
                   requestDetails={requestDetails.data}
                   existingRequestRef={requestDetails.data.id}
                 />
-              </HStack>
+              </div>
             )}
-            <HStack key={`Request-Sign`}>
-              <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-                Sign this request
-              </Text>
-              <Fragment>
-                {requestDetails.data.ownerSigners.find((signature) => signature === address) ? (
-                  <Text color='green' fontSize='xl' fontWeight='bold' m='0.5rem' pt='0.5rem'>
-                    You already signed this request
-                  </Text>
-                ) : (
-                  <SignRequest
-                    multiSigAddress={requestDetails.data.multiSigAddress}
-                    args={requestDetails.data.request}
-                    description={requestDetails.data.description}
-                    requestDetails={requestDetails.data}
-                    existingRequestRef={requestDetails.data.id}
-                  />
-                )}
-              </Fragment>
-            </HStack>
-            <HStack key={`Request-ClearSignatures`}>
-              <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-                Clear signatures
-              </Text>
-              <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-                <Button colorScheme='orange' m='1rem' mr='2rem' onClick={() => setIsReset(true)}>
-                  Reset signatures
-                </Button>
-              </Text>
-            </HStack>
-            <HStack key={`Request-Delete`}>
-              <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-                Delete this request
-              </Text>
-              <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-                <Button colorScheme='red' m='1rem' mr='2rem' onClick={() => setIsDeleted(true)}>
-                  Delete
-                </Button>
-              </Text>
-            </HStack>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-2 pt-2 text-xl font-bold text-foreground">Sign this request</span>
+              {requestDetails.data.ownerSigners.find((s) => s === address) != null ? (
+                <span className="px-2 pt-2 text-xl font-bold text-green-600 dark:text-green-400">
+                  You already signed this request
+                </span>
+              ) : (
+                <SignRequest
+                  multiSigAddress={requestDetails.data.multiSigAddress}
+                  args={requestDetails.data.request}
+                  description={requestDetails.data.description}
+                  requestDetails={requestDetails.data}
+                  existingRequestRef={requestDetails.data.id}
+                />
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-2 pt-2 text-xl font-bold text-foreground">Clear signatures</span>
+              <Button variant="outline" className="mx-2 mt-2" onClick={() => setIsReset(true)}>
+                Reset signatures
+              </Button>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-2 pt-2 text-xl font-bold text-foreground">Delete this request</span>
+              <Button
+                variant="destructive"
+                className="mx-2 mt-2"
+                onClick={() => setIsDeleted(true)}
+              >
+                Delete
+              </Button>
+            </div>
           </Fragment>
         )}
-      </Box>
-      <Center>
-        <Link
-          href={`/multisig/${requestDetails.data.multiSigAddress}/requests`}
-          onClick={() => setSelectedMultiSigTransactionRequest(null)}>
-          <Button colorScheme='blue' m='1rem' mr='2rem'>
+      </div>
+      <div className="flex justify-center">
+        <Button asChild className="m-4">
+          <Link
+            href={`/multisig/${requestDetails.data.multiSigAddress}/requests`}
+            onClick={() => setSelectedMultiSigTransactionRequest(null)}
+          >
             View a different request
-          </Button>
-        </Link>
-      </Center>
+          </Link>
+        </Button>
+      </div>
     </Fragment>
   )
 }

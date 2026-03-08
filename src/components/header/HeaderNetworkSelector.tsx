@@ -1,49 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import {
-  Box,
-  Text,
-  Button,
-  Portal,
-  HStack,
-} from '@chakra-ui/react'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import { useColorModeValue } from '@chakra-ui/color-mode'
-import {
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-} from '@chakra-ui/menu'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
 import { ChevronDownIcon, CheckIcon } from '../icons/ChakraIcons'
 import { useChainId, useChains, useSwitchChain } from 'wagmi'
 import { motion } from 'framer-motion'
 
-const MotionButton = motion.create(Button)
+const MotionButton = motion(Button)
 
 const HeaderNetworkSelector: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
   const chainId = useChainId()
   const allChains = useChains()
-  const chain = allChains.find(c => c.id === chainId)
+  const chain = allChains.find((c) => c.id === chainId)
   const { chains: switchableChains, switchChain } = useSwitchChain()
-
-  // Color mode values
-  const buttonBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
-  const buttonHoverBg = useColorModeValue('blackAlpha.100', 'whiteAlpha.200')
-  const buttonColor = useColorModeValue('gray.700', 'whiteAlpha.900')
-  const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200')
-  const borderHoverColor = useColorModeValue('gray.300', 'whiteAlpha.300')
-  const brandColor = useColorModeValue('brand.500', 'brand.400')
-
-  // Menu colors
-  const menuBg = useColorModeValue(
-    'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%)',
-    'linear-gradient(135deg, rgba(13, 26, 63, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%)'
-  )
-  const menuBorderColor = useColorModeValue('gray.200', 'whiteAlpha.100')
-  const menuItemColor = useColorModeValue('gray.700', 'whiteAlpha.900')
-  const menuItemHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
-  const menuItemHoverColor = useColorModeValue('brand.600', 'brand.300')
 
   useEffect(() => {
     setHasMounted(true)
@@ -52,72 +26,35 @@ const HeaderNetworkSelector: React.FC = () => {
   if (!hasMounted || !chain || !switchableChains) return null
 
   return (
-    <Box>
-      <Menu>
-        <MenuButton
-          as={MotionButton}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <MotionButton
+          variant="outline"
+          size="sm"
+          className="gap-2 border-border bg-background/80 backdrop-blur-sm font-medium"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          size={{ base: 'sm', md: 'md' }}
-          px={{ base: 3, md: 4 }}
-          py={2}
-          borderRadius='xl'
-          fontWeight='500'
-          bg={buttonBg}
-          color={buttonColor}
-          border='1px solid'
-          borderColor={borderColor}
-          backdropFilter='blur(10px)'
-          _active={{
-            transform: 'scale(0.98)'
-          }}
-          _focus={{
-            outline: 'none',
-            boxShadow: '0 0 0 2px rgba(56, 178, 172, 0.3)'
-          }}>
-          <HStack gap={2}>
-            <Box w='8px' h='8px' borderRadius='full' bg={brandColor} />
-            <Text fontSize={{ base: 'xs', md: 'sm' }}>{chain.name}</Text>
-            <ChevronDownIcon />
-          </HStack>
-        </MenuButton>
-        <Portal>
-          <MenuList
-            bg={menuBg}
-            backdropFilter='blur(20px) saturate(180%)'
-            border='1px solid'
-            borderColor={menuBorderColor}
-            borderRadius='xl'
-            boxShadow='0 20px 40px rgba(0, 0, 0, 0.2)'
-            py={2}
-            minW='180px'
-            p={2}
-            zIndex={1600}>
-            {switchableChains.map((item) => (
-              <MenuItem
-                key={`MenuItem-${item.name}`}
-                bg='transparent'
-                color={menuItemColor}
-                fontWeight='500'
-                px={4}
-                py={3}
-                borderRadius='lg'
-                _focus={{
-                  bg: menuItemHoverBg
-                }}
-                onClick={() => switchChain({ chainId: item.id })}>
-                <HStack w='100%' justify='space-between'>
-                  <Text fontSize='md' fontWeight='500'>
-                    {item.name}
-                  </Text>
-                  {chain.id === item.id && <CheckIcon color={brandColor} boxSize={3} />}
-                </HStack>
-              </MenuItem>
-            ))}
-          </MenuList>
-        </Portal>
-      </Menu>
-    </Box>
+        >
+          <span className="h-2 w-2 rounded-full bg-primary" />
+          <span className="text-xs md:text-sm">{chain.name}</span>
+          <ChevronDownIcon className="h-4 w-4 opacity-50" />
+        </MotionButton>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-[180px]">
+        {switchableChains.map((item) => (
+          <DropdownMenuItem
+            key={`MenuItem-${item.name}`}
+            onClick={() => switchChain({ chainId: item.id })}
+            className="flex w-full items-center justify-between"
+          >
+            <span className="text-sm font-medium">{item.name}</span>
+            {chain.id === item.id && (
+              <CheckIcon className="h-3 w-3 text-primary" />
+            )}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

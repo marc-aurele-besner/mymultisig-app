@@ -24,9 +24,9 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 **Next.js Pages Router** with React 19, TypeScript (strict mode), deployed on Netlify.
 
 ### UI Layer
-- **Chakra UI v3** with custom theme in `src/styles/theme.ts` (dark mode default)
-- Shared style objects (card, button, input variants) in `src/styles/colors.ts`
-- **Icons**: Use `src/components/icons/ChakraIcons.tsx` (react-icons + Chakra Icon) instead of `@chakra-ui/icons`; the latter is incompatible with Chakra v3 (forwardRef export removed).
+- **shadcn/ui** with **Tailwind CSS v4**; theme via CSS variables in `src/styles/globals.css`; `next-themes` for dark mode.
+- UI primitives in `src/components/ui/` (button, input, label, card, dialog, dropdown-menu, select, switch, textarea, sheet); `src/lib/utils.ts` provides `cn()` for class merging.
+- **Icons**: `src/components/icons/ChakraIcons.tsx` re-exports lucide-react with a small wrapper (same API: `boxSize`, `className`).
 
 ### Web3
 - **wagmi v3 + viem v2** for all on-chain reads/writes
@@ -64,7 +64,7 @@ All contract writes follow the same flow:
 
 ### Component Conventions
 - Functional components with typed props interfaces
-- Style props spread from `src/styles/colors.ts` (e.g., `{...buttonColors}`)
+- Styling via Tailwind classes and shadcn variants (e.g. `className={cn(...)}`)
 - Every component has a `.stories.tsx` file
 - Use `useChainId()` + `useChains()` for chain/network context
 - Use `useReadContracts` for batched multicall reads (see `useMultiSigDetails.ts`)

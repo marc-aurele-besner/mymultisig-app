@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import {Center, VStack, Text, Heading, Box, } from '@chakra-ui/react'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import { useColorModeValue } from '@chakra-ui/color-mode'
 import { useAccount, useChainId, useChains } from 'wagmi'
 import { motion } from 'framer-motion'
 
@@ -11,17 +8,11 @@ import ConnectWallet from './ConnectWallet'
 import CreateMultiSigForm from '../forms/CreateMultiSigForm'
 import multiSigFactories from '../../constants/multiSigFactory'
 
-const MotionBox = motion.create(Box)
-const MotionVStack = motion.create(VStack)
-
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1
-    }
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 }
   }
 }
 
@@ -37,13 +28,10 @@ const itemVariants = {
 const CreateMultiSig: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
   const { isConnected, address } = useAccount()
-  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
-  const multiSigFactory = multiSigFactories.find((factory) => factory.chainId === chain?.id)
-
-  // Color mode values
-  const mutedTextColor = useColorModeValue('gray.600', 'whiteAlpha.700')
-  const cardBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.50')
-  const cardBorder = useColorModeValue('gray.200', 'whiteAlpha.100')
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
+  const multiSigFactory = multiSigFactories.find((f) => f.chainId === chain?.id)
 
   useEffect(() => {
     setHasMounted(true)
@@ -52,48 +40,52 @@ const CreateMultiSig: React.FC = () => {
   if (!hasMounted) return null
 
   return (
-    <Center>
-      <BigCard maxW='900px' minH='60vh'>
-        <Center>
-          <MotionVStack
+    <div className="flex justify-center">
+      <BigCard className="min-h-[60vh] max-w-[900px]">
+        <div className="flex w-full justify-center py-4 md:py-6">
+          <motion.div
             variants={containerVariants}
-            initial='hidden'
-            animate='visible'
-            gap={6}
-            w='100%'
-            py={{ base: 4, md: 6 }}>
-            <MotionBox variants={itemVariants} textAlign='center' w='100%'>
-              <Heading as='h1' fontSize={{ base: '2xl', md: '4xl' }} fontWeight='800' mb={2}>
-                <Text as='span' bgGradient='linear(to-r, brand.400, accent.500)' bgClip='text'>
+            initial="hidden"
+            animate="visible"
+            className="flex w-full flex-col gap-6"
+          >
+            <motion.div variants={itemVariants} className="w-full text-center">
+              <h1 className="mb-2 text-2xl font-extrabold md:text-4xl">
+                <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
                   Create Your MultiSig
-                </Text>
-              </Heading>
-              <Text fontSize='md' color={mutedTextColor}>
+                </span>
+              </h1>
+              <p className="text-sm text-muted-foreground">
                 Set up a new multi-signature wallet in just a few steps
-              </Text>
-            </MotionBox>
+              </p>
+            </motion.div>
 
             {!isConnected || address === undefined || multiSigFactory === undefined ? (
-              <MotionBox variants={itemVariants} w='100%'>
-                <VStack gap={4}>
-                  {(!isConnected || address === undefined) && <ErrorCard>Please connect your wallet first</ErrorCard>}
+              <motion.div variants={itemVariants} className="w-full">
+                <div className="flex flex-col gap-4">
+                  {(!isConnected || address === undefined) && (
+                    <ErrorCard>Please connect your wallet first</ErrorCard>
+                  )}
                   {multiSigFactory === undefined && isConnected && (
                     <ErrorCard>No MultiSig Factory contract detected on this network</ErrorCard>
                   )}
-                  <Box w='100%' p={6} borderRadius='xl' bg={cardBg} border='1px solid' borderColor={cardBorder}>
+                  <div className="w-full rounded-xl border border-border bg-muted/30 p-6">
                     <ConnectWallet />
-                  </Box>
-                </VStack>
-              </MotionBox>
+                  </div>
+                </div>
+              </motion.div>
             ) : (
-              <MotionBox variants={itemVariants} w='100%'>
-                <CreateMultiSigForm owner01={address.toString()} factory={multiSigFactory} />
-              </MotionBox>
+              <motion.div variants={itemVariants} className="w-full">
+                <CreateMultiSigForm
+                  owner01={address.toString()}
+                  factory={multiSigFactory}
+                />
+              </motion.div>
             )}
-          </MotionVStack>
-        </Center>
+          </motion.div>
+        </div>
       </BigCard>
-    </Center>
+    </div>
   )
 }
 

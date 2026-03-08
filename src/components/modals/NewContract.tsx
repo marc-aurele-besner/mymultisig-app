@@ -1,20 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import {
-  Button,
-  Text,
-  useDisclosure
-} from '@chakra-ui/react'
-import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-} from '@chakra-ui/modal'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import {} from '@chakra-ui/color-mode'
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import { v4 } from 'uuid'
 import { useAccount, useChainId, useChains } from 'wagmi'
 
@@ -23,9 +15,11 @@ import AddContactForm from '../forms/AddContactForm'
 import useContracts from '../../states/contracts'
 
 const NewContract: React.FC = () => {
-  const { open, onOpen, onClose } = useDisclosure()
+  const [open, setOpen] = useState(false)
   const { address } = useAccount()
-  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
   const addContract = useContracts((state) => state.addContract)
   const [contract, setContract] = useState<Contract>({
     chainId: chain ? chain.id : 1,
@@ -45,35 +39,34 @@ const NewContract: React.FC = () => {
 
   const handleSubmit = () => {
     addContract(contract)
-    onClose()
+    setOpen(false)
   }
 
   useEffect(() => {
-    onOpen()
-  }, [onOpen])
+    setOpen(true)
+  }, [])
 
-  if (!address) return <Text>Not connected</Text>
+  if (!address) return <p className="text-foreground">Not connected</p>
 
   return (
-    <Modal isOpen={open} onClose={onClose}>
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>New Contract</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>New Contract</DialogTitle>
+        </DialogHeader>
+        <div>
           <AddContactForm contract={contract} setContract={setContract} />
-        </ModalBody>
-
-        <ModalFooter>
-          <Button colorScheme='blue' mr={3} onClick={handleSubmit}>
+        </div>
+        <DialogFooter>
+          <Button variant="default" className="mr-3" onClick={handleSubmit}>
             Create
           </Button>
-          <Button colorScheme='red' mr={3} onClick={onClose}>
+          <Button variant="destructive" className="mr-3" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 

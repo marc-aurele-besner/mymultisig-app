@@ -1,214 +1,144 @@
+'use client'
+
 import Link from 'next/link'
-import React, { Fragment } from 'react'
+import React, { useState, useEffect, Fragment } from 'react'
+import { useTheme } from 'next-themes'
 import {
-  Box,
-  HStack,
-  Text,
-  useMediaQuery,
-  IconButton,
-  useDisclosure,
-  VStack,
-} from '@chakra-ui/react'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import { useColorMode, useColorModeValue } from '@chakra-ui/color-mode'
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger
+} from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
 import {
-  Drawer,
-  DrawerBody,
-  DrawerHeader,
-  DrawerOverlay,
-  DrawerContent,
-  DrawerCloseButton,
-} from '@chakra-ui/drawer'
-import { HamburgerIcon, MoonIcon, SunIcon, AddIcon, CheckCircleIcon, LinkIcon, LockIcon, InfoOutlineIcon } from '../icons/ChakraIcons'
+  HamburgerIcon,
+  MoonIcon,
+  SunIcon,
+  AddIcon,
+  CheckCircleIcon,
+  LinkIcon,
+  LockIcon,
+  InfoOutlineIcon
+} from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
 import HeaderLink from './HeaderLink'
 import HeaderNetworkSelector from './HeaderNetworkSelector'
 import { HeaderWalletSelector } from './HeaderWalletSelector'
+import { cn } from '@/lib/utils'
 
-const MotionBox = motion.create(Box)
+function useIsDesktop () {
+  const [isDesktop, setIsDesktop] = useState(false)
+  useEffect(() => {
+    const m = window.matchMedia('(min-width: 800px)')
+    setIsDesktop(m.matches)
+    const fn = () => setIsDesktop(m.matches)
+    m.addEventListener('change', fn)
+    return () => m.removeEventListener('change', fn)
+  }, [])
+  return isDesktop
+}
 
 const HeaderBox: React.FC = () => {
-  const [isLargerThan800] = useMediaQuery(['(min-width: 800px)'], {
-    ssr: true,
-    fallback: [false]
-  })
-  const { colorMode, toggleColorMode } = useColorMode()
-  const { open, onOpen, onClose } = useDisclosure()
-
-  // Color mode values
-  const headerBg = useColorModeValue(
-    'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)',
-    'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)'
-  )
-  const borderColor = useColorModeValue('gray.200', 'whiteAlpha.100')
-  const boxShadow = useColorModeValue(
-    '0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
-    '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
-  )
-  const iconColor = useColorModeValue('gray.700', 'whiteAlpha.900')
-  const iconHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
-  const iconActiveBg = useColorModeValue('blackAlpha.100', 'whiteAlpha.200')
-  const dividerColor = useColorModeValue('gray.200', 'whiteAlpha.200')
-  const drawerBg = useColorModeValue(
-    'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%)',
-    'linear-gradient(135deg, rgba(13, 26, 63, 0.98) 0%, rgba(26, 26, 46, 0.98) 100%)'
-  )
-  const drawerBorderColor = useColorModeValue('gray.200', 'whiteAlpha.100')
-  const drawerTextColor = useColorModeValue('gray.800', 'whiteAlpha.900')
-  const drawerHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
-  const brandColor = useColorModeValue('brand.600', 'brand.400')
+  const isDesktop = useIsDesktop()
+  const { theme, setTheme } = useTheme()
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   const menu = [
-    {
-      name: 'Create a MultiSig',
-      link: '/createMultiSig',
-      icon: <AddIcon boxSize={4} />
-    },
-    {
-      name: 'Use your MultiSig',
-      link: '/useYourMultiSig',
-      icon: <CheckCircleIcon boxSize={4} />
-    },
-    {
-      name: 'Integration',
-      link: '/integration',
-      icon: <LinkIcon boxSize={4} />
-    },
-    {
-      name: 'About',
-      link: '/about',
-      icon: <InfoOutlineIcon boxSize={4} />
-    }
+    { name: 'Create a MultiSig', link: '/createMultiSig', icon: <AddIcon boxSize={16} className="shrink-0" /> },
+    { name: 'Use your MultiSig', link: '/useYourMultiSig', icon: <CheckCircleIcon boxSize={16} className="shrink-0" /> },
+    { name: 'Integration', link: '/integration', icon: <LinkIcon boxSize={16} className="shrink-0" /> },
+    { name: 'About', link: '/about', icon: <InfoOutlineIcon boxSize={16} className="shrink-0" /> }
   ]
 
   return (
-    <MotionBox
+    <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      w={{ base: '95%', md: '90vw', lg: '85vw' }}
-      maxW='1400px'
-      p={{ base: 3, md: 4 }}
-      m={2}
-      mt={{ base: 3, md: 4 }}
-      borderRadius='2xl'
-      bg={headerBg}
-      backdropFilter='blur(20px) saturate(180%)'
-      border='1px solid'
-      borderColor={borderColor}
-      boxShadow={boxShadow}
-      position='relative'
-      zIndex={20}
-      overflow='visible'>
-      <HStack w='100%' align='center' justify='space-between' gap={{ base: 2, md: 4 }}>
-        <HStack gap={{ base: 2, md: 3 }} align='center'>
-          <HeaderLink name='MyMultiSig' link='/' icon={<LockIcon boxSize={5} />} isLogo />
+      className={cn(
+        'relative z-20 w-[95%] max-w-[1400px] rounded-2xl border border-border bg-background/80 p-3 shadow-lg backdrop-blur-xl md:w-[90vw] md:p-4 lg:w-[85vw]'
+      )}
+    >
+      <div className="flex w-full items-center justify-between gap-2 md:gap-4">
+        <div className="flex items-center gap-2 md:gap-3">
+          <HeaderLink name="MyMultiSig" link="/" icon={<LockIcon boxSize={20} className="shrink-0 text-primary" />} isLogo />
 
-          {isLargerThan800 ? (
+          {isDesktop ? (
             <Fragment>
-              <Box h='24px' w='1px' bg={dividerColor} mx={2} />
+              <div className="mx-2 h-6 w-px bg-border" />
               {menu.map((item, index) => (
-                <MotionBox
+                <motion.div
                   key={`Link-${item.name}`}
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}>
+                  transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
+                >
                   <HeaderLink name={item.name} link={item.link} icon={item.icon} />
-                </MotionBox>
+                </motion.div>
               ))}
             </Fragment>
           ) : (
-            <>
-              <IconButton
-                aria-label='Open menu'
-                onClick={onOpen}
-                variant='ghost'
-                color={iconColor}
-                size='sm'
-                _hover={{ bg: iconHoverBg }}
-                _active={{ bg: iconActiveBg }}
-              >
-                <HamburgerIcon boxSize={5} />
-              </IconButton>
-
-              <Drawer isOpen={open} placement='left' onClose={onClose}>
-                <DrawerOverlay backdropFilter='blur(10px)' bg='blackAlpha.600' />
-                <DrawerContent
-                  bg={drawerBg}
-                  backdropFilter='blur(20px)'
-                  borderRight='1px solid'
-                  borderColor={drawerBorderColor}>
-                  <DrawerCloseButton color={iconColor} _hover={{ color: brandColor }} />
-                  <DrawerHeader borderBottomWidth='1px' borderColor={drawerBorderColor}>
-                    <HStack gap={2}>
-                      <LockIcon color={brandColor} boxSize={5} />
-                      <Text fontSize='xl' fontWeight='700' bgGradient='linear(to-r, brand.400, accent.500)' bgClip='text'>
-                        MyMultiSig
-                      </Text>
-                    </HStack>
-                  </DrawerHeader>
-
-                  <DrawerBody py={6}>
-                    <VStack gap={2} align='stretch'>
-                      {menu.map((item, index) => (
-                        <MotionBox
-                          key={`MenuItem-${item.link}`}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.3, delay: index * 0.05 }}>
-                          <Link href={item.link} onClick={onClose}>
-                            <HStack
-                              p={3}
-                              borderRadius='lg'
-                              gap={3}
-                            >
-                              {item.icon && <Box color={brandColor}>{item.icon}</Box>}
-                              <Text fontSize='md' fontWeight='500' color={drawerTextColor}>
-                                {item.name}
-                              </Text>
-                            </HStack>
-                          </Link>
-                        </MotionBox>
-                      ))}
-
-                      <Box borderTop="1px" borderColor={drawerBorderColor} w="100%" my={4} />
-
-                      <Box px={3}>
-                        <HeaderNetworkSelector />
-                      </Box>
-                    </VStack>
-                  </DrawerBody>
-                </DrawerContent>
-              </Drawer>
-            </>
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Open menu" className="text-foreground hover:bg-accent">
+                  <HamburgerIcon boxSize={20} />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="border-r border-border bg-background">
+                <SheetHeader className="border-b border-border pb-4">
+                  <SheetTitle className="flex items-center gap-2">
+                    <LockIcon className="h-5 w-5 text-primary" />
+                    <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-xl font-bold text-transparent">
+                      MyMultiSig
+                    </span>
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="mt-6 flex flex-col gap-2">
+                  {menu.map((item, index) => (
+                    <motion.div
+                      key={`MenuItem-${item.link}`}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                    >
+                      <Link href={item.link} onClick={() => setSheetOpen(false)}>
+                        <div className="flex items-center gap-3 rounded-lg p-3 hover:bg-accent/50">
+                          {item.icon && <span className="text-primary">{item.icon}</span>}
+                          <span className="text-sm font-medium text-foreground">{item.name}</span>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))}
+                  <div className="my-4 w-full border-t border-border" />
+                  <div className="px-3">
+                    <HeaderNetworkSelector />
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           )}
-        </HStack>
+        </div>
 
-        <HStack gap={{ base: 2, md: 3 }} align='center'>
-          {isLargerThan800 && (
+        <div className="flex items-center gap-2 md:gap-3">
+          {isDesktop && (
             <>
               <HeaderNetworkSelector />
-              <IconButton
-                aria-label='Toggle color mode'
-                onClick={toggleColorMode}
-                variant='ghost'
-                color={iconColor}
-                size='sm'
-                borderRadius='lg'
-                _hover={{
-                  bg: iconHoverBg,
-                  color: brandColor
-                }}
-                _active={{ bg: iconActiveBg }}
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Toggle theme"
+                className="rounded-lg text-foreground hover:bg-accent hover:text-primary"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               >
-                {colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
-              </IconButton>
+                {theme === 'light' ? <MoonIcon className="h-5 w-5" /> : <SunIcon className="h-5 w-5" />}
+              </Button>
             </>
           )}
           <HeaderWalletSelector />
-        </HStack>
-      </HStack>
-    </MotionBox>
+        </div>
+      </div>
+    </motion.div>
   )
 }
 

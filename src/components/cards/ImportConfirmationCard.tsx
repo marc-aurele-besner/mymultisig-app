@@ -1,9 +1,5 @@
 import React, { Fragment } from 'react'
-import { Text } from '@chakra-ui/react'
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText } from '@chakra-ui/form-control'
-import { useColorModeValue } from '@chakra-ui/color-mode'
 import { useChainId, useChains } from 'wagmi'
-
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import { MultiSig } from '../../models/MultiSigs'
 import useMultiSigs from '../../states/multiSigs'
@@ -21,18 +17,18 @@ const ImportConfirmationCard: React.FC<ImportConfirmationCardProps> = ({
 }) => {
   const chainId = useChainId()
   const chains = useChains()
-  const chain = chains.find(c => c.id === chainId)
-  const { data, isLoading, error, isSuccess } = useMultiSigDetails(multiSigAddress, address)
+  const chain = chains.find((c) => c.id === chainId)
+  const { data, isLoading, error, isSuccess } = useMultiSigDetails(
+    multiSigAddress,
+    address
+  )
   const { addMultiSig } = useMultiSigs()
 
-  const textColor = useColorModeValue('gray.800', 'white')
-  const successColor = useColorModeValue('green.600', 'green.300')
-
-  if (data && data.length == 6 && chain) {
+  if (data && data.length === 6 && chain) {
     const newMultiSig: MultiSig = {
       chainId: chain.id,
       chainName: chain.name,
-      factoryAddress: factoryAddress,
+      factoryAddress,
       id: 0,
       name: String(data[0]),
       version: String(data[1]),
@@ -46,25 +42,18 @@ const ImportConfirmationCard: React.FC<ImportConfirmationCardProps> = ({
     addMultiSig(newMultiSig)
   }
 
-  console.log('data', data)
   return (
     <Fragment>
       {isLoading && (
-        <Text fontSize='lg' fontWeight='bold' color={textColor}>
-          Loading...
-        </Text>
+        <p className="text-lg font-bold text-foreground">Loading...</p>
       )}
       {error && (
-        <Text fontSize='lg' fontWeight='bold' color={textColor}>
-          Error: {error.message}
-        </Text>
+        <p className="text-lg font-bold text-foreground">Error: {error.message}</p>
       )}
       {isSuccess && (
-        <Fragment>
-          <Text fontSize='lg' fontWeight='bold' color={successColor}>
-            Your multisig contract has been imported!
-          </Text>
-        </Fragment>
+        <p className="text-lg font-bold text-green-600 dark:text-green-400">
+          Your multisig contract has been imported!
+        </p>
       )}
     </Fragment>
   )
