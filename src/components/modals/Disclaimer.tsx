@@ -7,7 +7,6 @@ import {
   HStack,
   Box
 } from '@chakra-ui/react'
-import { List } from '@chakra-ui/react'
 import {
   Modal,
   ModalOverlay,
@@ -22,7 +21,7 @@ import { WarningTwoIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
 import { buttonColors } from '../../styles/colors'
 
-const MotionModalContent = motion(ModalContent)
+const MotionModalContent = motion.create(ModalContent)
 
 const Disclaimer: React.FC = () => {
   const { open, onOpen, onClose } = useDisclosure()

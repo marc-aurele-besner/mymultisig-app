@@ -1,9 +1,10 @@
 /**
- * Drop-in replacement for @chakra-ui/icons using react-icons + Chakra Icon.
- * Fixes forwardRef compatibility with Chakra UI v3.
+ * Drop-in replacement for @chakra-ui/icons using react-icons + Chakra Box.
+ * Uses Box with polymorphic "as" to avoid Chakra v3 Icon not forwarding "as"
+ * correctly (which can cause "Functions are not valid as a React child").
  */
 import React from 'react'
-import { Icon } from '@chakra-ui/react'
+import { Box, type BoxProps } from '@chakra-ui/react'
 import {
   FiPlus,
   FiCheckCircle,
@@ -26,10 +27,10 @@ import {
   FiInfo
 } from 'react-icons/fi'
 
-export type IconProps = React.ComponentProps<typeof Icon>
+export type IconProps = BoxProps
 
-const createIcon = (IconComponent: React.ComponentType, displayName: string) => {
-  const WrappedIcon = (props: IconProps) => <Icon as={IconComponent} {...props} />
+const createIcon = (IconComponent: React.ComponentType<IconProps>, displayName: string) => {
+  const WrappedIcon = (props: IconProps) => <Box as={IconComponent} display='inline-block' lineHeight='1em' {...props} />
   WrappedIcon.displayName = displayName
   return WrappedIcon
 }
