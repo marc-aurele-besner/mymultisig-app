@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from '@/components/ui/command'
 import { Button } from '@/components/ui/button'
 import { ChevronDownIcon, CheckIcon } from '../icons/ChakraIcons'
+import NetworkIcon from '../icons/NetworkIcon'
 import { useChainId, useChains, useSwitchChain } from 'wagmi'
-import { motion } from 'framer-motion'
-
-const MotionButton = motion(Button)
 
 const HeaderNetworkSelector: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
+  const [open, setOpen] = useState(false)
   const chainId = useChainId()
   const allChains = useChains()
   const chain = allChains.find((c) => c.id === chainId)
@@ -25,36 +27,59 @@ const HeaderNetworkSelector: React.FC = () => {
 
   if (!hasMounted || !chain || !switchableChains) return null
 
+  const mainnets = switchableChains.filter((c) => !c.testnet)
+  const testnets = switchableChains.filter((c) => c.testnet)
+
+  const selectChain = (id: number) => {
+    switchChain({ chainId: id })
+    setOpen(false)
+  }
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <MotionButton
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
           variant="outline"
           size="sm"
-          className="gap-2 border-border bg-background/80 backdrop-blur-sm font-medium"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          role="combobox"
+          aria-expanded={open}
+          aria-label="Switch network"
+          className="gap-2 border-border bg-card font-medium text-foreground hover:bg-accent"
         >
-          <span className="h-2 w-2 rounded-full bg-primary" />
-          <span className="text-xs md:text-sm">{chain.name}</span>
+          <NetworkIcon chainId={chain.id} name={chain.name} size={16} />
+          <span className="max-w-[120px] truncate text-xs md:text-sm">{chain.name}</span>
           <ChevronDownIcon className="h-4 w-4 opacity-50" />
-        </MotionButton>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[180px]">
-        {switchableChains.map((item) => (
-          <DropdownMenuItem
-            key={`MenuItem-${item.name}`}
-            onClick={() => switchChain({ chainId: item.id })}
-            className="flex w-full items-center justify-between"
-          >
-            <span className="text-sm font-medium">{item.name}</span>
-            {chain.id === item.id && (
-              <CheckIcon className="h-3 w-3 text-primary" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[248px] p-0">
+        <Command>
+          <CommandInput placeholder="Search networks…" />
+          <CommandList>
+            <CommandEmpty>No network matches your search.</CommandEmpty>
+            <CommandGroup heading="MAINNETS">
+              {mainnets.map((item) => (
+                <CommandItem key={item.id} value={item.name} onSelect={() => selectChain(item.id)}>
+                  <NetworkIcon chainId={item.id} name={item.name} size={18} />
+                  <span className="flex-1 truncate">{item.name}</span>
+                  {chain.id === item.id && <CheckIcon className="h-3.5 w-3.5 text-primary" />}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            {testnets.length > 0 && (
+              <CommandGroup heading="TESTNETS">
+                {testnets.map((item) => (
+                  <CommandItem key={item.id} value={item.name} onSelect={() => selectChain(item.id)}>
+                    <NetworkIcon chainId={item.id} name={item.name} size={18} />
+                    <span className="flex-1 truncate">{item.name}</span>
+                    {chain.id === item.id && <CheckIcon className="h-3.5 w-3.5 text-primary" />}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
             )}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   )
 }
 
