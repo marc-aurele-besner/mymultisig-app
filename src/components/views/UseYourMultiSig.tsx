@@ -1,13 +1,13 @@
 import React, { Fragment, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAccount, useChainId, useChains } from 'wagmi'
-import { DownloadIcon, DeleteIcon } from '../icons/ChakraIcons'
+import { AddIcon, DownloadIcon, DeleteIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import BigCard from '../cards/BigCard'
-import ErrorCard from '../cards/ErrorCard'
 import ConnectWallet from './ConnectWallet'
 import MultiSigList from '../multiSigDetails/MultiSigList'
+import NetworkIcon from '../icons/NetworkIcon'
 import useMultiSigs from '../../states/multiSigs'
 
 const containerVariants = {
@@ -46,95 +46,122 @@ const UseYourMultiSig: React.FC = () => {
   return (
     <div className="flex justify-center">
       <BigCard className="max-w-[1000px]">
-        <div className="flex w-full justify-center py-4 md:py-6">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="flex w-full flex-col gap-6"
-          >
-            <motion.div variants={itemVariants} className="w-full text-center">
-              <h1 className="mb-2 text-2xl font-extrabold md:text-4xl">
-                <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                  Your MultiSig Wallets
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="flex w-full flex-col gap-8"
+        >
+          <motion.div variants={itemVariants}>
+            <p className="mb-3 font-mono text-xs tracking-[0.2em] text-primary">YOUR MULTISIGS</p>
+            <h1 className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+              Open a multisig
+            </h1>
+            {chain && (
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <NetworkIcon chainId={chain.id} name={chain.name} size={16} />
+                  {chain.name}
                 </span>
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Manage and interact with your multi-signature wallets
-              </p>
-            </motion.div>
-
-            {!isConnected || address === undefined ? (
-              <motion.div variants={itemVariants} className="w-full">
-                <div className="flex flex-col gap-4">
-                  <ErrorCard>Please connect your wallet first</ErrorCard>
-                  <div className="w-full rounded-xl border border-border bg-muted/30 p-6">
-                    <ConnectWallet />
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              <Fragment>
-                {filteredMultiSigs.length === 0 ? (
-                  <motion.div variants={itemVariants} className="w-full">
-                    <div className="w-full rounded-xl border border-border bg-muted/30 p-6 text-center">
-                      <p className="mb-2 text-lg text-foreground">No MultiSig wallets found</p>
-                      <p className="text-sm text-muted-foreground">
-                        You don&apos;t have any multi-signature contracts on this network yet. Create
-                        one or import an existing one to get started.
-                      </p>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div variants={itemVariants} className="flex w-full flex-col gap-3">
-                    <span className="self-start text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Select a MultiSig
+                {isConnected && (
+                  <>
+                    <span aria-hidden className="text-border">/</span>
+                    <span className="font-mono text-xs">
+                      {filteredMultiSigs.length} saved in this browser
                     </span>
-                    {filteredMultiSigs.map((multiSig, index) => (
-                      <motion.div
-                        key={`${multiSig.address}-${index}`}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                        className="w-full"
-                      >
-                        <MultiSigList multiSigAddress={multiSig.address} address={address} />
-                      </motion.div>
-                    ))}
-                  </motion.div>
+                  </>
                 )}
-
-                <motion.div
-                  variants={itemVariants}
-                  className="w-full border-t border-border pt-4"
-                >
-                  <span className="self-start text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Actions
-                  </span>
-                  <div className="mt-3 flex w-full flex-wrap gap-3">
-                    <Button variant="outline" size="default" asChild>
-                      <Link href="/importMultiSig" className="gap-2">
-                        <DownloadIcon className="h-4 w-4" />
-                        Import a MultiSig
-                      </Link>
-                    </Button>
-                    {multiSigs.length > 0 && (
-                      <Button
-                        variant="outline"
-                        size="default"
-                        className="gap-2 border-destructive/50 bg-destructive/15 text-destructive hover:bg-destructive/25"
-                        onClick={() => clearAllMultiSig()}
-                      >
-                        <DeleteIcon className="h-4 w-4" />
-                        Clear All
-                      </Button>
-                    )}
-                  </div>
-                </motion.div>
-              </Fragment>
+              </div>
             )}
           </motion.div>
-        </div>
+
+          {!isConnected || address === undefined ? (
+            <motion.div variants={itemVariants} className="rounded-xl border border-border bg-muted/30 p-6">
+              <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
+                Connect a wallet to see the multisigs saved in this browser and open them.
+              </p>
+              <ConnectWallet />
+            </motion.div>
+          ) : (
+            <Fragment>
+              {filteredMultiSigs.length === 0 ? (
+                <motion.div
+                  variants={itemVariants}
+                  className="flex flex-col items-start gap-4 rounded-xl border border-dashed border-border p-6 md:p-8"
+                >
+                  <div>
+                    <p className="text-base font-semibold text-foreground">
+                      No multisigs on {chain?.name ?? 'this network'} yet
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                      Create a new one, or import one you already own. Multisigs on other networks
+                      show up when you switch network in the header.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <Button asChild>
+                      <Link href="/createMultiSig" className="gap-2">
+                        <AddIcon className="h-4 w-4" />
+                        Create a multisig
+                      </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                      <Link href="/importMultiSig" className="gap-2">
+                        <DownloadIcon className="h-4 w-4" />
+                        Import a multisig
+                      </Link>
+                    </Button>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div variants={itemVariants} className="flex w-full flex-col gap-2.5">
+                  {filteredMultiSigs.map((multiSig, index) => (
+                    <motion.div
+                      key={`${multiSig.address}-${index}`}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                    >
+                      <MultiSigList multiSigAddress={multiSig.address} address={address} />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+
+              <motion.div
+                variants={itemVariants}
+                className="flex flex-wrap items-center gap-3 border-t border-border pt-6"
+              >
+                {filteredMultiSigs.length > 0 && (
+                  <>
+                    <Button variant="outline" asChild>
+                      <Link href="/createMultiSig" className="gap-2">
+                        <AddIcon className="h-4 w-4" />
+                        Create a multisig
+                      </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                      <Link href="/importMultiSig" className="gap-2">
+                        <DownloadIcon className="h-4 w-4" />
+                        Import a multisig
+                      </Link>
+                    </Button>
+                  </>
+                )}
+                {multiSigs.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    className="ml-auto gap-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => clearAllMultiSig()}
+                  >
+                    <DeleteIcon className="h-4 w-4" />
+                    Remove all from this browser
+                  </Button>
+                )}
+              </motion.div>
+            </Fragment>
+          )}
+        </motion.div>
       </BigCard>
     </div>
   )

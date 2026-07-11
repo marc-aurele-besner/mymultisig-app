@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { ChevronRightIcon } from 'lucide-react'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 
 interface MultiSigListProps {
@@ -14,19 +14,21 @@ const MultiSigList: React.FC<MultiSigListProps> = ({ multiSigAddress, address })
   if (!data || !data[1] || !data[5]) return null
 
   return (
-    <div className="rounded-lg border border-border p-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="px-2 pt-2 text-xl font-bold text-foreground">
+    <Link
+      href={`/multisig/${multiSigAddress}`}
+      className="group flex w-full items-center justify-between gap-4 rounded-lg border border-border bg-background/40 px-4 py-3.5 transition-colors hover:border-primary/40 hover:bg-accent/40"
+    >
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <span className="truncate text-base font-semibold text-foreground">
           {data[0]?.toString()}
         </span>
-        <span className="px-2 pt-2 text-sm font-bold text-muted-foreground">
-          {multiSigAddress}
-        </span>
-        <Link href={`/multisig/${multiSigAddress}`} className="ml-auto mr-8">
-          <Button>Select</Button>
-        </Link>
+        <span className="truncate font-mono text-xs text-muted-foreground">{multiSigAddress}</span>
       </div>
-    </div>
+      <span className="flex shrink-0 items-center gap-1 text-sm font-medium text-muted-foreground transition-colors group-hover:text-primary">
+        Open
+        <ChevronRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+      </span>
+    </Link>
   )
 }
 
