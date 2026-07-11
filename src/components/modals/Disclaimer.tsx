@@ -9,12 +9,19 @@ import {
 import { Button } from '@/components/ui/button'
 import { WarningTwoIcon } from '../icons/ChakraIcons'
 
+const DISCLAIMER_ACCEPTED_KEY = 'mymultisig.disclaimer.accepted'
+
 const Disclaimer: React.FC = () => {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    setOpen(true)
+    if (!window.localStorage.getItem(DISCLAIMER_ACCEPTED_KEY)) setOpen(true)
   }, [])
+
+  const accept = () => {
+    window.localStorage.setItem(DISCLAIMER_ACCEPTED_KEY, 'true')
+    setOpen(false)
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -24,18 +31,19 @@ const Disclaimer: React.FC = () => {
       >
         <DialogHeader className="pb-2 pt-6">
           <DialogTitle className="flex items-center gap-3">
-            <span className="rounded-lg bg-orange-500/20 p-2">
-              <WarningTwoIcon className="h-5 w-5 text-orange-400" />
+            <span className="rounded-lg bg-primary/15 p-2">
+              <WarningTwoIcon className="h-5 w-5 text-primary" />
             </span>
-            <span className="bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-xl font-bold text-transparent">
-              Important Disclaimer
+            <span className="font-display text-xl font-bold tracking-tight text-foreground">
+              Important disclaimer
             </span>
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 py-4">
           <p className="text-sm leading-relaxed text-foreground">
-            Welcome to MyMultiSig. Please note that this is a work in development and some
+            Welcome to MyMultiSig. This is an early-stage project; the smart contracts are
+            open-source and available for review but have not been professionally audited. Some
             features may be incomplete or not functioning as intended. By using this app, you
             acknowledge and accept that:
           </p>
@@ -65,8 +73,8 @@ const Disclaimer: React.FC = () => {
         </div>
 
         <DialogFooter className="pb-6 pt-2">
-          <Button className="w-full" size="lg" onClick={() => setOpen(false)}>
-            I Understand & Accept
+          <Button className="w-full" size="lg" onClick={accept}>
+            I understand and accept
           </Button>
         </DialogFooter>
       </DialogContent>
