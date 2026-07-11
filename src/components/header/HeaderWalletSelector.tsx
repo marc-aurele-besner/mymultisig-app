@@ -41,7 +41,7 @@ export const HeaderWalletSelector: React.FC = () => {
             'gap-2 font-semibold',
             connector && address
               ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-              : 'border border-border bg-muted/50 hover:bg-muted'
+              : 'border border-border bg-card text-foreground hover:bg-accent'
           )}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
