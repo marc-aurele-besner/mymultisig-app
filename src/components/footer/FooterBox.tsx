@@ -26,6 +26,12 @@ const FooterBox: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-1">
+          <Link
+            href="/contact"
+            className="rounded-lg px-3 py-2 font-mono text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            Contact
+          </Link>
           {footerLinks.map((item) => (
             <Link
               key={item.href}

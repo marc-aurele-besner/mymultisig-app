@@ -80,6 +80,7 @@ All contract writes follow the same flow:
 - `PRIVATE_KEY` — Backend EVM wallet for signing (do NOT fund)
 - `RPC_ETHEREUM` — Ethereum RPC for backend signer
 - `ETHERSCAN_API_KEY` — ABI fetching via `/api/getABI`
+- `RESEND_API_KEY` / `RESEND_CONTACT_TO` — contact form via `/api/contact` (`RESEND_FROM` optional, defaults to Resend's onboarding sender)
 
 ## Known Issues
 
