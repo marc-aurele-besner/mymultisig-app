@@ -8,8 +8,10 @@ import SelectFunction from '../inputs/SelectFunction'
 import TextInput from '../inputs/TextInput'
 import SignRequest from '../buttons/SignRequest'
 import NewContract from '../modals/NewContract'
+import BatchRequestForm from './BatchRequestForm'
 import useContracts from '../../states/contracts'
 import useCallData from '../../hooks/useCallData'
+import useWalletType from '../../hooks/useWalletType'
 import { BuildMultiSigRequest } from '../../models/MultiSigs'
 import { buildRawSignatureFromFunction } from '../../utils/buildFunctionSignature'
 
@@ -31,8 +33,10 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({
   const [type, setType] = useState<string>('contract')
   const [selectedContract, setSelectedContract] = useState<string | undefined>(undefined)
   const [selectedFunction, setSelectedFunction] = useState<string>('')
+  const [pinnedNonce, setPinnedNonce] = useState<string>('')
   const contracts = useContracts((state) => state.contracts)
   const callData = useCallData(abi, selectedFunction, request.to, request.arguments)
+  const { walletType } = useWalletType(multiSigAddress)
 
   const selectedFunctionFragment: JsonFragment | undefined =
     abi != null && selectedFunction
@@ -91,8 +95,27 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({
           >
             Regular transaction
           </Button>
+          <Button
+            variant={type === 'batch' ? 'default' : 'outline'}
+            className="m-2"
+            onClick={() => setType('batch')}
+          >
+            Batch
+          </Button>
         </div>
-        {type === 'contract' ? (
+        {walletType === 'extended' && (
+          <div className="flex flex-wrap items-center gap-2 px-2 pt-2">
+            <span className="text-sm font-semibold text-foreground">Pin to nonce (optional):</span>
+            <TextInput
+              placeholder="Leave empty to use the current nonce"
+              value={pinnedNonce}
+              onChange={(e) => setPinnedNonce(e.target.value)}
+            />
+          </div>
+        )}
+        {type === 'batch' ? (
+          <BatchRequestForm multiSigAddress={multiSigAddress} txnNonce={pinnedNonce} />
+        ) : type === 'contract' ? (
           <Fragment>
             {row(
               'Contract to call:',
@@ -139,50 +162,55 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({
             />
           )
         )}
-        <div className="px-2 pt-2 text-xl font-bold text-foreground">Tx. Detail</div>
-        {row(
-          'Value:',
-          <TextInput
-            placeholder="Value"
-            value={request.value}
-            onChange={(e) => handleChangeValue(e.target.value, 'value')}
-          />
-        )}
-        {row(
-          'Tx. Gas:',
-          <TextInput
-            placeholder="Tx. Gas"
-            value={request.txnGas}
-            onChange={(e) => handleChangeValue(e.target.value, 'txnGas')}
-          />
-        )}
-        {row(
-          'Description:',
-          <TextInput
-            placeholder="Description"
-            value={request.description}
-            onChange={(e) => handleChangeValue(e.target.value, 'description')}
-          />
-        )}
-        {(type === 'tx'
-          ? /^0x[a-fA-F0-9]{40}$/.test(request.to) && request.description !== ''
-          : selectedContract != null && selectedFunction !== '' && request.description !== '') && (
-          <div className="flex justify-center">
-            <SignRequest
-              multiSigAddress={multiSigAddress}
-              description={request.description}
-              args={{
-                to: request.to,
-                value: request.value,
-                data:
-                  type !== 'tx' && callData.callData != null
-                    ? `0x${callData.callData.substring(2)}`
-                    : '0x',
-                txnGas: request.txnGas,
-                signatures: ''
-              }}
-            />
-          </div>
+        {type !== 'batch' && (
+          <Fragment>
+            <div className="px-2 pt-2 text-xl font-bold text-foreground">Tx. Detail</div>
+            {row(
+              'Value:',
+              <TextInput
+                placeholder="Value"
+                value={request.value}
+                onChange={(e) => handleChangeValue(e.target.value, 'value')}
+              />
+            )}
+            {row(
+              'Tx. Gas:',
+              <TextInput
+                placeholder="Tx. Gas"
+                value={request.txnGas}
+                onChange={(e) => handleChangeValue(e.target.value, 'txnGas')}
+              />
+            )}
+            {row(
+              'Description:',
+              <TextInput
+                placeholder="Description"
+                value={request.description}
+                onChange={(e) => handleChangeValue(e.target.value, 'description')}
+              />
+            )}
+            {(type === 'tx'
+              ? /^0x[a-fA-F0-9]{40}$/.test(request.to) && request.description !== ''
+              : selectedContract != null && selectedFunction !== '' && request.description !== '') && (
+              <div className="flex justify-center">
+                <SignRequest
+                  multiSigAddress={multiSigAddress}
+                  description={request.description}
+                  args={{
+                    to: request.to,
+                    value: request.value,
+                    data:
+                      type !== 'tx' && callData.callData != null
+                        ? `0x${callData.callData.substring(2)}`
+                        : '0x',
+                    txnGas: request.txnGas,
+                    signatures: '',
+                    ...(pinnedNonce !== '' && /^\d+$/.test(pinnedNonce) ? { txnNonce: pinnedNonce } : {})
+                  }}
+                />
+              </div>
+            )}
+          </Fragment>
         )}
       </div>
     </Fragment>

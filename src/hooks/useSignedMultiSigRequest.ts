@@ -76,7 +76,12 @@ const useSignedMultiSigRequest = (
     value: valueCheck ? (BigNumber.isBigNumber(args.value) ? args.value.toBigInt() : BigInt(args.value)) : BigInt(0),
     data: args.data,
     gas: gasCheck ? (BigNumber.isBigNumber(args.txnGas) ? args.txnGas.toBigInt() : BigInt(args.txnGas)) : BigInt(0),
-    nonce: BigNumber.from(multiSigDetails ? multiSigDetails[4] : 0).toBigInt()
+    // Requests pinned to an explicit nonce (Extended wallets) must be signed
+    // against that nonce; everything else signs the wallet's current nonce.
+    nonce:
+      args.txnNonce != null && args.txnNonce !== ''
+        ? BigInt(args.txnNonce)
+        : BigNumber.from(multiSigDetails ? multiSigDetails[4] : 0).toBigInt()
   } as const
 
   const { data, isError, isPending, isSuccess, error, signTypedData, reset } = useSignTypedData()
