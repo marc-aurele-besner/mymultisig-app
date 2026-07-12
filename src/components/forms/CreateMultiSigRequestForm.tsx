@@ -164,7 +164,9 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({
             onChange={(e) => handleChangeValue(e.target.value, 'description')}
           />
         )}
-        {selectedContract != null && selectedFunction !== '' && request.description !== '' && (
+        {(type === 'tx'
+          ? /^0x[a-fA-F0-9]{40}$/.test(request.to) && request.description !== ''
+          : selectedContract != null && selectedFunction !== '' && request.description !== '') && (
           <div className="flex justify-center">
             <SignRequest
               multiSigAddress={multiSigAddress}
@@ -172,7 +174,10 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({
               args={{
                 to: request.to,
                 value: request.value,
-                data: callData.callData != null ? `0x${callData.callData.substring(2)}` : '0x',
+                data:
+                  type !== 'tx' && callData.callData != null
+                    ? `0x${callData.callData.substring(2)}`
+                    : '0x',
                 txnGas: request.txnGas,
                 signatures: ''
               }}
