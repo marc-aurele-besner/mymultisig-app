@@ -24,25 +24,28 @@ const itemVariants = {
   }
 }
 
+const GITHUB_APP_URL = 'https://github.com/marc-aurele-besner/mymultisig-app'
+const GITHUB_CONTRACT_URL = 'https://github.com/marc-aurele-besner/mymultisig-contract'
+
 const features = [
   {
     icon: <LockIcon boxSize={20} className="shrink-0" />,
-    title: 'Lightweight Contracts',
-    description: 'Clear logic, no unnecessary complexity. Easy to read and audit.'
+    title: 'Lightweight contracts',
+    description: 'Clear logic, minimal complexity. The code is written to be readable so that review and future audits are easier.'
   },
   {
     icon: <StarIcon boxSize={20} className="shrink-0" />,
-    title: 'Gas-Conscious Design',
-    description: 'Optimized for low transaction costs without compromising security.'
+    title: 'Gas-conscious design',
+    description: 'Optimized for low transaction costs. Built to keep onchain operations affordable.'
   },
   {
     icon: <ViewIcon boxSize={20} className="shrink-0" />,
-    title: 'Full Transparency',
-    description: 'Open-source codebase with security best practices built-in.'
+    title: 'Open source',
+    description: 'Contracts and app code are available for review. No hidden logic.'
   },
   {
     icon: <SettingsIcon boxSize={20} className="shrink-0" />,
-    title: 'Modern Stack',
+    title: 'Modern stack',
     description: 'Built with Next.js, shadcn UI, and wagmi for a responsive experience.'
   }
 ]
@@ -65,15 +68,15 @@ const About: React.FC = () => {
                 </span>
               </h1>
               <p className="mx-auto max-w-[700px] text-lg font-medium leading-relaxed text-foreground md:text-xl">
-                A minimalistic, open-source multisig smart contract and web app focused on security,
-                simplicity, and auditability.
+                An open-source multisig smart contract and web app. Simple architecture, designed for
+                clarity. Early-stage project—contracts are available for review but not professionally audited.
               </p>
             </motion.div>
 
             <motion.div variants={itemVariants} className="max-w-[800px] text-center">
               <p className="text-sm leading-relaxed text-muted-foreground">
                 Create a multisig, manage signers, and approve transactions with a clean UI. The
-                contracts are designed to be easy to read and verify, making audits straightforward.
+                contracts are written to be readable so that review and future audits are easier.
               </p>
             </motion.div>
 
@@ -99,18 +102,18 @@ const About: React.FC = () => {
 
             <motion.div
               variants={itemVariants}
-              className="flex flex-col items-center justify-center gap-4 pt-4 sm:flex-row"
+              className="flex flex-col items-center justify-center gap-4 pt-4 sm:flex-row flex-wrap"
             >
               <Button size="lg" className="gap-2 px-8" asChild>
                 <Link href="/createMultiSig">
                   <AddIcon className="h-4 w-4" />
-                  Create a MultiSig
+                  Create a multisig
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="gap-2 px-8" asChild>
                 <Link href="/useYourMultiSig">
                   <CheckCircleIcon className="h-4 w-4" />
-                  Use your MultiSig
+                  Open an existing multisig
                 </Link>
               </Button>
               <Button
@@ -119,13 +122,20 @@ const About: React.FC = () => {
                 className="gap-2 px-8 text-primary hover:bg-accent hover:text-primary"
                 asChild
               >
-                <a
-                  href="https://github.com/marc-aurele-besner/mymultisig-contract"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href={GITHUB_CONTRACT_URL} target="_blank" rel="noopener noreferrer">
                   <ExternalLinkIcon className="h-4 w-4" />
-                  View Smart Contracts
+                  Review contract code
+                </a>
+              </Button>
+              <Button
+                size="lg"
+                variant="ghost"
+                className="gap-2 px-8 text-muted-foreground hover:bg-accent hover:text-foreground"
+                asChild
+              >
+                <a href={GITHUB_APP_URL} target="_blank" rel="noopener noreferrer">
+                  <ExternalLinkIcon className="h-4 w-4" />
+                  Review app code
                 </a>
               </Button>
             </motion.div>

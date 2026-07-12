@@ -38,7 +38,7 @@ const Page: React.FC = () => {
 }
 
 export async function getStaticProps() {
-  return { props: { title: 'MyMultiSig - Use your MultiSig' } }
+  return { props: { title: 'MyMultiSig - Open existing multisig' } }
 }
 
 export async function getStaticPaths() {
