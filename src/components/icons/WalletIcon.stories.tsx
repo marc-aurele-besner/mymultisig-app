@@ -13,6 +13,8 @@ const meta: Meta<typeof React> = {
   }
 } as Meta<typeof WalletIcon>
 
+export default meta
+
 const Template: StoryFn<typeof WalletIcon> = (args: React.ComponentProps<typeof WalletIcon>) => <WalletIcon {...args} />
 
 export const Basic = Template.bind({})

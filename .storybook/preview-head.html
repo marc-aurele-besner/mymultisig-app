@@ -1,9 +1,13 @@
-<!-- Load Inter font to match app typography -->
+<!-- Match the app's typography: Bricolage Grotesque (display), Instrument Sans (body), JetBrains Mono (data) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
-  html, body, #root { height: 100%; }
-  body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji; }
+  :root {
+    --display-family: 'Bricolage Grotesque';
+    --body-family: 'Instrument Sans';
+    --mono-family: 'JetBrains Mono';
+  }
+  html, body, #storybook-root { height: 100%; }
 </style>

@@ -1,0 +1,26 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import { Button } from './components/ui/button'
+
+<Meta title="Theme/Overview" />
+
+# Theme overview
+
+Quick look at theme colors and button variants (shadcn UI + Tailwind).
+
+## Colors
+
+<div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+  <div className="w-[100px] h-[60px] rounded-md bg-primary" />
+  <div className="w-[100px] h-[60px] rounded-md bg-primary/80" />
+  <div className="w-[100px] h-[60px] rounded-md bg-secondary" />
+  <div className="w-[100px] h-[60px] rounded-md border border-border bg-muted" />
+</div>
+
+## Buttons
+
+<div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 16 }}>
+  <Button>Primary</Button>
+  <Button variant="outline">Outline</Button>
+  <Button variant="secondary">Secondary</Button>
+  <Button variant="ghost">Ghost</Button>
+</div>

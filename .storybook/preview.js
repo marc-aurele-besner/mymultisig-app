@@ -1,7 +1,8 @@
 import React from 'react'
 
+import '../src/styles/globals.css'
+
 export const parameters = {
-  actions: { argTypesRegex: '^on[A-Z].*' },
   controls: {
     matchers: {
       color: /(background|color)$/i,
@@ -12,15 +13,14 @@ export const parameters = {
   options: {
     storySort: {
       method: 'alphabetical',
-      order: ['Introduction', 'Theme', 'Components', 'Views', 'Pages'],
+      order: ['Welcome', 'Theme', 'Components', 'Views', 'Pages'],
     },
   },
   backgrounds: {
-    default: 'dark',
+    default: 'Dark',
     values: [
-      { name: 'Light', value: '#f7fafc' },
-      { name: 'Dark', value: '#0b1020' },
-      { name: 'Gray', value: '#1A202C' }
+      { name: 'Dark', value: '#151310' },
+      { name: 'Light', value: '#faf8f4' },
     ],
   },
   viewport: {
@@ -47,9 +47,6 @@ export const parameters = {
       },
     },
   },
-  docs: {
-    inlineStories: true,
-  }
 }
 
 export const decorators = [
