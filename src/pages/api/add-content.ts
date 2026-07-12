@@ -60,6 +60,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     switch (data.action) {
       case 'addMultiSigRequest': {
         const doc = { id: uuid(), ...data.data }
+        // Extended wallets can restrict request creation to owners. Enforce it
+        // server-side when the wallet is on record with a usable owner list.
+        const wallets = (await sql`
+          SELECT owners, allow_only_owner_request FROM multisig_wallets
+          WHERE LOWER(address) = LOWER(${doc.multiSigAddress})
+          ORDER BY id DESC LIMIT 1
+        `) as { owners: string[]; allow_only_owner_request: boolean }[]
+        if (wallets.length > 0 && wallets[0].allow_only_owner_request) {
+          const owners = (wallets[0].owners ?? []).map((o: string) => o.toLowerCase())
+          if (owners.length > 0 && !owners.includes(String(doc.submitter).toLowerCase())) {
+            return res.status(403).json({ message: 'This wallet only accepts requests from its owners' })
+          }
+        }
         await sql`
           INSERT INTO multisig_requests (
             id, multi_sig_address, request, description, submitter,

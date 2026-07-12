@@ -1,4 +1,5 @@
 import React, { Fragment, useState } from 'react'
+import { useAccount } from 'wagmi'
 import MyMultiSig from '../../constants/abi/MyMultiSig.json'
 import { JsonFragment } from '@ethersproject/abi'
 import { Button } from '@/components/ui/button'
@@ -11,6 +12,7 @@ import NewContract from '../modals/NewContract'
 import BatchRequestForm from './BatchRequestForm'
 import useContracts from '../../states/contracts'
 import useCallData from '../../hooks/useCallData'
+import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
 import { BuildMultiSigRequest } from '../../models/MultiSigs'
 import { buildRawSignatureFromFunction } from '../../utils/buildFunctionSignature'
@@ -36,7 +38,13 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({
   const [pinnedNonce, setPinnedNonce] = useState<string>('')
   const contracts = useContracts((state) => state.contracts)
   const callData = useCallData(abi, selectedFunction, request.to, request.arguments)
-  const { walletType } = useWalletType(multiSigAddress)
+  const { address } = useAccount()
+  const { walletType, allowOnlyOwnerRequest } = useWalletType(multiSigAddress)
+  const { data: detailsData } = useMultiSigDetails(multiSigAddress, address ?? '0x')
+  // Extended wallets can restrict request creation to owners; the API enforces
+  // the same rule server-side.
+  const isOwner = detailsData != null ? Boolean(detailsData[5]) : undefined
+  const blockedByPolicy = allowOnlyOwnerRequest && isOwner === false
 
   const selectedFunctionFragment: JsonFragment | undefined =
     abi != null && selectedFunction
@@ -75,6 +83,16 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({
       {children}
     </div>
   )
+
+  if (blockedByPolicy)
+    return (
+      <div className="rounded-lg border border-border p-4">
+        <p className="text-sm text-muted-foreground">
+          This wallet only accepts transaction requests from its owners, and the connected account is not an
+          owner.
+        </p>
+      </div>
+    )
 
   return (
     <Fragment>
