@@ -8,6 +8,7 @@ import { useNotification } from './notifications'
 import useFinalizeTransaction from './useFinalizeTransaction'
 import useMultiSigs from '../states/multiSigs'
 import { signData, updateContent } from '../utils'
+import { applyAdminActionToMultiSig } from '../utils/adminActions'
 
 const useExecTransaction = (
   args: MultiSigExecTransactionArgs,
@@ -17,7 +18,7 @@ const useExecTransaction = (
 ) => {
   const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const { notificationInfo, notificationError, notificationSuccess } = useNotification()
-  const { updateMultiSigTransactionRequest } = useMultiSigs()
+  const { updateMultiSigTransactionRequest, updateMultiSig, multiSigs } = useMultiSigs()
   // Requests built against a pinned nonce (Extended wallets only) go through the
   // 6-arg overload; everything else uses the base 5-arg overload bound to the
   // wallet's current nonce.
@@ -62,6 +63,16 @@ const useExecTransaction = (
         updateMultiSigTransactionRequest(existingRequest.id, { ...existingRequest, ...patch })
       })
     })
+    // Owner/threshold operations are self-calls; once executed, mirror their
+    // effect onto the locally stored wallet (the contract has no getOwners()
+    // and emits no admin events to sync from).
+    if (isSuccessful && args.to.toLowerCase() === multiSigAddress.toLowerCase()) {
+      const stored = multiSigs.find((m) => m.address.toLowerCase() === multiSigAddress.toLowerCase())
+      if (stored) {
+        const walletPatch = applyAdminActionToMultiSig(args.data, stored)
+        if (walletPatch) updateMultiSig(multiSigAddress, walletPatch)
+      }
+    }
   }
 
   useWatchContractEvent({

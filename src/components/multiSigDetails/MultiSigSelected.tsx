@@ -27,6 +27,9 @@ const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, addres
             <Button asChild variant="outline">
               <Link href={`/multisig/${multiSigAddress}/requests`}>Consult requests</Link>
             </Button>
+            <Button asChild variant="outline">
+              <Link href={`/multisig/${multiSigAddress}/settings`}>Owners & settings</Link>
+            </Button>
           </div>
         </div>
         <CreateMultiSigRequestForm multiSigAddress={multiSigAddress} />
