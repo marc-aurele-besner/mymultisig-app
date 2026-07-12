@@ -1,14 +1,16 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { StoryFn, Meta } from '@storybook/react'
 
 import CreateMultiSig from './CreateMultiSigForm'
 
-export default {
+const meta: Meta<typeof CreateMultiSig> = {
   title: 'Forms/CreateMultiSig',
   component: CreateMultiSig,
-} as ComponentMeta<typeof CreateMultiSig>
+}
 
-export const Basic: ComponentStory<typeof CreateMultiSig> = (args) => <CreateMultiSig {...args} />
+export default meta
+
+export const Basic: StoryFn<typeof CreateMultiSig> = (args: React.ComponentProps<typeof CreateMultiSig>) => <CreateMultiSig {...args} />
 Basic.args = {
   owner01: '0x0000000000000000000000000000000000000000',
   factory: {

@@ -1,7 +1,5 @@
 import React, { Fragment, useState } from 'react'
-import { VStack, Text } from '@chakra-ui/react'
 import { useAccount } from 'wagmi'
-
 import TextInput from '../inputs/TextInput'
 import ImageButton from '../buttons/ImageButton'
 import ImportConfirmationCard from '../cards/ImportConfirmationCard'
@@ -21,41 +19,34 @@ const ImportMultiSigForm: React.FC<ImportMultiSigFormProps> = ({ factory }) => {
   }
 
   const handleChangeAddress = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value.length === 42) setMultiSigAddress(`0x${e.target.value.substring(2, e.target.value.length)}`)
+    if (e.target.value.length === 42) {
+      setMultiSigAddress(`0x${e.target.value.substring(2, e.target.value.length)}` as `0x${string}`)
+    }
   }
 
   return (
-    <VStack>
-      {importClicked && address ? (
-        <ImportConfirmationCard factoryAddress={factory.address} multiSigAddress={multiSigAddress} address={address} />
+    <div className="flex flex-col gap-4">
+      {importClicked && address != null ? (
+        <ImportConfirmationCard
+          factoryAddress={factory.address}
+          multiSigAddress={multiSigAddress}
+          address={address}
+        />
       ) : (
         <Fragment>
-          <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
+          <h3 className="pb-4 text-2xl font-bold text-foreground">
             The multi sig contract address
-          </Text>
-          <TextInput placeholder='MultiSig Address' onChange={(e) => handleChangeAddress(e)} />
+          </h3>
+          <TextInput placeholder="MultiSig Address" onChange={handleChangeAddress} />
           <ImageButton
-            placeholder='Import'
-            imagePath='/images/import.png'
-            onClick={() => handleImportMultiSig()}
-            // isLoading={isLoading}
-            isDisabled={multiSigAddress !== `0x`}
+            placeholder="Import"
+            imagePath="/images/import.png"
+            onClick={handleImportMultiSig}
+            disabled={multiSigAddress === '0x'}
           />
         </Fragment>
       )}
-      {/* {isLoading && (
-        <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
-          Check Wallet
-        </Text>
-      )}
-      {isSuccess && (
-        <>
-          <Text fontSize='lg' fontWeight='bold' color='white' pb='1rem'>
-            Contract found!
-          </Text>
-        </>
-      )} */}
-    </VStack>
+    </div>
   )
 }
 

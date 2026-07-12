@@ -1,11 +1,10 @@
 import React from 'react'
-import { Heading } from '@chakra-ui/react'
 
 const Error: React.FC = () => {
   return (
-    <Heading as='h1' size='lg' textAlign='center'>
+    <h1 className="text-center text-2xl font-bold text-foreground">
       500 - Something went wrong
-    </Heading>
+    </h1>
   )
 }
 

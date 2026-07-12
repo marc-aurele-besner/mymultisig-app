@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { Center, VStack, Text } from '@chakra-ui/react'
 import { useAccount } from 'wagmi'
 
 import BigCard from '../../components/cards/BigCard'
@@ -14,27 +13,33 @@ const Page: React.FC = () => {
   const { setSelectedMultiSigAddress } = useMultiSigs()
 
   useEffect(() => {
-    if (multisigAddress && multisigAddress !== '0x') {
+    if (multisigAddress != null && multisigAddress !== '0x') {
       setSelectedMultiSigAddress(multisigAddress as `0x${string}`)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [multisigAddress])
+  }, [multisigAddress, setSelectedMultiSigAddress])
 
-  if (!address || !multisigAddress || Array.isArray(multisigAddress) || !multisigAddress.startsWith('0x')) return null
+  if (
+    address == null ||
+    multisigAddress == null ||
+    Array.isArray(multisigAddress) ||
+    !multisigAddress.startsWith('0x')
+  )
+    return null
 
   return (
-    <Center>
-      <BigCard maxW='1200px'>
-        <Center>
-          <VStack>
-            <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
-              Use your multiSig
-            </Text>
-            <MultiSigSelected multiSigAddress={multisigAddress as `0x${string}`} address={address} />
-          </VStack>
-        </Center>
+    <div className="flex justify-center">
+      <BigCard className="max-w-[1200px]">
+        <div className="flex flex-col items-center">
+          <h2 className="pb-4 text-2xl font-bold text-foreground">
+            Use your multiSig
+          </h2>
+          <MultiSigSelected
+            multiSigAddress={multisigAddress as `0x${string}`}
+            address={address}
+          />
+        </div>
       </BigCard>
-    </Center>
+    </div>
   )
 }
 

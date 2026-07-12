@@ -2,35 +2,28 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true'
 })
 
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development'
-})
+// Temporarily disabled due to lru-cache compatibility issue with Next.js 16
+// TODO: Re-enable once next-pwa is updated or alternative solution is found
+// const withPWA = require('next-pwa')({
+//   dest: 'public',
+//   disable: process.env.NODE_ENV === 'development'
+// })
+const withPWA = (config) => config // No-op function - PWA disabled temporarily
 
 const nextConfig = {
   experimental: {},
   images: {},
   reactStrictMode: true,
-  webpack(config, { isServer }) {
-    // audio support
-    config.module.rules.push({
-      test: /\.(ogg|mp3|wav|mpe?g)$/i,
-      exclude: config.exclude,
-      use: [
-        {
-          loader: require.resolve('url-loader'),
-          options: {
-            limit: config.inlineImageLimit,
-            fallback: require.resolve('file-loader'),
-            publicPath: `${config.assetPrefix}/_next/static/images/`,
-            outputPath: `${isServer ? '../' : ''}static/images/`,
-            name: '[name]-[hash].[ext]',
-            esModule: config.esModule || false
-          }
-        }
-      ]
-    })
-
+  webpack: (config) => {
+    // Optional @wagmi/connectors peer deps we don't use (gemini, porto) — stub so build succeeds
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      '@gemini-wallet/core': false,
+      porto: false,
+      'porto/internal': false,
+      // MetaMask SDK optional React Native dep — not used in web
+      '@react-native-async-storage/async-storage': false
+    }
     return config
   }
 }
@@ -46,7 +39,10 @@ const nextConfig = {
 const KEYS_TO_OMIT = ['webpackDevMiddleware', 'configOrigin', 'target', 'analyticsId', 'webpack5', 'amp', 'assetPrefix']
 
 module.exports = (_phase, { defaultConfig }) => {
-  const plugins = [[withPWA], [withBundleAnalyzer, {}]]
+  const plugins = [
+    [withPWA, {}],
+    [withBundleAnalyzer, {}]
+  ]
 
   const wConfig = plugins.reduce((acc, [plugin, config]) => plugin({ ...acc, ...config }), {
     ...defaultConfig,

@@ -1,14 +1,16 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { StoryFn, Meta } from '@storybook/react'
 
 import FooterLink from './FooterLink'
 
-export default {
+const meta: Meta<typeof FooterLink> = {
   title: 'Footer/FooterLink',
   component: FooterLink,
-} as ComponentMeta<typeof FooterLink>
+}
 
-export const Basic: ComponentStory<typeof FooterLink> = (args) => <FooterLink {...args} />
+export default meta
+
+export const Basic: StoryFn<typeof FooterLink> = (args: React.ComponentProps<typeof FooterLink>) => <FooterLink {...args} />
 Basic.args = {
   name: 'MyMultiSig.app',
   link: '/',

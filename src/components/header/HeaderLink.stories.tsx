@@ -1,14 +1,16 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { StoryFn, Meta } from '@storybook/react'
 
 import HeaderLink from './HeaderLink'
 
-export default {
+const meta: Meta<typeof HeaderLink> = {
   title: 'Header/HeaderLink',
   component: HeaderLink,
-} as ComponentMeta<typeof HeaderLink>
+}
 
-export const Basic: ComponentStory<typeof HeaderLink> = (args) => <HeaderLink {...args} />
+export default meta
+
+export const Basic: StoryFn<typeof HeaderLink> = (args: React.ComponentProps<typeof HeaderLink>) => <HeaderLink {...args} />
 Basic.args = {
   name: 'MyMultiSig.app',
   link: '/',

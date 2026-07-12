@@ -1,6 +1,4 @@
 import React, { Fragment, useEffect } from 'react'
-import { Text, useColorModeValue } from '@chakra-ui/react'
-
 import useConfirmation from '../../hooks/useConfirmation'
 import useMyMultiSigCreated from '../../hooks/useMyMultiSigCreated'
 import { MultiSigConstructorArgs } from '../../models/MultiSigs'
@@ -17,13 +15,12 @@ const ConfirmationWithEventDetailCard: React.FC<ConfirmationCardProps> = ({
   constructorArgs
 }) => {
   const { multiSigAddress } = useMyMultiSigCreated(multiSigFactoryAddress)
-  const textColor = useColorModeValue('gray.800', 'white')
 
-  const handleVerification = async (contractAddress: string, constructorArgs: MultiSigConstructorArgs) => {
-    await verifyContract({
-      contractAddress,
-      constructorArgs
-    })
+  const handleVerification = async (
+    contractAddress: string,
+    args: MultiSigConstructorArgs
+  ) => {
+    await verifyContract({ contractAddress, constructorArgs: args })
   }
 
   useEffect(() => {
@@ -35,37 +32,32 @@ const ConfirmationWithEventDetailCard: React.FC<ConfirmationCardProps> = ({
   return (
     <Fragment>
       {multiSigAddress && (
-        <Text fontSize='lg' fontWeight='bold' color={textColor}>
-          Address: {multiSigAddress}
-        </Text>
+        <p className="text-lg font-bold text-foreground">Address: {multiSigAddress}</p>
       )}
     </Fragment>
   )
 }
 
-const ConfirmationCard: React.FC<ConfirmationCardProps> = ({ hash, multiSigFactoryAddress, constructorArgs }) => {
+const ConfirmationCard: React.FC<ConfirmationCardProps> = ({
+  hash,
+  multiSigFactoryAddress,
+  constructorArgs
+}) => {
   const { data, error, isLoading, isSuccess } = useConfirmation(hash)
-  const textColor = useColorModeValue('gray.800', 'white')
-  const successColor = useColorModeValue('green.600', 'green.300')
 
-  console.log('data', data)
   return (
     <Fragment>
       {isLoading && (
-        <Text fontSize='lg' fontWeight='bold' color={textColor}>
-          Loading...
-        </Text>
+        <p className="text-lg font-bold text-foreground">Loading...</p>
       )}
       {error && (
-        <Text fontSize='lg' fontWeight='bold' color={textColor}>
-          Error: {error.message}
-        </Text>
+        <p className="text-lg font-bold text-foreground">Error: {error.message}</p>
       )}
       {isSuccess && (
         <Fragment>
-          <Text fontSize='lg' fontWeight='bold' color={successColor}>
+          <p className="text-lg font-bold text-green-600 dark:text-green-400">
             Your multisig contract has been deployed!
-          </Text>
+          </p>
           <ConfirmationWithEventDetailCard
             hash={hash}
             multiSigFactoryAddress={multiSigFactoryAddress}

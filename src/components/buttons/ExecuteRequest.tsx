@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react'
-import { Button, Center, VStack, HStack, Text, Textarea } from '@chakra-ui/react'
-
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
 import useExecTransaction from '../../hooks/useExecTransaction'
 
@@ -17,52 +17,56 @@ const ExecuteRequest: React.FC<ExecuteRequestProps> = ({
   requestDetails,
   existingRequestRef
 }) => {
-  const { preparationError, preparationIsError, isError, isLoading, isSuccess, write, reset } = useExecTransaction(
+  const {
+    preparationError,
+    preparationIsError,
+    isError,
+    isPending,
+    isSuccess,
+    writeContract,
+    reset
+  } = useExecTransaction(
     args,
     multiSigAddress,
     requestDetails,
     existingRequestRef
   )
+
+  const errorReason =
+    preparationError != null && typeof preparationError === 'object' && 'reason' in preparationError
+      ? String((preparationError as { reason?: string }).reason)
+      : String(preparationError)
+
   return (
-    <Fragment>
-      <Center>
-        {isError && (
-          <Text fontSize='xl' fontWeight='bold' color='red' m='0.5rem' pt='0.5rem'>
-            Something went wrong
-          </Text>
-        )}
-        {write && !preparationIsError ? (
-          <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => write()} isDisabled={isLoading || isSuccess}>
-            Execute transaction request
+    <div className="flex justify-center">
+      {isError && (
+        <p className="pt-2 text-xl font-bold text-destructive">Something went wrong</p>
+      )}
+      {!preparationIsError ? (
+        <Button
+          variant="default"
+          className="mr-8 mt-4"
+          onClick={() => writeContract()}
+          disabled={isPending || isSuccess}
+        >
+          Execute transaction request
+        </Button>
+      ) : (
+        <div className="flex w-full flex-col gap-2">
+          <p className="pt-2 text-lg font-bold text-foreground">
+            There was an error preparing the transaction.
+          </p>
+          <Textarea
+            readOnly
+            value={errorReason}
+            className="w-full text-destructive"
+          />
+          <Button variant="default" className="mr-8 mt-4" onClick={() => reset()}>
+            Reset
           </Button>
-        ) : (
-          <VStack>
-            <HStack w='100%'>
-              <Text fontSize='lg' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-                There was an error preparing the transaction.
-              </Text>
-            </HStack>
-            <HStack w='100%'>
-              <Textarea
-                color={preparationIsError ? 'red' : 'white'}
-                w='100%'
-                isReadOnly
-                defaultValue={
-                  JSON.parse(JSON.stringify(preparationError))
-                    ? JSON.parse(JSON.stringify(preparationError)).reason
-                    : JSON.parse(JSON.stringify(preparationError))
-                }
-              />
-            </HStack>
-            <HStack>
-              <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => reset()}>
-                Reset
-              </Button>
-            </HStack>
-          </VStack>
-        )}
-      </Center>
-    </Fragment>
+        </div>
+      )}
+    </div>
   )
 }
 

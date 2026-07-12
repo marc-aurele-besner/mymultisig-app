@@ -1,4 +1,4 @@
-import { useNetwork, usePrepareContractWrite, useContractEvent } from 'wagmi'
+import { useChainId, useChains, useWatchContractEvent } from 'wagmi'
 import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../models/MultiSigs'
@@ -13,27 +13,33 @@ const useExecTransaction = (
   existingRequest: MultiSigTransactionRequest,
   existingRequestRef: string
 ) => {
-  const { chain } = useNetwork()
+  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const { notificationInfo, notificationError, notificationSuccess } = useNotification()
   const { updateMultiSigTransactionRequest } = useMultiSigs()
-  const {
-    config,
-    error: preparationError,
-    isError: preparationIsError
-  } = usePrepareContractWrite({
+  const config = {
     chainId: chain?.id,
     address: multiSigAddress,
     abi: MyMultiSig,
-    functionName: 'execTransaction(address,uint256,bytes,uint256,bytes)',
-    args: [args.to, args.value, args.data, args.txnGas, args.signatures]
-  })
-  const { data, error, isError, isIdle, isLoading, isSuccess, write, writeAsync, reset, status, dataFinal, isFinal } =
+    functionName: 'execTransaction(address,uint256,bytes,uint256,bytes)' as const,
+    args: [args.to, args.value, args.data, args.txnGas, args.signatures] as const
+  }
+  const preparationError = null
+  const preparationIsError = false
+  const { data, error, isError, isPending, isSuccess, writeContract, writeContractAsync, reset, status, dataFinal, isFinal } =
     useFinalizeTransaction(config, notificationInfo, notificationSuccess, notificationError)
-  useContractEvent({
+  useWatchContractEvent({
     address: multiSigAddress,
     abi: MyMultiSig,
     eventName: 'TransactionExecuted',
-    listener: (executor, to, value, data, txnGas, txnNonce) => {
+    onLogs: (logs) => {
+      logs.forEach((log: any) => {
+        const args = log.args || (log as any)
+        const executor = args.executor || args[0]
+        const to = args.to || args[1]
+        const value = args.value || args[2]
+        const data = args.data || args[3]
+        const txnGas = args.txnGas || args[4]
+        const txnNonce = args.txnNonce || args[5]
       console.log('TransactionExecuted', executor, to, value, data, txnGas, txnNonce)
 
       if (chain && existingRequestRef)
@@ -58,13 +64,22 @@ const useExecTransaction = (
             })
           })
         })
+      })
     }
   })
-  useContractEvent({
+  useWatchContractEvent({
     address: multiSigAddress,
     abi: MyMultiSig,
     eventName: 'TransactionFailed',
-    listener: (executor, to, value, data, txnGas, txnNonce) => {
+    onLogs: (logs) => {
+      logs.forEach((log: any) => {
+        const args = log.args || (log as any)
+        const executor = args.executor || args[0]
+        const to = args.to || args[1]
+        const value = args.value || args[2]
+        const data = args.data || args[3]
+        const txnGas = args.txnGas || args[4]
+        const txnNonce = args.txnNonce || args[5]
       console.log('TransactionFailed', executor, to, value, data, txnGas, txnNonce)
 
       if (chain && existingRequestRef)
@@ -89,14 +104,19 @@ const useExecTransaction = (
             })
           })
         })
+      })
     }
   })
-  useContractEvent({
+  useWatchContractEvent({
     address: multiSigAddress,
     abi: MyMultiSig,
     eventName: 'ContractEndOfLife',
-    listener: (noncesLeft) => {
+    onLogs: (logs) => {
+      logs.forEach((log: any) => {
+        const args = log.args || (log as any)
+        const noncesLeft = args.noncesLeft || args[0]
       console.log('ContractEndOfLife', noncesLeft)
+      })
     }
   })
   return {
@@ -105,11 +125,10 @@ const useExecTransaction = (
     preparationIsError,
     error,
     isError,
-    isIdle,
-    isLoading,
+    isPending,
     isSuccess,
-    write,
-    writeAsync,
+    writeContract,
+    writeContractAsync,
     reset,
     status,
     dataFinal,

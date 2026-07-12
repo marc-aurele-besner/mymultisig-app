@@ -1,7 +1,7 @@
 import React, { Fragment, useState } from 'react'
-import { Box, Button, Center, HStack, Text } from '@chakra-ui/react'
 import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 import { JsonFragment } from '@ethersproject/abi'
+import { Button } from '@/components/ui/button'
 
 import SelectContract from '../inputs/SelectContract'
 import SelectFunction from '../inputs/SelectFunction'
@@ -17,10 +17,12 @@ interface CreateMultiSigRequestFormProps {
   multiSigAddress: `0x${string}`
 }
 
-const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ multiSigAddress }) => {
+const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({
+  multiSigAddress
+}) => {
   const [abi, setAbi] = useState<JsonFragment[] | null>(null)
   const [request, setRequest] = useState<BuildMultiSigRequest>({
-    to: `0x`,
+    to: '0x',
     value: '0',
     txnGas: '35000',
     description: '',
@@ -32,16 +34,18 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
   const contracts = useContracts((state) => state.contracts)
   const callData = useCallData(abi, selectedFunction, request.to, request.arguments)
 
-  const selectedFunctionFragment =
-    abi && selectedFunction && abi.find((item) => buildRawSignatureFromFunction(item) == selectedFunction)
+  const selectedFunctionFragment: JsonFragment | undefined =
+    abi != null && selectedFunction
+      ? abi.find((item) => buildRawSignatureFromFunction(item) === selectedFunction)
+      : undefined
 
   const handleChangeContract = (e: string) => {
-    if (e == 'itSelf') {
-      setAbi(MyMultiSig)
+    if (e === 'itSelf') {
+      setAbi(MyMultiSig as JsonFragment[])
       handleChangeValue(multiSigAddress, 'to')
     } else {
-      const contract = contracts.find((contract) => contract.id == e)
-      if (contract) {
+      const contract = contracts.find((c) => c.id === e)
+      if (contract != null) {
         setAbi(contract.abi)
         handleChangeValue(contract.address, 'to')
       }
@@ -50,133 +54,132 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
   }
 
   const handleChangeValue = (e: string, key: string, argumentKey?: string) => {
-    if (key == 'arguments' && argumentKey) {
+    if (key === 'arguments' && argumentKey != null) {
       const newArguments = { ...request.arguments, [argumentKey]: e }
       setRequest({ ...request, [key]: newArguments })
-    } else setRequest({ ...request, [key]: e })
+    } else {
+      setRequest({ ...request, [key]: e })
+    }
   }
   const clearArguments = () => {
     setRequest({ ...request, arguments: {} })
   }
 
+  const row = (label: string, children: React.ReactNode) => (
+    <div key={label} className="flex flex-wrap items-center gap-2">
+      <span className="px-2 pt-2 text-xl font-bold text-foreground">{label}</span>
+      {children}
+    </div>
+  )
+
   return (
     <Fragment>
-      {selectedContract == 'newContract' && <NewContract />}
-      <Box border='1px' borderColor='white' borderRadius='5px' p='1rem'>
-        <HStack>
-          <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setType('contract')}>
+      {selectedContract === 'newContract' && <NewContract />}
+      <div className="rounded-lg border border-border p-4">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={type === 'contract' ? 'default' : 'outline'}
+            className="m-2"
+            onClick={() => setType('contract')}
+          >
             Call a contract
           </Button>
-          <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => setType('tx')}>
+          <Button
+            variant={type === 'tx' ? 'default' : 'outline'}
+            className="m-2"
+            onClick={() => setType('tx')}
+          >
             Regular transaction
           </Button>
-        </HStack>
+        </div>
         {type === 'contract' ? (
           <Fragment>
-            <HStack>
-              <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-                Contract to call:
-              </Text>
+            {row(
+              'Contract to call:',
               <SelectContract onChange={(e) => handleChangeContract(e)} />
-            </HStack>
-            <HStack>
-              <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-                Function to call:
-              </Text>
+            )}
+            {row(
+              'Function to call:',
               <SelectFunction
-                abi={selectedContract == 'itSelf' ? MyMultiSig : abi}
+                abi={selectedContract === 'itSelf' ? (MyMultiSig as JsonFragment[]) : abi}
                 onChange={(e) => {
                   clearArguments()
                   setSelectedFunction(e)
                 }}
               />
-            </HStack>
-            {selectedFunctionFragment &&
-              selectedFunctionFragment.inputs &&
+            )}
+            {selectedFunctionFragment != null &&
+              Array.isArray(selectedFunctionFragment.inputs) &&
               selectedFunctionFragment.inputs.length > 0 && (
                 <>
-                  <HStack>
-                    <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-                      Arguments
-                    </Text>
-                  </HStack>
+                  <div className="px-2 pt-2 text-xl font-bold text-foreground">Arguments</div>
                   {selectedFunctionFragment.inputs.map((item: JsonFragment) => (
-                    <HStack key={`Argument-${item.name}`}>
-                      <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-                        {item.name}:
-                      </Text>
+                    <div key={`Argument-${item.name}`} className="flex flex-wrap items-center gap-2">
+                      <span className="px-2 pt-2 text-xl font-bold text-foreground">
+                        {String(item.name)}:
+                      </span>
                       <TextInput
-                        placeholder={`${item.name}`}
-                        onChange={(e) => handleChangeValue(e.target.value, 'arguments', item.name)}
+                        placeholder={String(item.name)}
+                        onChange={(e) =>
+                          handleChangeValue(e.target.value, 'arguments', item.name as string)
+                        }
                       />
-                    </HStack>
+                    </div>
                   ))}
                 </>
               )}
           </Fragment>
         ) : (
-          <HStack>
-            <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-              Receiver:
-            </Text>
+          row(
+            'Receiver:',
             <TextInput
-              placeholder={'Receiver'}
+              placeholder="Receiver"
               value={request.to}
               onChange={(e) => handleChangeValue(e.target.value, 'to')}
             />
-          </HStack>
+          )
         )}
-        <HStack>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            Tx. Detail
-          </Text>
-        </HStack>
-        <HStack>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            Value:
-          </Text>
+        <div className="px-2 pt-2 text-xl font-bold text-foreground">Tx. Detail</div>
+        {row(
+          'Value:',
           <TextInput
-            placeholder={'Value'}
+            placeholder="Value"
             value={request.value}
             onChange={(e) => handleChangeValue(e.target.value, 'value')}
           />
-        </HStack>
-        <HStack>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            Tx. Gas:
-          </Text>
+        )}
+        {row(
+          'Tx. Gas:',
           <TextInput
-            placeholder={'Tx. Gas'}
+            placeholder="Tx. Gas"
             value={request.txnGas}
             onChange={(e) => handleChangeValue(e.target.value, 'txnGas')}
           />
-        </HStack>
-        <HStack>
-          <Text fontSize='xl' fontWeight='bold' color='white' m='0.5rem' pt='0.5rem'>
-            Description:
-          </Text>
+        )}
+        {row(
+          'Description:',
           <TextInput
-            placeholder={'Description'}
+            placeholder="Description"
             value={request.description}
             onChange={(e) => handleChangeValue(e.target.value, 'description')}
           />
-        </HStack>
-        {selectedContract && selectedFunction && request.description && (
-          <Center>
+        )}
+        {selectedContract != null && selectedFunction !== '' && request.description !== '' && (
+          <div className="flex justify-center">
             <SignRequest
               multiSigAddress={multiSigAddress}
               description={request.description}
               args={{
                 to: request.to,
                 value: request.value,
-                data: callData.callData ? `0x${callData.callData?.substring(2)}` : '0x',
+                data: callData.callData != null ? `0x${callData.callData.substring(2)}` : '0x',
                 txnGas: request.txnGas,
                 signatures: ''
               }}
             />
-          </Center>
+          </div>
         )}
-      </Box>
+      </div>
     </Fragment>
   )
 }

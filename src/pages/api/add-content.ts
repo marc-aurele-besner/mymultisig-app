@@ -1,23 +1,18 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { providers, Wallet } from 'ethers'
-import fauna from 'faunadb-utility'
-import { slackBuilder, slackUtils } from 'slack-utility'
-import { TBlock } from 'slack-utility/src/types'
 import { v4 as uuid } from 'uuid'
 
+import { getSql } from '../../lib/db/neon'
 import signData from '../../utils/signData'
 
-if (!process.env.FAUNADB_SERVER_SECRET) throw new Error('No FAUNADB_SERVER_SECRET in .env file')
+if (!process.env.DATABASE_URL) throw new Error('No DATABASE_URL in .env file')
 if (!process.env.PRIVATE_KEY) throw new Error('No PRIVATE_KEY in .env file')
 if (!process.env.RPC_ETHEREUM) throw new Error('No RPC_ETHEREUM in .env file')
 if (!process.env.SLACK_TOKEN) throw new Error('No SLACK_TOKEN in .env file')
 if (!process.env.SLACK_CONVERSATION_ID) throw new Error('No SLACK_CONVERSATION_ID in .env file')
 
-const { FAUNADB_SERVER_SECRET, SLACK_TOKEN, SLACK_CONVERSATION_ID } = process.env
-
 const FUNCTION = 'add-content'
 
-// eslint-disable-next-line
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('Function `%s` invoked', FUNCTION)
   const data = JSON.parse(req.body)
@@ -34,15 +29,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     data.signature !== undefined &&
     data.signatureExpiry !== undefined
   ) {
-    if (process.env.SLACK_TOKEN && process.env.SLACK_CONVERSATION_ID)
-      await slackUtils.slackPostMessage(
-        process.env.SLACK_TOKEN,
-        process.env.SLACK_CONVERSATION_ID,
-        'Add Content function called',
-        [slackBuilder.buildSimpleSlackHeaderMsg(`Someone is adding data on MyMultiSig.app (${data.action})`)],
-        true
-      )
-
     const matchingUISignData = await signData(
       process.env.PRIVATE_KEY,
       process.env.RPC_ETHEREUM,
@@ -64,51 +50,71 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       matchingUISignData.signature !== matchingUISignDataCheck2
     ) {
       console.log('Signature mismatch')
-      res.status(400).json({
+      return res.status(400).json({
         message: 'Signature does not match'
       })
     }
-    /**
-     * To-Do: Check the user signature
-     */
-    let classes: string[] = []
-    let slackMessageTitle = ''
-    let slackMessageBlocks: TBlock[] = []
+
+    const sql = getSql()
+
     switch (data.action) {
-      case 'addMultiSigRequest':
-        classes = ['multisig-requests']
-        slackMessageTitle = 'A new MultiSig request has been created'
-        slackMessageBlocks = [slackBuilder.buildSimpleSlackHeaderMsg(`A new MultiSig request has been created`)]
-        break
-      case 'createMultiSigWallet':
-        classes = ['multisig-wallets']
-        ;(slackMessageTitle = 'New MultiSig wallet was created'),
-          (slackMessageBlocks = [slackBuilder.buildSimpleSlackHeaderMsg(`New MultiSig wallet was created`)])
-        break
+      case 'addMultiSigRequest': {
+        const doc = { id: uuid(), ...data.data }
+        await sql`
+          INSERT INTO multisig_requests (
+            id, multi_sig_address, request, description, submitter,
+            signatures, owner_signers, date_submitted, date_executed,
+            is_active, is_executed, is_cancelled, is_confirmed, is_successful
+          ) VALUES (
+            ${doc.id},
+            ${doc.multiSigAddress},
+            ${JSON.stringify(doc.request)},
+            ${doc.description},
+            ${doc.submitter},
+            ${JSON.stringify(doc.signatures ?? [])},
+            ${JSON.stringify(doc.ownerSigners ?? [])},
+            ${doc.dateSubmitted},
+            ${doc.dateExecuted ?? ''},
+            ${doc.isActive ?? true},
+            ${doc.isExecuted ?? false},
+            ${doc.isCancelled ?? false},
+            ${doc.isConfirmed ?? false},
+            ${doc.isSuccessful ?? false}
+          )
+        `
+        console.log('Add content done')
+        return res.status(200).json({ message: 'Add content done' })
+      }
+      case 'createMultiSigWallet': {
+        const doc = data.data
+        await sql`
+          INSERT INTO multisig_wallets (
+            chain_id, chain_name, factory_address, contract_id, name, version,
+            address, threshold, owner_count, nonce, owners, is_deployed
+          ) VALUES (
+            ${doc.chainId},
+            ${doc.chainName},
+            ${doc.factoryAddress},
+            ${doc.id},
+            ${doc.name},
+            ${doc.version},
+            ${doc.address},
+            ${doc.threshold},
+            ${doc.ownerCount},
+            ${doc.nonce ?? 0},
+            ${JSON.stringify(doc.owners ?? [])},
+            ${doc.isDeployed ?? true}
+          )
+        `
+        console.log('Add content done')
+        return res.status(200).json({ message: 'Add content done' })
+      }
       default:
-        break
-    }
-    if (slackMessageTitle && slackMessageBlocks && slackMessageBlocks.length > 0) {
-      await slackUtils.slackPostMessage(SLACK_TOKEN, SLACK_CONVERSATION_ID, slackMessageTitle, slackMessageBlocks, true)
-    }
-    if (classes.length == 1) {
-      await fauna.createFaunaDocument(FAUNADB_SERVER_SECRET, classes[0], {
-        id: uuid(),
-        ...data.data
-      })
-      console.log('Add content done')
-      res.status(200).json({
-        message: 'Add content done'
-      })
-    } else {
-      console.log('Invalid collection')
-      res.status(400).json({
-        message: 'Invalid collection'
-      })
+        return res.status(400).json({ message: 'Invalid collection' })
     }
   } else {
     console.log('Invalid data')
-    res.status(400).json({
+    return res.status(400).json({
       message: JSON.stringify('Invalid data')
     })
   }

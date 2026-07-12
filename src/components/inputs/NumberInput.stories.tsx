@@ -1,9 +1,9 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { StoryFn, Meta } from '@storybook/react'
 
 import NumberInput from './NumberInput'
 
-export default {
+const meta: Meta<typeof NumberInput> = {
   title: 'Inputs/NumberInput',
   component: NumberInput,
   argTypes: {
@@ -11,9 +11,11 @@ export default {
     hasStepper: { control: 'boolean' },
     allowMouseWheel: { control: 'boolean' },
   },
-} as ComponentMeta<typeof NumberInput>
+}
 
-export const Basic: ComponentStory<typeof NumberInput> = (args) => <NumberInput {...args} />
+export default meta
+
+export const Basic: StoryFn<typeof NumberInput> = (args: React.ComponentProps<typeof NumberInput>) => <NumberInput {...args} />
 Basic.args = {
   placeholder: 'Amount',
   defaultValue: 1,

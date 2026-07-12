@@ -1,15 +1,17 @@
 import React from 'react'
-import { ComponentMeta, ComponentStory } from '@storybook/react'
+import type { Meta, StoryFn } from '@storybook/react'
 
 import { HeaderWalletSelector } from './HeaderWalletSelector'
 import Web3Provider from '../web3/Web3Provider'
 
-export default {
+const meta: Meta<typeof HeaderWalletSelector> = {
   title: 'Header/WalletSelector',
   component: HeaderWalletSelector
-} as ComponentMeta<typeof HeaderWalletSelector>
+}
 
-export const Basic: ComponentStory<typeof HeaderWalletSelector> = () => (
+export default meta
+
+export const Basic: StoryFn<typeof HeaderWalletSelector> = () => (
   <Web3Provider>
     <HeaderWalletSelector />
   </Web3Provider>

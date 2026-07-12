@@ -1,15 +1,17 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { StoryFn, Meta } from '@storybook/react'
 
 import ConnectedWallet from './ConnectedWallet'
 import Web3Provider from '../web3/Web3Provider'
 
-export default {
+const meta: Meta<typeof ConnectedWallet> = {
   title: 'Views/ConnectedWallet',
   component: ConnectedWallet,
-} as ComponentMeta<typeof ConnectedWallet>
+}
 
-export const Basic: ComponentStory<typeof ConnectedWallet> = (args) => (
+export default meta
+
+export const Basic: StoryFn<typeof ConnectedWallet> = (args: React.ComponentProps<typeof ConnectedWallet>) => (
   <Web3Provider>
     <ConnectedWallet {...args} />
   </Web3Provider>

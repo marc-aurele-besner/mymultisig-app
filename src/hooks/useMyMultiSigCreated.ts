@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useContractEvent, useNetwork } from 'wagmi'
+import { useWatchContractEvent, useChainId, useChains } from 'wagmi'
 import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
 import { BigNumber } from 'ethers'
 
@@ -8,17 +8,22 @@ import useMultiSigs from '../states/multiSigs'
 import { signData, addContent } from '../utils'
 
 const useMyMultiSigCreated = (multiSigFactoryAddress: `0x${string}`) => {
-  const { chain } = useNetwork()
+  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const { addMultiSig } = useMultiSigs()
   const [multiSigAddress, setMultiSigAddress] = useState<string | undefined>(undefined)
 
-  useContractEvent({
+  useWatchContractEvent({
     address: multiSigFactoryAddress,
     abi: MyMultiSigFactory,
     eventName: 'MyMultiSigCreated',
-    // listener: (...args: unknown[]) => {
-    //   console.log('args', args)
-    listener: (creator, contractAddress, contractIndex, contractName, originalOwners) => {
+    onLogs: (logs) => {
+      logs.forEach((log: any) => {
+        const args = log.args || (log as any)
+        const creator = args.creator || args[0]
+        const contractAddress = args.contractAddress || args[1]
+        const contractIndex = args.contractIndex || args[2]
+        const contractName = args.contractName || args[3]
+        const originalOwners = args.originalOwners || args[4]
       console.log('MyMultiSigCreated', creator, contractAddress, contractIndex, contractName, originalOwners)
       if (chain) {
         setMultiSigAddress(String(contractAddress))
@@ -50,6 +55,7 @@ const useMyMultiSigCreated = (multiSigFactoryAddress: `0x${string}`) => {
           })
         })
       }
+      })
     }
   })
 

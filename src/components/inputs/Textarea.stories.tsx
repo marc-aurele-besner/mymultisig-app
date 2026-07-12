@@ -1,19 +1,21 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { StoryFn, Meta } from '@storybook/react'
 
 import Textarea from './Textarea'
 
-export default {
+const meta: Meta<typeof Textarea> = {
   title: 'Inputs/Textarea',
   component: Textarea,
   argTypes: {
     isDisabled: { control: 'boolean' },
-    isReadOnly: { control: 'boolean' },
+    readOnly: { control: 'boolean' },
     isInvalid: { control: 'boolean' }
   }
-} as ComponentMeta<typeof Textarea>
+}
 
-export const Basic: ComponentStory<typeof Textarea> = (args) => <Textarea {...args} />
+export default meta
+
+export const Basic: StoryFn<typeof Textarea> = (args: React.ComponentProps<typeof Textarea>) => <Textarea {...args} />
 Basic.args = {
   placeholder: 'Hello World'
 }

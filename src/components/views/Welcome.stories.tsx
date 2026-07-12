@@ -1,15 +1,17 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { StoryFn, Meta } from '@storybook/react'
 
 import Welcome from './Welcome'
 import Web3Provider from '../web3/Web3Provider'
 
-export default {
+const meta: Meta<typeof Welcome> = {
   title: 'Views/Welcome',
   component: Welcome,
-} as ComponentMeta<typeof Welcome>
+}
 
-export const Basic: ComponentStory<typeof Welcome> = (args) => (
+export default meta
+
+export const Basic: StoryFn<typeof Welcome> = (args: React.ComponentProps<typeof Welcome>) => (
   <Web3Provider>
     <Welcome {...args} />
   </Web3Provider>

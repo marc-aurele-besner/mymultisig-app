@@ -1,15 +1,14 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
-import { Text } from '@chakra-ui/react'
-
+import type { StoryFn, Meta } from '@storybook/react'
 import BasicCard from './BasicCard'
 
-export default {
+const meta: Meta<typeof BasicCard> = {
   title: 'Cards/BasicCard',
   component: BasicCard,
-} as ComponentMeta<typeof BasicCard>
-
-export const Basic: ComponentStory<typeof BasicCard> = (args) => <BasicCard {...args} />
-Basic.args = {
-  children: <Text>Hello World</Text>,
 }
+
+export default meta
+
+export const Basic: StoryFn<typeof BasicCard> = (args: React.ComponentProps<typeof BasicCard>) => (
+  <BasicCard {...args}>Hello World</BasicCard>
+)

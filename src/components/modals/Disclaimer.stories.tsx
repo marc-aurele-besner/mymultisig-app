@@ -1,9 +1,9 @@
 import React from 'react'
-import { ComponentMeta, ComponentStory } from '@storybook/react'
+import type { Meta, StoryFn } from '@storybook/react'
 
 import Disclaimer from './Disclaimer'
 
-export default {
+const meta: Meta<typeof Disclaimer> = {
   title: 'Modals/Disclaimer',
   component: Disclaimer,
   parameters: {
@@ -14,8 +14,10 @@ export default {
       }
     }
   }
-} as ComponentMeta<typeof Disclaimer>
+}
 
-const Template: ComponentStory<typeof Disclaimer> = () => <Disclaimer />
+export default meta
+
+const Template: StoryFn<typeof Disclaimer> = () => <Disclaimer />
 
 export const Basic = Template.bind({})

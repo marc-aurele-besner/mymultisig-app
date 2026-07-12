@@ -1,15 +1,9 @@
-import { useToast } from '@chakra-ui/react'
+import { toast } from 'sonner'
 
 const useNotificationError = (title?: string, description?: string) => {
-  const toast = useToast()
-
   return () => {
-    toast({
-      title: title || 'Error sending transaction',
-      description: description || 'Your transaction had an error.',
-      status: 'error',
-      position: 'top-right',
-      isClosable: true
+    toast.error(title ?? 'Error sending transaction', {
+      description: description ?? 'Your transaction had an error.'
     })
   }
 }

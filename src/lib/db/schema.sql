@@ -1,0 +1,45 @@
+-- Neon PostgreSQL schema for mymultisig-app
+-- Run this in the Neon SQL Editor (console.neon.tech) or via psql:
+--   psql $DATABASE_URL -f src/lib/db/schema.sql
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE IF NOT EXISTS multisig_requests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  multi_sig_address TEXT NOT NULL,
+  request JSONB NOT NULL,
+  description TEXT NOT NULL,
+  submitter TEXT NOT NULL,
+  signatures JSONB NOT NULL DEFAULT '[]',
+  owner_signers JSONB NOT NULL DEFAULT '[]',
+  date_submitted TEXT NOT NULL,
+  date_executed TEXT NOT NULL DEFAULT '',
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  is_executed BOOLEAN NOT NULL DEFAULT false,
+  is_cancelled BOOLEAN NOT NULL DEFAULT false,
+  is_confirmed BOOLEAN NOT NULL DEFAULT false,
+  is_successful BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_multisig_requests_multi_sig_address_is_active
+  ON multisig_requests (multi_sig_address, is_active);
+
+CREATE INDEX IF NOT EXISTS idx_multisig_requests_id ON multisig_requests (id);
+
+CREATE TABLE IF NOT EXISTS multisig_wallets (
+  id SERIAL PRIMARY KEY,
+  chain_id INTEGER NOT NULL,
+  chain_name TEXT NOT NULL,
+  factory_address TEXT NOT NULL,
+  contract_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  version TEXT NOT NULL,
+  address TEXT NOT NULL,
+  threshold INTEGER NOT NULL,
+  owner_count INTEGER NOT NULL,
+  nonce INTEGER NOT NULL DEFAULT 0,
+  owners JSONB NOT NULL DEFAULT '[]',
+  is_deployed BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);

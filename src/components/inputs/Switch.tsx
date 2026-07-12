@@ -1,5 +1,7 @@
 import React from 'react'
-import { FormControl, FormLabel, Switch as ChakraSwitch } from '@chakra-ui/react'
+import { Switch as ShadcnSwitch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 interface SwitchProps {
   placeholder: string
@@ -7,46 +9,31 @@ interface SwitchProps {
   value?: string
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
   isDisabled?: boolean
-  isReadOnly?: boolean
+  readOnly?: boolean
   isInvalid?: boolean
+  checked?: boolean
+  onCheckedChange?: (checked: boolean) => void
 }
 
 const Switch: React.FC<SwitchProps> = ({
   placeholder,
-  defaultValue,
-  value,
-  onChange,
+  checked,
+  onCheckedChange,
   isDisabled,
-  isReadOnly,
-  isInvalid
+  readOnly
 }) => {
   return (
-    <FormControl w={{ base: '100%', md: '94%' }} display='flex' alignItems='center'>
-      <FormLabel htmlFor='email-alerts' mb='0'>
+    <div className="flex w-full items-center md:w-[94%]">
+      <Label htmlFor="switch-label" className="mb-0 flex-1">
         {placeholder}
-      </FormLabel>
-      <ChakraSwitch
-        w={{ base: '50%', md: '40%' }}
-        p={4}
-        m={2}
-        mt={4}
-        borderRadius={10}
-        bg='cyan.100'
-        boxShadow='lg'
-        color={'white'}
-        backgroundColor='transparent'
-        placeholder={placeholder}
-        defaultValue={defaultValue}
-        value={value}
-        onChange={onChange}
-        isDisabled={isDisabled}
-        isReadOnly={isReadOnly}
-        isInvalid={isInvalid}
-        _placeholder={{
-          color: 'gray.200'
-        }}
+      </Label>
+      <ShadcnSwitch
+        id="switch-label"
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        disabled={isDisabled || readOnly}
       />
-    </FormControl>
+    </div>
   )
 }
 

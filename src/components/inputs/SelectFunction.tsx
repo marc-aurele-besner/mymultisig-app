@@ -1,7 +1,12 @@
 import React from 'react'
-import { Select } from '@chakra-ui/react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { JsonFragment } from '@ethersproject/abi'
-
 import { buildRawSignatureFromFunction } from '../../utils/buildFunctionSignature'
 
 interface SelectFunctionProps {
@@ -14,28 +19,33 @@ const SelectFunction: React.FC<SelectFunctionProps> = ({ abi, onChange }) => {
     abi &&
     abi.filter(
       (item: JsonFragment) =>
-        item.type === 'function' && item.stateMutability !== 'view' && item.stateMutability !== 'pure'
+        item.type === 'function' &&
+        item.stateMutability !== 'view' &&
+        item.stateMutability !== 'pure'
     )
+  const [value, setValue] = React.useState<string>('')
+
   return (
     <Select
-      placeholder='Select Function'
-      color='white'
-      onChange={(e) => onChange(e.target.value)}
-      _focus={{
-        color: 'white'
-      }}>
-      {filterFunction &&
-        filterFunction.length > 0 &&
-        filterFunction.map((item: JsonFragment) => (
-          <option
+      value={value}
+      onValueChange={(v) => {
+        setValue(v)
+        onChange(v)
+      }}
+    >
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder="Select Function" />
+      </SelectTrigger>
+      <SelectContent>
+        {filterFunction?.map((item: JsonFragment) => (
+          <SelectItem
             key={item.name}
             value={buildRawSignatureFromFunction(item)}
-            style={{
-              color: 'white'
-            }}>
+          >
             {item.name}
-          </option>
+          </SelectItem>
         ))}
+      </SelectContent>
     </Select>
   )
 }

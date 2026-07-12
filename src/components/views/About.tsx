@@ -1,35 +1,17 @@
 import React from 'react'
-import {
-  Center,
-  VStack,
-  Text,
-  Heading,
-  Stack,
-  Button,
-  Link as ChakraLink,
-  Box,
-  SimpleGrid,
-  HStack,
-  useColorModeValue
-} from '@chakra-ui/react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { AddIcon, CheckCircleIcon, ExternalLinkIcon, LockIcon, ViewIcon, StarIcon, SettingsIcon } from '@chakra-ui/icons'
-
+import { AddIcon, CheckCircleIcon, ExternalLinkIcon, LockIcon, ViewIcon, StarIcon, SettingsIcon } from '../icons/ChakraIcons'
 import BigCard from '../cards/BigCard'
-import { buttonColors, glassButtonColors } from '../../styles/colors'
+import { Button } from '@/components/ui/button'
 
-const MotionBox = motion(Box)
-const MotionVStack = motion(VStack)
+const MotionVStack = motion.div
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1
-    }
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 }
   }
 }
 
@@ -44,152 +26,113 @@ const itemVariants = {
 
 const features = [
   {
-    icon: <LockIcon boxSize={5} />,
+    icon: <LockIcon boxSize={20} className="shrink-0" />,
     title: 'Lightweight Contracts',
     description: 'Clear logic, no unnecessary complexity. Easy to read and audit.'
   },
   {
-    icon: <StarIcon boxSize={5} />,
+    icon: <StarIcon boxSize={20} className="shrink-0" />,
     title: 'Gas-Conscious Design',
     description: 'Optimized for low transaction costs without compromising security.'
   },
   {
-    icon: <ViewIcon boxSize={5} />,
+    icon: <ViewIcon boxSize={20} className="shrink-0" />,
     title: 'Full Transparency',
     description: 'Open-source codebase with security best practices built-in.'
   },
   {
-    icon: <SettingsIcon boxSize={5} />,
+    icon: <SettingsIcon boxSize={20} className="shrink-0" />,
     title: 'Modern Stack',
-    description: 'Built with Next.js, Chakra UI, and wagmi for a responsive experience.'
+    description: 'Built with Next.js, shadcn UI, and wagmi for a responsive experience.'
   }
 ]
 
 const About: React.FC = () => {
-  // Color mode values
-  const textColor = useColorModeValue('gray.700', 'whiteAlpha.800')
-  const mutedTextColor = useColorModeValue('gray.600', 'whiteAlpha.700')
-  const headingColor = useColorModeValue('gray.800', 'white')
-  const featureBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.50')
-  const featureBorder = useColorModeValue('gray.200', 'whiteAlpha.100')
-  const featureHoverBg = useColorModeValue('blackAlpha.100', 'whiteAlpha.100')
-  const featureHoverBorder = useColorModeValue('gray.300', 'whiteAlpha.200')
-  const brandTextColor = useColorModeValue('brand.600', 'brand.300')
-  const brandHoverColor = useColorModeValue('brand.700', 'brand.200')
-  const ghostHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
-
   return (
-    <Center>
-      <BigCard maxW='1200px' minH='60vh'>
-        <Center>
+    <div className="flex justify-center">
+      <BigCard className="min-h-[60vh] max-w-[1200px]">
+        <div className="flex w-full justify-center py-4 md:py-8">
           <MotionVStack
             variants={containerVariants}
-            initial='hidden'
-            animate='visible'
-            spacing={{ base: 6, md: 8 }}
-            w='100%'
-            py={{ base: 4, md: 8 }}>
-            {/* Header */}
-            <MotionBox variants={itemVariants} textAlign='center'>
-              <Heading as='h1' fontSize={{ base: '3xl', md: '5xl' }} fontWeight='800' lineHeight='1.2' mb={4}>
-                <Text as='span' bgGradient='linear(to-r, brand.400, accent.500)' bgClip='text'>
+            initial="hidden"
+            animate="visible"
+            className="flex w-full flex-col gap-6 md:gap-8"
+          >
+            <motion.div variants={itemVariants} className="text-center">
+              <h1 className="mb-4 text-3xl font-extrabold leading-tight md:text-5xl">
+                <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
                   About MyMultiSig
-                </Text>
-              </Heading>
+                </span>
+              </h1>
+              <p className="mx-auto max-w-[700px] text-lg font-medium leading-relaxed text-foreground md:text-xl">
+                A minimalistic, open-source multisig smart contract and web app focused on security,
+                simplicity, and auditability.
+              </p>
+            </motion.div>
 
-              <Text
-                fontSize={{ base: 'lg', md: 'xl' }}
-                fontWeight='500'
-                maxW='700px'
-                mx='auto'
-                color={textColor}
-                lineHeight='tall'>
-                A minimalistic, open-source multisig smart contract and web app focused on security, simplicity, and
-                auditability.
-              </Text>
-            </MotionBox>
+            <motion.div variants={itemVariants} className="max-w-[800px] text-center">
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Create a multisig, manage signers, and approve transactions with a clean UI. The
+                contracts are designed to be easy to read and verify, making audits straightforward.
+              </p>
+            </motion.div>
 
-            {/* Description */}
-            <MotionBox variants={itemVariants} maxW='800px' textAlign='center'>
-              <Text fontSize='md' color={mutedTextColor} lineHeight='tall'>
-                Create a multisig, manage signers, and approve transactions with a clean UI. The contracts are designed
-                to be easy to read and verify, making audits straightforward.
-              </Text>
-            </MotionBox>
-
-            {/* Features Grid */}
-            <MotionBox variants={itemVariants} w='100%' pt={4}>
-              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} w='100%'>
+            <motion.div variants={itemVariants} className="w-full pt-4">
+              <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
                 {features.map((feature) => (
-                  <MotionBox
+                  <motion.div
                     key={feature.title}
                     variants={itemVariants}
-                    p={5}
-                    borderRadius='xl'
-                    bg={featureBg}
-                    border='1px solid'
-                    borderColor={featureBorder}
-                    sx={{ transition: 'all 0.3s ease' }}
-                    _hover={{
-                      bg: featureHoverBg,
-                      borderColor: featureHoverBorder,
-                      transform: 'translateY(-2px)'
-                    }}>
-                    <HStack spacing={4} align='flex-start'>
-                      <Box
-                        p={3}
-                        borderRadius='lg'
-                        bg='linear-gradient(135deg, rgba(56, 178, 172, 0.2) 0%, rgba(0, 132, 255, 0.2) 100%)'
-                        color={brandTextColor}>
-                        {feature.icon}
-                      </Box>
-                      <VStack align='flex-start' spacing={1}>
-                        <Text fontSize='md' fontWeight='600' color={headingColor}>
-                          {feature.title}
-                        </Text>
-                        <Text fontSize='sm' color={mutedTextColor}>
-                          {feature.description}
-                        </Text>
-                      </VStack>
-                    </HStack>
-                  </MotionBox>
+                    className="flex items-start gap-4 rounded-xl border border-border bg-muted/30 p-5"
+                  >
+                    <div className="rounded-lg bg-primary/20 p-3 text-primary">
+                      {feature.icon}
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <h3 className="text-sm font-semibold text-foreground">{feature.title}</h3>
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    </div>
+                  </motion.div>
                 ))}
-              </SimpleGrid>
-            </MotionBox>
+              </div>
+            </motion.div>
 
-            {/* CTA Buttons */}
-            <MotionBox variants={itemVariants} pt={4}>
-              <Stack direction={{ base: 'column', sm: 'row' }} spacing={4} justify='center' align='center'>
-                <ChakraLink as={Link} href='/createMultiSig' _hover={{ textDecoration: 'none' }}>
-                  <Button leftIcon={<AddIcon />} size='lg' px={8} {...buttonColors}>
-                    Create a MultiSig
-                  </Button>
-                </ChakraLink>
-                <ChakraLink as={Link} href='/useYourMultiSig' _hover={{ textDecoration: 'none' }}>
-                  <Button leftIcon={<CheckCircleIcon />} size='lg' px={8} {...glassButtonColors}>
-                    Use your MultiSig
-                  </Button>
-                </ChakraLink>
-                <ChakraLink
-                  href='https://github.com/marc-aurele-besner/mymultisig-contract'
-                  target='_blank'
-                  _hover={{ textDecoration: 'none' }}>
-                  <Button
-                    leftIcon={<ExternalLinkIcon />}
-                    size='lg'
-                    px={8}
-                    variant='ghost'
-                    color={brandTextColor}
-                    _hover={{ bg: ghostHoverBg, color: brandHoverColor }}>
-                    View Smart Contracts
-                  </Button>
-                </ChakraLink>
-              </Stack>
-            </MotionBox>
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col items-center justify-center gap-4 pt-4 sm:flex-row"
+            >
+              <Button size="lg" className="gap-2 px-8" asChild>
+                <Link href="/createMultiSig">
+                  <AddIcon className="h-4 w-4" />
+                  Create a MultiSig
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="gap-2 px-8" asChild>
+                <Link href="/useYourMultiSig">
+                  <CheckCircleIcon className="h-4 w-4" />
+                  Use your MultiSig
+                </Link>
+              </Button>
+              <Button
+                size="lg"
+                variant="ghost"
+                className="gap-2 px-8 text-primary hover:bg-accent hover:text-primary"
+                asChild
+              >
+                <a
+                  href="https://github.com/marc-aurele-besner/mymultisig-contract"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLinkIcon className="h-4 w-4" />
+                  View Smart Contracts
+                </a>
+              </Button>
+            </motion.div>
           </MotionVStack>
-        </Center>
+        </div>
       </BigCard>
-    </Center>
+    </div>
   )
 }
 

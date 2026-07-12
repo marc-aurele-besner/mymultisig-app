@@ -1,4 +1,4 @@
-import { useContractRead } from 'wagmi'
+import { useReadContract } from 'wagmi'
 import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
 
 const useMultiSigCount = (
@@ -9,8 +9,8 @@ const useMultiSigCount = (
   },
   multiSigFactoryAddress: `0x${string}`
 ) => {
-  const { data, error, isIdle, isError, isLoading, isSuccess, isFetched, isRefetching, refetch, status } =
-    useContractRead({
+  const { data, error, isError, isLoading, isSuccess, isFetched, isRefetching, refetch, status } =
+    useReadContract({
       address: multiSigFactoryAddress,
       abi: MyMultiSigFactory,
       functionName: 'multiSigCount'
@@ -20,7 +20,6 @@ const useMultiSigCount = (
     data,
     error,
     isError,
-    isIdle,
     isLoading,
     isSuccess,
     isFetched,

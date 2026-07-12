@@ -1,54 +1,64 @@
-import { useContractWrite, useTransaction, useWaitForTransaction } from 'wagmi'
+import React from 'react'
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { JsonFragment } from '@ethersproject/abi'
-import { PrepareWriteContractResult } from '@wagmi/core'
 
 const useFinalizeTransaction = <TFunctionName extends string>(
-  config: PrepareWriteContractResult<JsonFragment[], TFunctionName, number>,
+  config: {
+    chainId?: number
+    address: `0x${string}`
+    abi: JsonFragment[]
+    functionName: TFunctionName
+    args?: readonly unknown[]
+  },
   notificationInfo: () => void,
   notificationSuccess: () => void,
   notificationError: () => void
 ) => {
-  const { data, error, isLoading, isIdle, isSuccess, isError, write, writeAsync, reset, status } = useContractWrite({
-    ...config,
-    onError(error) {
+  const { data, error, isPending, isSuccess, isError, writeContract: writeContractFn, writeContractAsync, reset, status } = useWriteContract()
+  
+  // Handle errors and success via useEffect or mutation callbacks
+  React.useEffect(() => {
+    if (error) {
       console.error('Error', error)
       notificationError()
     }
-  })
-  useTransaction({
-    hash: data?.hash,
-    enabled: !!data?.hash,
-    cacheTime: 1_00,
-    staleTime: 2_000,
-    onSuccess() {
+  }, [error, notificationError])
+  
+  React.useEffect(() => {
+    if (data) {
       notificationInfo()
     }
-  })
-  const { data: dataFinal, isSuccess: isFinal } = useWaitForTransaction({
-    hash: data?.hash,
-    enabled: !!data?.hash,
+  }, [data, notificationInfo])
+  const { data: dataFinal, isSuccess: isFinal } = useWaitForTransactionReceipt({
+    hash: data,
     confirmations: 1,
     timeout: 120_000,
-    cacheTime: 1_000,
-    staleTime: 2_000,
-    onSuccess() {
-      notificationSuccess()
-    },
-    onError(error) {
-      console.error('Error', error)
-      notificationError()
+    query: {
+      enabled: !!data
     }
   })
+  
+  React.useEffect(() => {
+    if (isFinal && dataFinal) {
+      notificationSuccess()
+    }
+  }, [isFinal, dataFinal, notificationSuccess])
+  
+  React.useEffect(() => {
+    if (dataFinal && 'error' in dataFinal) {
+      console.error('Error', dataFinal.error)
+      notificationError()
+    }
+  }, [dataFinal, notificationError])
 
   return {
     data,
     error,
     isError,
-    isIdle,
-    isLoading,
+    isPending,
     isSuccess,
-    write,
-    writeAsync,
+    writeContract: () => writeContractFn(config),
+    writeContractAsync: () => writeContractAsync(config),
     reset,
     status,
     dataFinal,

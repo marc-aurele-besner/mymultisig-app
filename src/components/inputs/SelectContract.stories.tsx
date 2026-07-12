@@ -1,15 +1,17 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
-import { action } from '@storybook/addon-actions'
+import type { StoryFn, Meta } from '@storybook/react'
+// import { action } from '@storybook/addon-actions' // Removed in Storybook v10
 
 import SelectContract from './SelectContract'
 
-export default {
+const meta: Meta<typeof SelectContract> = {
   title: 'Inputs/SelectContract',
   component: SelectContract,
-} as ComponentMeta<typeof SelectContract>
+}
 
-export const Basic: ComponentStory<typeof SelectContract> = (args) => <SelectContract {...args} />
+export default meta
+
+export const Basic: StoryFn<typeof SelectContract> = (args: React.ComponentProps<typeof SelectContract>) => <SelectContract {...args} />
 Basic.args = {
-  onChange: action('contract-selected'),
+  onChange: () => {},
 }

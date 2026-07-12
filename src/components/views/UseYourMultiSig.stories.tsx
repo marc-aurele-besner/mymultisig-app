@@ -1,15 +1,17 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { StoryFn, Meta } from '@storybook/react'
 
 import UseYourMultiSig from './UseYourMultiSig'
 import Web3Provider from '../web3/Web3Provider'
 
-export default {
+const meta: Meta<typeof UseYourMultiSig> = {
   title: 'Views/UseYourMultiSig',
   component: UseYourMultiSig,
-} as ComponentMeta<typeof UseYourMultiSig>
+}
 
-export const Basic: ComponentStory<typeof UseYourMultiSig> = (args) => (
+export default meta
+
+export const Basic: StoryFn<typeof UseYourMultiSig> = (args: React.ComponentProps<typeof UseYourMultiSig>) => (
   <Web3Provider>
     <UseYourMultiSig {...args} />
   </Web3Provider>

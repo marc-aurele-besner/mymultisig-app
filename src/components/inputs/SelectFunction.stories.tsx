@@ -1,6 +1,6 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
-import { action } from '@storybook/addon-actions'
+import type { StoryFn, Meta } from '@storybook/react'
+// import { action } from '@storybook/addon-actions' // Removed in Storybook v10
 import { JsonFragment } from '@ethersproject/abi'
 
 import SelectFunction from './SelectFunction'
@@ -11,13 +11,15 @@ const sampleAbi: JsonFragment[] = [
   { type: 'function', name: 'balanceOf', stateMutability: 'view', inputs: [{ name: 'account', type: 'address' }] },
 ]
 
-export default {
+const meta: Meta<typeof SelectFunction> = {
   title: 'Inputs/SelectFunction',
   component: SelectFunction,
-} as ComponentMeta<typeof SelectFunction>
+}
 
-export const Basic: ComponentStory<typeof SelectFunction> = (args) => <SelectFunction {...args} />
+export default meta
+
+export const Basic: StoryFn<typeof SelectFunction> = (args: React.ComponentProps<typeof SelectFunction>) => <SelectFunction {...args} />
 Basic.args = {
   abi: sampleAbi,
-  onChange: action('function-selected'),
+  onChange: () => {},
 }

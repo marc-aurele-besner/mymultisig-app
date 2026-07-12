@@ -1,128 +1,117 @@
 import React, { useState, useEffect } from 'react'
+import { type Chain } from 'viem/chains'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
-  Box,
-  Text,
-  Menu,
-  MenuButton,
-  Button,
-  Portal,
-  MenuList,
-  MenuItem,
-  HStack,
-  useColorModeValue
-} from '@chakra-ui/react'
-import { ChevronDownIcon, CheckIcon } from '@chakra-ui/icons'
-import { useNetwork, useSwitchNetwork } from 'wagmi'
-import { motion } from 'framer-motion'
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from '@/components/ui/command'
+import { Button } from '@/components/ui/button'
+import { ChevronDownIcon, CheckIcon } from '../icons/ChakraIcons'
+import NetworkIcon from '../icons/NetworkIcon'
+import DeployFactoryModal from '../modals/DeployFactoryModal'
+import { getNetworkStatus, NETWORK_STATUS_LABEL, type NetworkStatus } from '../../constants/networkStatus'
+import { cn } from '@/lib/utils'
+import { useChainId, useChains, useSwitchChain } from 'wagmi'
 
-const MotionButton = motion(Button)
+interface DeployTarget {
+  chain: Chain
+  status: Exclude<NetworkStatus, 'active'>
+}
+
+const statusClassName: Record<NetworkStatus, string> = {
+  active: 'text-primary',
+  planned: 'text-muted-foreground',
+  'not-supported': 'text-muted-foreground/60'
+}
 
 const HeaderNetworkSelector: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
-  const { chain } = useNetwork()
-  const { chains, switchNetwork } = useSwitchNetwork()
-
-  // Color mode values
-  const buttonBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
-  const buttonHoverBg = useColorModeValue('blackAlpha.100', 'whiteAlpha.200')
-  const buttonColor = useColorModeValue('gray.700', 'whiteAlpha.900')
-  const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200')
-  const borderHoverColor = useColorModeValue('gray.300', 'whiteAlpha.300')
-  const brandColor = useColorModeValue('brand.500', 'brand.400')
-
-  // Menu colors
-  const menuBg = useColorModeValue(
-    'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%)',
-    'linear-gradient(135deg, rgba(13, 26, 63, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%)'
-  )
-  const menuBorderColor = useColorModeValue('gray.200', 'whiteAlpha.100')
-  const menuItemColor = useColorModeValue('gray.700', 'whiteAlpha.900')
-  const menuItemHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
-  const menuItemHoverColor = useColorModeValue('brand.600', 'brand.300')
+  const [open, setOpen] = useState(false)
+  const [deployTarget, setDeployTarget] = useState<DeployTarget | null>(null)
+  const chainId = useChainId()
+  const allChains = useChains()
+  const chain = allChains.find((c) => c.id === chainId)
+  const { chains: switchableChains, switchChain } = useSwitchChain()
 
   useEffect(() => {
     setHasMounted(true)
   }, [])
 
-  if (!hasMounted || !chain || !chains) return null
+  if (!hasMounted || !chain || !switchableChains) return null
+
+  const mainnets = switchableChains.filter((c) => !c.testnet)
+  const testnets = switchableChains.filter((c) => c.testnet)
+
+  const selectChain = (item: Chain) => {
+    setOpen(false)
+    const status = getNetworkStatus(item.id)
+    if (status === 'active') {
+      switchChain({ chainId: item.id })
+    } else {
+      setDeployTarget({ chain: item, status })
+    }
+  }
+
+  const renderItem = (item: Chain) => {
+    const status = getNetworkStatus(item.id)
+    return (
+      <CommandItem key={item.id} value={item.name} onSelect={() => selectChain(item)}>
+        <NetworkIcon chainId={item.id} name={item.name} size={18} />
+        <span className="flex-1 truncate">{item.name}</span>
+        {chain.id === item.id && <CheckIcon className="h-3.5 w-3.5 text-primary" />}
+        <span className={cn('font-mono text-[10px]', statusClassName[status])}>
+          {NETWORK_STATUS_LABEL[status]}
+        </span>
+      </CommandItem>
+    )
+  }
 
   return (
-    <Box>
-      <Menu>
-        <MenuButton
-          as={MotionButton}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          rightIcon={<ChevronDownIcon />}
-          size={{ base: 'sm', md: 'md' }}
-          px={{ base: 3, md: 4 }}
-          py={2}
-          borderRadius='xl'
-          fontWeight='500'
-          bg={buttonBg}
-          color={buttonColor}
-          border='1px solid'
-          borderColor={borderColor}
-          backdropFilter='blur(10px)'
-          sx={{ transition: 'all 0.2s ease' }}
-          _hover={{
-            bg: buttonHoverBg,
-            borderColor: borderHoverColor
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            role="combobox"
+            aria-expanded={open}
+            aria-label="Switch network"
+            className="gap-2 border-border bg-card font-medium text-foreground hover:bg-accent"
+          >
+            <NetworkIcon chainId={chain.id} name={chain.name} size={16} />
+            <span className="max-w-[120px] truncate text-xs md:text-sm">{chain.name}</span>
+            <ChevronDownIcon className="h-4 w-4 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-[276px] p-0">
+          <Command>
+            <CommandInput placeholder="Search networks…" />
+            <CommandList>
+              <CommandEmpty>No network matches your search.</CommandEmpty>
+              <CommandGroup heading="MAINNETS">{mainnets.map(renderItem)}</CommandGroup>
+              {testnets.length > 0 && (
+                <CommandGroup heading="TESTNETS">{testnets.map(renderItem)}</CommandGroup>
+              )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+
+      {deployTarget && (
+        <DeployFactoryModal
+          chain={deployTarget.chain}
+          status={deployTarget.status}
+          open={!!deployTarget}
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) setDeployTarget(null)
           }}
-          _active={{
-            transform: 'scale(0.98)'
-          }}
-          _focus={{
-            outline: 'none',
-            boxShadow: '0 0 0 2px rgba(56, 178, 172, 0.3)'
-          }}>
-          <HStack spacing={2}>
-            <Box w='8px' h='8px' borderRadius='full' bg={brandColor} />
-            <Text fontSize={{ base: 'xs', md: 'sm' }}>{chain.name}</Text>
-          </HStack>
-        </MenuButton>
-        <Portal>
-          <MenuList
-            bg={menuBg}
-            backdropFilter='blur(20px) saturate(180%)'
-            border='1px solid'
-            borderColor={menuBorderColor}
-            borderRadius='xl'
-            boxShadow='0 20px 40px rgba(0, 0, 0, 0.2)'
-            py={2}
-            minW='180px'
-            p={2}
-            zIndex={1600}>
-            {chains.map((item) => (
-              <MenuItem
-                key={`MenuItem-${item.name}`}
-                bg='transparent'
-                color={menuItemColor}
-                fontWeight='500'
-                px={4}
-                py={3}
-                borderRadius='lg'
-                sx={{ transition: 'all 0.2s ease' }}
-                _hover={{
-                  bg: menuItemHoverBg,
-                  color: menuItemHoverColor
-                }}
-                _focus={{
-                  bg: menuItemHoverBg
-                }}
-                onClick={() => switchNetwork?.(item.id)}>
-                <HStack w='100%' justify='space-between'>
-                  <Text fontSize='md' fontWeight='500'>
-                    {item.name}
-                  </Text>
-                  {chain.id === item.id && <CheckIcon color={brandColor} boxSize={3} />}
-                </HStack>
-              </MenuItem>
-            ))}
-          </MenuList>
-        </Portal>
-      </Menu>
-    </Box>
+        />
+      )}
+    </>
   )
 }
 

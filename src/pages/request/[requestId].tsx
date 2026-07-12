@@ -2,7 +2,7 @@ import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useAccount } from 'wagmi'
-import { Box, Button, Text, VStack, Center } from '@chakra-ui/react'
+import { Button } from '@/components/ui/button'
 
 import BigCard from '../../components/cards/BigCard'
 import MultiSigRequestDetail from '../../components/multiSigDetails/MultiSigRequestDetail'
@@ -14,28 +14,26 @@ const Page: React.FC = () => {
   const { isConnected, address } = useAccount()
   const { setSelectedMultiSigAddress } = useMultiSigs()
 
-  if (!isConnected || !address || !requestId || Array.isArray(requestId)) return null
+  if (!isConnected || address == null || requestId == null || Array.isArray(requestId)) return null
 
   return (
-    <Center>
-      <BigCard maxW='1200px'>
-        <Center>
-          <VStack>
-            <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
-              Multi signature request
-            </Text>
-            <Box>
-              <MultiSigRequestDetail address={address} multiSigRequestId={requestId} />
-            </Box>
-            <Link href='/useYourMultiSig' onClick={() => setSelectedMultiSigAddress(null)}>
-              <Button colorScheme='blue' m='1rem' mr='2rem'>
-                Select a different MultiSig to use
-              </Button>
+    <div className="flex justify-center">
+      <BigCard className="max-w-[1200px]">
+        <div className="flex flex-col items-center">
+          <h2 className="pb-4 text-2xl font-bold text-foreground">
+            Multi signature request
+          </h2>
+          <div>
+            <MultiSigRequestDetail address={address} multiSigRequestId={requestId} />
+          </div>
+          <Button asChild className="m-4">
+            <Link href="/useYourMultiSig" onClick={() => setSelectedMultiSigAddress(null)}>
+              Select a different MultiSig to use
             </Link>
-          </VStack>
-        </Center>
+          </Button>
+        </div>
       </BigCard>
-    </Center>
+    </div>
   )
 }
 

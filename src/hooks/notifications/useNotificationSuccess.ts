@@ -1,15 +1,9 @@
-import { useToast } from '@chakra-ui/react'
+import { toast } from 'sonner'
 
 const useNotificationSuccess = (title?: string, description?: string) => {
-  const toast = useToast()
-
   return () => {
-    toast({
-      title: title || 'Transaction mined',
-      description: description || 'Your transaction has been mined.',
-      status: 'success',
-      position: 'top-right',
-      isClosable: true
+    toast.success(title ?? 'Transaction mined', {
+      description: description ?? 'Your transaction has been mined.'
     })
   }
 }

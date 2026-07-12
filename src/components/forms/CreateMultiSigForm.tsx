@@ -1,18 +1,15 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { VStack, Text, Box, HStack, Divider, Button, Badge } from '@chakra-ui/react'
-import { useNetwork } from 'wagmi'
-import { ExternalLinkIcon, CheckCircleIcon, AddIcon, InfoIcon } from '@chakra-ui/icons'
+import { useChainId, useChains } from 'wagmi'
+import { ExternalLinkIcon, CheckCircleIcon, AddIcon, InfoIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
+import { Button } from '@/components/ui/button'
 
 import TextInput from '../inputs/TextInput'
 import ConfirmationCard from '../cards/ConfirmationCard'
 import NumberInput from '../inputs/NumberInput'
 import { MultiSigFactory, MultiSig, MultiSigConstructorArgs } from '../../models/MultiSigs'
 import useCreateMultiSig from '../../hooks/useCreateMultiSig'
-import { buttonColors, glassButtonColors } from '../../styles/colors'
-
-const MotionBox = motion(Box)
 
 interface CreateMultiSigFormProps {
   owner01: string
@@ -20,10 +17,12 @@ interface CreateMultiSigFormProps {
 }
 
 const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factory }) => {
-  const { chain } = useNetwork()
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
   const [multiSig, setMultiSig] = useState<MultiSig>({
-    chainId: chain ? chain.id : 1,
-    chainName: chain ? chain.name : 'Ethereum',
+    chainId: chain != null ? chain.id : 1,
+    chainName: chain != null ? chain.name : 'Ethereum',
     factoryAddress: factory.address,
     id: factory.multiSigCount + 1,
     name: '',
@@ -42,12 +41,17 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
     threshold: multiSig.threshold
   }
 
-  const { data, isLoading, isSuccess, write } = useCreateMultiSig(constructorArgs, factory.address)
+  const { data, isPending, isSuccess, writeContract } = useCreateMultiSig(
+    constructorArgs,
+    factory.address
+  )
 
   const handleOwnersChange = (event: React.ChangeEvent<HTMLInputElement>, input: number) => {
     setMultiSig({
       ...multiSig,
-      owners: multiSig.owners.map((owner, index) => (index === input ? event.target.value : owner))
+      owners: multiSig.owners.map((owner, index) =>
+        index === input ? event.target.value : owner
+      )
     })
   }
   const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>, input: keyof MultiSig) => {
@@ -58,231 +62,150 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
   }
 
   const handleCreateMultiSig = () => {
-    write?.()
+    if (writeContract != null) writeContract()
   }
 
   const truncateAddress = (addr: string) => `${addr.slice(0, 10)}...${addr.slice(-8)}`
 
+  const stepBadge = (step: string) => (
+    <span className="rounded bg-primary px-2 py-1 text-xs text-primary-foreground">{step}</span>
+  )
+
   return (
-    <VStack spacing={6} w='100%'>
-      {/* Step 1: Name */}
-      <Box w='100%'>
-        <HStack mb={3}>
-          <Badge
-            bg='linear-gradient(135deg, #38b2ac 0%, #319795 100%)'
-            color='white'
-            px={2}
-            py={1}
-            borderRadius='md'
-            fontSize='xs'
-          >
-            Step 1
-          </Badge>
-          <Text fontSize='lg' fontWeight='600' color='white'>
-            Name Your MultiSig
-          </Text>
-        </HStack>
+    <div className="flex w-full flex-col gap-6">
+      <div className="w-full">
+        <div className="mb-3 flex items-center gap-2">
+          {stepBadge('Step 1')}
+          <span className="text-lg font-semibold text-foreground">Name Your MultiSig</span>
+        </div>
         <TextInput
-          placeholder='Enter a name for your MultiSig wallet'
+          placeholder="Enter a name for your MultiSig wallet"
+          value={multiSig.name}
           onChange={(e) => handleValueChange(e, 'name')}
         />
-      </Box>
+      </div>
 
-      <Divider borderColor='whiteAlpha.100' />
+      <div className="my-4 w-full border-t border-border" />
 
-      {/* Step 2: Owners */}
-      <Box w='100%'>
-        <HStack mb={3}>
-          <Badge
-            bg='linear-gradient(135deg, #38b2ac 0%, #319795 100%)'
-            color='white'
-            px={2}
-            py={1}
-            borderRadius='md'
-            fontSize='xs'
-          >
-            Step 2
-          </Badge>
-          <Text fontSize='lg' fontWeight='600' color='white'>
-            Add Owners
-          </Text>
-        </HStack>
-        <Text fontSize='sm' color='whiteAlpha.600' mb={4}>
+      <div className="w-full">
+        <div className="mb-3 flex items-center gap-2">
+          {stepBadge('Step 2')}
+          <span className="text-lg font-semibold text-foreground">Add Owners</span>
+        </div>
+        <p className="mb-4 text-sm text-muted-foreground">
           Add wallet addresses that will have signing authority
-        </Text>
-        
-        <VStack spacing={3} w='100%'>
-          <Box w='100%' position='relative'>
+        </p>
+        <div className="flex w-full flex-col gap-3">
+          <div className="relative w-full">
             <TextInput
               placeholder={truncateAddress(owner01)}
               defaultValue={truncateAddress(owner01)}
-              isReadOnly
+              readOnly
             />
-            <Badge
-              position='absolute'
-              right={6}
-              top='50%'
-              transform='translateY(-50%)'
-              bg='brand.500'
-              color='white'
-              fontSize='xs'
-            >
+            <span className="absolute right-6 top-1/2 -translate-y-1/2 rounded bg-primary px-2 py-0.5 text-xs text-primary-foreground">
               You
-            </Badge>
-          </Box>
+            </span>
+          </div>
           <TextInput
-            placeholder='Owner 2 address (0x...)'
+            placeholder="Owner 2 address (0x...)"
             onChange={(e) => handleOwnersChange(e, 1)}
           />
           <TextInput
-            placeholder='Owner 3 address (0x...)'
+            placeholder="Owner 3 address (0x...)"
             onChange={(e) => handleOwnersChange(e, 2)}
           />
-        </VStack>
-      </Box>
+        </div>
+      </div>
 
-      <Divider borderColor='whiteAlpha.100' />
+      <div className="my-4 w-full border-t border-border" />
 
-      {/* Step 3: Threshold */}
-      <Box w='100%'>
-        <HStack mb={3}>
-          <Badge
-            bg='linear-gradient(135deg, #38b2ac 0%, #319795 100%)'
-            color='white'
-            px={2}
-            py={1}
-            borderRadius='md'
-            fontSize='xs'
-          >
-            Step 3
-          </Badge>
-          <Text fontSize='lg' fontWeight='600' color='white'>
-            Set Threshold
-          </Text>
-        </HStack>
-        <HStack spacing={2} mb={4}>
-          <InfoIcon color='whiteAlpha.600' boxSize={3} />
-          <Text fontSize='sm' color='whiteAlpha.600'>
+      <div className="w-full">
+        <div className="mb-3 flex items-center gap-2">
+          {stepBadge('Step 3')}
+          <span className="text-lg font-semibold text-foreground">Set Threshold</span>
+        </div>
+        <div className="mb-4 flex items-center gap-2">
+          <InfoIcon className="h-3 w-3 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">
             Number of signatures required to execute a transaction
-          </Text>
-        </HStack>
-        
+          </span>
+        </div>
         <NumberInput
-          placeholder='Threshold'
-          defaultValue={1}
+          placeholder="Threshold"
+          value={String(multiSig.threshold)}
           min={1}
           max={3}
           step={1}
-          onChange={(e) => handleAmountChange(parseInt(e), 'threshold')}
+          onChange={(_, valueAsNumber) => handleAmountChange(valueAsNumber, 'threshold')}
           hasStepper
-          allowMouseWheel
         />
-      </Box>
+      </div>
 
-      <Divider borderColor='whiteAlpha.100' />
+      <div className="my-4 w-full border-t border-border" />
 
-      {/* Create Button */}
-      <Box w='100%' pt={2}>
+      <div className="w-full pt-2">
         <Button
-          w='100%'
-          size='lg'
-          leftIcon={<AddIcon />}
+          className="w-full gap-2"
+          size="lg"
           onClick={handleCreateMultiSig}
-          isLoading={isLoading}
-          isDisabled={!write || !multiSig.name}
-          {...buttonColors}
+          disabled={writeContract == null || !multiSig.name}
         >
+          <AddIcon className="h-4 w-4" />
           Create MultiSig
         </Button>
-        
         {!multiSig.name && (
-          <Text fontSize='xs' color='whiteAlpha.500' textAlign='center' mt={2}>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
             Please enter a name for your MultiSig
-          </Text>
+          </p>
         )}
-      </Box>
+      </div>
 
-      {/* Loading State */}
-      {isLoading && (
-        <MotionBox
+      {isPending && (
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          w='100%'
-          p={4}
-          borderRadius='xl'
-          bg='linear-gradient(135deg, rgba(56, 178, 172, 0.15) 0%, rgba(0, 132, 255, 0.15) 100%)'
-          border='1px solid'
-          borderColor='brand.400'
+          className="w-full rounded-xl border border-primary bg-primary/10 p-4"
         >
-          <HStack spacing={3} justify='center'>
-            <Box
-              w={3}
-              h={3}
-              borderRadius='full'
-              bg='brand.400'
-              animation='pulse 1.5s infinite'
-              sx={{
-                '@keyframes pulse': {
-                  '0%, 100%': { opacity: 1 },
-                  '50%': { opacity: 0.5 }
-                }
-              }}
-            />
-            <Text fontSize='md' fontWeight='500' color='brand.300'>
+          <div className="flex items-center justify-center gap-3">
+            <span className="h-3 w-3 animate-pulse rounded-full bg-primary" />
+            <span className="text-sm font-medium text-primary">
               Please confirm the transaction in your wallet...
-            </Text>
-          </HStack>
-        </MotionBox>
+            </span>
+          </div>
+        </motion.div>
       )}
 
-      {/* Success State */}
-      {isSuccess && data?.hash && (
-        <MotionBox
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          w='100%'
-        >
-          <VStack spacing={4}>
-            <Box
-              w='100%'
-              p={4}
-              borderRadius='xl'
-              bg='linear-gradient(135deg, rgba(72, 187, 120, 0.15) 0%, rgba(56, 161, 105, 0.15) 100%)'
-              border='1px solid'
-              borderColor='green.400'
-            >
-              <HStack spacing={3}>
-                <CheckCircleIcon color='green.400' boxSize={5} />
-                <VStack align='flex-start' spacing={0}>
-                  <Text fontSize='md' fontWeight='600' color='green.300'>
+      {isSuccess && data != null && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full">
+          <div className="flex flex-col gap-4">
+            <div className="w-full rounded-xl border border-green-500/50 bg-green-500/10 p-4">
+              <div className="flex items-center gap-3">
+                <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                <div className="flex flex-col gap-0">
+                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">
                     Transaction Submitted!
-                  </Text>
-                  <Text fontSize='xs' color='whiteAlpha.600'>
-                    Hash: {data.hash.slice(0, 20)}...{data.hash.slice(-10)}
-                  </Text>
-                </VStack>
-              </HStack>
-            </Box>
-            
-            <Link href={`https://goerli.etherscan.io/tx/${data.hash}`} target='_blank'>
-              <Button
-                leftIcon={<ExternalLinkIcon />}
-                {...glassButtonColors}
-                size='md'
-              >
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Hash: {data.slice(0, 20)}...{data.slice(-10)}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <Button variant="outline" size="default" className="gap-2" asChild>
+              <a href={`https://goerli.etherscan.io/tx/${data}`} target="_blank" rel="noopener noreferrer">
+                <ExternalLinkIcon className="h-4 w-4" />
                 View on Explorer
-              </Button>
-            </Link>
-
+              </a>
+            </Button>
             <ConfirmationCard
-              hash={data.hash}
+              hash={data}
               multiSigFactoryAddress={factory.address}
               constructorArgs={constructorArgs}
             />
-          </VStack>
-        </MotionBox>
+          </div>
+        </motion.div>
       )}
-    </VStack>
+    </div>
   )
 }
 

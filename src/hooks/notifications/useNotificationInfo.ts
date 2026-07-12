@@ -1,15 +1,9 @@
-import { useToast } from '@chakra-ui/react'
+import { toast } from 'sonner'
 
 const useNotificationInfo = (title?: string, description?: string) => {
-  const toast = useToast()
-
   return () => {
-    toast({
-      title: title || 'Transaction sent',
-      description: description || 'Your transaction has been sent.',
-      status: 'info',
-      position: 'top-right',
-      isClosable: true
+    toast.info(title ?? 'Transaction sent', {
+      description: description ?? 'Your transaction has been sent.'
     })
   }
 }

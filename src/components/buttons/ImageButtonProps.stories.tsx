@@ -1,21 +1,23 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { StoryFn, Meta } from '@storybook/react'
 
 import ImageButton from './ImageButton'
 
-export default {
+const meta: Meta<typeof ImageButton> = {
   title: 'Buttons/ImageButton',
   component: ImageButton,
-} as ComponentMeta<typeof ImageButton>
+}
 
-export const MetaMask: ComponentStory<typeof ImageButton> = () => (
+export default meta
+
+export const MetaMask: StoryFn<typeof ImageButton> = () => (
   <ImageButton placeholder='MetaMask' imagePath='/images/wallets/mm.png' />
 )
 
-export const CoinBaseWallet: ComponentStory<typeof ImageButton> = () => (
+export const CoinBaseWallet: StoryFn<typeof ImageButton> = () => (
   <ImageButton placeholder='CoinBaseWallet' imagePath='/images/wallets/cbw.png' />
 )
 
-export const WalletConnect: ComponentStory<typeof ImageButton> = () => (
+export const WalletConnect: StoryFn<typeof ImageButton> = () => (
   <ImageButton placeholder='WalletConnect' imagePath='/images/wallets/wc.png' />
 )

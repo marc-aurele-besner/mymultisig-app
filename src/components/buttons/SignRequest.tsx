@@ -1,6 +1,5 @@
 import React, { Fragment } from 'react'
-import { Button, Center, Text, VStack } from '@chakra-ui/react'
-
+import { Button } from '@/components/ui/button'
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
 import useSignedMultiSigRequest from '../../hooks/useSignedMultiSigRequest'
 
@@ -19,43 +18,54 @@ const SignRequest: React.FC<MultiSigListProps> = ({
   requestDetails,
   existingRequestRef
 }) => {
-  const { isPrepareError, isError, prepareError, error, isLoading, isSuccess, signTypedData, reset } =
-    useSignedMultiSigRequest(multiSigAddress, args, description, requestDetails, existingRequestRef)
+  const {
+    isPrepareError,
+    isError,
+    prepareError,
+    error,
+    isPending,
+    isSuccess,
+    signTypedData,
+    reset
+  } = useSignedMultiSigRequest(
+    multiSigAddress,
+    args,
+    description,
+    requestDetails,
+    existingRequestRef
+  )
 
   return (
-    <Fragment>
-      <Center>
-        {isPrepareError || isError ? (
-          <VStack>
-            <Text fontSize='xl' fontWeight='bold' color='red' m='0.5rem' pt='0.5rem'>
-              Something went wrong
-            </Text>
-            {error != null && (
-              <Text fontSize='lg' color='red' m='0.5rem' pt='0.5rem'>
-                {JSON.stringify(error)}
-              </Text>
-            )}
-            {prepareError != null && (
-              <Text fontSize='lg' color='red' m='0.5rem' pt='0.5rem'>
-                {prepareError}
-              </Text>
-            )}
-            <Button colorScheme='blue' m='1rem' mr='2rem' onClick={() => reset()} isDisabled={isLoading || isSuccess}>
-              Try again
-            </Button>
-          </VStack>
-        ) : (
+    <div className="flex justify-center">
+      {isPrepareError || isError ? (
+        <div className="flex flex-col items-center gap-2">
+          <p className="pt-2 text-xl font-bold text-destructive">Something went wrong</p>
+          {error != null && (
+            <p className="pt-2 text-lg text-destructive">{JSON.stringify(error)}</p>
+          )}
+          {prepareError != null && (
+            <p className="pt-2 text-lg text-destructive">{String(prepareError)}</p>
+          )}
           <Button
-            colorScheme='blue'
-            m='1rem'
-            mr='2rem'
-            onClick={() => signTypedData()}
-            isDisabled={isLoading || isSuccess}>
-            Sign transaction request
+            variant="default"
+            className="mr-8 mt-4"
+            onClick={() => reset()}
+            disabled={isPending || isSuccess}
+          >
+            Try again
           </Button>
-        )}
-      </Center>
-    </Fragment>
+        </div>
+      ) : (
+        <Button
+          variant="default"
+          className="mr-8 mt-4"
+          onClick={() => signTypedData()}
+          disabled={isPending || isSuccess}
+        >
+          Sign transaction request
+        </Button>
+      )}
+    </div>
   )
 }
 

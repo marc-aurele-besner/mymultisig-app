@@ -1,14 +1,16 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { StoryFn, Meta } from '@storybook/react'
 
 import AddContactForm from './AddContactForm'
 
-export default {
+const meta: Meta<typeof AddContactForm> = {
   title: 'Forms/AddContactForm',
   component: AddContactForm,
-} as ComponentMeta<typeof AddContactForm>
+}
 
-export const Basic: ComponentStory<typeof AddContactForm> = (args) => <AddContactForm {...args} />
+export default meta
+
+export const Basic: StoryFn<typeof AddContactForm> = (args: React.ComponentProps<typeof AddContactForm>) => <AddContactForm {...args} />
 Basic.args = {
   contract: {
     chainId: 5,

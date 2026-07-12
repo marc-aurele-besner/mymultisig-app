@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Center, VStack, Text } from '@chakra-ui/react'
-import { useNetwork } from 'wagmi'
+import { useChainId, useChains } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
 import ErrorCard from '../cards/ErrorCard'
@@ -9,8 +8,10 @@ import multiSigFactories from '../../constants/multiSigFactory'
 
 const ImportMultiSig: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
-  const { chain } = useNetwork()
-  const multiSigFactory = multiSigFactories.find((factory) => factory.chainId === chain?.id)
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
+  const multiSigFactory = multiSigFactories.find((f) => f.chainId === chain?.id)
 
   useEffect(() => {
     setHasMounted(true)
@@ -19,22 +20,20 @@ const ImportMultiSig: React.FC = () => {
   if (!hasMounted) return null
 
   return (
-    <Center>
-      <BigCard maxW='1200px' minH='50vh'>
-        <Center>
-          <VStack>
-            <Text fontSize='2xl' fontWeight='bold' color='white' pb='1rem'>
-              Import your existing MultiSig
-            </Text>
-            {multiSigFactory ? (
-              <ImportMultiSigForm factory={multiSigFactory} />
-            ) : (
-              <ErrorCard>No MultiSig Factory contract detected on this network</ErrorCard>
-            )}
-          </VStack>
-        </Center>
+    <div className="flex justify-center">
+      <BigCard className="min-h-[50vh] max-w-[1200px]">
+        <div className="flex flex-col items-center">
+          <h2 className="pb-4 text-2xl font-bold text-foreground">
+            Import your existing MultiSig
+          </h2>
+          {multiSigFactory != null ? (
+            <ImportMultiSigForm factory={multiSigFactory} />
+          ) : (
+            <ErrorCard>No MultiSig Factory contract detected on this network</ErrorCard>
+          )}
+        </div>
       </BigCard>
-    </Center>
+    </div>
   )
 }
 
