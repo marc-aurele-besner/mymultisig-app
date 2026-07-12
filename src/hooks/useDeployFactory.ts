@@ -1,6 +1,6 @@
 import { useDeployContract, useWaitForTransactionReceipt } from 'wagmi'
 import { toast } from 'sonner'
-import MyMultiSigFactoryAbi from 'mymultisig-contract/abi/MyMultiSigFactory.json'
+import MyMultiSigFactoryAbi from '../constants/abi/MyMultiSigFactory.json'
 
 import factoryArtifact from '../constants/factoryArtifact.json'
 

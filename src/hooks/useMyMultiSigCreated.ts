@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useWatchContractEvent, useChainId, useChains } from 'wagmi'
-import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
+import MyMultiSigFactory from '../constants/abi/MyMultiSigFactory.json'
 import { BigNumber } from 'ethers'
 
 import { MultiSig } from '../models/MultiSigs'

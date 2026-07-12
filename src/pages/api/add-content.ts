@@ -90,7 +90,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         await sql`
           INSERT INTO multisig_wallets (
             chain_id, chain_name, factory_address, contract_id, name, version,
-            address, threshold, owner_count, nonce, owners, is_deployed
+            address, threshold, owner_count, nonce, owners, is_deployed,
+            wallet_type, allow_only_owner_request
           ) VALUES (
             ${doc.chainId},
             ${doc.chainName},
@@ -103,7 +104,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             ${doc.ownerCount},
             ${doc.nonce ?? 0},
             ${JSON.stringify(doc.owners ?? [])},
-            ${doc.isDeployed ?? true}
+            ${doc.isDeployed ?? true},
+            ${doc.walletType ?? 'simple'},
+            ${doc.allowOnlyOwnerRequest ?? false}
           )
         `
         console.log('Add content done')
