@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "Next.js Web App for mymultisig.app",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "workspaces": [
     "src/*"
   ],

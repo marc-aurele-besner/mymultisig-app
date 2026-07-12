@@ -12,11 +12,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           registry-url: https://registry.npmjs.org/
-          node-version: '18.x'
+          node-version: '20.x'
       - name: Install dependencies
-       run: yarn install
+        run: yarn install
       - name: Run tests
-       run: yarn test
+        run: yarn test
       - name: Git configuration
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
