@@ -3,7 +3,7 @@ import type { Meta, StoryFn } from '@storybook/react'
 
 import { WalletIcon } from './wallet'
 
-const meta: Meta<typeof React> = {
+const meta: Meta<typeof WalletIcon> = {
   title: 'Icons/Wallet',
   component: WalletIcon,
   argTypes: {
@@ -11,7 +11,7 @@ const meta: Meta<typeof React> = {
     width: { control: 'text' },
     height: { control: 'text' }
   }
-} as Meta<typeof WalletIcon>
+}
 
 export default meta
 
