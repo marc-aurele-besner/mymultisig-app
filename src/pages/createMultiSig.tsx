@@ -7,7 +7,7 @@ const Page: React.FC = () => {
 }
 
 export async function getStaticProps() {
-  return { props: { title: 'MyMultiSig - Create a Multi Signature' } }
+  return { props: { title: 'MyMultiSig - Create a multisig' } }
 }
 
 export default Page
