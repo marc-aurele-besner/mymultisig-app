@@ -20,33 +20,33 @@ const DiscoverMultiSigs: React.FC<DiscoverMultiSigsProps> = ({ factory }) => {
   if (address == null) return null
 
   return (
-    <div className="flex flex-col gap-4">
-      <h3 className="pb-2 text-2xl font-bold text-foreground">Wallets you created</h3>
-      {isLoading && <p className="text-sm text-muted-foreground">Looking up the factory registry...</p>}
+    <div className='flex flex-col gap-4'>
+      <h3 className='pb-2 text-2xl font-bold text-foreground'>Wallets you created</h3>
+      {isLoading && <p className='text-sm text-muted-foreground'>Looking up the factory registry...</p>}
       {!isLoading && total === 0 && (
-        <p className="text-sm text-muted-foreground">
+        <p className='text-sm text-muted-foreground'>
           No wallets created by {address.slice(0, 8)}... were found on this factory.
         </p>
       )}
       {discovered.map((wallet) => (
         <Fragment key={wallet.address}>
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-4">
-            <div className="flex flex-col">
-              <span className="font-semibold text-foreground">
+          <div className='flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-4'>
+            <div className='flex flex-col'>
+              <span className='font-semibold text-foreground'>
                 {wallet.name || 'Unnamed'}{' '}
-                <span className="rounded bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                <span className='rounded bg-primary px-2 py-0.5 text-xs text-primary-foreground'>
                   {wallet.walletType === 'extended' ? 'Extended' : 'Simple'}
                 </span>
               </span>
-              <span className="text-xs text-muted-foreground">{wallet.address}</span>
-              <span className="text-xs text-muted-foreground">
+              <span className='text-xs text-muted-foreground'>{wallet.address}</span>
+              <span className='text-xs text-muted-foreground'>
                 {wallet.threshold} of {wallet.ownerCount} owners required
               </span>
             </div>
             {wallet.alreadyImported ? (
-              <span className="text-sm text-green-600 dark:text-green-400">Imported</span>
+              <span className='text-sm text-green-600 dark:text-green-400'>Imported</span>
             ) : (
-              <Button variant="outline" onClick={() => setImporting(wallet.address)}>
+              <Button variant='outline' onClick={() => setImporting(wallet.address)}>
                 Import
               </Button>
             )}

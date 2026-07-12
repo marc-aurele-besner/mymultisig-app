@@ -7,7 +7,9 @@ import useFinalizeTransaction from './useFinalizeTransaction'
 // Extended wallets only: the delegatee claims an inactive owner's seat.
 // This is a direct call from the delegatee's wallet, not a multisig request.
 const useTakeOverOwnership = (multiSigAddress: `0x${string}`, inactiveOwner: `0x${string}`) => {
-  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
   const { notificationInfo, notificationError, notificationSuccess } = useNotification()
   const config = {
     chainId: chain?.id,

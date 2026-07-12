@@ -10,7 +10,9 @@ export type OwnerSettings = {
 // Extended-only reads: request policy, inactivity minimum, and per-owner
 // delegation settings for the given owner list.
 const useExtendedDetails = (multiSigAddress: `0x${string}`, owners: string[]) => {
-  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
   const base = {
     chainId: chain?.id,
     address: multiSigAddress,
@@ -29,7 +31,11 @@ const useExtendedDetails = (multiSigAddress: `0x${string}`, owners: string[]) =>
   const ownerSettings: Record<string, OwnerSettings> = {}
   if (data != null) {
     owners.forEach((owner, i) => {
-      const settings = data[2 + i] as { lastAction: bigint; transferInactiveOwnershipAfter: bigint; delegate: `0x${string}` }
+      const settings = data[2 + i] as {
+        lastAction: bigint
+        transferInactiveOwnershipAfter: bigint
+        delegate: `0x${string}`
+      }
       if (settings != null) ownerSettings[owner.toLowerCase()] = settings
     })
   }

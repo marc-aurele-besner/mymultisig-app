@@ -7,7 +7,9 @@ import { WalletType } from '../models/MultiSigs'
 // probing allowOnlyOwnerRequest(), which only exists on the Extended variant.
 // A revert means the wallet is a simple MyMultiSig.
 const useWalletType = (multiSigAddress: `0x${string}`) => {
-  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
   const { data, isError, isFetched } = useReadContract({
     chainId: chain?.id,
     address: multiSigAddress,

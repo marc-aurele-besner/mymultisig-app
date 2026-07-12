@@ -7,7 +7,9 @@ import useFinalizeTransaction from './useFinalizeTransaction'
 // On-chain pre-approval of a transaction hash (Safe-style approveHash).
 // Idempotent per (owner, hash) on the contract side.
 const useApproveHash = (multiSigAddress: `0x${string}`, txHash: `0x${string}` | undefined) => {
-  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
   const { notificationInfo, notificationError, notificationSuccess } = useNotification()
   const config = {
     chainId: chain?.id,

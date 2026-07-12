@@ -17,12 +17,7 @@ const Page: React.FC = () => {
     }
   }, [multisigAddress, setSelectedMultiSigAddress])
 
-  if (
-    address == null ||
-    multisigAddress == null ||
-    Array.isArray(multisigAddress) ||
-    !multisigAddress.startsWith('0x')
-  )
+  if (address == null || multisigAddress == null || Array.isArray(multisigAddress) || !multisigAddress.startsWith('0x'))
     return null
 
   return <MultiSigSettings multiSigAddress={multisigAddress as `0x${string}`} />

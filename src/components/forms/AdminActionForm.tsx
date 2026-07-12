@@ -2,13 +2,7 @@ import React, { useState } from 'react'
 import { useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 import TextInput from '../inputs/TextInput'
 import SignRequest from '../buttons/SignRequest'
@@ -62,15 +56,15 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
   }
 
   return (
-    <div className="flex w-full flex-col gap-4 rounded-lg border border-border p-4">
-      <h3 className="text-xl font-bold text-foreground">Owner & wallet administration</h3>
-      <p className="text-sm text-muted-foreground">
+    <div className='flex w-full flex-col gap-4 rounded-lg border border-border p-4'>
+      <h3 className='text-xl font-bold text-foreground'>Owner & wallet administration</h3>
+      <p className='text-sm text-muted-foreground'>
         These operations are multisig transactions: they still need {details.threshold} owner signature
         {details.threshold > 1 ? 's' : ''} before they execute.
       </p>
       <Select value={actionId} onValueChange={handleSelect}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Choose an operation" />
+        <SelectTrigger className='w-full'>
+          <SelectValue placeholder='Choose an operation' />
         </SelectTrigger>
         <SelectContent>
           {actions.map((a) => (
@@ -86,16 +80,16 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
           <p className={`text-sm ${action.danger ? 'text-destructive' : 'text-muted-foreground'}`}>{action.hint}</p>
           {action.fields.map((field) =>
             field.kind === 'boolean' ? (
-              <div key={field.key} className="flex items-center gap-3">
+              <div key={field.key} className='flex items-center gap-3'>
                 <Switch
                   checked={values[field.key] === 'true'}
                   onCheckedChange={(checked) => setValues({ ...values, [field.key]: String(checked) })}
                 />
-                <span className="text-sm text-foreground">{field.label}</span>
+                <span className='text-sm text-foreground'>{field.label}</span>
               </div>
             ) : (
-              <div key={field.key} className="flex flex-col gap-1">
-                <span className="text-sm font-semibold text-foreground">{field.label}</span>
+              <div key={field.key} className='flex flex-col gap-1'>
+                <span className='text-sm font-semibold text-foreground'>{field.label}</span>
                 <TextInput
                   placeholder={field.placeholder ?? field.label}
                   value={values[field.key] ?? ''}
@@ -104,9 +98,7 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
               </div>
             )
           )}
-          {fieldsFilled && validationError != null && (
-            <p className="text-sm text-destructive">{validationError}</p>
-          )}
+          {fieldsFilled && validationError != null && <p className='text-sm text-destructive'>{validationError}</p>}
           {ready && encoded != null && (
             <SignRequest
               multiSigAddress={multiSigAddress}

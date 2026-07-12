@@ -26,7 +26,7 @@ const TakeOverButton: React.FC<{ multiSigAddress: `0x${string}`; owner: `0x${str
 }) => {
   const { writeContract, isPending, isSuccess } = useTakeOverOwnership(multiSigAddress, owner)
   return (
-    <Button variant="destructive" onClick={() => writeContract()} disabled={isPending || isSuccess}>
+    <Button variant='destructive' onClick={() => writeContract()} disabled={isPending || isSuccess}>
       {isSuccess ? 'Seat claimed' : 'Take over this seat now'}
     </Button>
   )
@@ -36,7 +36,9 @@ const TakeOverButton: React.FC<{ multiSigAddress: `0x${string}`; owner: `0x${str
 // inactivity delegation per owner, takeover CTA for a connected delegatee, and
 // a nonce-status checker. Mutations live in AdminActionForm.
 const ExtendedGovernancePanel: React.FC<ExtendedGovernancePanelProps> = ({ multiSigAddress, owners }) => {
-  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
   const { address } = useAccount()
   const { allowOnlyOwnerRequest, minimumTransferInactiveOwnershipAfter, ownerSettings } = useExtendedDetails(
     multiSigAddress,
@@ -55,18 +57,18 @@ const ExtendedGovernancePanel: React.FC<ExtendedGovernancePanelProps> = ({ multi
   const nowSeconds = BigInt(Math.floor(Date.now() / 1000))
 
   return (
-    <div className="flex w-full flex-col gap-4 rounded-lg border border-border p-4">
-      <h3 className="text-xl font-bold text-foreground">Extended governance</h3>
-      <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm text-foreground">
+    <div className='flex w-full flex-col gap-4 rounded-lg border border-border p-4'>
+      <h3 className='text-xl font-bold text-foreground'>Extended governance</h3>
+      <div className='flex flex-wrap gap-x-8 gap-y-2 text-sm text-foreground'>
         <span>
           Request policy:{' '}
-          <span className="font-semibold">
+          <span className='font-semibold'>
             {allowOnlyOwnerRequest == null ? '...' : allowOnlyOwnerRequest ? 'owners only' : 'anyone can propose'}
           </span>
         </span>
         <span>
           Minimum inactivity window:{' '}
-          <span className="font-semibold">
+          <span className='font-semibold'>
             {minimumTransferInactiveOwnershipAfter == null
               ? '...'
               : minimumTransferInactiveOwnershipAfter === 0n
@@ -76,12 +78,11 @@ const ExtendedGovernancePanel: React.FC<ExtendedGovernancePanelProps> = ({ multi
         </span>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <span className="text-sm font-semibold text-foreground">Owner delegation</span>
+      <div className='flex flex-col gap-2'>
+        <span className='text-sm font-semibold text-foreground'>Owner delegation</span>
         {owners.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No owners on record for this wallet. Import it as an owner or run an owner operation to populate the
-            list.
+          <p className='text-sm text-muted-foreground'>
+            No owners on record for this wallet. Import it as an owner or run an owner operation to populate the list.
           </p>
         )}
         {owners.map((owner) => {
@@ -92,12 +93,15 @@ const ExtendedGovernancePanel: React.FC<ExtendedGovernancePanelProps> = ({ multi
           const isConnectedDelegate =
             hasDelegate && address != null && settings.delegate.toLowerCase() === address.toLowerCase()
           return (
-            <div key={owner} className="flex flex-wrap items-center justify-between gap-2 rounded border border-border p-3">
-              <div className="flex flex-col text-sm">
-                <span className="font-mono text-foreground">{owner}</span>
+            <div
+              key={owner}
+              className='flex flex-wrap items-center justify-between gap-2 rounded border border-border p-3'
+            >
+              <div className='flex flex-col text-sm'>
+                <span className='font-mono text-foreground'>{owner}</span>
                 {hasDelegate ? (
-                  <span className="text-muted-foreground">
-                    Delegated to <span className="font-mono">{settings.delegate}</span>
+                  <span className='text-muted-foreground'>
+                    Delegated to <span className='font-mono'>{settings.delegate}</span>
                     {' — '}
                     {takeoverOpen
                       ? 'takeover available now'
@@ -106,7 +110,7 @@ const ExtendedGovernancePanel: React.FC<ExtendedGovernancePanelProps> = ({ multi
                         : `takeover possible after ${new Date(Number(takeoverAt) * 1000).toLocaleString()}`}
                   </span>
                 ) : (
-                  <span className="text-muted-foreground">No delegatee set</span>
+                  <span className='text-muted-foreground'>No delegatee set</span>
                 )}
               </div>
               {isConnectedDelegate && takeoverOpen && (
@@ -117,16 +121,18 @@ const ExtendedGovernancePanel: React.FC<ExtendedGovernancePanelProps> = ({ multi
         })}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <span className="text-sm font-semibold text-foreground">Check a nonce</span>
-        <div className="flex flex-wrap items-center gap-2">
+      <div className='flex flex-col gap-2'>
+        <span className='text-sm font-semibold text-foreground'>Check a nonce</span>
+        <div className='flex flex-wrap items-center gap-2'>
           <TextInput
-            placeholder="Nonce number"
+            placeholder='Nonce number'
             value={nonceToCheck}
             onChange={(e) => setNonceToCheck(e.target.value)}
           />
           {/^\d+$/.test(nonceToCheck) && nonceUsed != null && (
-            <span className={`text-sm font-semibold ${nonceUsed ? 'text-destructive' : 'text-green-600 dark:text-green-400'}`}>
+            <span
+              className={`text-sm font-semibold ${nonceUsed ? 'text-destructive' : 'text-green-600 dark:text-green-400'}`}
+            >
               Nonce {nonceToCheck} is {nonceUsed ? 'used / burned' : 'available'}
             </span>
           )}

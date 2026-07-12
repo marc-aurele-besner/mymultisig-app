@@ -35,8 +35,7 @@ const BatchRequestForm: React.FC<BatchRequestFormProps> = ({ multiSigAddress, tx
   const removeStep = (index: number) => setSteps(steps.filter((_, i) => i !== index))
 
   const stepsValid =
-    steps.length > 0 &&
-    steps.every((s) => isAddress(s.to) && isUint(s.value) && isUint(s.txnGas) && isHex(s.data))
+    steps.length > 0 && steps.every((s) => isAddress(s.to) && isUint(s.value) && isUint(s.txnGas) && isHex(s.data))
   const ready = stepsValid && description !== ''
 
   let encoded: `0x${string}` | null = null
@@ -60,52 +59,48 @@ const BatchRequestForm: React.FC<BatchRequestFormProps> = ({ multiSigAddress, tx
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="px-2 text-sm text-muted-foreground">
-        All steps run inside one multisig transaction. A failed step is reported per-step and does not
-        revert the others.
+    <div className='flex flex-col gap-4'>
+      <p className='px-2 text-sm text-muted-foreground'>
+        All steps run inside one multisig transaction. A failed step is reported per-step and does not revert the
+        others.
       </p>
       {steps.map((step, i) => (
-        <div key={i} className="flex flex-col gap-2 rounded-lg border border-border p-3">
-          <div className="flex items-center justify-between">
-            <span className="font-semibold text-foreground">Step {i + 1}</span>
-            <Button variant="outline" size="icon" aria-label="Remove step" onClick={() => removeStep(i)}>
-              <DeleteIcon className="h-4 w-4" />
+        <div key={i} className='flex flex-col gap-2 rounded-lg border border-border p-3'>
+          <div className='flex items-center justify-between'>
+            <span className='font-semibold text-foreground'>Step {i + 1}</span>
+            <Button variant='outline' size='icon' aria-label='Remove step' onClick={() => removeStep(i)}>
+              <DeleteIcon className='h-4 w-4' />
             </Button>
           </div>
           <TextInput
-            placeholder="Target address (0x...)"
+            placeholder='Target address (0x...)'
             value={step.to}
             onChange={(e) => updateStep(i, 'to', e.target.value)}
           />
-          <div className="flex flex-wrap gap-2">
+          <div className='flex flex-wrap gap-2'>
             <TextInput
-              placeholder="Value (wei)"
+              placeholder='Value (wei)'
               value={step.value}
               onChange={(e) => updateStep(i, 'value', e.target.value)}
             />
             <TextInput
-              placeholder="Gas"
+              placeholder='Gas'
               value={step.txnGas}
               onChange={(e) => updateStep(i, 'txnGas', e.target.value)}
             />
           </div>
           <TextInput
-            placeholder="Calldata (0x for a plain transfer)"
+            placeholder='Calldata (0x for a plain transfer)'
             value={step.data}
             onChange={(e) => updateStep(i, 'data', e.target.value)}
           />
         </div>
       ))}
-      <Button variant="outline" className="gap-2 self-start" onClick={addStep}>
-        <AddIcon className="h-4 w-4" />
+      <Button variant='outline' className='gap-2 self-start' onClick={addStep}>
+        <AddIcon className='h-4 w-4' />
         Add step
       </Button>
-      <TextInput
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
+      <TextInput placeholder='Description' value={description} onChange={(e) => setDescription(e.target.value)} />
       {ready && encoded != null && (
         <SignRequest
           multiSigAddress={multiSigAddress}

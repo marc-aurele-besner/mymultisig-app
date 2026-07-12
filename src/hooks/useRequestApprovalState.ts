@@ -10,11 +10,10 @@ import { MultiSigTransactionRequest } from '../models/MultiSigs'
 // - an isValidSignature preflight for the collected calldata
 // On wallets older than 0.1.x these functions don't exist; every read fails and
 // the UI falls back to the pure off-chain signature flow.
-const useRequestApprovalState = (
-  multiSigAddress: `0x${string}`,
-  request: MultiSigTransactionRequest | null
-) => {
-  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
+const useRequestApprovalState = (multiSigAddress: `0x${string}`, request: MultiSigTransactionRequest | null) => {
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
   const base = {
     chainId: chain?.id,
     address: multiSigAddress,
@@ -37,7 +36,13 @@ const useRequestApprovalState = (
 
   const hashArgs =
     request != null && txnNonce != null
-      ? ([request.request.to, BigInt(request.request.value || '0'), request.request.data, BigInt(request.request.txnGas || '0'), txnNonce] as const)
+      ? ([
+          request.request.to,
+          BigInt(request.request.value || '0'),
+          request.request.data,
+          BigInt(request.request.txnGas || '0'),
+          txnNonce
+        ] as const)
       : undefined
 
   const { data: txHash, isError: hashUnsupported } = useReadContract({

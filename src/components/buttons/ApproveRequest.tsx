@@ -22,12 +22,7 @@ const ApproveRequest: React.FC<ApproveRequestProps> = ({ multiSigAddress, txHash
   }, [isFinal])
 
   return (
-    <Button
-      variant="outline"
-      className="mr-8 mt-4"
-      onClick={() => writeContract()}
-      disabled={isPending || isFinal}
-    >
+    <Button variant='outline' className='mr-8 mt-4' onClick={() => writeContract()} disabled={isPending || isFinal}>
       {isFinal ? 'Approved on-chain' : isPending ? 'Confirm in your wallet...' : 'Approve on-chain'}
     </Button>
   )

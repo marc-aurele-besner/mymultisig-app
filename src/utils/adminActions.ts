@@ -129,7 +129,9 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
     label: 'Minimum inactivity window',
     availableOn: 'extended',
     hint: 'Sets the minimum inactivity period (at least 7 days) before a delegatee can take over an owner seat.',
-    fields: [{ key: 'seconds', label: 'Inactivity window (seconds)', placeholder: 'e.g. 604800 (7 days)', kind: 'seconds' }],
+    fields: [
+      { key: 'seconds', label: 'Inactivity window (seconds)', placeholder: 'e.g. 604800 (7 days)', kind: 'seconds' }
+    ],
     describe: (v) => `Set minimum inactivity window to ${v.seconds} seconds`,
     buildArgs: (v) => [BigInt(v.seconds)],
     validate: (v) => {
@@ -145,7 +147,12 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
     hint: 'Names a delegatee who can take over this owner seat after the inactivity window elapses.',
     fields: [
       { key: 'owner', label: 'Owner', placeholder: 'Owner address (0x...)', kind: 'address' },
-      { key: 'seconds', label: 'Inactivity window (seconds)', placeholder: 'Must exceed the wallet minimum', kind: 'seconds' },
+      {
+        key: 'seconds',
+        label: 'Inactivity window (seconds)',
+        placeholder: 'Must exceed the wallet minimum',
+        kind: 'seconds'
+      },
       { key: 'delegatee', label: 'Delegatee', placeholder: 'Delegatee address (0x...)', kind: 'address' }
     ],
     describe: (v) => `Delegate seat of ${v.owner} to ${v.delegatee} after ${v.seconds}s of inactivity`,
@@ -189,9 +196,7 @@ export const applyAdminActionToMultiSig = (data: `0x${string}`, multiSig: MultiS
       }
     case 'replaceOwner':
       return {
-        owners: multiSig.owners.map((o) =>
-          o.toLowerCase() === String(args[0]).toLowerCase() ? String(args[1]) : o
-        )
+        owners: multiSig.owners.map((o) => (o.toLowerCase() === String(args[0]).toLowerCase() ? String(args[1]) : o))
       }
     case 'changeThreshold':
       return { threshold: Number(args[0]) }

@@ -19,7 +19,9 @@ export type DiscoveredMultiSig = {
 // (multiSigCreatorCount / multiSigByCreator), so they can be re-imported on a
 // fresh browser without knowing the addresses.
 const useFactoryDiscovery = (factoryAddress: `0x${string}`) => {
-  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
   const { address: account } = useAccount()
   const { multiSigs } = useMultiSigs()
 
