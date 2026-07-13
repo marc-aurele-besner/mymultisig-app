@@ -7,6 +7,8 @@ export type MultiSigFactory = {
   multiSigCount: number
 }
 
+export type WalletType = 'simple' | 'extended'
+
 export type MultiSig = {
   chainId: number
   chainName: string
@@ -20,12 +22,28 @@ export type MultiSig = {
   nonce: number
   owners: string[]
   isDeployed?: boolean
+  walletType?: WalletType
+  allowOnlyOwnerRequest?: boolean
 }
 
 export type MultiSigConstructorArgs = {
   contractName: string
   owners: string[]
   threshold: number
+  walletType?: WalletType
+  isOnlyOwnerRequest?: boolean
+}
+
+export type BatchStep = {
+  to: `0x${string}`
+  value: string
+  data: `0x${string}`
+  txnGas: string
+}
+
+export type BatchResult = {
+  success: boolean
+  returnData: string
 }
 
 export type MultiSigExecTransactionArgs = {
@@ -34,6 +52,12 @@ export type MultiSigExecTransactionArgs = {
   data: `0x${string}`
   txnGas: string
   signatures: string
+  // Extended wallets only: pin the request to an explicit nonce (6-arg overload)
+  txnNonce?: string
+  // Set when the request is a batch built through multiRequest; results are
+  // filled in from the MultiRequestExecuted event after execution.
+  batchSteps?: BatchStep[]
+  batchResults?: BatchResult[]
 }
 
 export type MultiSigTransactionRequest = {
@@ -63,7 +87,7 @@ export type MultiSigOnChainData = {
 }
 
 export type MultiSigRequestDB = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   ref: any
   data: MultiSigTransactionRequest
 }

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { type Chain } from 'viem/chains'
 import { useAccount, useChainId, useSwitchChain } from 'wagmi'
 import {
@@ -8,13 +8,12 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { CheckCircleIcon, ExternalLinkIcon, WarningIcon } from '../icons/ChakraIcons'
+import { CheckCircleIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
 import NetworkIcon from '../icons/NetworkIcon'
-import useDeployFactory from '../../hooks/useDeployFactory'
-import factoryArtifact from '../../constants/factoryArtifact.json'
+import useDeployFactory, { DEPLOY_STEP_LABELS } from '../../hooks/useDeployFactory'
+import deployArtifacts from '../../constants/factoryDeployArtifacts.json'
+import useMultiSigs from '../../states/multiSigs'
 import { type NetworkStatus } from '../../constants/networkStatus'
-
-const EVM_RUNTIME_CODE_LIMIT = 24576
 
 const statusExplanation: Record<Exclude<NetworkStatus, 'active'>, (name: string) => string> = {
   planned: (name) =>
@@ -34,17 +33,36 @@ const DeployFactoryModal: React.FC<DeployFactoryModalProps> = ({ chain, status, 
   const { isConnected } = useAccount()
   const currentChainId = useChainId()
   const { switchChain, isPending: isSwitching } = useSwitchChain()
-  const { deploy, reset, isPending, isDeployed, deployedAddress, hash } = useDeployFactory(chain.name)
+  const { deploy, reset, isPending, isRunning, step, totalSteps, isDeployed, deployedAddress, hash } =
+    useDeployFactory(chain.name)
+  const { addMultiSigFactory, multiSigFactory } = useMultiSigs()
 
   const onCorrectChain = currentChainId === chain.id
-  const oversized = factoryArtifact.deployedBytecodeSize > EVM_RUNTIME_CODE_LIMIT
   const explorerUrl = chain.blockExplorers?.default?.url
+
+  // Make the network usable locally right away; the GitHub issue below gets it
+  // shipped for everyone.
+  useEffect(() => {
+    if (isDeployed && deployedAddress != null) {
+      if (!multiSigFactory.some((f) => f.chainId === chain.id && f.address.toLowerCase() === deployedAddress.toLowerCase())) {
+        addMultiSigFactory({
+          chainId: chain.id,
+          chainName: chain.name,
+          address: deployedAddress,
+          name: 'MyMultiSigFactory',
+          version: '0.1.1',
+          multiSigCount: 0
+        })
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDeployed, deployedAddress])
 
   const registerIssueUrl =
     'https://github.com/marc-aurele-besner/mymultisig-contract/issues/new' +
     `?title=${encodeURIComponent(`Register MyMultiSigFactory deployment on ${chain.name}`)}` +
     `&body=${encodeURIComponent(
-      `Network: ${chain.name} (chainId ${chain.id})\nFactory address: ${deployedAddress ?? ''}\nDeployment tx: ${hash ?? ''}\n\nDeployed from mymultisig.app with the bytecode built from ${factoryArtifact.sourceCommit}.`
+      `Network: ${chain.name} (chainId ${chain.id})\nFactory address: ${deployedAddress ?? ''}\nLast deployment tx: ${hash ?? ''}\n\nDeployed from mymultisig.app (deployers + factory) with the bytecode built from ${deployArtifacts.sourceCommit}.`
     )}`
 
   const close = (nextOpen: boolean) => {
@@ -68,17 +86,6 @@ const DeployFactoryModal: React.FC<DeployFactoryModalProps> = ({ chain, status, 
           <p className="text-sm leading-relaxed text-muted-foreground">
             {statusExplanation[status](chain.name)}
           </p>
-
-          {oversized && (
-            <div className="flex items-start gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3">
-              <WarningIcon className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-              <p className="text-xs leading-relaxed text-destructive">
-                The current factory build is {factoryArtifact.deployedBytecodeSize.toLocaleString()} bytes —
-                over the {EVM_RUNTIME_CODE_LIMIT.toLocaleString()}-byte EVM contract size limit — so
-                deployment will be rejected on most networks until the contract is slimmed down.
-              </p>
-            </div>
-          )}
 
           {isDeployed && deployedAddress ? (
             <div className="flex flex-col items-start gap-3 rounded-lg border border-border bg-muted/30 p-4">
@@ -129,17 +136,17 @@ const DeployFactoryModal: React.FC<DeployFactoryModalProps> = ({ chain, status, 
                   {isSwitching ? 'Switching…' : `Switch to ${chain.name}`}
                 </Button>
               ) : (
-                <Button size="lg" disabled={isPending || !!hash} onClick={deploy} className="w-full">
-                  {isPending
-                    ? 'Confirm in your wallet…'
-                    : hash
-                      ? 'Waiting for confirmation…'
-                      : 'Deploy the factory'}
+                <Button size="lg" disabled={isRunning} onClick={deploy} className="w-full">
+                  {isRunning
+                    ? isPending
+                      ? `Confirm in your wallet… (${step}/${totalSteps})`
+                      : `${DEPLOY_STEP_LABELS[Math.max(step - 1, 0)]}… (${step}/${totalSteps})`
+                    : 'Deploy the factory'}
                 </Button>
               )}
               <p className="text-xs leading-relaxed text-muted-foreground">
-                Deploys the open-source MyMultiSigFactory ({factoryArtifact.compiler}) from your wallet.
-                Gas is the only cost.
+                Deploys the open-source MyMultiSig deployers and factory ({deployArtifacts.compiler}) from
+                your wallet in {totalSteps} transactions. Gas is the only cost.
               </p>
               {!onCorrectChain && (
                 <Button

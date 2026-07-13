@@ -41,5 +41,11 @@ CREATE TABLE IF NOT EXISTS multisig_wallets (
   nonce INTEGER NOT NULL DEFAULT 0,
   owners JSONB NOT NULL DEFAULT '[]',
   is_deployed BOOLEAN DEFAULT true,
+  wallet_type TEXT NOT NULL DEFAULT 'simple',
+  allow_only_owner_request BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Idempotent migration for databases created before wallet_type existed.
+ALTER TABLE multisig_wallets ADD COLUMN IF NOT EXISTS wallet_type TEXT NOT NULL DEFAULT 'simple';
+ALTER TABLE multisig_wallets ADD COLUMN IF NOT EXISTS allow_only_owner_request BOOLEAN NOT NULL DEFAULT false;

@@ -1,6 +1,6 @@
 // import { slackUtils } from 'slack-utility'
-import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
-import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
+import MyMultiSigFactory from '../../constants/abi/MyMultiSigFactory.json'
+import MyMultiSig from '../../constants/abi/MyMultiSig.json'
 
 // import actionsList from '../../slackActions'
 // import multiSigFactories from '../../constants/multiSigFactory'

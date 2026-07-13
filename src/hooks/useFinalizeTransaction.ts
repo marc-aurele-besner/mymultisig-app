@@ -1,6 +1,9 @@
 import React from 'react'
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { toast } from 'sonner'
 import { JsonFragment } from '@ethersproject/abi'
+
+import decodeContractError from '../utils/decodeContractError'
 
 const useFinalizeTransaction = <TFunctionName extends string>(
   config: {
@@ -20,6 +23,10 @@ const useFinalizeTransaction = <TFunctionName extends string>(
   React.useEffect(() => {
     if (error) {
       console.error('Error', error)
+      // Surface the wallet's decoded custom error (NotOwner, NonceAlreadyUsed,
+      // ...) next to the generic failure toast when one is available.
+      const reason = decodeContractError(error)
+      if (reason) toast.error(reason)
       notificationError()
     }
   }, [error, notificationError])

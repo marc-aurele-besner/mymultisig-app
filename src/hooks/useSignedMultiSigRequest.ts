@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useAccount, useChainId, useChains, useSignTypedData } from 'wagmi'
-import { BigNumber } from 'ethers'
 import { v4 } from 'uuid'
 
 import { useNotificationSuccess, useNotificationError } from './notifications'
@@ -66,17 +65,22 @@ const useSignedMultiSigRequest = (
   const isNumber = (value: string | number): boolean =>
     value != null && value !== '' && !isNaN(Number(value.toString()))
 
-  const valueCheck = BigNumber.isBigNumber(args.value) || isNumber(args.value) ? true : false
-  const gasCheck = BigNumber.isBigNumber(args.txnGas) || isNumber(args.txnGas) ? true : false
+  const valueCheck = isNumber(args.value)
+  const gasCheck = isNumber(args.txnGas)
 
   const valueAndGasCheck = valueCheck && gasCheck ? true : false
 
   const value = {
     to: args.to,
-    value: valueCheck ? (BigNumber.isBigNumber(args.value) ? args.value.toBigInt() : BigInt(args.value)) : BigInt(0),
+    value: valueCheck ? BigInt(args.value) : BigInt(0),
     data: args.data,
-    gas: gasCheck ? (BigNumber.isBigNumber(args.txnGas) ? args.txnGas.toBigInt() : BigInt(args.txnGas)) : BigInt(0),
-    nonce: BigNumber.from(multiSigDetails ? multiSigDetails[4] : 0).toBigInt()
+    gas: gasCheck ? BigInt(args.txnGas) : BigInt(0),
+    // Requests pinned to an explicit nonce (Extended wallets) must be signed
+    // against that nonce; everything else signs the wallet's current nonce.
+    nonce:
+      args.txnNonce != null && args.txnNonce !== ''
+        ? BigInt(args.txnNonce)
+        : BigInt(multiSigDetails?.[4] != null ? String(multiSigDetails[4]) : 0)
   } as const
 
   const { data, isError, isPending, isSuccess, error, signTypedData, reset } = useSignTypedData()

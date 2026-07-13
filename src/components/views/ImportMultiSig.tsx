@@ -4,6 +4,7 @@ import { useChainId, useChains } from 'wagmi'
 import BigCard from '../cards/BigCard'
 import ErrorCard from '../cards/ErrorCard'
 import ImportMultiSigForm from '../forms/ImportMultiSigForm'
+import DiscoverMultiSigs from '../forms/DiscoverMultiSigs'
 import multiSigFactories from '../../constants/multiSigFactory'
 
 const ImportMultiSig: React.FC = () => {
@@ -27,7 +28,11 @@ const ImportMultiSig: React.FC = () => {
             Import your existing MultiSig
           </h2>
           {multiSigFactory != null ? (
-            <ImportMultiSigForm factory={multiSigFactory} />
+            <div className="flex w-full flex-col gap-8">
+              <ImportMultiSigForm factory={multiSigFactory} />
+              <div className="w-full border-t border-border" />
+              <DiscoverMultiSigs factory={multiSigFactory} />
+            </div>
           ) : (
             <ErrorCard>No MultiSig Factory contract detected on this network</ErrorCard>
           )}

@@ -1,0 +1,31 @@
+[
+  {
+    "type": "function",
+    "name": "deployMyMultiSig",
+    "inputs": [
+      {
+        "name": "contractName_",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "owners_",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "threshold_",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "contractAddress",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  }
+]
