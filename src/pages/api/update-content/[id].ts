@@ -78,6 +78,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const dateExecuted = patch.dateExecuted ?? existing.date_executed ?? ''
         const isExecuted = patch.isExecuted ?? existing.is_executed ?? false
         const isSuccessful = patch.isSuccessful ?? patch.isSuccess ?? existing.is_successful ?? false
+        const isActive = patch.isActive ?? existing.is_active ?? true
+        const isCancelled = patch.isCancelled ?? existing.is_cancelled ?? false
 
         await sql`
           UPDATE multisig_requests SET
@@ -86,7 +88,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             owner_signers = ${JSON.stringify(ownerSigners)},
             date_executed = ${dateExecuted},
             is_executed = ${isExecuted},
-            is_successful = ${isSuccessful}
+            is_successful = ${isSuccessful},
+            is_active = ${isActive},
+            is_cancelled = ${isCancelled}
           WHERE id = ${id}
         `
         const updated = (await sql`

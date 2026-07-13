@@ -1,4 +1,4 @@
-import contractsAddressDeployed from 'mymultisig-contract/contractsAddressDeployed.json'
+import contractsAddressDeployed from './deployedFactories.json'
 
 import { MultiSigFactory } from '../models/MultiSigs'
 
@@ -8,7 +8,7 @@ const multiSigFactories: MultiSigFactory[] = contractsAddressDeployed.map((contr
     chainName: contract.network,
     address: `0x${contract.address.substring(2)}`,
     name: contract.name,
-    version: '0.0.4',
+    version: contract.factoryVersion,
     multiSigCount: 0
   }
 })

@@ -1,5 +1,5 @@
 import { useReadContract } from 'wagmi'
-import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
+import MyMultiSigFactory from '../constants/abi/MyMultiSigFactory.json'
 
 const useMultiSigCount = (
   argument: {

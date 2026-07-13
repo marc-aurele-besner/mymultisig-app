@@ -1,5 +1,5 @@
 import { useChainId, useChains, useReadContracts } from 'wagmi'
-import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
+import MyMultiSig from '../constants/abi/MyMultiSig.json'
 
 import { MultiSigOnChainData } from '../models/MultiSigs'
 
@@ -39,6 +39,9 @@ const useMultiSigDetails = (multiSigAddress: `0x${string}`, address: `0x${string
           args: [address]
         }
       ],
+      // Consumers index the raw values (data[0] = name, ...), so fail the whole
+      // batch rather than returning per-call {result, status} wrappers.
+      allowFailure: false,
       query: {
         enabled: true
       }

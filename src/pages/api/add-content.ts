@@ -60,6 +60,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     switch (data.action) {
       case 'addMultiSigRequest': {
         const doc = { id: uuid(), ...data.data }
+        // Extended wallets can restrict request creation to owners. Enforce it
+        // server-side when the wallet is on record with a usable owner list.
+        const wallets = (await sql`
+          SELECT owners, allow_only_owner_request FROM multisig_wallets
+          WHERE LOWER(address) = LOWER(${doc.multiSigAddress})
+          ORDER BY id DESC LIMIT 1
+        `) as { owners: string[]; allow_only_owner_request: boolean }[]
+        if (wallets.length > 0 && wallets[0].allow_only_owner_request) {
+          const owners = (wallets[0].owners ?? []).map((o: string) => o.toLowerCase())
+          if (owners.length > 0 && !owners.includes(String(doc.submitter).toLowerCase())) {
+            return res.status(403).json({ message: 'This wallet only accepts requests from its owners' })
+          }
+        }
         await sql`
           INSERT INTO multisig_requests (
             id, multi_sig_address, request, description, submitter,
@@ -90,7 +103,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         await sql`
           INSERT INTO multisig_wallets (
             chain_id, chain_name, factory_address, contract_id, name, version,
-            address, threshold, owner_count, nonce, owners, is_deployed
+            address, threshold, owner_count, nonce, owners, is_deployed,
+            wallet_type, allow_only_owner_request
           ) VALUES (
             ${doc.chainId},
             ${doc.chainName},
@@ -103,11 +117,43 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             ${doc.ownerCount},
             ${doc.nonce ?? 0},
             ${JSON.stringify(doc.owners ?? [])},
-            ${doc.isDeployed ?? true}
+            ${doc.isDeployed ?? true},
+            ${doc.walletType ?? 'simple'},
+            ${doc.allowOnlyOwnerRequest ?? false}
           )
         `
         console.log('Add content done')
         return res.status(200).json({ message: 'Add content done' })
+      }
+      case 'updateMultiSigWallet': {
+        // Mirrors client-side wallet patches (owner changes, threshold, policy)
+        // so the stored wallet survives a local store reset and the owner-only
+        // request guard sees current owners.
+        const doc = data.data
+        if (!doc.address || doc.chainId === undefined) {
+          return res.status(400).json({ message: 'Missing wallet address or chainId' })
+        }
+        const rows = (await sql`
+          SELECT * FROM multisig_wallets
+          WHERE LOWER(address) = LOWER(${doc.address}) AND chain_id = ${doc.chainId}
+          ORDER BY id DESC LIMIT 1
+        `) as Record<string, unknown>[]
+        if (rows.length === 0) {
+          return res.status(400).json({ message: 'Unknown wallet' })
+        }
+        const existing = rows[0]
+        await sql`
+          UPDATE multisig_wallets SET
+            threshold = ${doc.threshold ?? existing.threshold},
+            owner_count = ${doc.ownerCount ?? existing.owner_count},
+            nonce = ${doc.nonce ?? existing.nonce},
+            owners = ${JSON.stringify(doc.owners ?? existing.owners ?? [])},
+            wallet_type = ${doc.walletType ?? existing.wallet_type},
+            allow_only_owner_request = ${doc.allowOnlyOwnerRequest ?? existing.allow_only_owner_request}
+          WHERE id = ${existing.id}
+        `
+        console.log('Update wallet done')
+        return res.status(200).json({ message: 'Update wallet done' })
       }
       default:
         return res.status(400).json({ message: 'Invalid collection' })

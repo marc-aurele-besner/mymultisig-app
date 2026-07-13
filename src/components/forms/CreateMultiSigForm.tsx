@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
-import Link from 'next/link'
 import { useChainId, useChains } from 'wagmi'
-import { ExternalLinkIcon, CheckCircleIcon, AddIcon, InfoIcon } from '../icons/ChakraIcons'
+import { ExternalLinkIcon, CheckCircleIcon, AddIcon, InfoIcon, DeleteIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 
 import TextInput from '../inputs/TextInput'
 import ConfirmationCard from '../cards/ConfirmationCard'
 import NumberInput from '../inputs/NumberInput'
-import { MultiSigFactory, MultiSig, MultiSigConstructorArgs } from '../../models/MultiSigs'
+import { MultiSigFactory, MultiSigConstructorArgs, WalletType } from '../../models/MultiSigs'
 import useCreateMultiSig from '../../hooks/useCreateMultiSig'
 
 interface CreateMultiSigFormProps {
@@ -20,45 +20,36 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
   const chainId = useChainId()
   const chains = useChains()
   const chain = chains.find((c) => c.id === chainId)
-  const [multiSig, setMultiSig] = useState<MultiSig>({
-    chainId: chain != null ? chain.id : 1,
-    chainName: chain != null ? chain.name : 'Ethereum',
-    factoryAddress: factory.address,
-    id: factory.multiSigCount + 1,
-    name: '',
-    version: factory.version,
-    address: '0x',
-    threshold: 1,
-    ownerCount: 1,
-    nonce: 0,
-    owners: [owner01, '', ''],
-    isDeployed: false
-  })
+  const [name, setName] = useState('')
+  const [owners, setOwners] = useState<string[]>([owner01, ''])
+  const [threshold, setThreshold] = useState(1)
+  const [walletType, setWalletType] = useState<WalletType>('simple')
+  const [isOnlyOwnerRequest, setIsOnlyOwnerRequest] = useState(false)
+
+  const isAddress = (value: string) => /^0x[a-fA-F0-9]{40}$/.test(value)
+  const filledOwners = owners.filter((owner) => owner !== '')
+  const ownersValid = filledOwners.length > 0 && filledOwners.every(isAddress)
+  const thresholdValid = threshold >= 1 && threshold <= filledOwners.length
 
   const constructorArgs: MultiSigConstructorArgs = {
-    contractName: multiSig.name,
-    owners: multiSig.owners,
-    threshold: multiSig.threshold
+    contractName: name,
+    owners: filledOwners,
+    threshold,
+    walletType,
+    isOnlyOwnerRequest: walletType === 'extended' ? isOnlyOwnerRequest : undefined
   }
 
-  const { data, isPending, isSuccess, writeContract } = useCreateMultiSig(
-    constructorArgs,
-    factory.address
-  )
+  const { data, isPending, isSuccess, writeContract } = useCreateMultiSig(constructorArgs, factory.address)
 
-  const handleOwnersChange = (event: React.ChangeEvent<HTMLInputElement>, input: number) => {
-    setMultiSig({
-      ...multiSig,
-      owners: multiSig.owners.map((owner, index) =>
-        index === input ? event.target.value : owner
-      )
-    })
+  const handleOwnerChange = (value: string, input: number) => {
+    setOwners(owners.map((owner, index) => (index === input ? value : owner)))
   }
-  const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>, input: keyof MultiSig) => {
-    setMultiSig({ ...multiSig, [input]: event.target.value })
-  }
-  const handleAmountChange = (amount: number, input: keyof MultiSig) => {
-    setMultiSig({ ...multiSig, [input]: amount })
+  const addOwnerRow = () => setOwners([...owners, ''])
+  const removeOwnerRow = (input: number) => {
+    const next = owners.filter((_, index) => index !== input)
+    setOwners(next)
+    const filled = next.filter((owner) => owner !== '').length
+    if (threshold > filled && filled > 0) setThreshold(filled)
   }
 
   const handleCreateMultiSig = () => {
@@ -66,6 +57,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
   }
 
   const truncateAddress = (addr: string) => `${addr.slice(0, 10)}...${addr.slice(-8)}`
+  const explorerUrl = chain?.blockExplorers?.default?.url
 
   const stepBadge = (step: string) => (
     <span className="rounded bg-primary px-2 py-1 text-xs text-primary-foreground">{step}</span>
@@ -76,13 +68,33 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
       <div className="w-full">
         <div className="mb-3 flex items-center gap-2">
           {stepBadge('Step 1')}
-          <span className="text-lg font-semibold text-foreground">Name Your MultiSig</span>
+          <span className="text-lg font-semibold text-foreground">Choose Wallet Type</span>
         </div>
-        <TextInput
-          placeholder="Enter a name for your MultiSig wallet"
-          value={multiSig.name}
-          onChange={(e) => handleValueChange(e, 'name')}
-        />
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={walletType === 'simple' ? 'default' : 'outline'}
+            onClick={() => setWalletType('simple')}
+          >
+            Simple
+          </Button>
+          <Button
+            variant={walletType === 'extended' ? 'default' : 'outline'}
+            onClick={() => setWalletType('extended')}
+          >
+            Extended
+          </Button>
+        </div>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {walletType === 'simple'
+            ? 'Standard multisig: owners, threshold, and transaction execution.'
+            : 'Adds inactivity delegation, nonce invalidation, explicit-nonce execution, and an owner-only request policy.'}
+        </p>
+        {walletType === 'extended' && (
+          <div className="mt-3 flex items-center gap-3">
+            <Switch checked={isOnlyOwnerRequest} onCheckedChange={setIsOnlyOwnerRequest} />
+            <span className="text-sm text-foreground">Only owners can create requests</span>
+          </div>
+        )}
       </div>
 
       <div className="my-4 w-full border-t border-border" />
@@ -90,6 +102,20 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
       <div className="w-full">
         <div className="mb-3 flex items-center gap-2">
           {stepBadge('Step 2')}
+          <span className="text-lg font-semibold text-foreground">Name Your MultiSig</span>
+        </div>
+        <TextInput
+          placeholder="Enter a name for your MultiSig wallet"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </div>
+
+      <div className="my-4 w-full border-t border-border" />
+
+      <div className="w-full">
+        <div className="mb-3 flex items-center gap-2">
+          {stepBadge('Step 3')}
           <span className="text-lg font-semibold text-foreground">Add Owners</span>
         </div>
         <p className="mb-4 text-sm text-muted-foreground">
@@ -106,14 +132,27 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
               You
             </span>
           </div>
-          <TextInput
-            placeholder="Owner 2 address (0x...)"
-            onChange={(e) => handleOwnersChange(e, 1)}
-          />
-          <TextInput
-            placeholder="Owner 3 address (0x...)"
-            onChange={(e) => handleOwnersChange(e, 2)}
-          />
+          {owners.slice(1).map((owner, index) => (
+            <div key={`owner-${index + 1}`} className="flex w-full items-center gap-2">
+              <TextInput
+                placeholder={`Owner ${index + 2} address (0x...)`}
+                value={owner}
+                onChange={(e) => handleOwnerChange(e.target.value, index + 1)}
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="Remove owner"
+                onClick={() => removeOwnerRow(index + 1)}
+              >
+                <DeleteIcon className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <Button variant="outline" className="gap-2 self-start" onClick={addOwnerRow}>
+            <AddIcon className="h-4 w-4" />
+            Add owner
+          </Button>
         </div>
       </div>
 
@@ -121,22 +160,23 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
 
       <div className="w-full">
         <div className="mb-3 flex items-center gap-2">
-          {stepBadge('Step 3')}
+          {stepBadge('Step 4')}
           <span className="text-lg font-semibold text-foreground">Set Threshold</span>
         </div>
         <div className="mb-4 flex items-center gap-2">
           <InfoIcon className="h-3 w-3 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
-            Number of signatures required to execute a transaction
+            Number of signatures required to execute a transaction ({threshold} of {filledOwners.length}{' '}
+            owners)
           </span>
         </div>
         <NumberInput
           placeholder="Threshold"
-          value={String(multiSig.threshold)}
+          value={String(threshold)}
           min={1}
-          max={3}
+          max={Math.max(filledOwners.length, 1)}
           step={1}
-          onChange={(_, valueAsNumber) => handleAmountChange(valueAsNumber, 'threshold')}
+          onChange={(_, valueAsNumber) => setThreshold(valueAsNumber)}
           hasStepper
         />
       </div>
@@ -148,14 +188,24 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
           className="w-full gap-2"
           size="lg"
           onClick={handleCreateMultiSig}
-          disabled={writeContract == null || !multiSig.name}
+          disabled={writeContract == null || !name || !ownersValid || !thresholdValid}
         >
           <AddIcon className="h-4 w-4" />
-          Create MultiSig
+          Create {walletType === 'extended' ? 'Extended ' : ''}MultiSig
         </Button>
-        {!multiSig.name && (
+        {!name && (
           <p className="mt-2 text-center text-xs text-muted-foreground">
             Please enter a name for your MultiSig
+          </p>
+        )}
+        {name && !ownersValid && (
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            All owner fields must contain valid addresses
+          </p>
+        )}
+        {name && ownersValid && !thresholdValid && (
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            Threshold must be between 1 and the number of owners
           </p>
         )}
       </div>
@@ -191,12 +241,14 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
                 </div>
               </div>
             </div>
-            <Button variant="outline" size="default" className="gap-2" asChild>
-              <a href={`https://goerli.etherscan.io/tx/${data}`} target="_blank" rel="noopener noreferrer">
-                <ExternalLinkIcon className="h-4 w-4" />
-                View on Explorer
-              </a>
-            </Button>
+            {explorerUrl && (
+              <Button variant="outline" size="default" className="gap-2" asChild>
+                <a href={`${explorerUrl}/tx/${data}`} target="_blank" rel="noopener noreferrer">
+                  <ExternalLinkIcon className="h-4 w-4" />
+                  View on Explorer
+                </a>
+              </Button>
+            )}
             <ConfirmationCard
               hash={data}
               multiSigFactoryAddress={factory.address}

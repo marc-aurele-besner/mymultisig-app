@@ -1,4 +1,4 @@
-import { JsonRpcProvider, Wallet } from 'ethersV6'
+import { providers, Wallet } from 'ethers'
 
 import { TCollectionList } from '../models/Collections'
 import { TApiCallData } from '../types/signedData'
@@ -9,17 +9,17 @@ const signDataForApi = async (
   action: string,
   chainId: number,
   collection: TCollectionList,
-  // eslint-disable-next-line
+   
   data: any,
   details: string,
   signatureExpiry = 0
 ) => {
-  const uiProvider = new JsonRpcProvider(rpcUrl)
+  const uiProvider = new providers.JsonRpcProvider(rpcUrl)
   const uiSigner = new Wallet(pk, uiProvider)
 
   const currentBlockNumber = await uiProvider.getBlockNumber()
   if (signatureExpiry === 0) signatureExpiry = currentBlockNumber + 300 - 1
-  // eslint-disable-next-line
+   
   const message: any = [
     {
       name: 'blockchainList',
@@ -57,9 +57,9 @@ const signDataForApi = async (
       signatureExpiry
     }
   ]
-  // eslint-disable-next-line
-  const signature = await uiSigner.signTypedData(message[0], message[1], message[2])
-  // eslint-disable-next-line
+   
+  const signature = await uiSigner._signTypedData(message[0], message[1], message[2])
+   
   const fullData: TApiCallData = {
     collection,
     action,

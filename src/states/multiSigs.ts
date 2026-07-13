@@ -17,6 +17,7 @@ interface MultiSigState extends MultiSigDefaultState {
   addMultiSigFactory: (multiSigFactory: MultiSigFactory) => void
   setMultiSigs: (multiSigs: MultiSig[]) => void
   addMultiSig: (multiSig: MultiSig) => void
+  updateMultiSig: (address: `0x${string}`, patch: Partial<MultiSig>) => void
   clearAllMultiSig: () => void
   setSelectedMultiSigAddress: (selectedMultiSigAddress: `0x${string}` | null) => void
   setMultiSigTransactionRequests: (multiSigTransactionRequests: MultiSigTransactionRequest[]) => void
@@ -48,6 +49,12 @@ const useMultiSigs = create<MultiSigState>()(
       addMultiSig: (multiSig) =>
         set((state) => ({
           multiSigs: [...state.multiSigs, multiSig]
+        })),
+      updateMultiSig: (address, patch) =>
+        set((state) => ({
+          multiSigs: state.multiSigs.map((item) =>
+            item.address.toLowerCase() === address.toLowerCase() ? { ...item, ...patch } : item
+          )
         })),
       clearAllMultiSig: () => set(() => ({ ...initialState })),
       setSelectedMultiSigAddress: (selectedMultiSigAddress) => set(() => ({ selectedMultiSigAddress })),
