@@ -1,31 +1,50 @@
 import React from 'react'
 import { useConnect } from 'wagmi'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
+import { WalletCoinbase, WalletMetamask, WalletWalletConnect } from '@web3icons/react'
 import ErrorCard from '../cards/ErrorCard'
+import { WalletIcon } from '../icons/wallet'
 
-const walletConfig: Record<string, { name: string; icon: string; description: string }> = {
-  metaMask: {
+type WalletMark = React.FC<{ size: number }>
+
+// Branded SVG marks from @web3icons/react (same source as NetworkIcon); the
+// generic browser wallet uses the local stroke icon so it follows the theme.
+const BrowserWalletMark: WalletMark = ({ size }) => (
+  <WalletIcon width={size} height={size} className='text-foreground' />
+)
+
+const walletConfig: Record<string, { name: string; Mark: WalletMark; description: string }> = {
+  metaMaskSDK: {
     name: 'MetaMask',
-    icon: '/images/wallets/mm.png',
+    Mark: ({ size }) => <WalletMetamask size={size} variant='branded' />,
     description: 'Connect using MetaMask'
   },
-  coinbaseWallet: {
+  coinbaseWalletSDK: {
     name: 'Coinbase',
-    icon: '/images/wallets/cbw.png',
+    Mark: ({ size }) => <WalletCoinbase size={size} variant='branded' />,
     description: 'Connect using Coinbase Wallet'
   },
   walletConnect: {
     name: 'WalletConnect',
-    icon: '/images/wallets/wc.png',
+    Mark: ({ size }) => <WalletWalletConnect size={size} variant='branded' />,
     description: 'Scan with WalletConnect'
   },
   injected: {
     name: 'Browser Wallet',
-    icon: '/images/wallets/injected.png',
+    Mark: BrowserWalletMark,
     description: 'Use injected provider'
   }
 }
+
+// Connector ids vary across wagmi versions ('metaMask' vs 'metaMaskSDK'); fall
+// back to a name match before giving up on a branded mark.
+const configForConnector = (connector: { id: string; name: string }) =>
+  walletConfig[connector.id] ??
+  Object.values(walletConfig).find((c) => connector.name.toLowerCase().includes(c.name.toLowerCase())) ?? {
+    name: connector.name,
+    Mark: BrowserWalletMark,
+    description: `Connect with ${connector.name}`
+  }
 
 const ConnectWallet: React.FC = () => {
   const { connect, connectors, error, isPending } = useConnect()
@@ -48,12 +67,7 @@ const ConnectWallet: React.FC = () => {
 
         <div className="grid w-full max-w-[700px] grid-cols-2 gap-4 pt-4 md:grid-cols-4">
           {connectors.map((connector, index) => {
-            const config =
-              walletConfig[connector.id] ?? {
-                name: connector.name,
-                icon: '/images/wallets/injected.png',
-                description: `Connect with ${connector.name}`
-              }
+            const config = configForConnector(connector)
             const isConnecting = isPending && connectingId === connector.id
             const isDisabled = isPending && connectingId !== connector.id
 
@@ -79,14 +93,8 @@ const ConnectWallet: React.FC = () => {
                   />
                 )}
                 <div className="flex flex-col items-center gap-3">
-                  <div className="rounded-xl bg-muted p-3">
-                    <Image
-                      src={config.icon}
-                      alt={config.name}
-                      width={32}
-                      height={32}
-                      className="object-contain"
-                    />
+                  <div className="rounded-xl bg-muted p-3" aria-hidden>
+                    <config.Mark size={36} />
                   </div>
                   <span className="text-center text-sm font-semibold text-foreground">
                     {config.name}
