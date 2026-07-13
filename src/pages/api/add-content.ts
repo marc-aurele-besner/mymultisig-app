@@ -125,6 +125,36 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log('Add content done')
         return res.status(200).json({ message: 'Add content done' })
       }
+      case 'updateMultiSigWallet': {
+        // Mirrors client-side wallet patches (owner changes, threshold, policy)
+        // so the stored wallet survives a local store reset and the owner-only
+        // request guard sees current owners.
+        const doc = data.data
+        if (!doc.address || doc.chainId === undefined) {
+          return res.status(400).json({ message: 'Missing wallet address or chainId' })
+        }
+        const rows = (await sql`
+          SELECT * FROM multisig_wallets
+          WHERE LOWER(address) = LOWER(${doc.address}) AND chain_id = ${doc.chainId}
+          ORDER BY id DESC LIMIT 1
+        `) as Record<string, unknown>[]
+        if (rows.length === 0) {
+          return res.status(400).json({ message: 'Unknown wallet' })
+        }
+        const existing = rows[0]
+        await sql`
+          UPDATE multisig_wallets SET
+            threshold = ${doc.threshold ?? existing.threshold},
+            owner_count = ${doc.ownerCount ?? existing.owner_count},
+            nonce = ${doc.nonce ?? existing.nonce},
+            owners = ${JSON.stringify(doc.owners ?? existing.owners ?? [])},
+            wallet_type = ${doc.walletType ?? existing.wallet_type},
+            allow_only_owner_request = ${doc.allowOnlyOwnerRequest ?? existing.allow_only_owner_request}
+          WHERE id = ${existing.id}
+        `
+        console.log('Update wallet done')
+        return res.status(200).json({ message: 'Update wallet done' })
+      }
       default:
         return res.status(400).json({ message: 'Invalid collection' })
     }
