@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useDeployContract, usePublicClient, useWriteContract } from 'wagmi'
 import { toast } from 'sonner'
-import MyMultiSigFactoryAbi from '../constants/abi/MyMultiSigFactory.json'
-import MyMultiSigDeployerAbi from '../constants/abi/MyMultiSigDeployer.json'
-import MyMultiSigExtendedDeployerAbi from '../constants/abi/MyMultiSigExtendedDeployer.json'
+import MyMultiSigFactoryAbi from 'mymultisig-contract/abi/MyMultiSigFactory.json'
+import MyMultiSigDeployerAbi from 'mymultisig-contract/abi/MyMultiSigDeployer.json'
+import MyMultiSigExtendedDeployerAbi from 'mymultisig-contract/abi/MyMultiSigExtendedDeployer.json'
 
 import deployArtifacts from '../constants/factoryDeployArtifacts.json'
 

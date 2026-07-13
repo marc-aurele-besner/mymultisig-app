@@ -1,7 +1,7 @@
 import { useAccount, useChainId, useChains, useReadContract, useReadContracts } from 'wagmi'
-import MyMultiSig from '../constants/abi/MyMultiSig.json'
-import MyMultiSigExtended from '../constants/abi/MyMultiSigExtended.json'
-import MyMultiSigFactory from '../constants/abi/MyMultiSigFactory.json'
+import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
+import MyMultiSigExtended from 'mymultisig-contract/abi/MyMultiSigExtended.json'
+import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
 
 import { WalletType } from '../models/MultiSigs'
 import useMultiSigs from '../states/multiSigs'

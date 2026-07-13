@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAccount, useWatchContractEvent } from 'wagmi'
-import MyMultiSigFactory from '../constants/abi/MyMultiSigFactory.json'
+import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
 import { LegacyMyMultiSigCreatedEvent } from '../constants/abi/legacy'
 
 // Tracks the address of the multisig created by the connected account.

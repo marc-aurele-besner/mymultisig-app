@@ -1,5 +1,5 @@
 import { useChainId, useChains, useReadContract } from 'wagmi'
-import MyMultiSig from '../constants/abi/MyMultiSig.json'
+import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 
 import { MultiSigTransactionRequest } from '../models/MultiSigs'
 

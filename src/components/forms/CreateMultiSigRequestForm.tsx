@@ -1,6 +1,6 @@
 import React, { Fragment, useState } from 'react'
 import { useAccount } from 'wagmi'
-import MyMultiSig from '../../constants/abi/MyMultiSig.json'
+import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 import { JsonFragment } from '@ethersproject/abi'
 import { Button } from '@/components/ui/button'
 

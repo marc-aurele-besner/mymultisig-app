@@ -1,4 +1,4 @@
-import MyMultiSig from './abi/MyMultiSig.json'
+import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 import { v4 } from 'uuid'
 
 import { Contract } from '../models/Contracts'

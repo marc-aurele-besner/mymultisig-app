@@ -1,5 +1,5 @@
 import { encodeFunctionData, decodeFunctionData, Abi } from 'viem'
-import MyMultiSigExtended from '../constants/abi/MyMultiSigExtended.json'
+import MyMultiSigExtended from 'mymultisig-contract/abi/MyMultiSigExtended.json'
 
 import { MultiSig, WalletType } from '../models/MultiSigs'
 
