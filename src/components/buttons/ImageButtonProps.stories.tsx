@@ -10,14 +10,14 @@ const meta: Meta<typeof ImageButton> = {
 
 export default meta
 
-export const MetaMask: StoryFn<typeof ImageButton> = () => (
-  <ImageButton placeholder='MetaMask' imagePath='/images/wallets/mm.png' />
+export const Import: StoryFn<typeof ImageButton> = () => (
+  <ImageButton placeholder='Import' imagePath='/images/import.png' />
 )
 
-export const CoinBaseWallet: StoryFn<typeof ImageButton> = () => (
-  <ImageButton placeholder='CoinBaseWallet' imagePath='/images/wallets/cbw.png' />
+export const Create: StoryFn<typeof ImageButton> = () => (
+  <ImageButton placeholder='Create' imagePath='/images/create.png' />
 )
 
-export const WalletConnect: StoryFn<typeof ImageButton> = () => (
-  <ImageButton placeholder='WalletConnect' imagePath='/images/wallets/wc.png' />
+export const Integration: StoryFn<typeof ImageButton> = () => (
+  <ImageButton placeholder='Integration' imagePath='/images/integration.png' />
 )
