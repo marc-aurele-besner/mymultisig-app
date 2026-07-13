@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { CheckCircleIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
 import NetworkIcon from '../icons/NetworkIcon'
+import contractConstants from 'mymultisig-contract/constants'
 import useDeployFactory, { DEPLOY_STEP_LABELS } from '../../hooks/useDeployFactory'
 import deployArtifacts from '../../constants/factoryDeployArtifacts.json'
 import useMultiSigs from '../../states/multiSigs'
@@ -49,8 +50,8 @@ const DeployFactoryModal: React.FC<DeployFactoryModalProps> = ({ chain, status, 
           chainId: chain.id,
           chainName: chain.name,
           address: deployedAddress,
-          name: 'MyMultiSigFactory',
-          version: '0.1.1',
+          name: contractConstants.CONTRACT_FACTORY_NAME,
+          version: contractConstants.CONTRACT_FACTORY_VERSION,
           multiSigCount: 0
         })
       }

@@ -1,5 +1,6 @@
 import { useAccount, useChainId, useChains, useWatchContractEvent } from 'wagmi'
-import MyMultiSigFactory from '../constants/abi/MyMultiSigFactory.json'
+import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
+import contractConstants from 'mymultisig-contract/constants'
 import { LegacyMyMultiSigCreatedEvent } from '../constants/abi/legacy'
 
 import { MultiSigConstructorArgs, MultiSig } from '../models/MultiSigs'
@@ -82,7 +83,7 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
     address: multiSigFactoryAddress,
     abi: MyMultiSigFactory,
     eventName: 'MyMultiSigCreated',
-    onLogs: (logs) => logs.forEach((log: any) => persistCreatedMultiSig(log, '0.1.3'))
+    onLogs: (logs) => logs.forEach((log: any) => persistCreatedMultiSig(log, contractConstants.CONTRACT_VERSION))
   })
   useWatchContractEvent({
     address: multiSigFactoryAddress,
