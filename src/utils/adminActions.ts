@@ -172,34 +172,52 @@ export const adminActionsFor = (walletType: WalletType | undefined) =>
 export const encodeAdminAction = (action: AdminActionDefinition, values: Record<string, string>): `0x${string}` =>
   encodeFunctionData({ abi, functionName: action.id, args: action.buildArgs(values) })
 
-// Applies the effect of an executed self-call to the locally stored wallet so
-// owners/threshold stay in sync without an on-chain owner enumeration (the
-// contract stores owners as a mapping and emits no admin events).
-export const applyAdminActionToMultiSig = (data: `0x${string}`, multiSig: MultiSig): Partial<MultiSig> | null => {
-  let decoded: { functionName: string; args?: readonly unknown[] }
+// Decodes a self-call payload against the Extended ABI (a superset of the
+// simple wallet's functions). Returns null for data that is not an admin call.
+export const decodeSelfCall = (data: `0x${string}`): { functionName: string; args?: readonly unknown[] } | null => {
   try {
-    decoded = decodeFunctionData({ abi, data })
+    return decodeFunctionData({ abi, data })
   } catch {
     return null
   }
+}
+
+// Applies the effect of an executed self-call to the locally stored wallet so
+// owners/threshold stay in sync immediately (the contract stores owners as a
+// mapping, so there is no getOwners() to re-read). The OwnerAdded/OwnerRemoved/
+// ThresholdChanged event watchers in useAdminEventSync cover the same ground
+// for changes made by other clients; every patch here is idempotent so the two
+// paths cannot double-apply.
+export const applyAdminActionToMultiSig = (data: `0x${string}`, multiSig: MultiSig): Partial<MultiSig> | null => {
+  const decoded = decodeSelfCall(data)
+  if (!decoded) return null
   const args = (decoded.args ?? []) as string[]
+  const hasOwner = (owner: string) => multiSig.owners.some((o) => o.toLowerCase() === owner.toLowerCase())
   switch (decoded.functionName) {
     case 'addOwner':
-      return {
-        owners: [...multiSig.owners, String(args[0])],
-        ownerCount: multiSig.ownerCount + 1
-      }
+      return hasOwner(String(args[0]))
+        ? null
+        : {
+            owners: [...multiSig.owners, String(args[0])],
+            ownerCount: multiSig.ownerCount + 1
+          }
     case 'removeOwner':
-      return {
-        owners: multiSig.owners.filter((o) => o.toLowerCase() !== String(args[0]).toLowerCase()),
-        ownerCount: Math.max(multiSig.ownerCount - 1, 0)
-      }
+      return hasOwner(String(args[0]))
+        ? {
+            owners: multiSig.owners.filter((o) => o.toLowerCase() !== String(args[0]).toLowerCase()),
+            ownerCount: Math.max(multiSig.ownerCount - 1, 0)
+          }
+        : null
     case 'replaceOwner':
-      return {
-        owners: multiSig.owners.map((o) => (o.toLowerCase() === String(args[0]).toLowerCase() ? String(args[1]) : o))
-      }
+      return hasOwner(String(args[0]))
+        ? {
+            owners: multiSig.owners.map((o) =>
+              o.toLowerCase() === String(args[0]).toLowerCase() ? String(args[1]) : o
+            )
+          }
+        : null
     case 'changeThreshold':
-      return { threshold: Number(args[0]) }
+      return multiSig.threshold === Number(args[0]) ? null : { threshold: Number(args[0]) }
     case 'setOnlyOwnerRequest':
       return { allowOnlyOwnerRequest: Boolean(args[0]) }
     default:

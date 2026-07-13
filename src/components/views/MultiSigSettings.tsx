@@ -8,28 +8,27 @@ import AdminActionForm from '../forms/AdminActionForm'
 import ExtendedGovernancePanel from '../multiSigDetails/ExtendedGovernancePanel'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
+import useAdminEventSync from '../../hooks/useAdminEventSync'
 import useMultiSigs from '../../states/multiSigs'
+import { EOL_NONCE_THRESHOLD } from '../../constants/limits'
 
 interface MultiSigSettingsProps {
   multiSigAddress: `0x${string}`
 }
-
-// MyMultiSig nonces are uint96; the contract starts emitting ContractEndOfLife
-// within the last 1000 nonces.
-const EOL_THRESHOLD = 2n ** 96n - 1000n
 
 const MultiSigSettings: React.FC<MultiSigSettingsProps> = ({ multiSigAddress }) => {
   const { address } = useAccount()
   const { multiSigDetails, data } = useMultiSigDetails(multiSigAddress, address ?? '0x')
   const { walletType } = useWalletType(multiSigAddress)
   const { multiSigs } = useMultiSigs()
+  useAdminEventSync(multiSigAddress)
   const stored = multiSigs.find((m) => m.address.toLowerCase() === multiSigAddress.toLowerCase())
   const owners = stored?.owners ?? []
 
   if (multiSigDetails == null) return null
 
   const nonceRaw = data != null ? BigInt(data[4] as bigint) : 0n
-  const nearEndOfLife = nonceRaw >= EOL_THRESHOLD
+  const nearEndOfLife = nonceRaw >= EOL_NONCE_THRESHOLD
 
   return (
     <div className='flex justify-center'>
@@ -87,7 +86,8 @@ const MultiSigSettings: React.FC<MultiSigSettingsProps> = ({ multiSigAddress }) 
             ) : (
               <p className='text-sm text-muted-foreground'>
                 The contract stores owners as a mapping, so the app tracks the list locally: it is seeded at
-                create/import time and updated when owner operations execute. {multiSigDetails.ownerCount} owner
+                create/import time and kept in sync from the wallet&apos;s OwnerAdded / OwnerRemoved events as owner
+                operations execute. {multiSigDetails.ownerCount} owner
                 {multiSigDetails.ownerCount === 1 ? ' is' : 's are'} registered on-chain.
               </p>
             )}

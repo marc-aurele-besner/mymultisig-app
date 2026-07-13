@@ -4,11 +4,12 @@ import MyMultiSigExtended from '../constants/abi/MyMultiSigExtended.json'
 import { LegacyTransactionFailedEvent } from '../constants/abi/legacy'
 
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../models/MultiSigs'
-import { useNotification } from './notifications'
+import { useNotification, useNotificationWarning } from './notifications'
 import useFinalizeTransaction from './useFinalizeTransaction'
 import useMultiSigs from '../states/multiSigs'
 import { signData, updateContent } from '../utils'
-import { applyAdminActionToMultiSig } from '../utils/adminActions'
+import { applyAdminActionToMultiSig, decodeSelfCall } from '../utils/adminActions'
+import persistMultiSigWalletPatch from '../utils/persistWallet'
 
 const useExecTransaction = (
   args: MultiSigExecTransactionArgs,
@@ -18,7 +19,8 @@ const useExecTransaction = (
 ) => {
   const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const { notificationInfo, notificationError, notificationSuccess } = useNotification()
-  const { updateMultiSigTransactionRequest, updateMultiSig, multiSigs } = useMultiSigs()
+  const notificationEndOfLife = useNotificationWarning('Wallet approaching end of life')
+  const { updateMultiSigTransactionRequest, updateMultiSig, multiSigs, multiSigTransactionRequests } = useMultiSigs()
   // Requests built against a pinned nonce (Extended wallets only) go through the
   // 6-arg overload; everything else uses the base 5-arg overload bound to the
   // wallet's current nonce.
@@ -64,15 +66,54 @@ const useExecTransaction = (
       })
     })
     // Owner/threshold operations are self-calls; once executed, mirror their
-    // effect onto the locally stored wallet (the contract has no getOwners()
-    // and emits no admin events to sync from).
+    // effect onto the locally stored wallet and into Neon (there is no
+    // getOwners() to re-read; useAdminEventSync covers changes made by other
+    // clients via the OwnerAdded/OwnerRemoved/ThresholdChanged events).
     if (isSuccessful && args.to.toLowerCase() === multiSigAddress.toLowerCase()) {
       const stored = multiSigs.find((m) => m.address.toLowerCase() === multiSigAddress.toLowerCase())
       if (stored) {
         const walletPatch = applyAdminActionToMultiSig(args.data, stored)
-        if (walletPatch) updateMultiSig(multiSigAddress, walletPatch)
+        if (walletPatch) {
+          updateMultiSig(multiSigAddress, walletPatch)
+          persistMultiSigWalletPatch(chain.id, multiSigAddress, walletPatch)
+        }
       }
+      // Nonce-invalidating admin actions kill requests bound to the dropped
+      // nonce; mark them cancelled instead of leaving them to fail preflight.
+      const decoded = decodeSelfCall(args.data)
+      if (decoded?.functionName === 'incrementNonce')
+        cancelStaleRequests((r) => r.request.txnNonce == null || r.request.txnNonce === '')
+      else if (decoded?.functionName === 'markNonceAsUsed')
+        cancelStaleRequests((r) => r.request.txnNonce === String(decoded.args?.[0] ?? ''))
     }
+  }
+
+  const cancelStaleRequests = (isBoundToDroppedNonce: (r: MultiSigTransactionRequest) => boolean) => {
+    if (!chain) return
+    multiSigTransactionRequests
+      .filter(
+        (r) =>
+          r.multiSigAddress.toLowerCase() === multiSigAddress.toLowerCase() &&
+          r.id !== existingRequest.id &&
+          !r.isExecuted &&
+          !r.isCancelled &&
+          isBoundToDroppedNonce(r)
+      )
+      .forEach((r) => {
+        const cancelPatch = { isActive: false, isCancelled: true }
+        signData({
+          action: 'updateMultiSigRequest',
+          chainId: chain.id,
+          collection: 'multisig-requests',
+          data: cancelPatch,
+          details: 'Update MultiSig Request',
+          signatureExpiry: 0
+        }).then((dataSigned) => {
+          updateContent(dataSigned.message, r.id).then(() => {
+            updateMultiSigTransactionRequest(r.id, { ...r, ...cancelPatch })
+          })
+        })
+      })
   }
 
   useWatchContractEvent({
@@ -83,6 +124,10 @@ const useExecTransaction = (
       logs.forEach((log: any) => {
         const eventArgs = log.args || (log as any)
         console.log('TransactionExecuted', eventArgs.sender, eventArgs.to, eventArgs.value, eventArgs.txnNonce)
+        // Batch executions also emit MultiRequestExecuted, whose handler owns
+        // the status write (it carries the per-step results); writing here too
+        // could race it and drop batchResults.
+        if (existingRequest.request.batchSteps && existingRequest.request.batchSteps.length > 0) return
         markExecuted(true)
       })
     }
@@ -140,6 +185,9 @@ const useExecTransaction = (
       logs.forEach((log: any) => {
         const eventArgs = log.args || (log as any)
         console.log('ContractEndOfLife', eventArgs.txNonceLefts)
+        notificationEndOfLife(
+          `Only ${String(eventArgs.txNonceLefts ?? 'a few')} transaction nonces remain on this wallet. Plan a migration to a new wallet.`
+        )
       })
     }
   })
