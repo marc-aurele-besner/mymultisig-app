@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { providers, Wallet } from 'ethers'
 
 import { getSql } from '../../lib/db/neon'
-import { rowToMultiSigRequestDB } from '../../lib/db/mappers'
+import { rowToMultiSigRequest } from '../../lib/db/mappers'
 import { isVerifiedAs } from '../../lib/auth/siwe'
 import signData from '../../utils/signData'
 
@@ -65,7 +65,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           WHERE multi_sig_address = ${data.data.multiSigAddress}
             AND is_active = true
         `) as Record<string, unknown>[]
-        const content = rows.map(rowToMultiSigRequestDB)
+        const content = rows.map(rowToMultiSigRequest)
         return res.status(200).json({
           message: 'Data retrieved',
           content
@@ -79,7 +79,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (arr.length === 0) {
           return res.status(404).json({ message: 'Data not found' })
         }
-        const content = [rowToMultiSigRequestDB(arr[0])]
+        const content = [rowToMultiSigRequest(arr[0])]
         return res.status(200).json({
           message: 'Data retrieved',
           content

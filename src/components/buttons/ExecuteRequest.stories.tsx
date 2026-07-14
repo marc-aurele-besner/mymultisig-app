@@ -35,7 +35,7 @@ export const Basic: StoryFn<typeof ExecuteRequest> = () => (
         isConfirmed: false,
         isSuccessful: false,
       }}
-      existingRequestRef={'REQ-123'}
+      existingRequestId={'REQ-123'}
     />
   </Web3Provider>
 )

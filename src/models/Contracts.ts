@@ -15,9 +15,3 @@ export type Contract = {
   isChainSpecific: boolean
   isWalletSpecific: boolean
 }
-
-export type ContractDB = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ref: any
-  data: Contract
-}

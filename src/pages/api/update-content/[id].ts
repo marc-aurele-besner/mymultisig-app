@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { providers, Wallet } from 'ethers'
 
 import { getSql } from '../../../lib/db/neon'
-import { rowToMultiSigRequestDB } from '../../../lib/db/mappers'
+import { rowToMultiSigRequest } from '../../../lib/db/mappers'
 import { getVerifiedAddress } from '../../../lib/auth/siwe'
 import signData from '../../../utils/signData'
 
@@ -105,7 +105,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         `) as Record<string, unknown>[]
         return res.status(200).json({
           message: 'Data updated',
-          content: rowToMultiSigRequestDB(updated[0]).data
+          content: rowToMultiSigRequest(updated[0])
         })
       }
       default:

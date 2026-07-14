@@ -8,14 +8,14 @@ interface ExecuteRequestProps {
   multiSigAddress: `0x${string}`
   args: MultiSigExecTransactionArgs
   requestDetails: MultiSigTransactionRequest
-  existingRequestRef: string
+  existingRequestId: string
 }
 
 const ExecuteRequest: React.FC<ExecuteRequestProps> = ({
   multiSigAddress,
   args,
   requestDetails,
-  existingRequestRef
+  existingRequestId
 }) => {
   const {
     preparationError,
@@ -29,7 +29,7 @@ const ExecuteRequest: React.FC<ExecuteRequestProps> = ({
     args,
     multiSigAddress,
     requestDetails,
-    existingRequestRef
+    existingRequestId
   )
 
   const errorReason =

@@ -25,12 +25,12 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
   const [isReset, setIsReset] = useState(false)
   const requestDetails = useMultiSigRequestDetails(multiSigRequestId)
   const { multiSigDetails } = useMultiSigDetails(
-    requestDetails != null ? requestDetails.data.multiSigAddress : '0x',
+    requestDetails != null ? requestDetails.multiSigAddress : '0x',
     address
   )
   const { supportsHybrid, txHash, approvedOwners, isValid, refetchApprovals } = useRequestApprovalState(
-    requestDetails != null ? requestDetails.data.multiSigAddress : '0x',
-    requestDetails != null ? requestDetails.data : null
+    requestDetails != null ? requestDetails.multiSigAddress : '0x',
+    requestDetails
   )
 
   const deleted = useDeleteMultiSigRequest(multiSigRequestId, multiSigRequestId, isDeleted)
@@ -51,7 +51,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
   // Off-chain ECDSA signers and on-chain approvers both count toward the
   // threshold (the contract counts approvals first, then signatures, and
   // refuses double votes).
-  const signerSet = new Set(requestDetails.data.ownerSigners.map((s) => s.toLowerCase()))
+  const signerSet = new Set(requestDetails.ownerSigners.map((s) => s.toLowerCase()))
   const approverSet = new Set(approvedOwners.map((s) => s.toLowerCase()))
   const combined = new Set([...signerSet, ...approverSet])
   const hasSigned = signerSet.has(address.toLowerCase())
@@ -60,50 +60,50 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
   // isValidSignature preflight: only block execution on an explicit false from
   // a wallet that supports it (older wallets can't answer).
   const preflightBlocked = supportsHybrid && thresholdReached && isValid === false
-  const batchSteps = requestDetails.data.request.batchSteps
-  const batchResults = requestDetails.data.request.batchResults
+  const batchSteps = requestDetails.request.batchSteps
+  const batchResults = requestDetails.request.batchResults
 
   return (
     <Fragment>
       <div className="flex gap-2 px-6">
         <Button asChild>
-          <Link href={`/multisig/${requestDetails.data.multiSigAddress}/buildRequest`}>
+          <Link href={`/multisig/${requestDetails.multiSigAddress}/buildRequest`}>
             Build a request
           </Link>
         </Button>
         <Button asChild variant="outline">
-          <Link href={`/multisig/${requestDetails.data.multiSigAddress}/requests`}>
+          <Link href={`/multisig/${requestDetails.multiSigAddress}/requests`}>
             Consult requests
           </Link>
         </Button>
       </div>
       <div className="mt-4 rounded-lg border border-border p-4">
-        {row('Description', requestDetails.data.description)}
+        {row('Description', requestDetails.description)}
         {row(
           'Submitted date',
-          new Date(Number(requestDetails.data.dateSubmitted)).toLocaleDateString()
+          new Date(Number(requestDetails.dateSubmitted)).toLocaleDateString()
         )}
-        {row('Target', requestDetails.data.request.to)}
+        {row('Target', requestDetails.request.to)}
         <div className="flex flex-wrap items-start gap-2">
           <span className="px-2 pt-2 text-xl font-bold text-foreground">Data</span>
           <Textarea
             readOnly
-            defaultValue={requestDetails.data.request.data}
+            defaultValue={requestDetails.request.data}
             className="min-h-[80px] flex-1"
           />
         </div>
-        {row('Value', requestDetails.data.request.value)}
-        {row('Tx. Gas', requestDetails.data.request.txnGas)}
-        {requestDetails.data.request.txnNonce != null &&
-          requestDetails.data.request.txnNonce !== '' &&
-          row('Pinned nonce', requestDetails.data.request.txnNonce)}
+        {row('Value', requestDetails.request.value)}
+        {row('Tx. Gas', requestDetails.request.txnGas)}
+        {requestDetails.request.txnNonce != null &&
+          requestDetails.request.txnNonce !== '' &&
+          row('Pinned nonce', requestDetails.request.txnNonce)}
         {row(
           'Approvals / Threshold',
           supportsHybrid
             ? `${combined.size} / ${multiSigDetails.threshold} (${signerSet.size} signature${
                 signerSet.size === 1 ? '' : 's'
               }, ${approverSet.size} on-chain)`
-            : `${requestDetails.data.signatures.length} / ${multiSigDetails.threshold}`
+            : `${requestDetails.signatures.length} / ${multiSigDetails.threshold}`
         )}
 
         {batchSteps != null && batchSteps.length > 0 && (
@@ -134,11 +134,11 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
           </div>
         )}
 
-        {requestDetails.data.isExecuted ? (
+        {requestDetails.isExecuted ? (
           <div className="px-2 pt-2 text-xl font-bold text-green-600 dark:text-green-400">
             This request has been executed
-            {requestDetails.data.dateExecuted != null &&
-              ` on the ${new Date(Number(requestDetails.data.dateExecuted)).toLocaleDateString()}`}
+            {requestDetails.dateExecuted != null &&
+              ` on the ${new Date(Number(requestDetails.dateExecuted)).toLocaleDateString()}`}
           </div>
         ) : (
           <Fragment>
@@ -154,10 +154,10 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
                   </span>
                 ) : (
                   <ExecuteRequest
-                    multiSigAddress={requestDetails.data.multiSigAddress}
-                    args={requestDetails.data.request}
-                    requestDetails={requestDetails.data}
-                    existingRequestRef={requestDetails.data.id}
+                    multiSigAddress={requestDetails.multiSigAddress}
+                    args={requestDetails.request}
+                    requestDetails={requestDetails}
+                    existingRequestId={requestDetails.id}
                   />
                 )}
               </div>
@@ -174,11 +174,11 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
                 </span>
               ) : (
                 <SignRequest
-                  multiSigAddress={requestDetails.data.multiSigAddress}
-                  args={requestDetails.data.request}
-                  description={requestDetails.data.description}
-                  requestDetails={requestDetails.data}
-                  existingRequestRef={requestDetails.data.id}
+                  multiSigAddress={requestDetails.multiSigAddress}
+                  args={requestDetails.request}
+                  description={requestDetails.description}
+                  requestDetails={requestDetails}
+                  existingRequestId={requestDetails.id}
                 />
               )}
             </div>
@@ -188,7 +188,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
                   Or approve on-chain
                 </span>
                 <ApproveRequest
-                  multiSigAddress={requestDetails.data.multiSigAddress}
+                  multiSigAddress={requestDetails.multiSigAddress}
                   txHash={txHash}
                   onApproved={() => refetchApprovals()}
                 />
@@ -216,7 +216,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
       <div className="flex justify-center">
         <Button asChild className="m-4">
           <Link
-            href={`/multisig/${requestDetails.data.multiSigAddress}/requests`}
+            href={`/multisig/${requestDetails.multiSigAddress}/requests`}
             onClick={() => setSelectedMultiSigTransactionRequest(null)}
           >
             View a different request

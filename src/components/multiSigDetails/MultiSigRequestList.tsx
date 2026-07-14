@@ -24,15 +24,15 @@ const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({
       {requests.length > 0 ? (
         requests.map((request) => (
           <div
-            key={`Request-${request.data.id}`}
+            key={`Request-${request.id}`}
             className="flex flex-wrap items-center gap-2"
           >
             <span className="px-2 pt-2 text-xl font-bold text-foreground">
-              {request.data.description}
+              {request.description}
             </span>
             <Link
-              href={`/request/${request.data.id}`}
-              onClick={() => setSelectedMultiSigTransactionRequest(request.data.id)}
+              href={`/request/${request.id}`}
+              onClick={() => setSelectedMultiSigTransactionRequest(request.id)}
               className="ml-auto mr-8"
             >
               <Button>Select</Button>

@@ -7,14 +7,7 @@ import { signData, getContent } from '../utils'
 const useMultiSigRequests = (multiSigAddress: `0x${string}`) => {
   const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const [dataIsLoading, setDataIsLoading] = useState(false)
-  const [request, setRequest] = useState<
-    | {
-         
-        ref: any
-        data: MultiSigTransactionRequest
-      }[]
-    | null
-  >(null)
+  const [request, setRequest] = useState<MultiSigTransactionRequest[] | null>(null)
 
   useEffect(() => {
     if (chain && !dataIsLoading) {
