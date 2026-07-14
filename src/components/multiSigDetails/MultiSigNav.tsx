@@ -12,6 +12,7 @@ const TABS = [
   { slug: 'buildRequest', label: 'Build a request' },
   { slug: 'requests', label: 'Requests' },
   { slug: 'activity', label: 'Activity' },
+  { slug: 'addressBook', label: 'Address book' },
   { slug: 'settings', label: 'Owners & settings' }
 ] as const
 

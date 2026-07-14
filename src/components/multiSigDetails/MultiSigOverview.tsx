@@ -10,6 +10,7 @@ import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useMultiSigActivity from '../../hooks/useMultiSigActivity'
 import useAdminEventSync from '../../hooks/useAdminEventSync'
 import useMultiSigs from '../../states/multiSigs'
+import { useAddressLabels } from '../../states/addressBook'
 import { EOL_NONCE_THRESHOLD } from '../../constants/limits'
 
 interface MultiSigOverviewProps {
@@ -42,6 +43,7 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
     targetEntries: RECENT_ACTIVITY_COUNT
   })
   const { multiSigs } = useMultiSigs()
+  const { labelFor } = useAddressLabels(chain?.id)
   useAdminEventSync(multiSigAddress)
 
   const stored = multiSigs.find((m) => m.address.toLowerCase() === multiSigAddress.toLowerCase())
@@ -120,6 +122,11 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
             owners.map((owner) => (
               <span key={owner} className='break-all font-mono text-xs text-foreground'>
                 {owner}
+                {labelFor(owner) != null && (
+                  <span className='ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground'>
+                    {labelFor(owner)}
+                  </span>
+                )}
                 {address != null && owner.toLowerCase() === address.toLowerCase() && (
                   <span className='ml-2 rounded bg-primary px-1.5 py-0.5 text-[10px] text-primary-foreground'>You</span>
                 )}
@@ -151,6 +158,7 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
                 entry={entry}
                 multiSigAddress={multiSigAddress}
                 explorerUrl={explorerUrl}
+                labelFor={labelFor}
               />
             ))
           ) : activityLoading ? (

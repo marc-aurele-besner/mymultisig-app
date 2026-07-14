@@ -1,5 +1,5 @@
 import React, { Fragment, useState } from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useChainId } from 'wagmi'
 import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 import { JsonFragment } from '@ethersproject/abi'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import SignRequest from '../buttons/SignRequest'
 import NewContract from '../modals/NewContract'
 import BatchRequestForm from './BatchRequestForm'
 import useContracts from '../../states/contracts'
+import useAddressBook, { useAddressLabels } from '../../states/addressBook'
 import useCallData from '../../hooks/useCallData'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
@@ -41,6 +42,10 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
   const [selectedFunction, setSelectedFunction] = useState<string>('')
   const [pinnedNonce, setPinnedNonce] = useState<string>('')
   const contracts = useContracts((state) => state.contracts)
+  const chainId = useChainId()
+  const { entries: bookEntries, labelFor } = useAddressLabels(chainId)
+  const { addEntry } = useAddressBook()
+  const [receiverLabel, setReceiverLabel] = useState('')
   const callData = useCallData(abi, selectedFunction, request.to, request.arguments)
   const { address } = useAccount()
   const { walletType, allowOnlyOwnerRequest } = useWalletType(multiSigAddress)
@@ -179,15 +184,55 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
                     )}
                 </Fragment>
               ) : (
-                field(
-                  'Receiver',
+                <div className='flex w-full flex-col gap-1.5'>
+                  <span className='text-sm font-semibold text-foreground'>Receiver</span>
                   <TextInput
                     className='md:w-full'
-                    placeholder='Receiver address (0x...)'
+                    placeholder='Receiver address (0x...) — saved addresses will be suggested'
                     value={request.to}
+                    list='address-book-receivers'
                     onChange={(e) => handleChangeValue(e.target.value, 'to')}
                   />
-                )
+                  <datalist id='address-book-receivers'>
+                    {bookEntries.map((entry) => (
+                      <option key={entry.id} value={entry.address}>
+                        {entry.label}
+                      </option>
+                    ))}
+                  </datalist>
+                  {/^0x[a-fA-F0-9]{40}$/.test(request.to) &&
+                    (labelFor(request.to) != null ? (
+                      <span className='text-xs text-muted-foreground'>
+                        Known as <span className='font-semibold text-foreground'>{labelFor(request.to)}</span> in your
+                        address book.
+                      </span>
+                    ) : (
+                      <div className='flex flex-wrap items-center gap-2 pt-1'>
+                        <TextInput
+                          className='h-auto w-56 py-1.5 md:w-56'
+                          placeholder='Label this address (optional)'
+                          value={receiverLabel}
+                          onChange={(e) => setReceiverLabel(e.target.value)}
+                        />
+                        <Button
+                          size='sm'
+                          variant='outline'
+                          disabled={receiverLabel.trim() === ''}
+                          onClick={() => {
+                            addEntry({
+                              chainId,
+                              address: request.to as `0x${string}`,
+                              label: receiverLabel.trim(),
+                              kind: 'wallet'
+                            })
+                            setReceiverLabel('')
+                          }}
+                        >
+                          Save to address book
+                        </Button>
+                      </div>
+                    ))}
+                </div>
               )}
             </div>
 

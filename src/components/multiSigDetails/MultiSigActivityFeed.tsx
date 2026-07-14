@@ -6,6 +6,7 @@ import { ExternalLinkIcon } from '../icons/ChakraIcons'
 import { cn } from '@/lib/utils'
 
 import useMultiSigActivity, { ActivityEntry } from '../../hooks/useMultiSigActivity'
+import { useAddressLabels } from '../../states/addressBook'
 import { ADMIN_ACTIONS, decodeSelfCall } from '../../utils/adminActions'
 
 interface MultiSigActivityFeedProps {
@@ -37,8 +38,17 @@ const describeAdminCall = (data: `0x${string}`): string | null => {
   return action.describe(values)
 }
 
-const describeEntry = (entry: ActivityEntry, multiSigAddress: `0x${string}`): Described => {
+const describeEntry = (
+  entry: ActivityEntry,
+  multiSigAddress: `0x${string}`,
+  labelFor?: (address: string) => string | undefined
+): Described => {
   const args = entry.args
+  // Prefer the address-book label; fall back to a truncated address.
+  const named = (address: string) => {
+    const label = labelFor?.(address)
+    return label != null ? `${label} (${truncate(address)})` : truncate(address)
+  }
   switch (entry.eventName) {
     case 'TransactionExecuted': {
       const to = String(args.to ?? '')
@@ -54,14 +64,14 @@ const describeEntry = (entry: ActivityEntry, multiSigAddress: `0x${string}`): De
       const value = BigInt(String(args.value ?? '0'))
       return {
         title: 'Transaction executed',
-        detail: `To ${truncate(to)}${value > 0n ? `, ${formatEther(value)} ETH` : ''} (nonce ${args.txnNonce})`,
+        detail: `To ${named(to)}${value > 0n ? `, ${formatEther(value)} ETH` : ''} (nonce ${args.txnNonce})`,
         tone: 'success'
       }
     }
     case 'TxFailure':
       return {
         title: 'Transaction failed',
-        detail: `To ${truncate(String(args.to ?? ''))} (nonce ${args.txnNonce})`,
+        detail: `To ${named(String(args.to ?? ''))} (nonce ${args.txnNonce})`,
         tone: 'destructive'
       }
     case 'MultiRequestExecuted': {
@@ -76,13 +86,13 @@ const describeEntry = (entry: ActivityEntry, multiSigAddress: `0x${string}`): De
     case 'ApproveHash':
       return {
         title: 'Request approved on-chain',
-        detail: `${truncate(String(args.owner ?? ''))} approved hash ${truncate(String(args.hash ?? ''))}`,
+        detail: `${named(String(args.owner ?? ''))} approved hash ${truncate(String(args.hash ?? ''))}`,
         tone: 'neutral'
       }
     case 'OwnerAdded':
-      return { title: 'Owner added', detail: String(args.owner ?? ''), tone: 'success' }
+      return { title: 'Owner added', detail: named(String(args.owner ?? '')), tone: 'success' }
     case 'OwnerRemoved':
-      return { title: 'Owner removed', detail: String(args.owner ?? ''), tone: 'warning' }
+      return { title: 'Owner removed', detail: named(String(args.owner ?? '')), tone: 'warning' }
     case 'ThresholdChanged':
       return { title: 'Threshold changed', detail: `New threshold: ${args.threshold}`, tone: 'neutral' }
     case 'ContractEndOfLife':
@@ -118,8 +128,9 @@ export const ActivityEntryRow: React.FC<{
   entry: ActivityEntry
   multiSigAddress: `0x${string}`
   explorerUrl?: string
-}> = ({ entry, multiSigAddress, explorerUrl }) => {
-  const { title, detail, tone } = describeEntry(entry, multiSigAddress)
+  labelFor?: (address: string) => string | undefined
+}> = ({ entry, multiSigAddress, explorerUrl, labelFor }) => {
+  const { title, detail, tone } = describeEntry(entry, multiSigAddress, labelFor)
   return (
     <div className='flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3'>
       <div className='flex min-w-0 items-start gap-3'>
@@ -154,6 +165,7 @@ const MultiSigActivityFeed: React.FC<MultiSigActivityFeedProps> = ({ multiSigAdd
   const chains = useChains()
   const chain = chains.find((c) => c.id === chainId)
   const explorerUrl = chain?.blockExplorers?.default?.url
+  const { labelFor } = useAddressLabels(chain?.id)
   const { entries, isLoading, error, hasOlder, loadOlder } = useMultiSigActivity(multiSigAddress)
 
   return (
@@ -173,7 +185,13 @@ const MultiSigActivityFeed: React.FC<MultiSigActivityFeedProps> = ({ multiSigAdd
 
       <div className='flex w-full flex-col gap-2'>
         {entries.map((entry) => (
-          <ActivityEntryRow key={entry.id} entry={entry} multiSigAddress={multiSigAddress} explorerUrl={explorerUrl} />
+          <ActivityEntryRow
+            key={entry.id}
+            entry={entry}
+            multiSigAddress={multiSigAddress}
+            explorerUrl={explorerUrl}
+            labelFor={labelFor}
+          />
         ))}
       </div>
 

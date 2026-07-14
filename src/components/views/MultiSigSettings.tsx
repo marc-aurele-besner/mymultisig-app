@@ -1,5 +1,5 @@
 import React from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useChainId } from 'wagmi'
 
 import AdminActionForm from '../forms/AdminActionForm'
 import ExtendedGovernancePanel from '../multiSigDetails/ExtendedGovernancePanel'
@@ -7,6 +7,7 @@ import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
 import useAdminEventSync from '../../hooks/useAdminEventSync'
 import useMultiSigs from '../../states/multiSigs'
+import { useAddressLabels } from '../../states/addressBook'
 import { EOL_NONCE_THRESHOLD } from '../../constants/limits'
 
 interface MultiSigSettingsProps {
@@ -17,6 +18,8 @@ interface MultiSigSettingsProps {
 // MultiSigPageLayout.
 const MultiSigSettings: React.FC<MultiSigSettingsProps> = ({ multiSigAddress }) => {
   const { address } = useAccount()
+  const chainId = useChainId()
+  const { labelFor } = useAddressLabels(chainId)
   const { multiSigDetails, data } = useMultiSigDetails(multiSigAddress, address ?? '0x')
   const { walletType } = useWalletType(multiSigAddress)
   const { multiSigs } = useMultiSigs()
@@ -44,6 +47,11 @@ const MultiSigSettings: React.FC<MultiSigSettingsProps> = ({ multiSigAddress }) 
           owners.map((owner) => (
             <span key={owner} className='break-all font-mono text-sm text-foreground'>
               {owner}
+              {labelFor(owner) != null && (
+                <span className='ml-2 rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground'>
+                  {labelFor(owner)}
+                </span>
+              )}
               {address != null && owner.toLowerCase() === address.toLowerCase() && (
                 <span className='ml-2 rounded bg-primary px-2 py-0.5 text-xs text-primary-foreground'>You</span>
               )}
