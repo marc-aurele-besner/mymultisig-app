@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useAccount } from 'wagmi'
-import { Button } from '@/components/ui/button'
 
 import BigCard from '../../../components/cards/BigCard'
 import MultiSigRequestList from '../../../components/multiSigDetails/MultiSigRequestList'
+import MultiSigNav from '../../../components/multiSigDetails/MultiSigNav'
 import useMultiSigs from '../../../states/multiSigs'
 import useMultiSigDetails from '../../../hooks/useMultiSigDetails'
 
@@ -43,18 +42,7 @@ const Page: React.FC = () => {
           <h2 className="pb-4 text-2xl font-bold text-foreground">
             See the transactions requests
           </h2>
-          <div className="flex gap-2">
-            <Button asChild>
-              <Link href={`/multisig/${multisigAddress}/buildRequest`}>
-                Build a request
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href={`/multisig/${multisigAddress}/requests`}>
-                Consult requests
-              </Link>
-            </Button>
-          </div>
+          <MultiSigNav multiSigAddress={multisigAddress as `0x${string}`} />
           <MultiSigRequestList
             multiSigAddress={multisigAddress as `0x${string}`}
             multiSigDetails={multiSigDetails}

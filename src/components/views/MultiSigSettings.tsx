@@ -1,11 +1,10 @@
 import React from 'react'
-import Link from 'next/link'
 import { useAccount } from 'wagmi'
-import { Button } from '@/components/ui/button'
 
 import BigCard from '../cards/BigCard'
 import AdminActionForm from '../forms/AdminActionForm'
 import ExtendedGovernancePanel from '../multiSigDetails/ExtendedGovernancePanel'
+import MultiSigNav from '../multiSigDetails/MultiSigNav'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
 import useAdminEventSync from '../../hooks/useAdminEventSync'
@@ -35,14 +34,7 @@ const MultiSigSettings: React.FC<MultiSigSettingsProps> = ({ multiSigAddress }) 
       <BigCard className='max-w-[1200px]'>
         <div className='flex flex-col items-center gap-6'>
           <h2 className='text-2xl font-bold text-foreground'>Owners & settings</h2>
-          <div className='flex gap-2'>
-            <Button asChild>
-              <Link href={`/multisig/${multiSigAddress}/buildRequest`}>Build a request</Link>
-            </Button>
-            <Button asChild variant='outline'>
-              <Link href={`/multisig/${multiSigAddress}/requests`}>Consult requests</Link>
-            </Button>
-          </div>
+          <MultiSigNav multiSigAddress={multiSigAddress} />
 
           {nearEndOfLife && (
             <div className='w-full rounded-xl border border-destructive bg-destructive/10 p-4 text-sm text-destructive'>

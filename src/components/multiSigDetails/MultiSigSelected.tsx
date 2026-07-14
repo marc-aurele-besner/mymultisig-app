@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useAdminEventSync from '../../hooks/useAdminEventSync'
+import MultiSigNav from './MultiSigNav'
 import CreateMultiSigRequestForm from '../forms/CreateMultiSigRequestForm'
 import useMultiSigs from '../../states/multiSigs'
 import { EOL_NONCE_THRESHOLD } from '../../constants/limits'
@@ -32,17 +33,7 @@ const MultiSigSelected: React.FC<MultiSigListProps> = ({ multiSigAddress, addres
           </div>
         )}
         <div className="flex justify-center px-6">
-          <div className="flex gap-2">
-            <Button asChild>
-              <Link href={`/multisig/${multiSigAddress}/buildRequest`}>Build a request</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href={`/multisig/${multiSigAddress}/requests`}>Consult requests</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href={`/multisig/${multiSigAddress}/settings`}>Owners & settings</Link>
-            </Button>
-          </div>
+          <MultiSigNav multiSigAddress={multiSigAddress} />
         </div>
         <CreateMultiSigRequestForm multiSigAddress={multiSigAddress} />
       </div>
