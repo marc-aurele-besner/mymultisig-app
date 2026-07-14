@@ -31,6 +31,10 @@ const ImportMultiSigForm: React.FC<ImportMultiSigFormProps> = ({ factory }) => {
           factoryAddress={factory.address}
           multiSigAddress={multiSigAddress}
           address={address}
+          onImportAnother={() => {
+            setMultiSigAddress('0x')
+            setImportClicked(false)
+          }}
         />
       ) : (
         <Fragment>
