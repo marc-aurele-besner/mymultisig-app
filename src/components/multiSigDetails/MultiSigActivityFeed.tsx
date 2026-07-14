@@ -113,6 +113,40 @@ const formatWhen = (timestamp?: number) => {
   return new Date(timestamp * 1000).toLocaleDateString()
 }
 
+// Single activity line; also reused by the overview's recent-activity preview.
+export const ActivityEntryRow: React.FC<{
+  entry: ActivityEntry
+  multiSigAddress: `0x${string}`
+  explorerUrl?: string
+}> = ({ entry, multiSigAddress, explorerUrl }) => {
+  const { title, detail, tone } = describeEntry(entry, multiSigAddress)
+  return (
+    <div className='flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3'>
+      <div className='flex min-w-0 items-start gap-3'>
+        <span className={cn('mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full', TONE_DOT[tone])} />
+        <div className='flex min-w-0 flex-col'>
+          <span className='text-sm font-semibold text-foreground'>{title}</span>
+          {detail !== '' && <span className='break-all text-sm text-muted-foreground'>{detail}</span>}
+        </div>
+      </div>
+      <div className='flex shrink-0 items-center gap-3 text-xs text-muted-foreground'>
+        <span>{formatWhen(entry.timestamp) || `block ${entry.blockNumber}`}</span>
+        {explorerUrl && (
+          <a
+            href={`${explorerUrl}/tx/${entry.transactionHash}`}
+            target='_blank'
+            rel='noopener noreferrer'
+            aria-label='View transaction on explorer'
+            className='text-muted-foreground transition-colors hover:text-primary'
+          >
+            <ExternalLinkIcon className='h-3.5 w-3.5' />
+          </a>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // Live feed of everything the wallet has done on-chain: executions, failures,
 // approvals, and owner/threshold/policy changes.
 const MultiSigActivityFeed: React.FC<MultiSigActivityFeedProps> = ({ multiSigAddress }) => {
@@ -138,37 +172,9 @@ const MultiSigActivityFeed: React.FC<MultiSigActivityFeedProps> = ({ multiSigAdd
       )}
 
       <div className='flex w-full flex-col gap-2'>
-        {entries.map((entry) => {
-          const { title, detail, tone } = describeEntry(entry, multiSigAddress)
-          return (
-            <div
-              key={entry.id}
-              className='flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3'
-            >
-              <div className='flex min-w-0 items-start gap-3'>
-                <span className={cn('mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full', TONE_DOT[tone])} />
-                <div className='flex min-w-0 flex-col'>
-                  <span className='text-sm font-semibold text-foreground'>{title}</span>
-                  {detail !== '' && <span className='break-all text-sm text-muted-foreground'>{detail}</span>}
-                </div>
-              </div>
-              <div className='flex shrink-0 items-center gap-3 text-xs text-muted-foreground'>
-                <span>{formatWhen(entry.timestamp) || `block ${entry.blockNumber}`}</span>
-                {explorerUrl && (
-                  <a
-                    href={`${explorerUrl}/tx/${entry.transactionHash}`}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    aria-label='View transaction on explorer'
-                    className='text-muted-foreground transition-colors hover:text-primary'
-                  >
-                    <ExternalLinkIcon className='h-3.5 w-3.5' />
-                  </a>
-                )}
-              </div>
-            </div>
-          )
-        })}
+        {entries.map((entry) => (
+          <ActivityEntryRow key={entry.id} entry={entry} multiSigAddress={multiSigAddress} explorerUrl={explorerUrl} />
+        ))}
       </div>
 
       {isLoading && (

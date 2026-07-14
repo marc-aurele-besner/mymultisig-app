@@ -27,7 +27,8 @@ const TextInput: React.FC<TextInputProps> = ({
     <Input
       className={cn(
         'h-auto w-full py-4 px-5 text-base md:w-[94%] md:text-sm',
-        isInvalid && 'border-destructive focus-visible:ring-destructive'
+        isInvalid && 'border-destructive focus-visible:ring-destructive',
+        className
       )}
       placeholder={placeholder}
       defaultValue={defaultValue}

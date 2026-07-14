@@ -23,7 +23,7 @@ const MultiSigNav: React.FC<MultiSigNavProps> = ({ multiSigAddress }) => {
 
   return (
     <nav className='w-full overflow-x-auto pb-1'>
-      <div className='mx-auto flex w-max gap-1 rounded-lg border border-border bg-muted/30 p-1'>
+      <div className='flex w-max gap-1 rounded-lg border border-border bg-muted/30 p-1'>
         {TABS.map((tab) => {
           const isActive = activeSlug === tab.slug
           return (

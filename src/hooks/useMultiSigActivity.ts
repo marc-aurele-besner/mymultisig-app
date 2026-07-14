@@ -23,6 +23,13 @@ const CHUNK_SIZE = 9_999n
 const MAX_CHUNKS_PER_LOAD = 12
 const TARGET_ENTRIES_PER_LOAD = 10
 
+export type ActivityOptions = {
+  // RPC windows scanned per load; lower it for lightweight previews.
+  maxChunksPerLoad?: number
+  // Stop a load early once this many entries were found.
+  targetEntries?: number
+}
+
 const toEntry = (log: {
   eventName?: string
   args?: unknown
@@ -48,7 +55,9 @@ const sortDesc = (a: ActivityEntry, b: ActivityEntry) => {
 // Streams the wallet's on-chain history: an initial backwards scan from the
 // chain tip, `loadOlder` to keep digging, and a live watcher that prepends new
 // events as they land. Entries are deduped by block number + log index.
-const useMultiSigActivity = (multiSigAddress: `0x${string}`) => {
+const useMultiSigActivity = (multiSigAddress: `0x${string}`, options?: ActivityOptions) => {
+  const maxChunksPerLoad = options?.maxChunksPerLoad ?? MAX_CHUNKS_PER_LOAD
+  const targetEntries = options?.targetEntries ?? TARGET_ENTRIES_PER_LOAD
   const publicClient = usePublicClient()
   const [entries, setEntries] = useState<ActivityEntry[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -106,7 +115,7 @@ const useMultiSigActivity = (multiSigAddress: `0x${string}`) => {
       let toBlock = startBlock
       let found = 0
       const collected: ActivityEntry[] = []
-      for (let i = 0; i < MAX_CHUNKS_PER_LOAD && toBlock >= 0n && found < TARGET_ENTRIES_PER_LOAD; i++) {
+      for (let i = 0; i < maxChunksPerLoad && toBlock >= 0n && found < targetEntries; i++) {
         const fromBlock = toBlock >= CHUNK_SIZE ? toBlock - CHUNK_SIZE : 0n
         const logs = await publicClient.getContractEvents({
           address: multiSigAddress,
@@ -130,7 +139,7 @@ const useMultiSigActivity = (multiSigAddress: `0x${string}`) => {
       loadingRef.current = false
       setIsLoading(false)
     }
-  }, [publicClient, enabled, multiSigAddress, oldestScanned, attachTimestamps])
+  }, [publicClient, enabled, multiSigAddress, oldestScanned, attachTimestamps, maxChunksPerLoad, targetEntries])
 
   // Reset and rescan when the wallet or chain changes.
   useEffect(() => {

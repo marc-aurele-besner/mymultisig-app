@@ -1,52 +1,22 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useRouter } from 'next/router'
 import { useAccount } from 'wagmi'
 
-import BigCard from '../../../components/cards/BigCard'
+import MultiSigPageLayout from '../../../components/multiSigDetails/MultiSigPageLayout'
 import CreateMultiSigRequestForm from '../../../components/forms/CreateMultiSigRequestForm'
-import MultiSigNav from '../../../components/multiSigDetails/MultiSigNav'
-import useMultiSigs from '../../../states/multiSigs'
-import useMultiSigDetails from '../../../hooks/useMultiSigDetails'
 
 const Page: React.FC = () => {
   const router = useRouter()
   const { multisigAddress } = router.query
   const { address } = useAccount()
-  const { multiSigDetails } = useMultiSigDetails(
-    multisigAddress != null && typeof multisigAddress === 'string'
-      ? (multisigAddress as `0x${string}`)
-      : '0x',
-    address != null ? (address as `0x${string}`) : '0x'
-  )
-  const { setSelectedMultiSigAddress } = useMultiSigs()
 
-  useEffect(() => {
-    if (multisigAddress != null && multisigAddress !== '0x') {
-      setSelectedMultiSigAddress(multisigAddress as `0x${string}`)
-    }
-  }, [multisigAddress, setSelectedMultiSigAddress])
-
-  if (
-    address == null ||
-    multisigAddress == null ||
-    multiSigDetails == null ||
-    Array.isArray(multisigAddress) ||
-    !multisigAddress.startsWith('0x')
-  )
+  if (address == null || multisigAddress == null || Array.isArray(multisigAddress) || !multisigAddress.startsWith('0x'))
     return null
 
   return (
-    <div className="flex justify-center">
-      <BigCard className="max-w-[1200px]">
-        <div className="flex flex-col items-center">
-          <h2 className="pb-4 text-2xl font-bold text-foreground">
-            Build a request
-          </h2>
-          <MultiSigNav multiSigAddress={multisigAddress as `0x${string}`} />
-          <CreateMultiSigRequestForm multiSigAddress={multisigAddress as `0x${string}`} />
-        </div>
-      </BigCard>
-    </div>
+    <MultiSigPageLayout multiSigAddress={multisigAddress as `0x${string}`}>
+      <CreateMultiSigRequestForm multiSigAddress={multisigAddress as `0x${string}`} />
+    </MultiSigPageLayout>
   )
 }
 
