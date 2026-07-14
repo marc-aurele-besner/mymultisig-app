@@ -40,4 +40,7 @@ public/workbox-*
 .netlify
 
 # Static Storybook
-storybook-static.DS_Store
+storybook-static
+
+# macOS
+.DS_Store
