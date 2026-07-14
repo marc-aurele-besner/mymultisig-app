@@ -1,6 +1,6 @@
 import { useChainId, useChains, useWatchContractEvent } from 'wagmi'
-import MyMultiSig from '../constants/abi/MyMultiSig.json'
-import MyMultiSigExtended from '../constants/abi/MyMultiSigExtended.json'
+import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
+import MyMultiSigExtended from 'mymultisig-contract/abi/MyMultiSigExtended.json'
 import { LegacyTransactionFailedEvent } from '../constants/abi/legacy'
 
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../models/MultiSigs'

@@ -1,9 +1,0 @@
-[
-  {
-    "name": "MyMultiSigFactory",
-    "address": "0x2D254390e35b59fe87a31e538D5604346b017082",
-    "network": "goerli",
-    "chainId": 5,
-    "factoryVersion": "0.0.12"
-  }
-]

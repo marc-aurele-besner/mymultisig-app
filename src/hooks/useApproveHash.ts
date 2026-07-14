@@ -1,5 +1,5 @@
 import { useChainId, useChains } from 'wagmi'
-import MyMultiSig from '../constants/abi/MyMultiSig.json'
+import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 
 import { useNotification } from './notifications'
 import useFinalizeTransaction from './useFinalizeTransaction'

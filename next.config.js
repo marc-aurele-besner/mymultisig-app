@@ -14,6 +14,8 @@ const nextConfig = {
   experimental: {},
   images: {},
   reactStrictMode: true,
+  // mymultisig-contract ships its constants as raw .ts
+  transpilePackages: ['mymultisig-contract'],
   webpack: (config) => {
     // Optional @wagmi/connectors peer deps we don't use (gemini, porto) — stub so build succeeds
     config.resolve.fallback = {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { encodeFunctionData, Abi } from 'viem'
 import { Button } from '@/components/ui/button'
-import MyMultiSig from '../../constants/abi/MyMultiSig.json'
+import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 
 import TextInput from '../inputs/TextInput'
 import SignRequest from '../buttons/SignRequest'

@@ -79,7 +79,25 @@ const useMultiSigs = create<MultiSigState>()(
     }),
     {
       name: 'multiSigs-storage',
-      storage: createJSONStorage(() => localStorage)
+      storage: createJSONStorage(() => localStorage),
+      // Factories shipped with the contract package must show up even for
+      // users with an older persisted list (e.g. the new sepolia factory),
+      // while keeping factories the user deployed or imported themselves.
+      merge: (persistedState, currentState) => {
+        const persisted = (persistedState ?? {}) as Partial<MultiSigDefaultState>
+        const persistedFactories = persisted.multiSigFactory ?? []
+        const sameFactory = (a: MultiSigFactory, b: MultiSigFactory) =>
+          a.chainId === b.chainId && a.address.toLowerCase() === b.address.toLowerCase()
+        const multiSigFactory = [
+          ...multiSigFactories.map(
+            (factory) => persistedFactories.find((candidate) => sameFactory(candidate, factory)) ?? factory
+          ),
+          ...persistedFactories.filter(
+            (candidate) => !multiSigFactories.some((factory) => sameFactory(candidate, factory))
+          )
+        ]
+        return { ...currentState, ...persisted, multiSigFactory }
+      }
     }
   )
 )

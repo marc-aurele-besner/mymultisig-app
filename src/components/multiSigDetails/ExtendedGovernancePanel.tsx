@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useAccount, useChainId, useChains, useReadContract } from 'wagmi'
 import { Button } from '@/components/ui/button'
-import MyMultiSigExtended from '../../constants/abi/MyMultiSigExtended.json'
+import MyMultiSigExtended from 'mymultisig-contract/abi/MyMultiSigExtended.json'
 
 import TextInput from '../inputs/TextInput'
 import useExtendedDetails from '../../hooks/useExtendedDetails'
