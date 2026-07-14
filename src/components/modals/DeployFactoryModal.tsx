@@ -14,6 +14,7 @@ import contractConstants from 'mymultisig-contract/constants'
 import useDeployFactory, { DEPLOY_STEP_LABELS } from '../../hooks/useDeployFactory'
 import deployArtifacts from '../../constants/factoryDeployArtifacts.json'
 import useMultiSigs from '../../states/multiSigs'
+import { persistFactory } from '../../utils/accountSync'
 import { type NetworkStatus } from '../../constants/networkStatus'
 
 const statusExplanation: Record<Exclude<NetworkStatus, 'active'>, (name: string) => string> = {
@@ -31,7 +32,7 @@ interface DeployFactoryModalProps {
 }
 
 const DeployFactoryModal: React.FC<DeployFactoryModalProps> = ({ chain, status, open, onOpenChange }) => {
-  const { isConnected } = useAccount()
+  const { isConnected, address } = useAccount()
   const currentChainId = useChainId()
   const { switchChain, isPending: isSwitching } = useSwitchChain()
   const { deploy, reset, isPending, isRunning, step, totalSteps, isDeployed, deployedAddress, hash } =
@@ -46,14 +47,16 @@ const DeployFactoryModal: React.FC<DeployFactoryModalProps> = ({ chain, status, 
   useEffect(() => {
     if (isDeployed && deployedAddress != null) {
       if (!multiSigFactory.some((f) => f.chainId === chain.id && f.address.toLowerCase() === deployedAddress.toLowerCase())) {
-        addMultiSigFactory({
+        const factory = {
           chainId: chain.id,
           chainName: chain.name,
           address: deployedAddress,
           name: contractConstants.CONTRACT_FACTORY_NAME,
           version: contractConstants.CONTRACT_FACTORY_VERSION,
           multiSigCount: 0
-        })
+        }
+        addMultiSigFactory(factory)
+        persistFactory(factory, address)
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -2,7 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { providers, Wallet } from 'ethers'
 
 import { getSql } from '../../../lib/db/neon'
-import { rowToMultiSigRequestDB } from '../../../lib/db/mappers'
+import { rowToMultiSigRequest } from '../../../lib/db/mappers'
+import { getVerifiedAddress } from '../../../lib/auth/siwe'
 import signData from '../../../utils/signData'
 
 if (!process.env.DATABASE_URL) throw new Error('No DATABASE_URL in .env file')
@@ -61,6 +62,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const sql = getSql()
 
+    // Request patches carry EIP-712 owner signatures that the contract
+    // re-verifies at execution; here we only require a verified wallet session.
+    if (getVerifiedAddress(req) == null) {
+      return res.status(401).json({ message: 'Wallet not verified: sign in with your wallet first' })
+    }
+
     switch (data.action) {
       case 'updateMultiSigRequest':
       case 'resetMultiSigRequest': {
@@ -98,7 +105,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         `) as Record<string, unknown>[]
         return res.status(200).json({
           message: 'Data updated',
-          content: rowToMultiSigRequestDB(updated[0]).data
+          content: rowToMultiSigRequest(updated[0])
         })
       }
       default:

@@ -5,7 +5,7 @@ import { useNotificationSuccess, useNotificationError } from './notifications'
 import useMultiSigs from '../states/multiSigs'
 import { signData, deleteContent } from '../utils'
 
-const useDeleteMultiSigRequest = (multiSigRequestId: string, existingRequestRef: string, isConfirmed: boolean) => {
+const useDeleteMultiSigRequest = (multiSigRequestId: string, existingRequestId: string, isConfirmed: boolean) => {
   const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const { address } = useAccount()
   const { removeMultiSigTransactionRequest } = useMultiSigs()
@@ -25,11 +25,11 @@ const useDeleteMultiSigRequest = (multiSigRequestId: string, existingRequestRef:
         action: 'deleteMultiSigRequest',
         chainId: chain.id,
         collection: 'multisig-requests',
-        data: { existingRequestRef },
+        data: { existingRequestId },
         details: 'Delete MultiSig Request',
         signatureExpiry: 0
       }).then(async (dataSigned) => {
-        deleteContent(dataSigned.message, existingRequestRef)
+        deleteContent(dataSigned.message, existingRequestId)
           .then(() => {
             removeMultiSigTransactionRequest(multiSigRequestId)
             notificationSuccess()
@@ -42,7 +42,7 @@ const useDeleteMultiSigRequest = (multiSigRequestId: string, existingRequestRef:
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, chain, isConfirmed, multiSigRequestId, existingRequestRef])
+  }, [address, chain, isConfirmed, multiSigRequestId, existingRequestId])
 
   return isDeleted
 }

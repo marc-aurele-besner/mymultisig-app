@@ -8,7 +8,7 @@ interface MultiSigListProps {
   args: MultiSigExecTransactionArgs
   description: string
   requestDetails?: MultiSigTransactionRequest
-  existingRequestRef?: string
+  existingRequestId?: string
 }
 
 const SignRequest: React.FC<MultiSigListProps> = ({
@@ -16,7 +16,7 @@ const SignRequest: React.FC<MultiSigListProps> = ({
   args,
   description,
   requestDetails,
-  existingRequestRef
+  existingRequestId
 }) => {
   const {
     isPrepareError,
@@ -32,7 +32,7 @@ const SignRequest: React.FC<MultiSigListProps> = ({
     args,
     description,
     requestDetails,
-    existingRequestRef
+    existingRequestId
   )
 
   return (

@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { providers, Wallet } from 'ethers'
 
 import { getSql } from '../../../lib/db/neon'
+import { getVerifiedAddress } from '../../../lib/auth/siwe'
 import signData from '../../../utils/signData'
 
 if (!process.env.DATABASE_URL) throw new Error('No DATABASE_URL in .env file')
@@ -59,6 +60,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     const sql = getSql()
+
+    if (getVerifiedAddress(req) == null) {
+      return res.status(401).json({ message: 'Wallet not verified: sign in with your wallet first' })
+    }
 
     switch (data.action) {
       case 'deleteMultiSigRequest': {

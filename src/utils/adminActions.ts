@@ -18,11 +18,25 @@ export type AdminField = {
   kind: AdminFieldKind
 }
 
+export type AdminActionGroup = 'owners' | 'policy' | 'nonce' | 'delegation'
+
+export const ADMIN_ACTION_GROUPS: { id: AdminActionGroup; label: string; hint: string }[] = [
+  { id: 'owners', label: 'Owners', hint: 'Manage who can sign for this wallet.' },
+  {
+    id: 'policy',
+    label: 'Threshold & policy',
+    hint: 'Control how many signatures execute a transaction and who can propose.'
+  },
+  { id: 'nonce', label: 'Nonce management', hint: 'Invalidate pending or pre-signed requests.' },
+  { id: 'delegation', label: 'Inactivity delegation', hint: 'Plan owner-seat recovery if an owner goes inactive.' }
+]
+
 export type AdminActionDefinition = {
   id: string
   label: string
   // 'both' = exists on MyMultiSig and MyMultiSigExtended
   availableOn: 'both' | 'extended'
+  group: AdminActionGroup
   danger?: boolean
   hint: string
   fields: AdminField[]
@@ -37,6 +51,7 @@ const isUint = (value: string) => /^\d+$/.test(value)
 export const ADMIN_ACTIONS: AdminActionDefinition[] = [
   {
     id: 'addOwner',
+    group: 'owners',
     label: 'Add owner',
     availableOn: 'both',
     hint: 'Adds a new owner. The threshold stays unchanged, so the new owner immediately counts toward it.',
@@ -47,6 +62,7 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
   },
   {
     id: 'removeOwner',
+    group: 'owners',
     label: 'Remove owner',
     availableOn: 'both',
     hint: 'Removes an owner. Blocked if it would leave fewer owners than the threshold.',
@@ -62,6 +78,7 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
   },
   {
     id: 'replaceOwner',
+    group: 'owners',
     label: 'Replace owner',
     availableOn: 'both',
     hint: 'Swaps an existing owner for a new address in a single operation.',
@@ -79,6 +96,7 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
   },
   {
     id: 'changeThreshold',
+    group: 'policy',
     label: 'Change threshold',
     availableOn: 'both',
     hint: 'Changes how many owner signatures a transaction needs.',
@@ -94,6 +112,7 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
   },
   {
     id: 'incrementNonce',
+    group: 'nonce',
     label: 'Skip current nonce',
     availableOn: 'both',
     danger: true,
@@ -105,6 +124,7 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
   },
   {
     id: 'setOnlyOwnerRequest',
+    group: 'policy',
     label: 'Owner-only requests',
     availableOn: 'extended',
     hint: 'When enabled, integrations should refuse transaction requests from non-owners.',
@@ -115,6 +135,7 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
   },
   {
     id: 'markNonceAsUsed',
+    group: 'nonce',
     label: 'Burn a nonce',
     availableOn: 'extended',
     danger: true,
@@ -126,6 +147,7 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
   },
   {
     id: 'setTransferInactiveOwnershipAfter',
+    group: 'delegation',
     label: 'Minimum inactivity window',
     availableOn: 'extended',
     hint: 'Sets the minimum inactivity period (at least 7 days) before a delegatee can take over an owner seat.',
@@ -142,6 +164,7 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
   },
   {
     id: 'setOwnerSettings',
+    group: 'delegation',
     label: 'Delegate an owner seat',
     availableOn: 'extended',
     hint: 'Names a delegatee who can take over this owner seat after the inactivity window elapses.',

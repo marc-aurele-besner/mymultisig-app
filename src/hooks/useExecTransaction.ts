@@ -15,7 +15,7 @@ const useExecTransaction = (
   args: MultiSigExecTransactionArgs,
   multiSigAddress: `0x${string}`,
   existingRequest: MultiSigTransactionRequest,
-  existingRequestRef: string
+  existingRequestId: string
 ) => {
   const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const { notificationInfo, notificationError, notificationSuccess } = useNotification()
@@ -46,7 +46,7 @@ const useExecTransaction = (
     useFinalizeTransaction(config, notificationInfo, notificationSuccess, notificationError)
 
   const markExecuted = (isSuccessful: boolean, requestPatch?: Partial<MultiSigExecTransactionArgs>) => {
-    if (!chain || !existingRequestRef) return
+    if (!chain || !existingRequestId) return
     const patch = {
       ...(requestPatch ? { request: { ...existingRequest.request, ...requestPatch } } : {}),
       dateExecuted: new Date().toISOString(),
@@ -61,7 +61,7 @@ const useExecTransaction = (
       details: 'Update MultiSig Request',
       signatureExpiry: 0
     }).then(async (dataSigned) => {
-      updateContent(dataSigned.message, existingRequestRef).then(() => {
+      updateContent(dataSigned.message, existingRequestId).then(() => {
         updateMultiSigTransactionRequest(existingRequest.id, { ...existingRequest, ...patch })
       })
     })

@@ -21,7 +21,8 @@ import {
   Moon as MoonIconLucide,
   Sun as SunIconLucide,
   Link as LinkIconLucide,
-  Info as InfoIconLucide
+  Info as InfoIconLucide,
+  ArrowLeft as ArrowLeftIconLucide
 } from 'lucide-react'
 import React from 'react'
 import { cn } from '@/lib/utils'
@@ -69,3 +70,4 @@ export const SunIcon = withIcon(SunIconLucide, 'SunIcon')
 export const LinkIcon = withIcon(LinkIconLucide, 'LinkIcon')
 export const InfoIcon = withIcon(InfoIconLucide, 'InfoIcon')
 export const InfoOutlineIcon = withIcon(InfoIconLucide, 'InfoOutlineIcon')
+export const ArrowBackIcon = withIcon(ArrowLeftIconLucide, 'ArrowBackIcon')

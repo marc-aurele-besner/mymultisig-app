@@ -1,26 +1,23 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useRouter } from 'next/router'
 import { useAccount } from 'wagmi'
 
+import MultiSigPageLayout from '../../../components/multiSigDetails/MultiSigPageLayout'
 import MultiSigSettings from '../../../components/views/MultiSigSettings'
-import useMultiSigs from '../../../states/multiSigs'
 
 const Page: React.FC = () => {
   const router = useRouter()
   const { multisigAddress } = router.query
   const { address } = useAccount()
-  const { setSelectedMultiSigAddress } = useMultiSigs()
-
-  useEffect(() => {
-    if (multisigAddress != null && multisigAddress !== '0x') {
-      setSelectedMultiSigAddress(multisigAddress as `0x${string}`)
-    }
-  }, [multisigAddress, setSelectedMultiSigAddress])
 
   if (address == null || multisigAddress == null || Array.isArray(multisigAddress) || !multisigAddress.startsWith('0x'))
     return null
 
-  return <MultiSigSettings multiSigAddress={multisigAddress as `0x${string}`} />
+  return (
+    <MultiSigPageLayout multiSigAddress={multisigAddress as `0x${string}`}>
+      <MultiSigSettings multiSigAddress={multisigAddress as `0x${string}`} />
+    </MultiSigPageLayout>
+  )
 }
 
 export async function getStaticProps() {

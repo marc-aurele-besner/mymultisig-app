@@ -78,6 +78,7 @@ All contract writes follow the same flow:
 **Server-side:**
 - `DATABASE_URL` — Neon PostgreSQL connection string (required for API routes)
 - `PRIVATE_KEY` — Backend EVM wallet for signing (do NOT fund)
+- `SESSION_SECRET` — HMAC secret for SIWE session cookies (optional; falls back to `PRIVATE_KEY`)
 - `RPC_ETHEREUM` — Ethereum RPC for backend signer
 - `ETHERSCAN_API_KEY` — ABI fetching via `/api/getABI`
 - `RESEND_API_KEY` / `RESEND_CONTACT_TO` — contact form via `/api/contact` (`RESEND_FROM` optional, defaults to Resend's onboarding sender)

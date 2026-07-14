@@ -41,3 +41,6 @@ public/workbox-*
 
 # Static Storybook
 storybook-static
+
+# macOS
+.DS_Store

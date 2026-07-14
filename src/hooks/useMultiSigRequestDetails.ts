@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useChainId, useChains, useAccount } from 'wagmi'
 
-import { MultiSigRequestDB } from '../models/MultiSigs'
+import { MultiSigTransactionRequest } from '../models/MultiSigs'
 import useMultiSigs from '../states/multiSigs'
 import { signData, getContent } from '../utils'
 
@@ -9,7 +9,7 @@ const useMultiSigRequestDetails = (multiSigRequestId: string) => {
   const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
   const { address } = useAccount()
   const [dataIsLoading, setDataIsLoading] = useState(false)
-  const [requestDetails, setRequestDetails] = useState<MultiSigRequestDB | null>(null)
+  const [requestDetails, setRequestDetails] = useState<MultiSigTransactionRequest | null>(null)
   const { multiSigTransactionRequests } = useMultiSigs()
 
   useEffect(() => {

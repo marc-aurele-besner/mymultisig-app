@@ -13,7 +13,7 @@ const useSignedMultiSigRequest = (
   args: MultiSigExecTransactionArgs,
   description: string,
   existingRequest?: MultiSigTransactionRequest,
-  existingRequestRef?: string
+  existingRequestId?: string
 ) => {
   const chainId = useChainId()
   const chains = useChains()
@@ -132,7 +132,7 @@ const useSignedMultiSigRequest = (
             isConfirmed: false,
             isSuccessful: false
           }
-      if (existingRequest && existingRequestRef)
+      if (existingRequest && existingRequestId)
         signData({
           action: 'updateMultiSigRequest',
           chainId: chain.id,
@@ -141,7 +141,7 @@ const useSignedMultiSigRequest = (
           details: 'Update MultiSig Request',
           signatureExpiry: 0
         }).then(async (dataSigned) => {
-          updateContent(dataSigned.message, existingRequestRef).then(() => {
+          updateContent(dataSigned.message, existingRequestId).then(() => {
             updateMultiSigTransactionRequest(existingRequest.id, dataToAdd)
           })
         })

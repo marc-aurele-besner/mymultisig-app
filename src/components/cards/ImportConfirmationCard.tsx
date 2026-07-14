@@ -1,5 +1,9 @@
 import React, { Fragment, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useChainId, useChains } from 'wagmi'
+import { Button } from '@/components/ui/button'
+import { CheckCircleIcon, SettingsIcon, DownloadIcon } from '../icons/ChakraIcons'
+
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
 import { MultiSig } from '../../models/MultiSigs'
@@ -10,12 +14,15 @@ interface ImportConfirmationCardProps {
   factoryAddress: `0x${string}`
   multiSigAddress: `0x${string}`
   address: `0x${string}`
+  // When provided, shows an "Import another" action that resets the parent form.
+  onImportAnother?: () => void
 }
 
 const ImportConfirmationCard: React.FC<ImportConfirmationCardProps> = ({
   factoryAddress,
   multiSigAddress,
-  address
+  address,
+  onImportAnother
 }) => {
   const chainId = useChainId()
   const chains = useChains()
@@ -69,15 +76,45 @@ const ImportConfirmationCard: React.FC<ImportConfirmationCardProps> = ({
   return (
     <Fragment>
       {isLoading && (
-        <p className="text-lg font-bold text-foreground">Loading...</p>
+        <div className='flex items-center justify-center gap-3 rounded-xl border border-border bg-muted/30 p-4'>
+          <span className='h-3 w-3 animate-pulse rounded-full bg-primary' />
+          <span className='text-sm text-muted-foreground'>Reading the multisig contract...</span>
+        </div>
       )}
-      {error && (
-        <p className="text-lg font-bold text-foreground">Error: {error.message}</p>
-      )}
+      {error && <p className='text-sm font-semibold text-destructive'>Error: {error.message}</p>}
       {isSuccess && imported && (
-        <p className="text-lg font-bold text-green-600 dark:text-green-400">
-          Your {walletType === 'extended' ? 'Extended ' : ''}multisig contract has been imported!
-        </p>
+        <div className='flex w-full flex-col gap-4'>
+          <div className='flex items-center gap-2'>
+            <CheckCircleIcon className='h-5 w-5 text-green-500' />
+            <p className='text-lg font-bold text-green-600 dark:text-green-400'>
+              Your {walletType === 'extended' ? 'Extended ' : ''}multisig has been imported!
+            </p>
+          </div>
+          <div className='flex flex-col gap-1 rounded-xl border border-border bg-muted/30 p-4'>
+            <span className='text-sm text-muted-foreground'>{data != null ? String(data[0]) : 'Multisig'}</span>
+            <span className='break-all font-mono text-sm font-semibold text-foreground'>{multiSigAddress}</span>
+          </div>
+          <div className='flex flex-col gap-2 sm:flex-row'>
+            <Button size='lg' className='flex-1 gap-2' asChild>
+              <Link href={`/multisig/${multiSigAddress}`}>
+                <CheckCircleIcon className='h-4 w-4' />
+                Open your multisig
+              </Link>
+            </Button>
+            <Button size='lg' variant='outline' className='flex-1 gap-2' asChild>
+              <Link href={`/multisig/${multiSigAddress}/settings`}>
+                <SettingsIcon className='h-4 w-4' />
+                Owners & settings
+              </Link>
+            </Button>
+            {onImportAnother != null && (
+              <Button size='lg' variant='ghost' className='gap-2' onClick={onImportAnother}>
+                <DownloadIcon className='h-4 w-4' />
+                Import another
+              </Button>
+            )}
+          </div>
+        </div>
       )}
     </Fragment>
   )
