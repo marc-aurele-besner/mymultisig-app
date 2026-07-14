@@ -27,6 +27,18 @@ const FooterBox: React.FC = () => {
 
         <div className="flex items-center gap-1">
           <Link
+            href="/terms"
+            className="rounded-lg px-3 py-2 font-mono text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            Terms
+          </Link>
+          <Link
+            href="/privacy"
+            className="rounded-lg px-3 py-2 font-mono text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            Privacy
+          </Link>
+          <Link
             href="/contact"
             className="rounded-lg px-3 py-2 font-mono text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
