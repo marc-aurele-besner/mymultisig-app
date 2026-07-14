@@ -3,10 +3,12 @@ import { useAccount, useChainId, useChains } from 'wagmi'
 
 import { useNotificationSuccess, useNotificationError } from './notifications'
 import useMultiSigs from '../states/multiSigs'
-import { signData, updateContent } from '../utils'
+import { updateContent } from '../utils'
 
 const useResetMultiSigRequest = (multiSigRequestId: string, existingRequestId: string, isConfirmed: boolean) => {
-  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
   const { address } = useAccount()
   const { removeMultiSigTransactionRequest } = useMultiSigs()
   const [isDeleted, setIsDeleted] = useState(false)
@@ -21,28 +23,16 @@ const useResetMultiSigRequest = (multiSigRequestId: string, existingRequestId: s
 
   useEffect(() => {
     if (chain && isConfirmed) {
-      signData({
-        action: 'resetMultiSigRequest',
-        chainId: chain.id,
-        collection: 'multisig-requests',
-        data: {
-          signatures: [],
-          ownerSigners: []
-        },
-        details: 'Reset MultiSig Request',
-        signatureExpiry: 0
-      }).then(async (dataSigned) => {
-        updateContent(dataSigned.message, multiSigRequestId)
-          .then(() => {
-            removeMultiSigTransactionRequest(multiSigRequestId)
-            notificationSuccess()
-            setIsDeleted(true)
-          })
-          .catch((error) => {
-            console.error(error)
-            notificationError()
-          })
-      })
+      updateContent({ action: 'resetMultiSigRequest', data: { signatures: [], ownerSigners: [] } }, multiSigRequestId)
+        .then(() => {
+          removeMultiSigTransactionRequest(multiSigRequestId)
+          notificationSuccess()
+          setIsDeleted(true)
+        })
+        .catch((error) => {
+          console.error(error)
+          notificationError()
+        })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, chain, isConfirmed, multiSigRequestId, existingRequestId])

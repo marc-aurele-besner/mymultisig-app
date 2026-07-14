@@ -58,6 +58,7 @@
   },
   "dependencies": {
     "@coinbase/wallet-sdk": "^4.3.6",
+    "@ethersproject/abi": "^5.8.0",
     "@metamask/sdk": "^0.33.1",
     "@neondatabase/serverless": "^1.0.2",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -77,7 +78,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "ethers": "^5.8.0",
     "lucide-react": "^0.577.0",
     "mymultisig-contract": "0.1.4",
     "next-pwa": "^5.6.0",

@@ -29,15 +29,6 @@ const getABI = (data: object) => {
   })
 }
 
-const signData = (data: object) => {
-  return fetch('/api/signData', {
-    body: JSON.stringify(data),
-    method: 'POST'
-  }).then((response) => {
-    return response.json()
-  })
-}
-
 const getContent = (data: object) => {
   return fetch('/api/get-content', {
     body: JSON.stringify(data),
@@ -66,4 +57,4 @@ const deleteContent = (data: object, documentId: string) => {
   }).then(handleContentResponse)
 }
 
-export { verifyContract, getABI, signData, addContent, deleteContent, getContent, updateContent }
+export { verifyContract, getABI, addContent, deleteContent, getContent, updateContent }

@@ -33,7 +33,7 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 - Wallet connectors configured in `src/components/web3/Web3Provider.tsx` (MetaMask, Coinbase, WalletConnect v2, Injected)
 - Supported chains defined in `src/constants/networks.ts` (15 chains from `viem/chains`)
 - Factory addresses and ABIs from the `mymultisig-contract` npm package
-- **ethers.js v5** used only in API routes for backend EIP-712 signing
+- `@ethersproject/abi` provides the `JsonFragment` ABI types (no ethers runtime dependency)
 
 ### State Management
 - **Zustand v5** with `persist` middleware (localStorage)
@@ -43,8 +43,8 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 ### Backend / Data Persistence
 - **Neon PostgreSQL** via `@neondatabase/serverless` for storing multisig wallets and transaction requests
 - Schema in `src/lib/db/schema.sql`; client in `src/lib/db/neon.ts`
-- All writes verified with EIP-712 typed data signatures (server re-validates before writing)
-- API routes in `src/pages/api/` handle CRUD + signature verification
+- Auth via SIWE session cookies (`src/lib/auth/siwe.ts`): writes require a valid session, and identity-claiming actions must match the session wallet (`isVerifiedAs`)
+- API routes in `src/pages/api/` handle CRUD; request bodies are `{ action, data }`
 
 ## Key Patterns
 
@@ -57,10 +57,9 @@ All contract writes follow the same flow:
 
 ### Data Flow for Mutations
 1. User action triggers a wagmi write
-2. On success event, hook calls `signData` (client → `/api/signData`)
-3. Signed data sent to `addContent`/`updateContent` (→ `/api/add-content` or `/api/update-content/[id]`)
-4. API route re-validates signature server-side before writing to Neon
-5. Zustand store updated locally on API success
+2. On success event, hook calls `addContent`/`updateContent` with `{ action, data }` (→ `/api/add-content` or `/api/update-content/[id]`)
+3. API route checks the SIWE session cookie before writing to Neon
+4. Zustand store updated locally on API success
 
 ### Component Conventions
 - Functional components with typed props interfaces
@@ -77,9 +76,7 @@ All contract writes follow the same flow:
 
 **Server-side:**
 - `DATABASE_URL` — Neon PostgreSQL connection string (required for API routes)
-- `PRIVATE_KEY` — Backend EVM wallet for signing (do NOT fund)
-- `SESSION_SECRET` — HMAC secret for SIWE session cookies (optional; falls back to `PRIVATE_KEY`)
-- `RPC_ETHEREUM` — Ethereum RPC for backend signer
+- `SESSION_SECRET` — HMAC secret for SIWE session cookies (falls back to legacy `PRIVATE_KEY` if set)
 - `ETHERSCAN_API_KEY` — ABI fetching via `/api/getABI`
 - `RESEND_API_KEY` / `RESEND_CONTACT_TO` — contact form via `/api/contact` (`RESEND_FROM` optional, defaults to Resend's onboarding sender)
 

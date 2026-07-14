@@ -1,5 +1,5 @@
 import useAddressBook, { AddressBookEntry } from '../states/addressBook'
-import { signData, addContent, getContent } from './index'
+import { addContent, getContent } from './index'
 
 // Mirrors address-book mutations to Neon so labels follow the user across
 // browsers. The local Zustand store stays the source of truth for rendering;
@@ -7,23 +7,14 @@ import { signData, addContent, getContent } from './index'
 // Rows are keyed by (ownerAddress, chainId, address), so no id mapping is
 // needed between the local store and the database.
 
-const push = (action: 'addAddressBookEntry' | 'removeAddressBookEntry', chainId: number, data: object) =>
-  signData({
-    action,
-    chainId,
-    collection: 'address-book',
-    data,
-    details: 'Sync address book',
-    signatureExpiry: 0
+const push = (action: 'addAddressBookEntry' | 'removeAddressBookEntry', data: object) =>
+  addContent({ action, data }).catch(() => {
+    // DB persistence is best-effort; the local store already has the change.
   })
-    .then((dataSigned) => addContent(dataSigned.message))
-    .catch(() => {
-      // DB persistence is best-effort; the local store already has the change.
-    })
 
 export const persistAddressBookUpsert = (entry: Omit<AddressBookEntry, 'id'>, ownerAddress: string | undefined) => {
   if (ownerAddress == null) return
-  void push('addAddressBookEntry', entry.chainId, { ...entry, ownerAddress })
+  void push('addAddressBookEntry', { ...entry, ownerAddress })
 }
 
 export const persistAddressBookRemoval = (
@@ -31,7 +22,7 @@ export const persistAddressBookRemoval = (
   ownerAddress: string | undefined
 ) => {
   if (ownerAddress == null) return
-  void push('removeAddressBookEntry', entry.chainId, {
+  void push('removeAddressBookEntry', {
     chainId: entry.chainId,
     address: entry.address,
     ownerAddress
@@ -42,15 +33,7 @@ export const persistAddressBookRemoval = (
 // local-only entries (e.g. saved while signed out or on another network) up.
 export const syncAddressBookWithRemote = async (ownerAddress: string, chainId: number) => {
   try {
-    const dataSigned = await signData({
-      action: 'getAddressBook',
-      chainId,
-      collection: 'address-book',
-      data: { ownerAddress },
-      details: 'Get address book',
-      signatureExpiry: 0
-    })
-    const response = await getContent(dataSigned.message)
+    const response = await getContent({ action: 'getAddressBook', data: { ownerAddress } })
     if (response?.content == null || !Array.isArray(response.content)) return
     const remote = response.content as AddressBookEntry[]
     const { entries, addEntry } = useAddressBook.getState()
