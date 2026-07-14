@@ -63,3 +63,38 @@ CREATE TABLE IF NOT EXISTS address_book (
 -- One label per (owner, chain, address); upserts key on this.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_address_book_owner_chain_address
   ON address_book (LOWER(owner_address), chain_id, LOWER(address));
+
+-- Deduplicate wallets saved more than once (keep the newest row), then make
+-- (chain, address) unique so re-imports upsert instead of duplicating.
+DELETE FROM multisig_wallets a USING multisig_wallets b
+  WHERE a.id < b.id AND a.chain_id = b.chain_id AND LOWER(a.address) = LOWER(b.address);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_multisig_wallets_chain_address
+  ON multisig_wallets (chain_id, LOWER(address));
+
+CREATE TABLE IF NOT EXISTS saved_contracts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_address TEXT NOT NULL,
+  chain_id INTEGER NOT NULL,
+  chain_name TEXT NOT NULL DEFAULT '',
+  address TEXT NOT NULL,
+  name TEXT NOT NULL,
+  abi JSONB NOT NULL DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_saved_contracts_owner_chain_address
+  ON saved_contracts (LOWER(owner_address), chain_id, LOWER(address));
+
+CREATE TABLE IF NOT EXISTS factories (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_address TEXT NOT NULL,
+  chain_id INTEGER NOT NULL,
+  chain_name TEXT NOT NULL DEFAULT '',
+  address TEXT NOT NULL,
+  name TEXT NOT NULL,
+  version TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_factories_owner_chain_address
+  ON factories (LOWER(owner_address), chain_id, LOWER(address));

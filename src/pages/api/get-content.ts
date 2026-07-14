@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { providers, Wallet } from 'ethers'
 
 import { getSql } from '../../lib/db/neon'
-import { rowToMultiSigRequest } from '../../lib/db/mappers'
+import { rowToMultiSigRequest, rowToMultiSig } from '../../lib/db/mappers'
 import { isVerifiedAs } from '../../lib/auth/siwe'
 import signData from '../../utils/signData'
 
@@ -80,6 +80,66 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           return res.status(404).json({ message: 'Data not found' })
         }
         const content = [rowToMultiSigRequest(arr[0])]
+        return res.status(200).json({
+          message: 'Data retrieved',
+          content
+        })
+      }
+      case 'getMultiSigWallets': {
+        // Every wallet (any chain) where the verified account is an owner, so
+        // a fresh browser can rebuild its list from the database.
+        if (!isVerifiedAs(req, data.data.ownerAddress)) {
+          return res.status(401).json({ message: 'Owner does not match the verified wallet' })
+        }
+        const rows = (await sql`
+          SELECT * FROM multisig_wallets
+          WHERE EXISTS (
+            SELECT 1 FROM jsonb_array_elements_text(owners) AS o
+            WHERE LOWER(o) = LOWER(${data.data.ownerAddress})
+          )
+        `) as Record<string, unknown>[]
+        return res.status(200).json({
+          message: 'Data retrieved',
+          content: rows.map(rowToMultiSig)
+        })
+      }
+      case 'getSavedContracts': {
+        if (!isVerifiedAs(req, data.data.ownerAddress)) {
+          return res.status(401).json({ message: 'Owner does not match the verified wallet' })
+        }
+        const rows = (await sql`
+          SELECT id, chain_id, chain_name, address, name, abi FROM saved_contracts
+          WHERE LOWER(owner_address) = LOWER(${data.data.ownerAddress})
+        `) as Record<string, unknown>[]
+        const content = rows.map((row) => ({
+          id: String(row.id),
+          chainId: Number(row.chain_id),
+          chainName: String(row.chain_name ?? ''),
+          address: String(row.address),
+          name: String(row.name),
+          abi: row.abi ?? []
+        }))
+        return res.status(200).json({
+          message: 'Data retrieved',
+          content
+        })
+      }
+      case 'getFactories': {
+        if (!isVerifiedAs(req, data.data.ownerAddress)) {
+          return res.status(401).json({ message: 'Owner does not match the verified wallet' })
+        }
+        const rows = (await sql`
+          SELECT chain_id, chain_name, address, name, version FROM factories
+          WHERE LOWER(owner_address) = LOWER(${data.data.ownerAddress})
+        `) as Record<string, unknown>[]
+        const content = rows.map((row) => ({
+          chainId: Number(row.chain_id),
+          chainName: String(row.chain_name ?? ''),
+          address: String(row.address),
+          name: String(row.name),
+          version: String(row.version ?? ''),
+          multiSigCount: 0
+        }))
         return res.status(200).json({
           message: 'Data retrieved',
           content

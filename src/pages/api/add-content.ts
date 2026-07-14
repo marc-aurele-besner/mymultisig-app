@@ -109,7 +109,28 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(200).json({ message: 'Add content done' })
       }
       case 'createMultiSigWallet': {
+        // Upsert on (chain, address): saving the same wallet from another
+        // device refreshes the row instead of duplicating it.
         const doc = data.data
+        const existing = (await sql`
+          SELECT id FROM multisig_wallets
+          WHERE chain_id = ${doc.chainId} AND LOWER(address) = LOWER(${doc.address})
+          LIMIT 1
+        `) as { id: number }[]
+        if (existing.length > 0) {
+          await sql`
+            UPDATE multisig_wallets SET
+              threshold = ${doc.threshold},
+              owner_count = ${doc.ownerCount},
+              nonce = ${doc.nonce ?? 0},
+              owners = ${JSON.stringify(doc.owners ?? [])},
+              wallet_type = ${doc.walletType ?? 'simple'},
+              allow_only_owner_request = ${doc.allowOnlyOwnerRequest ?? false}
+            WHERE id = ${existing[0].id}
+          `
+          console.log('Add content done (updated existing wallet)')
+          return res.status(200).json({ message: 'Add content done' })
+        }
         await sql`
           INSERT INTO multisig_wallets (
             chain_id, chain_name, factory_address, contract_id, name, version,
@@ -195,6 +216,61 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
         console.log('Address book upsert done')
         return res.status(200).json({ message: 'Address book upsert done' })
+      }
+      case 'addSavedContract': {
+        // Upsert a call-builder contract (name + ABI) for the verified owner.
+        const doc = data.data
+        if (!doc.ownerAddress || !doc.address || doc.chainId === undefined || !doc.name || doc.abi == null) {
+          return res.status(400).json({ message: 'Missing saved contract fields' })
+        }
+        if (!isVerifiedAs(req, doc.ownerAddress)) {
+          return res.status(401).json({ message: 'Contract owner does not match the verified wallet' })
+        }
+        const existing = (await sql`
+          SELECT id FROM saved_contracts
+          WHERE LOWER(owner_address) = LOWER(${doc.ownerAddress})
+            AND chain_id = ${doc.chainId}
+            AND LOWER(address) = LOWER(${doc.address})
+          LIMIT 1
+        `) as { id: string }[]
+        if (existing.length > 0) {
+          await sql`
+            UPDATE saved_contracts SET name = ${doc.name}, abi = ${JSON.stringify(doc.abi)}
+            WHERE id = ${existing[0].id}
+          `
+        } else {
+          await sql`
+            INSERT INTO saved_contracts (id, owner_address, chain_id, chain_name, address, name, abi)
+            VALUES (${uuid()}, ${doc.ownerAddress}, ${doc.chainId}, ${doc.chainName ?? ''}, ${doc.address}, ${doc.name}, ${JSON.stringify(doc.abi)})
+          `
+        }
+        console.log('Saved contract upsert done')
+        return res.status(200).json({ message: 'Saved contract upsert done' })
+      }
+      case 'addFactory': {
+        // Upsert a user-deployed factory so it follows the account.
+        const doc = data.data
+        if (!doc.ownerAddress || !doc.address || doc.chainId === undefined || !doc.name) {
+          return res.status(400).json({ message: 'Missing factory fields' })
+        }
+        if (!isVerifiedAs(req, doc.ownerAddress)) {
+          return res.status(401).json({ message: 'Factory owner does not match the verified wallet' })
+        }
+        const existing = (await sql`
+          SELECT id FROM factories
+          WHERE LOWER(owner_address) = LOWER(${doc.ownerAddress})
+            AND chain_id = ${doc.chainId}
+            AND LOWER(address) = LOWER(${doc.address})
+          LIMIT 1
+        `) as { id: string }[]
+        if (existing.length === 0) {
+          await sql`
+            INSERT INTO factories (id, owner_address, chain_id, chain_name, address, name, version)
+            VALUES (${uuid()}, ${doc.ownerAddress}, ${doc.chainId}, ${doc.chainName ?? ''}, ${doc.address}, ${doc.name}, ${doc.version ?? ''})
+          `
+        }
+        console.log('Factory upsert done')
+        return res.status(200).json({ message: 'Factory upsert done' })
       }
       case 'removeAddressBookEntry': {
         const doc = data.data

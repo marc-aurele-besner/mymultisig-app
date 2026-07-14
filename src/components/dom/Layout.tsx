@@ -1,14 +1,14 @@
 import React from 'react'
 import HeaderBox from '../header/HeaderBox'
 import FooterBox from '../footer/FooterBox'
-import useAddressBookSync from '../../hooks/useAddressBookSync'
+import useAccountSync from '../../hooks/useAccountSync'
 
 interface LayoutProps {
   children: React.ReactNode
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  useAddressBookSync()
+  useAccountSync()
   return (
     <div className="relative flex min-h-screen flex-col">
       {/* Ambient background: a single ember glow anchored to the top, over a faint grid */}

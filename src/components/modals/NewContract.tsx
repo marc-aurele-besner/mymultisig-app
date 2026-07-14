@@ -13,6 +13,7 @@ import { useAccount, useChainId, useChains } from 'wagmi'
 import { Contract } from '../../models/Contracts'
 import AddContactForm from '../forms/AddContactForm'
 import useContracts from '../../states/contracts'
+import { persistSavedContract } from '../../utils/accountSync'
 
 const NewContract: React.FC = () => {
   const [open, setOpen] = useState(false)
@@ -39,6 +40,7 @@ const NewContract: React.FC = () => {
 
   const handleSubmit = () => {
     addContract(contract)
+    persistSavedContract(contract, address)
     setOpen(false)
   }
 
