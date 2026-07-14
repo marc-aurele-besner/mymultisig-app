@@ -22,7 +22,8 @@ import {
   Sun as SunIconLucide,
   Link as LinkIconLucide,
   Info as InfoIconLucide,
-  ArrowLeft as ArrowLeftIconLucide
+  ArrowLeft as ArrowLeftIconLucide,
+  Coins as CoinsIconLucide
 } from 'lucide-react'
 import React from 'react'
 import { cn } from '@/lib/utils'
@@ -36,15 +37,7 @@ export type IconProps = React.SVGProps<SVGSVGElement> & {
 const withIcon = (Icon: React.ComponentType<IconProps>, displayName: string) => {
   const Wrapped = ({ className, size, boxSize, ...props }: IconProps) => {
     const dim = size ?? boxSize ?? 24
-    return (
-    <Icon
-      className={cn('inline-block shrink-0', className)}
-      size={dim}
-      width={dim}
-      height={dim}
-      {...props}
-    />
-    )
+    return <Icon className={cn('inline-block shrink-0', className)} size={dim} width={dim} height={dim} {...props} />
   }
   Wrapped.displayName = displayName
   return Wrapped
@@ -71,3 +64,4 @@ export const LinkIcon = withIcon(LinkIconLucide, 'LinkIcon')
 export const InfoIcon = withIcon(InfoIconLucide, 'InfoIcon')
 export const InfoOutlineIcon = withIcon(InfoIconLucide, 'InfoOutlineIcon')
 export const ArrowBackIcon = withIcon(ArrowLeftIconLucide, 'ArrowBackIcon')
+export const CoinsIcon = withIcon(CoinsIconLucide, 'CoinsIcon')

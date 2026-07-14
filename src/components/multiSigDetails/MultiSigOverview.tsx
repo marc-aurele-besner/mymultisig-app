@@ -3,9 +3,10 @@ import Link from 'next/link'
 import { useAccount, useBalance, useChainId, useChains } from 'wagmi'
 import { formatEther } from 'viem'
 import { Button } from '@/components/ui/button'
-import { AddIcon } from '../icons/ChakraIcons'
+import { AddIcon, CoinsIcon } from '../icons/ChakraIcons'
 
 import { ActivityEntryRow } from './MultiSigActivityFeed'
+import FundMultiSigModal from '../modals/FundMultiSigModal'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useMultiSigActivity from '../../hooks/useMultiSigActivity'
 import useAdminEventSync from '../../hooks/useAdminEventSync'
@@ -44,6 +45,7 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
   })
   const { multiSigs } = useMultiSigs()
   const { labelFor } = useAddressLabels(chain?.id)
+  const [fundModalOpen, setFundModalOpen] = React.useState(false)
   useAdminEventSync(multiSigAddress)
 
   const stored = multiSigs.find((m) => m.address.toLowerCase() === multiSigAddress.toLowerCase())
@@ -105,7 +107,12 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
         <Button size='lg' variant='outline' asChild>
           <Link href={`/multisig/${multiSigAddress}/requests`}>Review pending requests</Link>
         </Button>
+        <Button size='lg' variant='outline' className='gap-2' onClick={() => setFundModalOpen(true)}>
+          <CoinsIcon className='h-4 w-4' />
+          Fund wallet
+        </Button>
       </div>
+      <FundMultiSigModal multiSigAddress={multiSigAddress} open={fundModalOpen} onOpenChange={setFundModalOpen} />
 
       <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
         <div className='flex flex-col gap-2 rounded-xl border border-border p-4'>
