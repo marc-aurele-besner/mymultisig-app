@@ -7,6 +7,7 @@ import { CheckCircleIcon, ExternalLinkIcon, SettingsIcon, AddIcon } from '../ico
 import useConfirmation from '../../hooks/useConfirmation'
 import useMyMultiSigCreated from '../../hooks/useMyMultiSigCreated'
 import { MultiSigConstructorArgs } from '../../models/MultiSigs'
+import { extractMyMultiSigCreated } from '../../utils/multiSigCreated'
 import { verifyContract } from '../../utils/api'
 
 interface ConfirmationCardProps {
@@ -15,16 +16,25 @@ interface ConfirmationCardProps {
   constructorArgs: MultiSigConstructorArgs
 }
 
-// Waits for the creation event, triggers contract verification, then shows the
-// deployed wallet with next-step CTAs so the user can jump straight into it.
-const ConfirmationWithEventDetailCard: React.FC<ConfirmationCardProps> = ({
+interface ConfirmationDetailProps extends ConfirmationCardProps {
+  // Address parsed from the receipt logs; null when parsing found no event.
+  addressFromReceipt: string | null
+}
+
+// Shows the deployed wallet with next-step CTAs and triggers contract
+// verification. The address comes from the receipt logs (deterministic); the
+// factory event watcher only remains as a fallback for receipts whose logs
+// fail to parse.
+const ConfirmationWithEventDetailCard: React.FC<ConfirmationDetailProps> = ({
   multiSigFactoryAddress,
-  constructorArgs
+  constructorArgs,
+  addressFromReceipt
 }) => {
   const chainId = useChainId()
   const chains = useChains()
   const chain = chains.find((c) => c.id === chainId)
-  const { multiSigAddress } = useMyMultiSigCreated(multiSigFactoryAddress)
+  const { multiSigAddress: addressFromWatcher } = useMyMultiSigCreated(multiSigFactoryAddress)
+  const multiSigAddress = addressFromReceipt ?? addressFromWatcher
 
   useEffect(() => {
     if (multiSigAddress && constructorArgs) {
@@ -76,7 +86,9 @@ const ConfirmationWithEventDetailCard: React.FC<ConfirmationCardProps> = ({
 }
 
 const ConfirmationCard: React.FC<ConfirmationCardProps> = ({ hash, multiSigFactoryAddress, constructorArgs }) => {
-  const { error, isLoading, isSuccess } = useConfirmation(hash)
+  const { data: receipt, error, isLoading, isSuccess } = useConfirmation(hash)
+  const addressFromReceipt =
+    receipt != null ? (extractMyMultiSigCreated(receipt.logs)?.args.contractAddress ?? null) : null
 
   return (
     <Fragment>
@@ -99,6 +111,7 @@ const ConfirmationCard: React.FC<ConfirmationCardProps> = ({ hash, multiSigFacto
             hash={hash}
             multiSigFactoryAddress={multiSigFactoryAddress}
             constructorArgs={constructorArgs}
+            addressFromReceipt={addressFromReceipt}
           />
         </Fragment>
       )}

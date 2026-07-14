@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useAccount, useChainId, useChains, useWatchContractEvent } from 'wagmi'
 import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
 import contractConstants from 'mymultisig-contract/constants'
@@ -7,6 +8,7 @@ import { MultiSigConstructorArgs, MultiSig } from '../models/MultiSigs'
 import useMultiSigs from '../states/multiSigs'
 import { useNotification } from './notifications'
 import useFinalizeTransaction from './useFinalizeTransaction'
+import { extractMyMultiSigCreated } from '../utils/multiSigCreated'
 import { signData, addContent } from '../utils'
 
 const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFactoryAddress: `0x${string}`) => {
@@ -31,6 +33,10 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
   }
   const { data, error, isError, isPending, isSuccess, writeContract, writeContractAsync, reset, status, dataFinal, isFinal } =
     useFinalizeTransaction(config, notificationInfo, notificationSuccess, notificationError)
+  // Addresses already handed to signData/addContent this session, so the
+  // receipt path and the event-watcher path cannot double-write to Neon (the
+  // Zustand duplicate check alone races with the async signature round-trip).
+  const persistedAddresses = useRef(new Set<string>())
 
   const persistCreatedMultiSig = (log: any, contractVersion: string) => {
     const args = log.args || (log as any)
@@ -47,6 +53,8 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
     // The watcher sees every creation on this factory; only persist our own.
     if (account && creator.toLowerCase() !== account.toLowerCase()) return
     if (multiSigs.some((m) => m.address.toLowerCase() === contractAddress.toLowerCase())) return
+    if (persistedAddresses.current.has(contractAddress.toLowerCase())) return
+    persistedAddresses.current.add(contractAddress.toLowerCase())
     const dataToAdd: MultiSig = {
       chainId: chain.id,
       chainName: chain.name,
@@ -76,6 +84,17 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
       })
     })
   }
+
+  // Primary persistence path: parse the creation event straight from the
+  // transaction receipt once it confirms. Unlike the watchers below, this
+  // cannot miss the event.
+  useEffect(() => {
+    if (!isFinal || dataFinal == null) return
+    const created = extractMyMultiSigCreated(dataFinal.logs)
+    if (created != null) persistCreatedMultiSig({ args: created.args }, created.contractVersion)
+    // persistCreatedMultiSig is recreated per render; the receipt is the real dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFinal, dataFinal])
 
   // Factory 0.1.x appends `threshold` to MyMultiSigCreated (new topic hash);
   // watch both shapes so old deployed factories keep working.
