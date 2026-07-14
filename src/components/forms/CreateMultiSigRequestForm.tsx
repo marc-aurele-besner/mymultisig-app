@@ -12,6 +12,7 @@ import NewContract from '../modals/NewContract'
 import BatchRequestForm from './BatchRequestForm'
 import useContracts from '../../states/contracts'
 import useAddressBook, { useAddressLabels } from '../../states/addressBook'
+import { persistAddressBookUpsert } from '../../utils/addressBookSync'
 import useCallData from '../../hooks/useCallData'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
@@ -219,12 +220,14 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
                           variant='outline'
                           disabled={receiverLabel.trim() === ''}
                           onClick={() => {
-                            addEntry({
+                            const entry = {
                               chainId,
                               address: request.to as `0x${string}`,
                               label: receiverLabel.trim(),
-                              kind: 'wallet'
-                            })
+                              kind: 'wallet' as const
+                            }
+                            addEntry(entry)
+                            persistAddressBookUpsert(entry, address)
                             setReceiverLabel('')
                           }}
                         >

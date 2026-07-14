@@ -155,6 +155,48 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log('Update wallet done')
         return res.status(200).json({ message: 'Update wallet done' })
       }
+      case 'addAddressBookEntry': {
+        // Upsert: saving an address that already exists for this owner/chain
+        // just refreshes its label and kind.
+        const doc = data.data
+        if (!doc.ownerAddress || !doc.address || doc.chainId === undefined || !doc.label) {
+          return res.status(400).json({ message: 'Missing address book fields' })
+        }
+        const existing = (await sql`
+          SELECT id FROM address_book
+          WHERE LOWER(owner_address) = LOWER(${doc.ownerAddress})
+            AND chain_id = ${doc.chainId}
+            AND LOWER(address) = LOWER(${doc.address})
+          LIMIT 1
+        `) as { id: string }[]
+        if (existing.length > 0) {
+          await sql`
+            UPDATE address_book SET label = ${doc.label}, kind = ${doc.kind ?? 'wallet'}
+            WHERE id = ${existing[0].id}
+          `
+        } else {
+          await sql`
+            INSERT INTO address_book (id, owner_address, chain_id, address, label, kind)
+            VALUES (${uuid()}, ${doc.ownerAddress}, ${doc.chainId}, ${doc.address}, ${doc.label}, ${doc.kind ?? 'wallet'})
+          `
+        }
+        console.log('Address book upsert done')
+        return res.status(200).json({ message: 'Address book upsert done' })
+      }
+      case 'removeAddressBookEntry': {
+        const doc = data.data
+        if (!doc.ownerAddress || !doc.address || doc.chainId === undefined) {
+          return res.status(400).json({ message: 'Missing address book fields' })
+        }
+        await sql`
+          DELETE FROM address_book
+          WHERE LOWER(owner_address) = LOWER(${doc.ownerAddress})
+            AND chain_id = ${doc.chainId}
+            AND LOWER(address) = LOWER(${doc.address})
+        `
+        console.log('Address book removal done')
+        return res.status(200).json({ message: 'Address book removal done' })
+      }
       default:
         return res.status(400).json({ message: 'Invalid collection' })
     }

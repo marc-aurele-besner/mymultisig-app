@@ -8,6 +8,7 @@ import TextInput from '../inputs/TextInput'
 import useAddressBook, { AddressBookEntry, AddressBookEntryKind } from '../../states/addressBook'
 import useContracts from '../../states/contracts'
 import useMultiSigs from '../../states/multiSigs'
+import { persistAddressBookUpsert, persistAddressBookRemoval } from '../../utils/addressBookSync'
 
 interface AddressBookProps {
   multiSigAddress: `0x${string}`
@@ -20,14 +21,29 @@ const KIND_BADGE: Record<AddressBookEntryKind, string> = {
   contract: 'bg-muted text-muted-foreground'
 }
 
-const EntryRow: React.FC<{ entry: AddressBookEntry; explorerUrl?: string }> = ({ entry, explorerUrl }) => {
+const EntryRow: React.FC<{ entry: AddressBookEntry; explorerUrl?: string; ownerAddress?: string }> = ({
+  entry,
+  explorerUrl,
+  ownerAddress
+}) => {
   const { updateEntry, removeEntry } = useAddressBook()
   const [editing, setEditing] = useState(false)
   const [label, setLabel] = useState(entry.label)
 
   const saveLabel = () => {
-    if (label.trim() !== '') updateEntry(entry.id, { label: label.trim() })
+    if (label.trim() !== '') {
+      updateEntry(entry.id, { label: label.trim() })
+      persistAddressBookUpsert(
+        { chainId: entry.chainId, address: entry.address, label: label.trim(), kind: entry.kind },
+        ownerAddress
+      )
+    }
     setEditing(false)
+  }
+
+  const handleRemove = () => {
+    removeEntry(entry.id)
+    persistAddressBookRemoval(entry, ownerAddress)
   }
 
   return (
@@ -79,7 +95,7 @@ const EntryRow: React.FC<{ entry: AddressBookEntry; explorerUrl?: string }> = ({
           size='icon'
           aria-label='Remove entry'
           className='text-muted-foreground hover:bg-destructive/10 hover:text-destructive'
-          onClick={() => removeEntry(entry.id)}
+          onClick={handleRemove}
         >
           <DeleteIcon className='h-4 w-4' />
         </Button>
@@ -133,7 +149,9 @@ const AddressBook: React.FC<AddressBookProps> = ({ multiSigAddress }) => {
 
   const handleAdd = () => {
     if (!canAdd || chain == null) return
-    addEntry({ chainId: chain.id, address: newAddress as `0x${string}`, label: newLabel.trim(), kind: newKind })
+    const entry = { chainId: chain.id, address: newAddress as `0x${string}`, label: newLabel.trim(), kind: newKind }
+    addEntry(entry)
+    persistAddressBookUpsert(entry, connectedAddress)
     setNewAddress('')
     setNewLabel('')
     setNewKind('wallet')
@@ -196,7 +214,11 @@ const AddressBook: React.FC<AddressBookProps> = ({ multiSigAddress }) => {
                 size='sm'
                 variant='outline'
                 className='gap-1'
-                onClick={() => chain != null && addEntry({ chainId: chain.id, ...s })}
+                onClick={() => {
+                  if (chain == null) return
+                  addEntry({ chainId: chain.id, ...s })
+                  persistAddressBookUpsert({ chainId: chain.id, ...s }, connectedAddress)
+                }}
               >
                 <AddIcon className='h-3.5 w-3.5' />
                 Add to book
@@ -216,7 +238,12 @@ const AddressBook: React.FC<AddressBookProps> = ({ multiSigAddress }) => {
           </p>
         ) : (
           chainEntries.map((entry) => (
-            <EntryRow key={entry.id} entry={entry} explorerUrl={chain?.blockExplorers?.default?.url} />
+            <EntryRow
+              key={entry.id}
+              entry={entry}
+              explorerUrl={chain?.blockExplorers?.default?.url}
+              ownerAddress={connectedAddress}
+            />
           ))
         )}
       </div>

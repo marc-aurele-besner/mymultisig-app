@@ -49,3 +49,17 @@ CREATE TABLE IF NOT EXISTS multisig_wallets (
 -- Idempotent migration for databases created before wallet_type existed.
 ALTER TABLE multisig_wallets ADD COLUMN IF NOT EXISTS wallet_type TEXT NOT NULL DEFAULT 'simple';
 ALTER TABLE multisig_wallets ADD COLUMN IF NOT EXISTS allow_only_owner_request BOOLEAN NOT NULL DEFAULT false;
+
+CREATE TABLE IF NOT EXISTS address_book (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_address TEXT NOT NULL,
+  chain_id INTEGER NOT NULL,
+  address TEXT NOT NULL,
+  label TEXT NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'wallet',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- One label per (owner, chain, address); upserts key on this.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_address_book_owner_chain_address
+  ON address_book (LOWER(owner_address), chain_id, LOWER(address));

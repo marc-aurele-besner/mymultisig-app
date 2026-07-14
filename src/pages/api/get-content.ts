@@ -84,6 +84,24 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           content
         })
       }
+      case 'getAddressBook': {
+        // All chains at once so a network switch client-side needs no refetch.
+        const rows = (await sql`
+          SELECT id, chain_id, address, label, kind FROM address_book
+          WHERE LOWER(owner_address) = LOWER(${data.data.ownerAddress})
+        `) as Record<string, unknown>[]
+        const content = rows.map((row) => ({
+          id: String(row.id),
+          chainId: Number(row.chain_id),
+          address: String(row.address),
+          label: String(row.label),
+          kind: String(row.kind)
+        }))
+        return res.status(200).json({
+          message: 'Data retrieved',
+          content
+        })
+      }
       default:
         return res.status(400).json({ message: 'Invalid collection' })
     }
