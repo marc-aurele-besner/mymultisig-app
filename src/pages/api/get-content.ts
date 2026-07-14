@@ -3,6 +3,7 @@ import { providers, Wallet } from 'ethers'
 
 import { getSql } from '../../lib/db/neon'
 import { rowToMultiSigRequestDB } from '../../lib/db/mappers'
+import { isVerifiedAs } from '../../lib/auth/siwe'
 import signData from '../../utils/signData'
 
 if (!process.env.DATABASE_URL) throw new Error('No DATABASE_URL in .env file')
@@ -85,6 +86,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         })
       }
       case 'getAddressBook': {
+        // The book is private to its owner; require the SIWE session to match.
+        if (!isVerifiedAs(req, data.data.ownerAddress)) {
+          return res.status(401).json({ message: 'Address book owner does not match the verified wallet' })
+        }
         // All chains at once so a network switch client-side needs no refetch.
         const rows = (await sql`
           SELECT id, chain_id, address, label, kind FROM address_book

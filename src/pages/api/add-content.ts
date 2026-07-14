@@ -3,6 +3,7 @@ import { providers, Wallet } from 'ethers'
 import { v4 as uuid } from 'uuid'
 
 import { getSql } from '../../lib/db/neon'
+import { getVerifiedAddress, isVerifiedAs } from '../../lib/auth/siwe'
 import signData from '../../utils/signData'
 
 if (!process.env.DATABASE_URL) throw new Error('No DATABASE_URL in .env file')
@@ -57,9 +58,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const sql = getSql()
 
+    // Every write requires a SIWE session; actions that claim an identity
+    // additionally require the session wallet to match that identity.
+    if (getVerifiedAddress(req) == null) {
+      return res.status(401).json({ message: 'Wallet not verified: sign in with your wallet first' })
+    }
+
     switch (data.action) {
       case 'addMultiSigRequest': {
         const doc = { id: uuid(), ...data.data }
+        if (!isVerifiedAs(req, doc.submitter)) {
+          return res.status(401).json({ message: 'Submitter does not match the verified wallet' })
+        }
         // Extended wallets can restrict request creation to owners. Enforce it
         // server-side when the wallet is on record with a usable owner list.
         const wallets = (await sql`
@@ -162,6 +172,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (!doc.ownerAddress || !doc.address || doc.chainId === undefined || !doc.label) {
           return res.status(400).json({ message: 'Missing address book fields' })
         }
+        if (!isVerifiedAs(req, doc.ownerAddress)) {
+          return res.status(401).json({ message: 'Address book owner does not match the verified wallet' })
+        }
         const existing = (await sql`
           SELECT id FROM address_book
           WHERE LOWER(owner_address) = LOWER(${doc.ownerAddress})
@@ -187,6 +200,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const doc = data.data
         if (!doc.ownerAddress || !doc.address || doc.chainId === undefined) {
           return res.status(400).json({ message: 'Missing address book fields' })
+        }
+        if (!isVerifiedAs(req, doc.ownerAddress)) {
+          return res.status(401).json({ message: 'Address book owner does not match the verified wallet' })
         }
         await sql`
           DELETE FROM address_book
