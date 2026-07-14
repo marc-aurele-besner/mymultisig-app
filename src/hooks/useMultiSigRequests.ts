@@ -1,18 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useChainId, useChains } from 'wagmi'
 
 import { MultiSigTransactionRequest } from '../models/MultiSigs'
 import { signData, getContent } from '../utils'
 
 const useMultiSigRequests = (multiSigAddress: `0x${string}`) => {
-  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
-  const [dataIsLoading, setDataIsLoading] = useState(false)
-  const [request, setRequest] = useState<MultiSigTransactionRequest[] | null>(null)
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
+  const [requests, setRequests] = useState<MultiSigTransactionRequest[] | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isError, setIsError] = useState(false)
 
-  useEffect(() => {
-    if (chain && !dataIsLoading) {
-      setDataIsLoading(true)
-      signData({
+  const fetchRequests = useCallback(async () => {
+    if (!chain) return
+    setIsLoading(true)
+    setIsError(false)
+    try {
+      const dataSigned = await signData({
         action: 'getMultiSigRequests',
         chainId: chain.id,
         collection: 'multisig-requests',
@@ -21,15 +26,26 @@ const useMultiSigRequests = (multiSigAddress: `0x${string}`) => {
         },
         details: 'Get MultiSig Request',
         signatureExpiry: 0
-      }).then(async (dataSigned) => {
-        getContent(dataSigned.message).then((data) => {
-          if (data && data.content) setRequest(data.content)
-        })
       })
+      const data = await getContent(dataSigned.message)
+      if (data != null && Array.isArray(data.content)) {
+        setRequests(data.content)
+      } else {
+        setIsError(true)
+      }
+    } catch {
+      setIsError(true)
+    } finally {
+      setIsLoading(false)
     }
-  }, [dataIsLoading, chain, multiSigAddress])
+  }, [chain, multiSigAddress])
 
-  return request
+  useEffect(() => {
+    setRequests(null)
+    void fetchRequests()
+  }, [fetchRequests])
+
+  return { requests, isLoading, isError, refetch: fetchRequests }
 }
 
 export default useMultiSigRequests

@@ -15,18 +15,19 @@ const Page: React.FC = () => {
     address != null ? (address as `0x${string}`) : '0x'
   )
 
-  if (
-    address == null ||
-    multisigAddress == null ||
-    multiSigDetails == null ||
-    Array.isArray(multisigAddress) ||
-    !multisigAddress.startsWith('0x')
-  )
+  if (address == null || multisigAddress == null || Array.isArray(multisigAddress) || !multisigAddress.startsWith('0x'))
     return null
 
   return (
     <MultiSigPageLayout multiSigAddress={multisigAddress as `0x${string}`}>
-      <MultiSigRequestList multiSigAddress={multisigAddress as `0x${string}`} multiSigDetails={multiSigDetails} />
+      {multiSigDetails == null ? (
+        <div className='flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-muted/30 p-6'>
+          <span className='h-3 w-3 animate-pulse rounded-full bg-primary' />
+          <span className='text-sm text-muted-foreground'>Reading the multisig contract...</span>
+        </div>
+      ) : (
+        <MultiSigRequestList multiSigAddress={multisigAddress as `0x${string}`} multiSigDetails={multiSigDetails} />
+      )}
     </MultiSigPageLayout>
   )
 }
