@@ -7,7 +7,7 @@ import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../mode
 import { useNotification, useNotificationWarning } from './notifications'
 import useFinalizeTransaction from './useFinalizeTransaction'
 import useMultiSigs from '../states/multiSigs'
-import { signData, updateContent } from '../utils'
+import { updateContent } from '../utils'
 import { applyAdminActionToMultiSig, decodeSelfCall } from '../utils/adminActions'
 import persistMultiSigWalletPatch from '../utils/persistWallet'
 
@@ -17,7 +17,9 @@ const useExecTransaction = (
   existingRequest: MultiSigTransactionRequest,
   existingRequestId: string
 ) => {
-  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
   const { notificationInfo, notificationError, notificationSuccess } = useNotification()
   const notificationEndOfLife = useNotificationWarning('Wallet approaching end of life')
   const { updateMultiSigTransactionRequest, updateMultiSig, multiSigs, multiSigTransactionRequests } = useMultiSigs()
@@ -42,8 +44,19 @@ const useExecTransaction = (
       }
   const preparationError = null
   const preparationIsError = false
-  const { data, error, isError, isPending, isSuccess, writeContract, writeContractAsync, reset, status, dataFinal, isFinal } =
-    useFinalizeTransaction(config, notificationInfo, notificationSuccess, notificationError)
+  const {
+    data,
+    error,
+    isError,
+    isPending,
+    isSuccess,
+    writeContract,
+    writeContractAsync,
+    reset,
+    status,
+    dataFinal,
+    isFinal
+  } = useFinalizeTransaction(config, notificationInfo, notificationSuccess, notificationError)
 
   const markExecuted = (isSuccessful: boolean, requestPatch?: Partial<MultiSigExecTransactionArgs>) => {
     if (!chain || !existingRequestId) return
@@ -53,17 +66,8 @@ const useExecTransaction = (
       isExecuted: true,
       isSuccessful
     }
-    signData({
-      action: 'updateMultiSigRequest',
-      chainId: chain.id,
-      collection: 'multisig-requests',
-      data: patch,
-      details: 'Update MultiSig Request',
-      signatureExpiry: 0
-    }).then(async (dataSigned) => {
-      updateContent(dataSigned.message, existingRequestId).then(() => {
-        updateMultiSigTransactionRequest(existingRequest.id, { ...existingRequest, ...patch })
-      })
+    updateContent({ action: 'updateMultiSigRequest', data: patch }, existingRequestId).then(() => {
+      updateMultiSigTransactionRequest(existingRequest.id, { ...existingRequest, ...patch })
     })
     // Owner/threshold operations are self-calls; once executed, mirror their
     // effect onto the locally stored wallet and into Neon (there is no
@@ -101,17 +105,8 @@ const useExecTransaction = (
       )
       .forEach((r) => {
         const cancelPatch = { isActive: false, isCancelled: true }
-        signData({
-          action: 'updateMultiSigRequest',
-          chainId: chain.id,
-          collection: 'multisig-requests',
-          data: cancelPatch,
-          details: 'Update MultiSig Request',
-          signatureExpiry: 0
-        }).then((dataSigned) => {
-          updateContent(dataSigned.message, r.id).then(() => {
-            updateMultiSigTransactionRequest(r.id, { ...r, ...cancelPatch })
-          })
+        updateContent({ action: 'updateMultiSigRequest', data: cancelPatch }, r.id).then(() => {
+          updateMultiSigTransactionRequest(r.id, { ...r, ...cancelPatch })
         })
       })
   }

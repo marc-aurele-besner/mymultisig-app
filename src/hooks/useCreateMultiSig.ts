@@ -9,10 +9,12 @@ import useMultiSigs from '../states/multiSigs'
 import { useNotification } from './notifications'
 import useFinalizeTransaction from './useFinalizeTransaction'
 import { extractMyMultiSigCreated } from '../utils/multiSigCreated'
-import { signData, addContent } from '../utils'
+import { addContent } from '../utils'
 
 const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFactoryAddress: `0x${string}`) => {
-  const chainId = useChainId(); const chains = useChains(); const chain = chains.find(c => c.id === chainId)
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
   const { address: account } = useAccount()
   const { addMultiSig, multiSigs } = useMultiSigs()
   const { notificationInfo, notificationError, notificationSuccess } = useNotification()
@@ -31,11 +33,22 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
         ] as const)
       : ([constructorArgs.contractName, constructorArgs.owners, constructorArgs.threshold] as const)
   }
-  const { data, error, isError, isPending, isSuccess, writeContract, writeContractAsync, reset, status, dataFinal, isFinal } =
-    useFinalizeTransaction(config, notificationInfo, notificationSuccess, notificationError)
-  // Addresses already handed to signData/addContent this session, so the
+  const {
+    data,
+    error,
+    isError,
+    isPending,
+    isSuccess,
+    writeContract,
+    writeContractAsync,
+    reset,
+    status,
+    dataFinal,
+    isFinal
+  } = useFinalizeTransaction(config, notificationInfo, notificationSuccess, notificationError)
+  // Addresses already handed to addContent this session, so the
   // receipt path and the event-watcher path cannot double-write to Neon (the
-  // Zustand duplicate check alone races with the async signature round-trip).
+  // Zustand duplicate check alone races with the async API round-trip).
   const persistedAddresses = useRef(new Set<string>())
 
   const persistCreatedMultiSig = (log: any, contractVersion: string) => {
@@ -69,19 +82,10 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
       owners: originalOwners,
       isDeployed: true,
       walletType: constructorArgs.walletType ?? 'simple',
-      allowOnlyOwnerRequest: isExtended ? constructorArgs.isOnlyOwnerRequest ?? false : false
+      allowOnlyOwnerRequest: isExtended ? (constructorArgs.isOnlyOwnerRequest ?? false) : false
     }
-    signData({
-      action: 'createMultiSigWallet',
-      chainId: chain.id,
-      collection: 'multisig-wallets',
-      data: dataToAdd,
-      details: 'Add MultiSig Wallets',
-      signatureExpiry: 0
-    }).then(async (dataSigned) => {
-      addContent(dataSigned.message).then(() => {
-        addMultiSig(dataToAdd)
-      })
+    addContent({ action: 'createMultiSigWallet', data: dataToAdd }).then(() => {
+      addMultiSig(dataToAdd)
     })
   }
 

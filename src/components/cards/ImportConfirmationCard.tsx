@@ -8,7 +8,7 @@ import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
 import { MultiSig } from '../../models/MultiSigs'
 import useMultiSigs from '../../states/multiSigs'
-import { signData, addContent } from '../../utils'
+import { addContent } from '../../utils'
 
 interface ImportConfirmationCardProps {
   factoryAddress: `0x${string}`
@@ -60,16 +60,7 @@ const ImportConfirmationCard: React.FC<ImportConfirmationCardProps> = ({
     }
     setImported(true)
     addMultiSig(newMultiSig)
-    signData({
-      action: 'createMultiSigWallet',
-      chainId: chain.id,
-      collection: 'multisig-wallets',
-      data: newMultiSig,
-      details: 'Add MultiSig Wallets',
-      signatureExpiry: 0
-    }).then(async (dataSigned) => {
-      addContent(dataSigned.message)
-    })
+    void addContent({ action: 'createMultiSigWallet', data: newMultiSig })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imported, chain, isTypeFetched, data, multiSigAddress])
 

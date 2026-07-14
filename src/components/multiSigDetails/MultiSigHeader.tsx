@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { useAccount, useChainId, useChains } from 'wagmi'
-import { CopyIcon, CheckIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
+import { Button } from '@/components/ui/button'
+import { CopyIcon, CheckIcon, ExternalLinkIcon, CoinsIcon } from '../icons/ChakraIcons'
 
 import NetworkIcon from '../icons/NetworkIcon'
+import FundMultiSigModal from '../modals/FundMultiSigModal'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
 import useMultiSigs from '../../states/multiSigs'
@@ -23,6 +25,7 @@ const MultiSigHeader: React.FC<MultiSigHeaderProps> = ({ multiSigAddress }) => {
   const { walletType } = useWalletType(multiSigAddress)
   const { multiSigs } = useMultiSigs()
   const [copied, setCopied] = useState(false)
+  const [fundModalOpen, setFundModalOpen] = useState(false)
 
   const stored = multiSigs.find((m) => m.address.toLowerCase() === multiSigAddress.toLowerCase())
   const name = multiSigDetails?.name ?? stored?.name ?? 'Multisig'
@@ -72,12 +75,19 @@ const MultiSigHeader: React.FC<MultiSigHeaderProps> = ({ multiSigAddress }) => {
           )}
         </div>
       </div>
-      {chain && (
-        <span className='flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground'>
-          <NetworkIcon chainId={chain.id} name={chain.name} size={16} />
-          {chain.name}
-        </span>
-      )}
+      <div className='flex items-center gap-2'>
+        {chain && (
+          <span className='flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground'>
+            <NetworkIcon chainId={chain.id} name={chain.name} size={16} />
+            {chain.name}
+          </span>
+        )}
+        <Button className='gap-2' onClick={() => setFundModalOpen(true)}>
+          <CoinsIcon className='h-4 w-4' />
+          Fund wallet
+        </Button>
+      </div>
+      <FundMultiSigModal multiSigAddress={multiSigAddress} open={fundModalOpen} onOpenChange={setFundModalOpen} />
     </div>
   )
 }

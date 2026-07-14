@@ -6,7 +6,7 @@ import { useNotificationSuccess, useNotificationError } from './notifications'
 import useMultiSigDetails from './useMultiSigDetails'
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../models/MultiSigs'
 import useMultiSigs from '../states/multiSigs'
-import { signData, addContent, updateContent } from '../utils'
+import { addContent, updateContent } from '../utils'
 
 const useSignedMultiSigRequest = (
   multiSigAddress: `0x${string}`,
@@ -17,7 +17,7 @@ const useSignedMultiSigRequest = (
 ) => {
   const chainId = useChainId()
   const chains = useChains()
-  const chain = chains.find(c => c.id === chainId)
+  const chain = chains.find((c) => c.id === chainId)
   const { address } = useAccount()
   const { addMultiSigTransactionRequest, updateMultiSigTransactionRequest } = useMultiSigs()
   const { data: multiSigDetails } = useMultiSigDetails(multiSigAddress, address || '0x')
@@ -84,13 +84,13 @@ const useSignedMultiSigRequest = (
   } as const
 
   const { data, isError, isPending, isSuccess, error, signTypedData, reset } = useSignTypedData()
-  
+
   useEffect(() => {
     if (error) {
       notificationError()
     }
   }, [error, notificationError])
-  
+
   useEffect(() => {
     if (isSuccess && data) {
       notificationSuccess()
@@ -133,30 +133,12 @@ const useSignedMultiSigRequest = (
             isSuccessful: false
           }
       if (existingRequest && existingRequestId)
-        signData({
-          action: 'updateMultiSigRequest',
-          chainId: chain.id,
-          collection: 'multisig-requests',
-          data: dataToAdd,
-          details: 'Update MultiSig Request',
-          signatureExpiry: 0
-        }).then(async (dataSigned) => {
-          updateContent(dataSigned.message, existingRequestId).then(() => {
-            updateMultiSigTransactionRequest(existingRequest.id, dataToAdd)
-          })
+        updateContent({ action: 'updateMultiSigRequest', data: dataToAdd }, existingRequestId).then(() => {
+          updateMultiSigTransactionRequest(existingRequest.id, dataToAdd)
         })
       else
-        signData({
-          action: 'addMultiSigRequest',
-          chainId: chain.id,
-          collection: 'multisig-requests',
-          data: dataToAdd,
-          details: 'Add MultiSig Request',
-          signatureExpiry: 0
-        }).then(async (dataSigned) => {
-          addContent(dataSigned.message).then(() => {
-            addMultiSigTransactionRequest(dataToAdd)
-          })
+        addContent({ action: 'addMultiSigRequest', data: dataToAdd }).then(() => {
+          addMultiSigTransactionRequest(dataToAdd)
         })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
