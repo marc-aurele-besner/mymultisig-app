@@ -3,11 +3,13 @@ import Link from 'next/link'
 import { useAccount, useBalance, useChainId, useChains } from 'wagmi'
 import { formatEther } from 'viem'
 import { Button } from '@/components/ui/button'
-import { AddIcon, CoinsIcon } from '../icons/ChakraIcons'
+import { cn } from '@/lib/utils'
+import { CoinsIcon } from '../icons/ChakraIcons'
 
 import { ActivityEntryRow } from './MultiSigActivityFeed'
 import FundMultiSigModal from '../modals/FundMultiSigModal'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
+import useMultiSigRequests from '../../hooks/useMultiSigRequests'
 import useMultiSigActivity from '../../hooks/useMultiSigActivity'
 import useAdminEventSync from '../../hooks/useAdminEventSync'
 import useMultiSigs from '../../states/multiSigs'
@@ -20,13 +22,35 @@ interface MultiSigOverviewProps {
 
 const RECENT_ACTIVITY_COUNT = 5
 
-const StatTile: React.FC<{ label: string; value: React.ReactNode; hint?: string }> = ({ label, value, hint }) => (
-  <div className='flex flex-col gap-1 rounded-xl border border-border bg-muted/30 p-4'>
-    <span className='text-xs font-medium uppercase tracking-wide text-muted-foreground'>{label}</span>
-    <span className='text-2xl font-bold text-foreground'>{value}</span>
-    {hint != null && <span className='text-xs text-muted-foreground'>{hint}</span>}
-  </div>
-)
+// A tile can carry the action that belongs to its stat (e.g. Fund on Balance)
+// or link to the tab that details it, so the overview needs no separate
+// button row duplicating the navigation.
+const StatTile: React.FC<{
+  label: string
+  value: React.ReactNode
+  hint?: string
+  action?: React.ReactNode
+  href?: string
+}> = ({ label, value, hint, action, href }) => {
+  const content = (
+    <>
+      <div className='flex items-start justify-between gap-2'>
+        <span className='text-xs font-medium uppercase tracking-wide text-muted-foreground'>{label}</span>
+        {action}
+      </div>
+      <span className='text-2xl font-bold text-foreground'>{value}</span>
+      {hint != null && <span className='text-xs text-muted-foreground'>{hint}</span>}
+    </>
+  )
+  const tileClass = 'flex flex-col gap-1 rounded-xl border border-border bg-muted/30 p-4'
+  if (href != null)
+    return (
+      <Link href={href} className={cn(tileClass, 'transition-colors hover:border-primary/50 hover:bg-muted/60')}>
+        {content}
+      </Link>
+    )
+  return <div className={tileClass}>{content}</div>
+}
 
 // Dashboard for the Overview tab: wallet vitals, owners, and a preview of the
 // latest on-chain activity. Building requests lives on its own tab.
@@ -37,6 +61,7 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
   const { address } = useAccount()
   const { multiSigDetails, data } = useMultiSigDetails(multiSigAddress, address ?? '0x')
   const { data: balance } = useBalance({ address: multiSigAddress, chainId: chain?.id })
+  const { requests, isError: requestsError } = useMultiSigRequests(multiSigAddress)
   // A light scan (fewer RPC windows) is enough for a preview; the Activity tab
   // digs deeper.
   const { entries, isLoading: activityLoading } = useMultiSigActivity(multiSigAddress, {
@@ -64,6 +89,8 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
   const nearEndOfLife = nonceRaw >= EOL_NONCE_THRESHOLD
   const isOwner = data != null ? Boolean(data[5]) : false
   const recentEntries = entries.slice(0, RECENT_ACTIVITY_COUNT)
+  const pendingRequests =
+    requests != null ? requests.filter((r) => r.isActive && !r.isExecuted && !r.isCancelled).length : null
 
   return (
     <div className='flex w-full flex-col gap-6'>
@@ -84,8 +111,14 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
           label='Owners'
           value={multiSigDetails.ownerCount}
           hint={isOwner ? 'you are an owner' : 'you are not an owner'}
+          href={`/multisig/${multiSigAddress}/settings`}
         />
-        <StatTile label='Next nonce' value={multiSigDetails.nonce} />
+        <StatTile
+          label='Pending requests'
+          value={requestsError ? '—' : (pendingRequests ?? '...')}
+          hint={requestsError ? 'could not load' : `${multiSigDetails.nonce} executed so far`}
+          href={`/multisig/${multiSigAddress}/requests`}
+        />
         <StatTile
           label='Balance'
           value={
@@ -94,23 +127,18 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
               : '...'
           }
           hint={balance?.symbol}
+          action={
+            <Button
+              variant='outline'
+              size='sm'
+              className='-mr-1 -mt-1 h-7 gap-1.5 px-2 text-xs'
+              onClick={() => setFundModalOpen(true)}
+            >
+              <CoinsIcon className='h-3.5 w-3.5' />
+              Fund
+            </Button>
+          }
         />
-      </div>
-
-      <div className='flex flex-wrap gap-2'>
-        <Button size='lg' className='gap-2' asChild>
-          <Link href={`/multisig/${multiSigAddress}/buildRequest`}>
-            <AddIcon className='h-4 w-4' />
-            Build a request
-          </Link>
-        </Button>
-        <Button size='lg' variant='outline' asChild>
-          <Link href={`/multisig/${multiSigAddress}/requests`}>Review pending requests</Link>
-        </Button>
-        <Button size='lg' variant='outline' className='gap-2' onClick={() => setFundModalOpen(true)}>
-          <CoinsIcon className='h-4 w-4' />
-          Fund wallet
-        </Button>
       </div>
       <FundMultiSigModal multiSigAddress={multiSigAddress} open={fundModalOpen} onOpenChange={setFundModalOpen} />
 
