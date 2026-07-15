@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useChainId, useChains } from 'wagmi'
 
+import { TypedEyebrow, WordReveal } from '@/components/ui/reveal'
 import BigCard from '../cards/BigCard'
 import ErrorCard from '../cards/ErrorCard'
 import ImportMultiSigForm from '../forms/ImportMultiSigForm'
 import DiscoverMultiSigs from '../forms/DiscoverMultiSigs'
+import NetworkIcon from '../icons/NetworkIcon'
 import multiSigFactories from '../../constants/multiSigFactory'
 
 const ImportMultiSig: React.FC = () => {
@@ -22,15 +24,26 @@ const ImportMultiSig: React.FC = () => {
 
   return (
     <div className="flex justify-center">
-      <BigCard className="min-h-[50vh] max-w-[1200px]">
-        <div className="flex flex-col items-center">
-          <h2 className="pb-4 text-2xl font-bold text-foreground">
-            Import your existing MultiSig
-          </h2>
+      <BigCard className="max-w-[900px]">
+        <div className="flex w-full flex-col gap-10">
+          <div>
+            <TypedEyebrow text="ADD EXISTING WALLET" className="mb-3" />
+            <WordReveal
+              text="Import a multisig"
+              delay={0.2}
+              className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl"
+            />
+            {chain && (
+              <div className="mt-3 flex items-center gap-1.5 text-sm text-muted-foreground">
+                <NetworkIcon chainId={chain.id} name={chain.name} size={16} />
+                {chain.name}
+              </div>
+            )}
+          </div>
+
           {multiSigFactory != null ? (
-            <div className="flex w-full flex-col gap-8">
+            <div className="flex w-full flex-col gap-10">
               <ImportMultiSigForm factory={multiSigFactory} />
-              <div className="w-full border-t border-border" />
               <DiscoverMultiSigs factory={multiSigFactory} />
             </div>
           ) : (

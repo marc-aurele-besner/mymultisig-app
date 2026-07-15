@@ -1,7 +1,7 @@
 import React, { Fragment, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAccount, useChainId, useChains } from 'wagmi'
-import { AddIcon, DownloadIcon, DeleteIcon } from '../icons/ChakraIcons'
+import { AddIcon, ImportIcon, DeleteIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { TypedEyebrow, WordReveal } from '@/components/ui/reveal'
@@ -110,7 +110,7 @@ const UseYourMultiSig: React.FC = () => {
                     </Button>
                     <Button variant="outline" asChild>
                       <Link href="/importMultiSig" className="gap-2">
-                        <DownloadIcon className="h-4 w-4" />
+                        <ImportIcon className="h-4 w-4" />
                         Import a multisig
                       </Link>
                     </Button>
@@ -145,7 +145,7 @@ const UseYourMultiSig: React.FC = () => {
                     </Button>
                     <Button variant="outline" asChild>
                       <Link href="/importMultiSig" className="gap-2">
-                        <DownloadIcon className="h-4 w-4" />
+                        <ImportIcon className="h-4 w-4" />
                         Import a multisig
                       </Link>
                     </Button>

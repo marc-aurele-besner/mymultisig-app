@@ -8,7 +8,7 @@ import ConnectWallet from './ConnectWallet'
 import ConnectedWallet from './ConnectedWallet'
 import HeroQuorum from './HeroQuorum'
 import Disclaimer from '../modals/Disclaimer'
-import { AddIcon, CheckCircleIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
+import { AddIcon, WalletIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
 
 const GITHUB_APP_URL = 'https://github.com/marc-aurele-besner/mymultisig-app'
 
@@ -143,7 +143,7 @@ const Welcome: React.FC = () => {
             </Button>
             <Button size="lg" variant="outline" className="gap-2 px-7" asChild>
               <Link href="/useYourMultiSig">
-                <CheckCircleIcon className="h-4 w-4" />
+                <WalletIcon className="h-4 w-4" />
                 Open an existing multisig
               </Link>
             </Button>

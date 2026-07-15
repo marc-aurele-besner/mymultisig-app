@@ -11,7 +11,9 @@ interface MultiSigListProps {
 const MultiSigList: React.FC<MultiSigListProps> = ({ multiSigAddress, address }) => {
   const { data } = useMultiSigDetails(multiSigAddress, address)
 
-  if (!data || !data[1] || !data[5]) return null
+  if (!data || !data[1]) return null
+
+  const isOwner = Boolean(data[5])
 
   return (
     <Link
@@ -19,8 +21,16 @@ const MultiSigList: React.FC<MultiSigListProps> = ({ multiSigAddress, address })
       className="group flex w-full items-center justify-between gap-4 rounded-lg border border-border bg-background/40 px-4 py-3.5 transition-colors hover:border-primary/40 hover:bg-accent/40"
     >
       <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="truncate text-base font-semibold text-foreground">
-          {data[0]?.toString()}
+        <span className="flex items-center gap-2 text-base font-semibold text-foreground">
+          <span className="truncate">{data[0]?.toString()}</span>
+          <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] font-normal text-muted-foreground">
+            {Number(data[2])} of {Number(data[3])}
+          </span>
+          {!isOwner && (
+            <span className="shrink-0 rounded border border-border px-1.5 py-0.5 font-mono text-[11px] font-normal text-muted-foreground">
+              view only
+            </span>
+          )}
         </span>
         <span className="truncate font-mono text-xs text-muted-foreground">{multiSigAddress}</span>
       </div>
