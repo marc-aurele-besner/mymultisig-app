@@ -129,11 +129,11 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className='w-full'>
         <div className='flex flex-col gap-4'>
-          <div className='w-full rounded-xl border border-green-500/50 bg-green-500/10 p-4'>
+          <div className='w-full rounded-xl border border-primary/50 bg-primary/10 p-4'>
             <div className='flex items-center gap-3'>
-              <CheckCircleIcon className='h-5 w-5 text-green-500' />
+              <CheckCircleIcon className='h-5 w-5 animate-pop-in text-primary' />
               <div className='flex flex-col gap-0'>
-                <span className='text-sm font-semibold text-green-600 dark:text-green-400'>Transaction submitted</span>
+                <span className='text-sm font-semibold text-primary'>Transaction submitted</span>
                 <span className='text-xs text-muted-foreground'>
                   Hash: {data.slice(0, 20)}...{data.slice(-10)}
                 </span>

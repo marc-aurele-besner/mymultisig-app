@@ -61,14 +61,14 @@ const ConnectedWallet: React.FC = () => {
               className="h-10 w-10 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-500 text-lg font-bold text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 font-mono text-sm font-bold text-primary">
               {(ensName ?? address).slice(2, 4).toUpperCase()}
             </div>
           )}
           <div className="flex flex-1 flex-col items-start gap-1">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-              <span className="text-xs font-medium uppercase tracking-wider text-green-600 dark:text-green-400">
+              <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px] shadow-primary/60" />
+              <span className="font-mono text-xs uppercase tracking-wider text-primary">
                 Connected
               </span>
             </div>
@@ -96,7 +96,7 @@ const ConnectedWallet: React.FC = () => {
               title={hasCopied ? 'Copied!' : 'Copy address'}
             >
               {hasCopied ? (
-                <CheckIcon className="h-4 w-4 text-green-500" />
+                <CheckIcon className="h-4 w-4 animate-pop-in text-primary" />
               ) : (
                 <CopyIcon className="h-4 w-4" />
               )}

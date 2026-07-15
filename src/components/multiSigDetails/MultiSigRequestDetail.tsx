@@ -122,7 +122,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
                   {result != null && (
                     <span
                       className={`font-semibold ${
-                        result.success ? 'text-green-600 dark:text-green-400' : 'text-destructive'
+                        result.success ? 'text-primary' : 'text-destructive'
                       }`}
                     >
                       {result.success ? 'succeeded' : `failed${result.returnData !== '0x' ? ` (${result.returnData})` : ''}`}
@@ -135,7 +135,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
         )}
 
         {requestDetails.isExecuted ? (
-          <div className="px-2 pt-2 text-xl font-bold text-green-600 dark:text-green-400">
+          <div className="px-2 pt-2 text-xl font-bold text-primary">
             This request has been executed
             {requestDetails.dateExecuted != null &&
               ` on the ${new Date(Number(requestDetails.dateExecuted)).toLocaleDateString()}`}
@@ -165,7 +165,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
             <div className="flex flex-wrap items-center gap-2">
               <span className="px-2 pt-2 text-xl font-bold text-foreground">Sign this request</span>
               {hasSigned ? (
-                <span className="px-2 pt-2 text-xl font-bold text-green-600 dark:text-green-400">
+                <span className="px-2 pt-2 text-xl font-bold text-primary">
                   You already signed this request
                 </span>
               ) : hasApproved ? (
