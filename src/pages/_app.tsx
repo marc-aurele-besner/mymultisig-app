@@ -39,7 +39,8 @@ const App: React.FC<AppProps> = ({ Component, pageProps = { title: 'MyMultiSig' 
         <MotionConfig reducedMotion="user">
           <Web3Provider>
             <Layout>
-              <AnimatePresence mode="wait" initial={false}>
+              {/* No initial={false}: it would suppress every child entrance animation on first load */}
+              <AnimatePresence mode="wait">
                 <motion.div
                   key={transitionKey}
                   initial={{ opacity: 0, y: 8 }}
