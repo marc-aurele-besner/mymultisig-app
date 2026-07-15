@@ -78,6 +78,7 @@ All contract writes follow the same flow:
 - `DATABASE_URL` — Neon PostgreSQL connection string (required for API routes)
 - `SESSION_SECRET` — HMAC secret for SIWE session cookies (falls back to legacy `PRIVATE_KEY` if set)
 - `ETHERSCAN_API_KEY` — ABI fetching via `/api/getABI`
+- `ALCHEMY_API_KEY` — token/NFT balances via `/api/get-assets` (falls back to `NEXT_PUBLIC_ALCHEMY_API_KEY`)
 - `RESEND_API_KEY` / `RESEND_CONTACT_TO` — contact form via `/api/contact` (`RESEND_FROM` optional, defaults to Resend's onboarding sender)
 
 ## Known Issues
