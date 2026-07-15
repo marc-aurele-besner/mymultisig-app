@@ -18,6 +18,11 @@ const monoFont = JetBrains_Mono({ subsets: ['latin'], display: 'swap' })
 
 const App: React.FC<AppProps> = ({ Component, pageProps = { title: 'MyMultiSig' } }) => {
   const router = useRouter()
+  // Multisig tab pages share one key: switching tabs swaps content in place
+  // (letting the nav pill slide) instead of replaying the page transition.
+  const transitionKey = router.route.startsWith('/multisig/[multisigAddress]')
+    ? '/multisig/[multisigAddress]'
+    : router.route
   return (
     <>
       {/* Font families exposed on :root so portaled content (dialogs, toasts) inherits them too */}
@@ -36,7 +41,7 @@ const App: React.FC<AppProps> = ({ Component, pageProps = { title: 'MyMultiSig' 
             <Layout>
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
-                  key={router.route}
+                  key={transitionKey}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4, transition: { duration: 0.15, ease: 'easeIn' } }}
