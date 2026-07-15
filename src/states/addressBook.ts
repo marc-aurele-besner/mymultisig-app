@@ -10,6 +10,10 @@ export type AddressBookEntry = {
   address: `0x${string}`
   label: string
   kind: AddressBookEntryKind
+  // Public entries may be reviewed by MyMultiSig admins so widely shared
+  // contracts can be officially supported. Optional so entries persisted
+  // before the flag existed stay valid; absent means private.
+  isPublic?: boolean
 }
 
 interface AddressBookDefaultState {

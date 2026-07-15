@@ -161,13 +161,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         `) as { id: string }[]
         if (existing.length > 0) {
           await sql`
-            UPDATE address_book SET label = ${doc.label}, kind = ${doc.kind ?? 'wallet'}
+            UPDATE address_book SET label = ${doc.label}, kind = ${doc.kind ?? 'wallet'}, is_public = ${doc.isPublic ?? false}
             WHERE id = ${existing[0].id}
           `
         } else {
           await sql`
-            INSERT INTO address_book (id, owner_address, chain_id, address, label, kind)
-            VALUES (${uuid()}, ${doc.ownerAddress}, ${doc.chainId}, ${doc.address}, ${doc.label}, ${doc.kind ?? 'wallet'})
+            INSERT INTO address_book (id, owner_address, chain_id, address, label, kind, is_public)
+            VALUES (${uuid()}, ${doc.ownerAddress}, ${doc.chainId}, ${doc.address}, ${doc.label}, ${doc.kind ?? 'wallet'}, ${doc.isPublic ?? false})
           `
         }
         console.log('Address book upsert done')

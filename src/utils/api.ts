@@ -29,6 +29,15 @@ const getABI = (data: object) => {
   })
 }
 
+const getAssets = (data: object) => {
+  return fetch('/api/get-assets', {
+    body: JSON.stringify(data),
+    method: 'POST'
+  }).then((response) => {
+    return response.json()
+  })
+}
+
 const getContent = (data: object) => {
   return fetch('/api/get-content', {
     body: JSON.stringify(data),
@@ -57,4 +66,4 @@ const deleteContent = (data: object, documentId: string) => {
   }).then(handleContentResponse)
 }
 
-export { verifyContract, getABI, addContent, deleteContent, getContent, updateContent }
+export { verifyContract, getABI, addContent, deleteContent, getAssets, getContent, updateContent }

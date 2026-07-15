@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 
 import { getSql } from '../../lib/db/neon'
 import { rowToMultiSigRequest, rowToMultiSig } from '../../lib/db/mappers'
-import { isVerifiedAs } from '../../lib/auth/siwe'
+import { isVerifiedAdmin, isVerifiedAs } from '../../lib/auth/siwe'
 
 if (!process.env.DATABASE_URL) throw new Error('No DATABASE_URL in .env file')
 
@@ -108,11 +108,37 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
         // All chains at once so a network switch client-side needs no refetch.
         const rows = (await sql`
-          SELECT id, chain_id, address, label, kind FROM address_book
+          SELECT id, chain_id, address, label, kind, is_public FROM address_book
           WHERE LOWER(owner_address) = LOWER(${data.data.ownerAddress})
         `) as Record<string, unknown>[]
         const content = rows.map((row) => ({
           id: String(row.id),
+          chainId: Number(row.chain_id),
+          address: String(row.address),
+          label: String(row.label),
+          kind: String(row.kind),
+          isPublic: Boolean(row.is_public)
+        }))
+        return res.status(200).json({
+          message: 'Data retrieved',
+          content
+        })
+      }
+      case 'getPublicAddressBook': {
+        // Entries users chose to share, across all owners and chains, so
+        // MyMultiSig admins can see which contracts the community relies on
+        // and decide what to support officially. Admin wallets only.
+        if (!isVerifiedAdmin(req)) {
+          return res.status(403).json({ message: 'Only MyMultiSig admins can view the public address book' })
+        }
+        const rows = (await sql`
+          SELECT id, owner_address, chain_id, address, label, kind FROM address_book
+          WHERE is_public = true
+          ORDER BY created_at DESC
+        `) as Record<string, unknown>[]
+        const content = rows.map((row) => ({
+          id: String(row.id),
+          ownerAddress: String(row.owner_address),
           chainId: Number(row.chain_id),
           address: String(row.address),
           label: String(row.label),

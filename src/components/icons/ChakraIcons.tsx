@@ -24,6 +24,8 @@ import {
   Info as InfoIconLucide,
   ArrowLeft as ArrowLeftIconLucide,
   Coins as CoinsIconLucide,
+  Image as ImageIconLucide,
+  RefreshCw as RefreshIconLucide,
   Import as ImportIconLucide,
   Wallet as WalletIconLucide,
   BookUser as BookUserIconLucide
@@ -68,6 +70,8 @@ export const InfoIcon = withIcon(InfoIconLucide, 'InfoIcon')
 export const InfoOutlineIcon = withIcon(InfoIconLucide, 'InfoOutlineIcon')
 export const ArrowBackIcon = withIcon(ArrowLeftIconLucide, 'ArrowBackIcon')
 export const CoinsIcon = withIcon(CoinsIconLucide, 'CoinsIcon')
+export const ImageIcon = withIcon(ImageIconLucide, 'ImageIcon')
+export const RefreshIcon = withIcon(RefreshIconLucide, 'RefreshIcon')
 export const ImportIcon = withIcon(ImportIconLucide, 'ImportIcon')
 export const WalletIcon = withIcon(WalletIconLucide, 'WalletIcon')
 export const AddressBookIcon = withIcon(BookUserIconLucide, 'AddressBookIcon')
