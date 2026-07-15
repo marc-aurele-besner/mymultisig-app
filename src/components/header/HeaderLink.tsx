@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import React from 'react'
 import Image from 'next/image'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface HeaderLinkProps {
@@ -9,9 +10,10 @@ interface HeaderLinkProps {
   imagePath?: string
   icon?: React.ReactElement
   isLogo?: boolean
+  isActive?: boolean
 }
 
-const HeaderLink: React.FC<HeaderLinkProps> = ({ name, link, imagePath, icon, isLogo }) => {
+const HeaderLink: React.FC<HeaderLinkProps> = ({ name, link, imagePath, icon, isLogo, isActive }) => {
   if (isLogo) {
     return (
       <Link key={`Link-${link}`} href={link}>
@@ -30,14 +32,21 @@ const HeaderLink: React.FC<HeaderLinkProps> = ({ name, link, imagePath, icon, is
   }
 
   return (
-    <Link key={`Link-${link}`} href={link}>
-      <div className={cn('flex items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-accent/50')}>
-        {icon ? (
-          <span className='text-muted-foreground'>{icon}</span>
-        ) : imagePath ? (
-          <Image src={imagePath} alt={name} width={16} height={16} className='h-4 w-4 rounded-sm' />
-        ) : null}
-        <span className='text-sm font-medium text-foreground'>{name}</span>
+    <Link key={`Link-${link}`} href={link} aria-current={isActive ? 'page' : undefined}>
+      <div
+        className={cn(
+          'relative flex items-center gap-2 rounded-lg px-3 py-2 transition-colors',
+          isActive ? 'text-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+        )}
+      >
+        <span className='text-sm font-medium'>{name}</span>
+        {isActive && (
+          <motion.span
+            layoutId='header-nav-underline'
+            transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+            className='absolute inset-x-3 -bottom-[13px] h-0.5 rounded-full bg-primary'
+          />
+        )}
       </div>
     </Link>
   )

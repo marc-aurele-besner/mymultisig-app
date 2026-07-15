@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useChainId, useChains } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { LoadingDots } from '@/components/ui/loading-dots'
-import { CheckCircleIcon, SettingsIcon, DownloadIcon } from '../icons/ChakraIcons'
+import { CheckCircleIcon, SettingsIcon, ImportIcon } from '../icons/ChakraIcons'
 
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
@@ -100,7 +100,7 @@ const ImportConfirmationCard: React.FC<ImportConfirmationCardProps> = ({
             </Button>
             {onImportAnother != null && (
               <Button size='lg' variant='ghost' className='gap-2' onClick={onImportAnother}>
-                <DownloadIcon className='h-4 w-4' />
+                <ImportIcon className='h-4 w-4' />
                 Import another
               </Button>
             )}

@@ -3,15 +3,18 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import React, { useState, useEffect, Fragment } from 'react'
+import { useRouter } from 'next/router'
 import { useTheme } from 'next-themes'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import {
   HamburgerIcon,
   MoonIcon,
   SunIcon,
   AddIcon,
-  CheckCircleIcon,
+  ImportIcon,
+  WalletIcon,
   LinkIcon,
   InfoOutlineIcon
 } from '../icons/ChakraIcons'
@@ -34,19 +37,19 @@ function useIsDesktop() {
 
 const HeaderBox: React.FC = () => {
   const isDesktop = useIsDesktop()
+  const router = useRouter()
   const { theme, setTheme } = useTheme()
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const menu = [
-    { name: 'Create a multisig', link: '/createMultiSig', icon: <AddIcon boxSize={16} className='shrink-0' /> },
-    {
-      name: 'Open existing multisig',
-      link: '/useYourMultiSig',
-      icon: <CheckCircleIcon boxSize={16} className='shrink-0' />
-    },
+    { name: 'Create', link: '/createMultiSig', icon: <AddIcon boxSize={16} className='shrink-0' /> },
+    { name: 'Import', link: '/importMultiSig', icon: <ImportIcon boxSize={16} className='shrink-0' /> },
+    { name: 'My multisigs', link: '/useYourMultiSig', icon: <WalletIcon boxSize={16} className='shrink-0' /> },
     { name: 'Integration', link: '/integration', icon: <LinkIcon boxSize={16} className='shrink-0' /> },
     { name: 'About', link: '/about', icon: <InfoOutlineIcon boxSize={16} className='shrink-0' /> }
   ]
+
+  const isActive = (link: string) => router.pathname === link
 
   return (
     <motion.header
@@ -86,9 +89,21 @@ const HeaderBox: React.FC = () => {
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                     >
                       <Link href={item.link} onClick={() => setSheetOpen(false)}>
-                        <div className='flex items-center gap-3 rounded-lg p-3 hover:bg-accent/50'>
+                        <div
+                          className={cn(
+                            'flex items-center gap-3 rounded-lg p-3 transition-colors',
+                            isActive(item.link) ? 'bg-primary/10 text-primary' : 'hover:bg-accent/50'
+                          )}
+                        >
                           {item.icon && <span className='text-primary'>{item.icon}</span>}
-                          <span className='text-sm font-medium text-foreground'>{item.name}</span>
+                          <span
+                            className={cn(
+                              'text-sm font-medium',
+                              isActive(item.link) ? 'text-primary' : 'text-foreground'
+                            )}
+                          >
+                            {item.name}
+                          </span>
                         </div>
                       </Link>
                     </motion.div>
@@ -114,7 +129,7 @@ const HeaderBox: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
                 >
-                  <HeaderLink name={item.name} link={item.link} icon={item.icon} />
+                  <HeaderLink name={item.name} link={item.link} isActive={isActive(item.link)} />
                 </motion.div>
               ))}
             </Fragment>
