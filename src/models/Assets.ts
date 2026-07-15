@@ -18,6 +18,16 @@ export interface NftHolding {
   balance: string
 }
 
+// A token the user tracks manually; its balance is read straight from the
+// chain, so it works even without indexer coverage.
+export interface CustomToken {
+  chainId: number
+  address: string
+  symbol: string
+  name: string
+  decimals: number
+}
+
 export interface WalletAssets {
   tokens: TokenHolding[]
   nfts: NftHolding[]

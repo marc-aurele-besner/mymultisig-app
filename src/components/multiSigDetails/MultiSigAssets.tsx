@@ -1,11 +1,13 @@
 import React from 'react'
-import { useBalance, useChainId, useChains } from 'wagmi'
-import { formatEther, formatUnits } from 'viem'
+import { useBalance, useChainId, useChains, useReadContracts } from 'wagmi'
+import { erc20Abi, formatUnits } from 'viem'
 import { Button } from '@/components/ui/button'
 import { LoadingDots } from '@/components/ui/loading-dots'
-import { CoinsIcon, ExternalLinkIcon, ImageIcon, RefreshIcon } from '../icons/ChakraIcons'
+import { AddIcon, CoinsIcon, DeleteIcon, ExternalLinkIcon, ImageIcon, RefreshIcon } from '../icons/ChakraIcons'
 
+import AddTokenModal from '../modals/AddTokenModal'
 import useWalletAssets from '../../hooks/useWalletAssets'
+import useCustomTokens from '../../states/customTokens'
 import { NftHolding, TokenHolding } from '../../models/Assets'
 
 interface MultiSigAssetsProps {
@@ -40,7 +42,8 @@ const TokenRow: React.FC<{
   amount: string
   badge?: string
   explorerHref?: string
-}> = ({ logo, symbol, name, amount, badge, explorerHref }) => (
+  onRemove?: () => void
+}> = ({ logo, symbol, name, amount, badge, explorerHref, onRemove }) => (
   <div className='flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted/40'>
     <AssetImage
       src={logo}
@@ -72,6 +75,16 @@ const TokenRow: React.FC<{
       >
         <ExternalLinkIcon className='h-3.5 w-3.5' />
       </a>
+    )}
+    {onRemove != null && (
+      <button
+        type='button'
+        onClick={onRemove}
+        aria-label={`Stop tracking ${symbol}`}
+        className='text-muted-foreground transition-colors hover:text-destructive'
+      >
+        <DeleteIcon className='h-3.5 w-3.5' />
+      </button>
     )}
   </div>
 )
@@ -119,6 +132,35 @@ const MultiSigAssets: React.FC<MultiSigAssetsProps> = ({ multiSigAddress }) => {
   const chain = chains.find((c) => c.id === chainId)
   const { data: balance } = useBalance({ address: multiSigAddress, chainId: chain?.id })
   const { assets, isLoading, isError, refetch } = useWalletAssets(multiSigAddress)
+  const { tokens: storedTokens, removeToken } = useCustomTokens()
+  const [addTokenOpen, setAddTokenOpen] = React.useState(false)
+
+  // Manually tracked tokens read their balance straight from the chain, so
+  // they stay visible even when the indexer is unavailable. allowFailure keeps
+  // one broken contract from blanking the others.
+  const customTokens = storedTokens.filter((t) => t.chainId === chain?.id)
+  const { data: customBalances, refetch: refetchCustomBalances } = useReadContracts({
+    contracts: customTokens.map((t) => ({
+      address: t.address as `0x${string}`,
+      abi: erc20Abi,
+      functionName: 'balanceOf' as const,
+      args: [multiSigAddress],
+      chainId: chain?.id
+    })),
+    query: { enabled: customTokens.length > 0 }
+  })
+
+  const refresh = () => {
+    void refetch()
+    if (customTokens.length > 0) void refetchCustomBalances()
+  }
+
+  // A custom token the indexer also reports renders once, as the removable
+  // custom row (borrowing the indexer's logo when it has one).
+  const customAddresses = new Set(customTokens.map((t) => t.address.toLowerCase()))
+  const indexedTokens = (assets?.tokens ?? []).filter((t) => !customAddresses.has(t.contractAddress.toLowerCase()))
+  const indexedLogoFor = (address: string) =>
+    assets?.tokens.find((t) => t.contractAddress.toLowerCase() === address.toLowerCase())?.logo ?? null
 
   const explorerUrl = chain?.blockExplorers?.default?.url
   const indexerUnavailable = assets?.notConfigured === true || assets?.unsupportedChain === true
@@ -134,16 +176,27 @@ const MultiSigAssets: React.FC<MultiSigAssetsProps> = ({ multiSigAddress }) => {
       <div className='flex flex-col gap-2 rounded-xl border border-border p-4'>
         <div className='flex items-baseline justify-between'>
           <h3 className='text-base font-semibold text-foreground'>Tokens</h3>
-          <Button
-            variant='ghost'
-            size='sm'
-            className='h-7 gap-1.5 px-2 text-xs text-muted-foreground'
-            onClick={() => void refetch()}
-            disabled={isLoading}
-          >
-            <RefreshIcon className='h-3.5 w-3.5' />
-            Refresh
-          </Button>
+          <div className='flex items-center gap-1'>
+            <Button
+              variant='ghost'
+              size='sm'
+              className='h-7 gap-1.5 px-2 text-xs text-muted-foreground'
+              onClick={() => setAddTokenOpen(true)}
+            >
+              <AddIcon className='h-3.5 w-3.5' />
+              Add token
+            </Button>
+            <Button
+              variant='ghost'
+              size='sm'
+              className='h-7 gap-1.5 px-2 text-xs text-muted-foreground'
+              onClick={refresh}
+              disabled={isLoading}
+            >
+              <RefreshIcon className='h-3.5 w-3.5' />
+              Refresh
+            </Button>
+          </div>
         </div>
         <TokenRow
           logo={null}
@@ -152,6 +205,27 @@ const MultiSigAssets: React.FC<MultiSigAssetsProps> = ({ multiSigAddress }) => {
           amount={balance != null ? formatAmount(balance.value, balance.decimals) : '...'}
           badge='native'
         />
+        {customTokens.map((token, index) => {
+          const read = customBalances?.[index]
+          return (
+            <TokenRow
+              key={`custom-${token.address}`}
+              logo={indexedLogoFor(token.address)}
+              symbol={token.symbol}
+              name={token.name}
+              amount={
+                read == null
+                  ? '...'
+                  : read.status === 'success'
+                    ? formatAmount(read.result as bigint, token.decimals)
+                    : '—'
+              }
+              badge='added'
+              explorerHref={explorerUrl != null ? `${explorerUrl}/token/${token.address}` : undefined}
+              onRemove={() => removeToken(token.chainId, token.address)}
+            />
+          )
+        })}
         {isLoading && assets == null ? (
           <div className='flex items-center p-2'>
             <LoadingDots size='sm' label='Looking up token balances...' />
@@ -160,8 +234,8 @@ const MultiSigAssets: React.FC<MultiSigAssetsProps> = ({ multiSigAddress }) => {
           <p className='p-2 text-sm text-muted-foreground'>Could not load token balances. Try refreshing.</p>
         ) : indexerNote != null ? (
           <p className='p-2 text-sm text-muted-foreground'>{indexerNote}</p>
-        ) : assets != null && assets.tokens.length > 0 ? (
-          assets.tokens.map((token: TokenHolding) => (
+        ) : indexedTokens.length > 0 ? (
+          indexedTokens.map((token: TokenHolding) => (
             <TokenRow
               key={token.contractAddress}
               logo={token.logo}
@@ -171,12 +245,13 @@ const MultiSigAssets: React.FC<MultiSigAssetsProps> = ({ multiSigAddress }) => {
               explorerHref={explorerUrl != null ? `${explorerUrl}/token/${token.contractAddress}` : undefined}
             />
           ))
-        ) : (
+        ) : customTokens.length === 0 ? (
           <p className='p-2 text-sm text-muted-foreground'>
             No ERC-20 tokens found in this wallet. Tokens sent to {truncate(multiSigAddress)} will show up here.
           </p>
-        )}
+        ) : null}
       </div>
+      <AddTokenModal multiSigAddress={multiSigAddress} open={addTokenOpen} onOpenChange={setAddTokenOpen} />
 
       {!indexerUnavailable && (
         <div className='flex flex-col gap-2 rounded-xl border border-border p-4'>
