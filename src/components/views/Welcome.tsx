@@ -16,7 +16,17 @@ const sectionVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' as const }
+    transition: { duration: 0.5, ease: 'easeOut' as const, staggerChildren: 0.08 }
+  }
+}
+
+// For items inside a section: the parent drives timing via staggerChildren.
+const childVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: 'easeOut' as const }
   }
 }
 
@@ -159,11 +169,11 @@ const Welcome: React.FC = () => {
         </h2>
         <div className="mt-6 grid grid-cols-1 gap-8 border-t border-border pt-8 md:grid-cols-3 md:gap-10">
           {howItWorksSteps.map((item) => (
-            <div key={item.step}>
+            <motion.div key={item.step} variants={childVariants}>
               <span className="font-mono text-sm text-primary">{item.step}</span>
               <h3 className="mt-2 text-lg font-semibold text-foreground">{item.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </motion.section>
@@ -177,11 +187,15 @@ const Welcome: React.FC = () => {
       >
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {principles.map((item) => (
-            <div key={item.title} className="rounded-xl border border-border bg-card p-6">
+            <motion.div
+              key={item.title}
+              variants={childVariants}
+              className="rounded-xl border border-border bg-card p-6 transition-colors duration-200 hover:border-primary/40"
+            >
               <span className="font-mono text-xs text-primary">{item.keyword}</span>
               <h3 className="mt-2 text-lg font-semibold text-foreground">{item.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
         <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
@@ -205,10 +219,10 @@ const Welcome: React.FC = () => {
         <h2 className="font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl">FAQ</h2>
         <div className="mt-6 grid grid-cols-1 gap-x-12 gap-y-8 border-t border-border pt-8 md:grid-cols-2">
           {faqItems.map((item) => (
-            <div key={item.q}>
+            <motion.div key={item.q} variants={childVariants}>
               <h3 className="text-sm font-semibold text-foreground">{item.q}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.a}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </motion.section>
