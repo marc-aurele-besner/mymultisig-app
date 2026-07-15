@@ -46,7 +46,13 @@ const StatTile: React.FC<{
   const tileClass = 'flex flex-col gap-1 rounded-xl border border-border bg-muted/30 p-4'
   if (href != null)
     return (
-      <Link href={href} className={cn(tileClass, 'transition-colors hover:border-primary/50 hover:bg-muted/60')}>
+      <Link
+        href={href}
+        className={cn(
+          tileClass,
+          'transition-[border-color,background-color,transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/60 hover:shadow-[0_8px_24px_-16px] hover:shadow-primary/40 motion-reduce:transition-none motion-reduce:hover:translate-y-0'
+        )}
+      >
         {content}
       </Link>
     )
