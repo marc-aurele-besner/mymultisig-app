@@ -4,6 +4,7 @@ import { useAccount, useChainId, useChains } from 'wagmi'
 import { AddIcon, DownloadIcon, DeleteIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { TypedEyebrow, WordReveal } from '@/components/ui/reveal'
 import BigCard from '../cards/BigCard'
 import ConnectWallet from './ConnectWallet'
 import MultiSigList from '../multiSigDetails/MultiSigList'
@@ -53,10 +54,12 @@ const UseYourMultiSig: React.FC = () => {
           className="flex w-full flex-col gap-8"
         >
           <motion.div variants={itemVariants}>
-            <p className="mb-3 font-mono text-xs tracking-[0.2em] text-primary">YOUR MULTISIGS</p>
-            <h1 className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-              Open a multisig
-            </h1>
+            <TypedEyebrow text="YOUR MULTISIGS" className="mb-3" />
+            <WordReveal
+              text="Open a multisig"
+              delay={0.2}
+              className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl"
+            />
             {chain && (
               <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1.5">

@@ -64,10 +64,8 @@ const Privacy: React.FC = () => {
       <BigCard className="max-w-[900px]">
         <div className="flex w-full flex-col gap-8 py-4 md:py-8">
           <div>
-            <h1 className="font-display mb-2 text-3xl font-extrabold tracking-tight md:text-4xl">
-              <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                Privacy Policy
-              </span>
+            <h1 className="mb-2 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+              Privacy Policy
             </h1>
             <p className="font-mono text-xs text-muted-foreground">Last updated: {LAST_UPDATED}</p>
           </div>

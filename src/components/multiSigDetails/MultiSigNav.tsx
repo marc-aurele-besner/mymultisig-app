@@ -1,6 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface MultiSigNavProps {
@@ -17,7 +18,7 @@ const TABS = [
 ] as const
 
 // Shared navigation for every /multisig/[address] subpage so the same tabs
-// appear everywhere, with the current page highlighted.
+// appear everywhere. The active pill slides between tabs via a shared layoutId.
 const MultiSigNav: React.FC<MultiSigNavProps> = ({ multiSigAddress }) => {
   const router = useRouter()
   const activeSlug = router.pathname.split('/multisig/[multisigAddress]')[1]?.replace('/', '') ?? ''
@@ -33,13 +34,18 @@ const MultiSigNav: React.FC<MultiSigNavProps> = ({ multiSigAddress }) => {
               href={`/multisig/${multiSigAddress}${tab.slug === '' ? '' : `/${tab.slug}`}`}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                'relative whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors',
+                isActive ? 'text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
               )}
             >
-              {tab.label}
+              {isActive && (
+                <motion.span
+                  layoutId='multisig-nav-pill'
+                  className='absolute inset-0 rounded-md bg-primary shadow-sm'
+                  transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+                />
+              )}
+              <span className='relative'>{tab.label}</span>
             </Link>
           )
         })}

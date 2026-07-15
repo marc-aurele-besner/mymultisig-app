@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useAccount, useBalance, useChainId, useChains } from 'wagmi'
 import { formatEther } from 'viem'
 import { Button } from '@/components/ui/button'
+import { LoadingDots } from '@/components/ui/loading-dots'
 import { cn } from '@/lib/utils'
 import { CoinsIcon } from '../icons/ChakraIcons'
 
@@ -45,7 +46,13 @@ const StatTile: React.FC<{
   const tileClass = 'flex flex-col gap-1 rounded-xl border border-border bg-muted/30 p-4'
   if (href != null)
     return (
-      <Link href={href} className={cn(tileClass, 'transition-colors hover:border-primary/50 hover:bg-muted/60')}>
+      <Link
+        href={href}
+        className={cn(
+          tileClass,
+          'transition-[border-color,background-color,transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/60 hover:shadow-[0_8px_24px_-16px] hover:shadow-primary/40 motion-reduce:transition-none motion-reduce:hover:translate-y-0'
+        )}
+      >
         {content}
       </Link>
     )
@@ -79,9 +86,8 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
 
   if (multiSigDetails == null)
     return (
-      <div className='flex items-center justify-center gap-3 p-6'>
-        <span className='h-3 w-3 animate-pulse rounded-full bg-primary' />
-        <span className='text-sm text-muted-foreground'>Reading the multisig contract...</span>
+      <div className='flex items-center justify-center p-6'>
+        <LoadingDots label='Reading the multisig contract...' />
       </div>
     )
 
@@ -197,9 +203,8 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
               />
             ))
           ) : activityLoading ? (
-            <div className='flex items-center gap-3 p-2'>
-              <span className='h-2.5 w-2.5 animate-pulse rounded-full bg-primary' />
-              <span className='text-sm text-muted-foreground'>Scanning recent blocks...</span>
+            <div className='flex items-center p-2'>
+              <LoadingDots size='sm' label='Scanning recent blocks...' />
             </div>
           ) : (
             <p className='text-sm text-muted-foreground'>

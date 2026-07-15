@@ -1,6 +1,8 @@
 import React from 'react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { LoadingDots } from '@/components/ui/loading-dots'
 import { AddIcon } from '../icons/ChakraIcons'
 import { MultiSigOnChainData } from '../../models/MultiSigs'
 import useMultiSigRequests from '../../hooks/useMultiSigRequests'
@@ -30,9 +32,8 @@ const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({ multiSigAddre
 
   if (requests == null || isLoading) {
     return (
-      <div className='flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-muted/30 p-6'>
-        <span className='h-3 w-3 animate-pulse rounded-full bg-primary' />
-        <span className='text-sm text-muted-foreground'>Loading requests...</span>
+      <div className='flex w-full items-center justify-center rounded-xl border border-border bg-muted/30 p-6'>
+        <LoadingDots label='Loading requests...' />
       </div>
     )
   }
@@ -60,30 +61,48 @@ const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({ multiSigAddre
 
   return (
     <div className='flex w-full flex-col gap-2'>
-      {requests.map((request) => (
-        <div
-          key={`Request-${request.id}`}
-          className='flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3'
-        >
-          <div className='flex min-w-0 flex-col'>
-            <span className='truncate text-sm font-semibold text-foreground'>{request.description}</span>
-            <span className='text-xs text-muted-foreground'>
-              {request.isExecuted
-                ? 'Executed'
-                : `${request.signatures.length} of ${multiSigDetails.threshold} signature${
-                    multiSigDetails.threshold === 1 ? '' : 's'
-                  } collected`}
-              {request.dateSubmitted !== '' &&
-                ` — submitted ${new Date(Number(request.dateSubmitted)).toLocaleDateString()}`}
-            </span>
-          </div>
-          <Button asChild variant='outline' size='sm'>
-            <Link href={`/request/${request.id}`} onClick={() => setSelectedMultiSigTransactionRequest(request.id)}>
-              Open
-            </Link>
-          </Button>
-        </div>
-      ))}
+      {requests.map((request, index) => {
+        const signaturesShown = Math.min(request.signatures.length, multiSigDetails.threshold)
+        return (
+          <motion.div
+            key={`Request-${request.id}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: Math.min(index, 8) * 0.04, ease: 'easeOut' }}
+            className='flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3 transition-colors hover:border-primary/40 hover:bg-muted/30'
+          >
+            <div className='flex min-w-0 flex-1 flex-col gap-1.5'>
+              <span className='truncate text-sm font-semibold text-foreground'>{request.description}</span>
+              <span className='text-xs text-muted-foreground'>
+                {request.isExecuted
+                  ? 'Executed'
+                  : `${request.signatures.length} of ${multiSigDetails.threshold} signature${
+                      multiSigDetails.threshold === 1 ? '' : 's'
+                    } collected`}
+                {request.dateSubmitted !== '' &&
+                  ` — submitted ${new Date(Number(request.dateSubmitted)).toLocaleDateString()}`}
+              </span>
+              {!request.isExecuted && (
+                <div className='flex max-w-40 gap-1' aria-hidden>
+                  {Array.from({ length: multiSigDetails.threshold }, (_, i) => (
+                    <span
+                      key={i}
+                      className={`h-1 flex-1 rounded-full transition-colors duration-500 ${
+                        i < signaturesShown ? 'bg-primary' : 'bg-muted'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+            <Button asChild variant='outline' size='sm'>
+              <Link href={`/request/${request.id}`} onClick={() => setSelectedMultiSigTransactionRequest(request.id)}>
+                Open
+              </Link>
+            </Button>
+          </motion.div>
+        )
+      })}
     </div>
   )
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useAccount, useChainId, useChains } from 'wagmi'
 import { motion } from 'framer-motion'
 
+import { TypedEyebrow, WordReveal } from '@/components/ui/reveal'
 import BigCard from '../cards/BigCard'
 import ErrorCard from '../cards/ErrorCard'
 import ConnectWallet from './ConnectWallet'
@@ -49,13 +50,14 @@ const CreateMultiSig: React.FC = () => {
             animate="visible"
             className="flex w-full flex-col gap-6"
           >
-            <motion.div variants={itemVariants} className="w-full text-center">
-              <h1 className="mb-2 text-2xl font-extrabold md:text-4xl">
-                <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                  Create Your MultiSig
-                </span>
-              </h1>
-              <p className="text-sm text-muted-foreground">
+            <motion.div variants={itemVariants} className="w-full">
+              <TypedEyebrow text="NEW SHARED WALLET" className="mb-3" />
+              <WordReveal
+                text="Create your multisig"
+                delay={0.2}
+                className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl"
+              />
+              <p className="mt-2 text-sm text-muted-foreground">
                 Set up a new multi-signature wallet in just a few steps
               </p>
             </motion.div>

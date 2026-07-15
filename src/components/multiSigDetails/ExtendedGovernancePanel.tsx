@@ -131,7 +131,7 @@ const ExtendedGovernancePanel: React.FC<ExtendedGovernancePanelProps> = ({ multi
           />
           {/^\d+$/.test(nonceToCheck) && nonceUsed != null && (
             <span
-              className={`text-sm font-semibold ${nonceUsed ? 'text-destructive' : 'text-green-600 dark:text-green-400'}`}
+              className={`text-sm font-semibold ${nonceUsed ? 'text-destructive' : 'text-primary'}`}
             >
               Nonce {nonceToCheck} is {nonceUsed ? 'used / burned' : 'available'}
             </span>

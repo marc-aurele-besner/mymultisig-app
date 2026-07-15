@@ -60,7 +60,7 @@ const MultiSigHeader: React.FC<MultiSigHeaderProps> = ({ multiSigAddress }) => {
             aria-label='Copy address'
             className='text-muted-foreground transition-colors hover:text-primary'
           >
-            {copied ? <CheckIcon className='h-3.5 w-3.5 text-green-500' /> : <CopyIcon className='h-3.5 w-3.5' />}
+            {copied ? <CheckIcon className='h-3.5 w-3.5 animate-pop-in text-primary' /> : <CopyIcon className='h-3.5 w-3.5' />}
           </button>
           {explorerUrl && (
             <a

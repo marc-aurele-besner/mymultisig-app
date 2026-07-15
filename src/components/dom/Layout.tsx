@@ -17,7 +17,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           className="absolute inset-x-0 top-0 h-[60vh]"
           style={{
             background:
-              'radial-gradient(ellipse 90% 90% at 50% -25%, color-mix(in oklab, var(--primary) 13%, transparent), transparent 70%)'
+              'radial-gradient(ellipse 90% 90% at 50% -25%, color-mix(in oklab, var(--primary) 13%, transparent), transparent 70%)',
+            animation: 'ember-breathe 7s ease-in-out infinite alternate',
+            transformOrigin: 'top center'
           }}
         />
         <div

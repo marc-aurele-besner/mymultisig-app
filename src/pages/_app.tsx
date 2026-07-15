@@ -1,8 +1,10 @@
 import React from 'react'
 import Script from 'next/script'
 import { AppProps } from 'next/app'
+import { useRouter } from 'next/router'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import { Bricolage_Grotesque, Instrument_Sans, JetBrains_Mono } from 'next/font/google'
 
 import '../styles/globals.css'
@@ -15,6 +17,12 @@ const bodyFont = Instrument_Sans({ subsets: ['latin'], display: 'swap' })
 const monoFont = JetBrains_Mono({ subsets: ['latin'], display: 'swap' })
 
 const App: React.FC<AppProps> = ({ Component, pageProps = { title: 'MyMultiSig' } }) => {
+  const router = useRouter()
+  // Multisig tab pages share one key: switching tabs swaps content in place
+  // (letting the nav pill slide) instead of replaying the page transition.
+  const transitionKey = router.route.startsWith('/multisig/[multisigAddress]')
+    ? '/multisig/[multisigAddress]'
+    : router.route
   return (
     <>
       {/* Font families exposed on :root so portaled content (dialogs, toasts) inherits them too */}
@@ -27,11 +35,25 @@ const App: React.FC<AppProps> = ({ Component, pageProps = { title: 'MyMultiSig' 
       `}</style>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
         <Header title={pageProps.title} />
-        <Web3Provider>
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
-        </Web3Provider>
+        {/* reducedMotion="user" makes every framer-motion animation respect prefers-reduced-motion */}
+        <MotionConfig reducedMotion="user">
+          <Web3Provider>
+            <Layout>
+              {/* No initial={false}: it would suppress every child entrance animation on first load */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={transitionKey}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4, transition: { duration: 0.15, ease: 'easeIn' } }}
+                  transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
+                >
+                  <Component {...pageProps} />
+                </motion.div>
+              </AnimatePresence>
+            </Layout>
+          </Web3Provider>
+        </MotionConfig>
         <Toaster position="top-right" richColors closeButton />
       </ThemeProvider>
       <Script

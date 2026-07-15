@@ -44,7 +44,7 @@ const DiscoverMultiSigs: React.FC<DiscoverMultiSigsProps> = ({ factory }) => {
               </span>
             </div>
             {wallet.alreadyImported ? (
-              <span className='text-sm text-green-600 dark:text-green-400'>Imported</span>
+              <span className='font-mono text-xs text-primary'>Imported</span>
             ) : (
               <Button variant='outline' onClick={() => setImporting(wallet.address)}>
                 Import

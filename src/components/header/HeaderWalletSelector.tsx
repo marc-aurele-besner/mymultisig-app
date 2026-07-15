@@ -80,7 +80,7 @@ export const HeaderWalletSelector: React.FC = () => {
                 Connected with
               </div>
               <div className="mt-1 flex items-center gap-1">
-                <CheckIcon className="h-3 w-3 text-green-500" />
+                <CheckIcon className="h-3 w-3 text-primary" />
                 <span className="text-sm font-medium">{connector.name}</span>
               </div>
             </DropdownMenuLabel>
