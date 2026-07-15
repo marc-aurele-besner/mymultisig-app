@@ -62,10 +62,9 @@ const About: React.FC = () => {
             className="flex w-full flex-col gap-6 md:gap-8"
           >
             <motion.div variants={itemVariants} className="text-center">
-              <h1 className="mb-4 text-3xl font-extrabold leading-tight md:text-5xl">
-                <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                  About MyMultiSig
-                </span>
+              <p className="mb-3 font-mono text-xs tracking-[0.2em] text-primary">THE PROJECT</p>
+              <h1 className="mb-4 font-display text-3xl font-bold leading-tight tracking-tight text-foreground md:text-5xl">
+                About MyMultiSig
               </h1>
               <p className="mx-auto max-w-[700px] text-lg font-medium leading-relaxed text-foreground md:text-xl">
                 An open-source multisig smart contract and web app. Simple architecture, designed for

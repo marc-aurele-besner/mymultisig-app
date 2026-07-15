@@ -49,13 +49,12 @@ const CreateMultiSig: React.FC = () => {
             animate="visible"
             className="flex w-full flex-col gap-6"
           >
-            <motion.div variants={itemVariants} className="w-full text-center">
-              <h1 className="mb-2 text-2xl font-extrabold md:text-4xl">
-                <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                  Create Your MultiSig
-                </span>
+            <motion.div variants={itemVariants} className="w-full">
+              <p className="mb-3 font-mono text-xs tracking-[0.2em] text-primary">NEW SHARED WALLET</p>
+              <h1 className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+                Create your multisig
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="mt-2 text-sm text-muted-foreground">
                 Set up a new multi-signature wallet in just a few steps
               </p>
             </motion.div>
