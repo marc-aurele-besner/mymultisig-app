@@ -1,12 +1,15 @@
 import React, { useState } from 'react'
 import { erc20Abi, formatUnits, isAddress } from 'viem'
-import { useChainId, useChains, useReadContracts } from 'wagmi'
+import { useAccount, useChainId, useChains, useReadContracts } from 'wagmi'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { CoinsIcon } from '../icons/ChakraIcons'
 import TextInput from '../inputs/TextInput'
 import useCustomTokens from '../../states/customTokens'
+import useAddressBook from '../../states/addressBook'
+import { persistAddressBookUpsert } from '../../utils/addressBookSync'
 
 interface AddTokenModalProps {
   multiSigAddress: `0x${string}`
@@ -21,8 +24,12 @@ const AddTokenModal: React.FC<AddTokenModalProps> = ({ multiSigAddress, open, on
   const chainId = useChainId()
   const chains = useChains()
   const chain = chains.find((c) => c.id === chainId)
+  const { address: connectedAddress } = useAccount()
   const [tokenAddress, setTokenAddress] = useState('')
+  const [saveToBook, setSaveToBook] = useState(false)
+  const [shareInBook, setShareInBook] = useState(false)
   const { tokens, addToken } = useCustomTokens()
+  const { entries, addEntry } = useAddressBook()
 
   const tokenAddressValid = isAddress(tokenAddress)
   // name is optional in ERC-20, so reads allow individual failure; only
@@ -53,9 +60,16 @@ const AddTokenModal: React.FC<AddTokenModalProps> = ({ multiSigAddress, open, on
   const alreadyAdded =
     tokenAddressValid &&
     tokens.some((t) => t.chainId === chain?.id && t.address.toLowerCase() === tokenAddress.toLowerCase())
+  const alreadyInBook =
+    tokenAddressValid &&
+    entries.some((e) => e.chainId === chain?.id && e.address.toLowerCase() === tokenAddress.toLowerCase())
 
   const close = (nextOpen: boolean) => {
-    if (!nextOpen) setTokenAddress('')
+    if (!nextOpen) {
+      setTokenAddress('')
+      setSaveToBook(false)
+      setShareInBook(false)
+    }
     onOpenChange(nextOpen)
   }
 
@@ -68,7 +82,22 @@ const AddTokenModal: React.FC<AddTokenModalProps> = ({ multiSigAddress, open, on
       name: name ?? symbol,
       decimals
     })
-    toast.success(`${symbol} added to this wallet's token list.`)
+    // An existing book entry (and its label/visibility) wins over the token
+    // metadata; only genuinely new addresses get written to the book.
+    if (saveToBook && !alreadyInBook) {
+      const entry = {
+        chainId: chain.id,
+        address: tokenAddress as `0x${string}`,
+        label: symbol,
+        kind: 'contract' as const,
+        isPublic: shareInBook
+      }
+      addEntry(entry)
+      persistAddressBookUpsert(entry, connectedAddress)
+      toast.success(`${symbol} added to the token list and your address book.`)
+    } else {
+      toast.success(`${symbol} added to this wallet's token list.`)
+    }
     close(false)
   }
 
@@ -121,6 +150,34 @@ const AddTokenModal: React.FC<AddTokenModalProps> = ({ multiSigAddress, open, on
                 <span className='font-mono text-sm text-foreground'>
                   {Number(formatUnits(balance, decimals)).toLocaleString(undefined, { maximumFractionDigits: 5 })}
                 </span>
+              )}
+            </div>
+          )}
+
+          {isToken && !alreadyAdded && (
+            <div className='flex flex-col gap-3 rounded-lg border border-border bg-muted/30 p-3'>
+              <label className='flex items-center justify-between gap-3'>
+                <span className='flex flex-col gap-0.5'>
+                  <span className='text-sm font-medium text-foreground'>Also save to my address book</span>
+                  <span className='text-xs text-muted-foreground'>
+                    {alreadyInBook
+                      ? 'This address is already in your book; its existing entry stays as is.'
+                      : `Label ${symbol} wherever its address appears — in the request builder, activity, and transfers.`}
+                  </span>
+                </span>
+                <Switch checked={saveToBook && !alreadyInBook} onCheckedChange={setSaveToBook} disabled={alreadyInBook} />
+              </label>
+              {saveToBook && !alreadyInBook && (
+                <label className='flex items-center justify-between gap-3 border-t border-border pt-3'>
+                  <span className='flex flex-col gap-0.5'>
+                    <span className='text-sm font-medium text-foreground'>Share publicly</span>
+                    <span className='text-xs text-muted-foreground'>
+                      Public entries can be seen by the MyMultiSig team, helping widely used contracts get official
+                      support. Private entries stay visible to you alone.
+                    </span>
+                  </span>
+                  <Switch checked={shareInBook} onCheckedChange={setShareInBook} />
+                </label>
               )}
             </div>
           )}

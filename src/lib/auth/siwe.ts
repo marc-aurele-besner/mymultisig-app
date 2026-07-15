@@ -106,3 +106,16 @@ export const isVerifiedAs = (req: NextApiRequest, claimed: string | undefined | 
   const verified = getVerifiedAddress(req)
   return verified != null && verified === String(claimed).toLowerCase()
 }
+
+// MyMultiSig admin wallets, from the ADMIN_ADDRESSES env var (comma-separated).
+// Admins can read publicly shared address book entries to decide which
+// contracts to support officially.
+const adminAddresses = (process.env.ADMIN_ADDRESSES ?? '')
+  .split(',')
+  .map((address) => address.trim().toLowerCase())
+  .filter((address) => address !== '')
+
+export const isVerifiedAdmin = (req: NextApiRequest): boolean => {
+  const verified = getVerifiedAddress(req)
+  return verified != null && adminAddresses.includes(verified)
+}

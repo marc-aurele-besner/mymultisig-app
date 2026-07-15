@@ -57,8 +57,14 @@ CREATE TABLE IF NOT EXISTS address_book (
   address TEXT NOT NULL,
   label TEXT NOT NULL,
   kind TEXT NOT NULL DEFAULT 'wallet',
+  is_public BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Idempotent migration for databases created before entry visibility existed.
+-- Public entries are readable by MyMultiSig admins (see getPublicAddressBook)
+-- so widely shared contracts can be reviewed for official support.
+ALTER TABLE address_book ADD COLUMN IF NOT EXISTS is_public BOOLEAN NOT NULL DEFAULT false;
 
 -- One label per (owner, chain, address); upserts key on this.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_address_book_owner_chain_address

@@ -47,7 +47,8 @@ export const syncAddressBookWithRemote = async (ownerAddress: string, chainId: n
           chainId: e.chainId,
           address: e.address,
           label: e.label,
-          kind: e.kind === 'contract' ? 'contract' : 'wallet'
+          kind: e.kind === 'contract' ? 'contract' : 'wallet',
+          isPublic: e.isPublic === true
         })
       )
     entries.filter((e) => !remoteKeys.has(localKey(e))).forEach((e) => persistAddressBookUpsert(e, ownerAddress))

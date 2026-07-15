@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { useAccount, useChainId, useChains } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { AddIcon, DeleteIcon, CheckIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
+import { Switch } from '@/components/ui/switch'
+import { AddIcon, DeleteIcon, CheckIcon, ExternalLinkIcon, LockIcon, ViewIcon } from '../icons/ChakraIcons'
 
 import TextInput from '../inputs/TextInput'
 import useAddressBook, { AddressBookEntry, AddressBookEntryKind } from '../../states/addressBook'
@@ -34,11 +35,20 @@ const EntryRow: React.FC<{ entry: AddressBookEntry; explorerUrl?: string; ownerA
     if (label.trim() !== '') {
       updateEntry(entry.id, { label: label.trim() })
       persistAddressBookUpsert(
-        { chainId: entry.chainId, address: entry.address, label: label.trim(), kind: entry.kind },
+        { chainId: entry.chainId, address: entry.address, label: label.trim(), kind: entry.kind, isPublic: entry.isPublic },
         ownerAddress
       )
     }
     setEditing(false)
+  }
+
+  const toggleVisibility = () => {
+    const isPublic = entry.isPublic !== true
+    updateEntry(entry.id, { isPublic })
+    persistAddressBookUpsert(
+      { chainId: entry.chainId, address: entry.address, label: entry.label, kind: entry.kind, isPublic },
+      ownerAddress
+    )
   }
 
   const handleRemove = () => {
@@ -79,6 +89,23 @@ const EntryRow: React.FC<{ entry: AddressBookEntry; explorerUrl?: string; ownerA
         <span className={`rounded px-2 py-0.5 text-xs font-semibold ${KIND_BADGE[entry.kind]}`}>
           {entry.kind === 'contract' ? 'Contract' : 'Wallet'}
         </span>
+        <button
+          type='button'
+          onClick={toggleVisibility}
+          title={
+            entry.isPublic === true
+              ? 'Public: the MyMultiSig team can see this entry. Click to make it private.'
+              : 'Private: only you can see this entry. Click to share it publicly.'
+          }
+          className={`flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold transition-colors ${
+            entry.isPublic === true
+              ? 'bg-primary/15 text-primary hover:bg-primary/25'
+              : 'bg-muted text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          {entry.isPublic === true ? <ViewIcon className='h-3 w-3' /> : <LockIcon className='h-3 w-3' />}
+          {entry.isPublic === true ? 'Public' : 'Private'}
+        </button>
         {explorerUrl && (
           <a
             href={`${explorerUrl}/address/${entry.address}`}
@@ -118,6 +145,7 @@ const AddressBook: React.FC<AddressBookProps> = ({ multiSigAddress }) => {
   const [newAddress, setNewAddress] = useState('')
   const [newLabel, setNewLabel] = useState('')
   const [newKind, setNewKind] = useState<AddressBookEntryKind>('wallet')
+  const [newIsPublic, setNewIsPublic] = useState(false)
 
   const chainEntries = chain != null ? entries.filter((e) => e.chainId === chain.id) : []
   const known = (address: string) => chainEntries.some((e) => e.address.toLowerCase() === address.toLowerCase())
@@ -149,12 +177,19 @@ const AddressBook: React.FC<AddressBookProps> = ({ multiSigAddress }) => {
 
   const handleAdd = () => {
     if (!canAdd || chain == null) return
-    const entry = { chainId: chain.id, address: newAddress as `0x${string}`, label: newLabel.trim(), kind: newKind }
+    const entry = {
+      chainId: chain.id,
+      address: newAddress as `0x${string}`,
+      label: newLabel.trim(),
+      kind: newKind,
+      isPublic: newIsPublic
+    }
     addEntry(entry)
     persistAddressBookUpsert(entry, connectedAddress)
     setNewAddress('')
     setNewLabel('')
     setNewKind('wallet')
+    setNewIsPublic(false)
   }
 
   return (
@@ -196,6 +231,16 @@ const AddressBook: React.FC<AddressBookProps> = ({ multiSigAddress }) => {
           </Button>
         </div>
         {duplicate && <p className='text-xs text-destructive'>This address is already in the book for this network.</p>}
+        <label className='flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3'>
+          <span className='flex flex-col gap-0.5'>
+            <span className='text-sm font-medium text-foreground'>Share publicly</span>
+            <span className='text-xs text-muted-foreground'>
+              Public entries can be seen by the MyMultiSig team, helping widely used contracts get official support.
+              Private entries stay visible to you alone.
+            </span>
+          </span>
+          <Switch checked={newIsPublic} onCheckedChange={setNewIsPublic} />
+        </label>
       </div>
 
       {suggestions.length > 0 && (
