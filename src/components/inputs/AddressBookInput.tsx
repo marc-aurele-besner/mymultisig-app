@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { useChainId } from 'wagmi'
+import { useAccount, useChainId } from 'wagmi'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import TextInput from './TextInput'
 import { AddressBookIcon } from '../icons/ChakraIcons'
-import { useAddressLabels } from '../../states/addressBook'
+import useAddressBook, { useAddressLabels } from '../../states/addressBook'
+import { persistAddressBookUpsert } from '../../utils/addressBookSync'
 
 interface AddressBookInputProps {
   value: string
@@ -13,6 +15,8 @@ interface AddressBookInputProps {
   placeholder?: string
   isInvalid?: boolean
   id?: string
+  // Offer to label-and-save valid addresses that are not in the book yet.
+  allowSave?: boolean
 }
 
 const isAddress = (value: string) => /^0x[a-fA-F0-9]{40}$/.test(value)
@@ -20,11 +24,21 @@ const isAddress = (value: string) => /^0x[a-fA-F0-9]{40}$/.test(value)
 // A regular address input that doubles as an address-book combobox: type any
 // address freely, or open the dropdown to pick a saved entry. Used by every
 // address field in the request builder (contract args, receiver, batch steps).
-const AddressBookInput: React.FC<AddressBookInputProps> = ({ value, onChange, placeholder = '0x…', isInvalid, id }) => {
+const AddressBookInput: React.FC<AddressBookInputProps> = ({
+  value,
+  onChange,
+  placeholder = '0x…',
+  isInvalid,
+  id,
+  allowSave = false
+}) => {
   const chainId = useChainId()
+  const { address: account } = useAccount()
   const { entries, labelFor } = useAddressLabels(chainId)
+  const { addEntry } = useAddressBook()
   const [open, setOpen] = useState(false)
   const [highlighted, setHighlighted] = useState(0)
+  const [saveLabel, setSaveLabel] = useState('')
   const wrapperRef = useRef<HTMLDivElement>(null)
 
   const filtered = useMemo(() => {
@@ -155,6 +169,34 @@ const AddressBookInput: React.FC<AddressBookInputProps> = ({ value, onChange, pl
         <span className='text-xs text-muted-foreground'>
           Known as <span className='font-semibold text-foreground'>{knownLabel}</span> in your address book.
         </span>
+      )}
+      {allowSave && isAddress(value) && knownLabel == null && (
+        <div className='flex flex-wrap items-center gap-2 pt-1'>
+          <TextInput
+            className='h-auto w-56 py-1.5 md:w-56'
+            placeholder='Label this address (optional)'
+            value={saveLabel}
+            onChange={(e) => setSaveLabel(e.target.value)}
+          />
+          <Button
+            size='sm'
+            variant='outline'
+            disabled={saveLabel.trim() === ''}
+            onClick={() => {
+              const entry = {
+                chainId,
+                address: value as `0x${string}`,
+                label: saveLabel.trim(),
+                kind: 'wallet' as const
+              }
+              addEntry(entry)
+              persistAddressBookUpsert(entry, account)
+              setSaveLabel('')
+            }}
+          >
+            Save to address book
+          </Button>
+        </div>
       )}
     </div>
   )
