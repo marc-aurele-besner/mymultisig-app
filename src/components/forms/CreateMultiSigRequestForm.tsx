@@ -410,8 +410,8 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
             )}
         </div>
 
-        {ready && signArgs != null ? (
-          <div className='flex justify-end'>
+        <div className='flex flex-col items-end gap-1.5'>
+          {ready && signArgs != null ? (
             <SignRequest
               multiSigAddress={multiSigAddress}
               description={description}
@@ -422,14 +422,22 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
                 ...(batchSteps != null ? { batchSteps } : {})
               }}
             />
-          </div>
-        ) : (
-          <p className='text-center text-xs text-muted-foreground'>
-            {firstInvalidIndex !== -1
-              ? `${isBatch ? `Step ${firstInvalidIndex + 1}` : 'The request'} ${stepError(steps[firstInvalidIndex])}.`
-              : 'Add a description so the other owners know what this request does.'}
-          </p>
-        )}
+          ) : (
+            <Fragment>
+              {/* Same look and position as SignRequest's button, disabled until the request is complete. */}
+              <div className='flex justify-center'>
+                <Button variant='default' className='mr-8 mt-4' disabled>
+                  Sign transaction request
+                </Button>
+              </div>
+              <p className='mr-8 text-xs text-muted-foreground'>
+                {firstInvalidIndex !== -1
+                  ? `${isBatch ? `Step ${firstInvalidIndex + 1}` : 'The request'} ${stepError(steps[firstInvalidIndex])}.`
+                  : 'Add a description so the other owners know what this request does.'}
+              </p>
+            </Fragment>
+          )}
+        </div>
       </div>
     </Fragment>
   )
