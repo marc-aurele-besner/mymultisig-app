@@ -1,13 +1,12 @@
 import React, { useState } from 'react'
-import { useChainId } from 'wagmi'
 import { encodeFunctionData, Abi } from 'viem'
 import { Button } from '@/components/ui/button'
 import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 
 import TextInput from '../inputs/TextInput'
+import AddressBookInput from '../inputs/AddressBookInput'
 import SignRequest from '../buttons/SignRequest'
 import { AddIcon, DeleteIcon } from '../icons/ChakraIcons'
-import { useAddressLabels } from '../../states/addressBook'
 import { BatchStep } from '../../models/MultiSigs'
 
 interface BatchRequestFormProps {
@@ -38,8 +37,6 @@ const stepError = (step: BatchStep): string | null => {
 const BatchRequestForm: React.FC<BatchRequestFormProps> = ({ multiSigAddress, txnNonce }) => {
   const [steps, setSteps] = useState<BatchStep[]>([{ ...EMPTY_STEP }, { ...EMPTY_STEP }])
   const [description, setDescription] = useState('')
-  const chainId = useChainId()
-  const { entries: bookEntries, labelFor } = useAddressLabels(chainId)
 
   const updateStep = (index: number, key: keyof BatchStep, value: string) => {
     setSteps(steps.map((step, i) => (i === index ? { ...step, [key]: value } : step)))
@@ -87,17 +84,9 @@ const BatchRequestForm: React.FC<BatchRequestFormProps> = ({ multiSigAddress, tx
         the others.
       </p>
 
-      <datalist id='address-book-batch-targets'>
-        {bookEntries.map((entry) => (
-          <option key={entry.id} value={entry.address}>
-            {entry.label}
-          </option>
-        ))}
-      </datalist>
-
       {steps.map((step, i) => {
-        const toInvalid = step.to.length > 0 && !isAddress(step.to)
-        const knownLabel = isAddress(step.to) ? labelFor(step.to) : null
+        // Only flag address-looking input; typing a label to search the book is fine.
+        const toInvalid = step.to.startsWith('0x') && step.to.length > 2 && !isAddress(step.to)
         return (
           <div key={i} className='flex flex-col gap-4 rounded-xl border border-border p-4'>
             <div className='flex items-center justify-between'>
@@ -118,27 +107,13 @@ const BatchRequestForm: React.FC<BatchRequestFormProps> = ({ multiSigAddress, tx
 
             {field(
               'Send to',
-              <TextInput
-                className='font-mono md:w-full'
-                placeholder='Receiver or contract address (0x...) — saved addresses will be suggested'
+              <AddressBookInput
+                placeholder='Receiver or contract address (0x...)'
                 value={step.to}
-                list='address-book-batch-targets'
                 isInvalid={toInvalid}
-                spellCheck={false}
-                autoComplete='off'
-                onChange={(e) => updateStep(i, 'to', e.target.value.trim())}
+                onChange={(value) => updateStep(i, 'to', value)}
               />,
-              toInvalid
-                ? undefined
-                : knownLabel != null
-                  ? undefined
-                  : 'The address this step calls or sends funds to.'
-            )}
-            {toInvalid && <span className='-mt-3 text-xs text-destructive'>This is not a valid address</span>}
-            {knownLabel != null && (
-              <span className='-mt-3 text-xs text-muted-foreground'>
-                Known as <span className='font-semibold text-foreground'>{knownLabel}</span> in your address book.
-              </span>
+              'The address this step calls or sends funds to.'
             )}
 
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>

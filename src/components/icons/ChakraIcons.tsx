@@ -25,7 +25,8 @@ import {
   ArrowLeft as ArrowLeftIconLucide,
   Coins as CoinsIconLucide,
   Import as ImportIconLucide,
-  Wallet as WalletIconLucide
+  Wallet as WalletIconLucide,
+  BookUser as BookUserIconLucide
 } from 'lucide-react'
 import React from 'react'
 import { cn } from '@/lib/utils'
@@ -69,3 +70,4 @@ export const ArrowBackIcon = withIcon(ArrowLeftIconLucide, 'ArrowBackIcon')
 export const CoinsIcon = withIcon(CoinsIconLucide, 'CoinsIcon')
 export const ImportIcon = withIcon(ImportIconLucide, 'ImportIcon')
 export const WalletIcon = withIcon(WalletIconLucide, 'WalletIcon')
+export const AddressBookIcon = withIcon(BookUserIconLucide, 'AddressBookIcon')

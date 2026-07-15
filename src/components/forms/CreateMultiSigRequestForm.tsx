@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import SelectContract from '../inputs/SelectContract'
 import SelectFunction from '../inputs/SelectFunction'
 import TextInput from '../inputs/TextInput'
+import AddressBookInput from '../inputs/AddressBookInput'
 import SignRequest from '../buttons/SignRequest'
 import NewContract from '../modals/NewContract'
 import BatchRequestForm from './BatchRequestForm'
@@ -44,7 +45,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
   const [pinnedNonce, setPinnedNonce] = useState<string>('')
   const contracts = useContracts((state) => state.contracts)
   const chainId = useChainId()
-  const { entries: bookEntries, labelFor } = useAddressLabels(chainId)
+  const { labelFor } = useAddressLabels(chainId)
   const { addEntry } = useAddressBook()
   const [receiverLabel, setReceiverLabel] = useState('')
   const callData = useCallData(abi, selectedFunction, request.to, request.arguments)
@@ -171,14 +172,22 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
                     selectedFunctionFragment.inputs.length > 0 && (
                       <div className='flex flex-col gap-3 border-t border-border pt-3'>
                         <span className='text-sm font-semibold text-foreground'>Arguments</span>
-                        {selectedFunctionFragment.inputs.map((item: JsonFragment) =>
+                        {selectedFunctionFragment.inputs.map((item: JsonFragment & { type?: string }) =>
                           field(
-                            String(item.name),
-                            <TextInput
-                              className='md:w-full'
-                              placeholder={String(item.name)}
-                              onChange={(e) => handleChangeValue(e.target.value, 'arguments', item.name as string)}
-                            />
+                            `${String(item.name)} (${String(item.type ?? '')})`,
+                            item.type === 'address' ? (
+                              <AddressBookInput
+                                placeholder={`${String(item.name)} address (0x...)`}
+                                value={String((request.arguments as Record<string, string>)[item.name as string] ?? '')}
+                                onChange={(value) => handleChangeValue(value, 'arguments', item.name as string)}
+                              />
+                            ) : (
+                              <TextInput
+                                className='md:w-full'
+                                placeholder={String(item.name)}
+                                onChange={(e) => handleChangeValue(e.target.value, 'arguments', item.name as string)}
+                              />
+                            )
                           )
                         )}
                       </div>
@@ -187,54 +196,45 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
               ) : (
                 <div className='flex w-full flex-col gap-1.5'>
                   <span className='text-sm font-semibold text-foreground'>Receiver</span>
-                  <TextInput
-                    className='md:w-full'
-                    placeholder='Receiver address (0x...) — saved addresses will be suggested'
-                    value={request.to}
-                    list='address-book-receivers'
-                    onChange={(e) => handleChangeValue(e.target.value, 'to')}
+                  <AddressBookInput
+                    placeholder='Receiver address (0x...)'
+                    value={request.to === '0x' ? '' : request.to}
+                    isInvalid={
+                      // Only flag address-looking input; typing a label to search the book is fine.
+                      request.to.startsWith('0x') &&
+                      request.to.length > 2 &&
+                      !/^0x[a-fA-F0-9]{40}$/.test(request.to)
+                    }
+                    onChange={(value) => handleChangeValue(value === '' ? '0x' : value, 'to')}
                   />
-                  <datalist id='address-book-receivers'>
-                    {bookEntries.map((entry) => (
-                      <option key={entry.id} value={entry.address}>
-                        {entry.label}
-                      </option>
-                    ))}
-                  </datalist>
-                  {/^0x[a-fA-F0-9]{40}$/.test(request.to) &&
-                    (labelFor(request.to) != null ? (
-                      <span className='text-xs text-muted-foreground'>
-                        Known as <span className='font-semibold text-foreground'>{labelFor(request.to)}</span> in your
-                        address book.
-                      </span>
-                    ) : (
-                      <div className='flex flex-wrap items-center gap-2 pt-1'>
-                        <TextInput
-                          className='h-auto w-56 py-1.5 md:w-56'
-                          placeholder='Label this address (optional)'
-                          value={receiverLabel}
-                          onChange={(e) => setReceiverLabel(e.target.value)}
-                        />
-                        <Button
-                          size='sm'
-                          variant='outline'
-                          disabled={receiverLabel.trim() === ''}
-                          onClick={() => {
-                            const entry = {
-                              chainId,
-                              address: request.to as `0x${string}`,
-                              label: receiverLabel.trim(),
-                              kind: 'wallet' as const
-                            }
-                            addEntry(entry)
-                            persistAddressBookUpsert(entry, address)
-                            setReceiverLabel('')
-                          }}
-                        >
-                          Save to address book
-                        </Button>
-                      </div>
-                    ))}
+                  {/^0x[a-fA-F0-9]{40}$/.test(request.to) && labelFor(request.to) == null && (
+                    <div className='flex flex-wrap items-center gap-2 pt-1'>
+                      <TextInput
+                        className='h-auto w-56 py-1.5 md:w-56'
+                        placeholder='Label this address (optional)'
+                        value={receiverLabel}
+                        onChange={(e) => setReceiverLabel(e.target.value)}
+                      />
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        disabled={receiverLabel.trim() === ''}
+                        onClick={() => {
+                          const entry = {
+                            chainId,
+                            address: request.to as `0x${string}`,
+                            label: receiverLabel.trim(),
+                            kind: 'wallet' as const
+                          }
+                          addEntry(entry)
+                          persistAddressBookUpsert(entry, address)
+                          setReceiverLabel('')
+                        }}
+                      >
+                        Save to address book
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
