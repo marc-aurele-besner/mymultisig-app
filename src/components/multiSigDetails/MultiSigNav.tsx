@@ -10,6 +10,7 @@ interface MultiSigNavProps {
 
 const TABS = [
   { slug: '', label: 'Overview' },
+  { slug: 'assets', label: 'Assets' },
   { slug: 'buildRequest', label: 'Build a request' },
   { slug: 'requests', label: 'Requests' },
   { slug: 'activity', label: 'Activity' },
