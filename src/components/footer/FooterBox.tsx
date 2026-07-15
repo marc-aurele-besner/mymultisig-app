@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import React from 'react'
-import { LockIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
+import Image from 'next/image'
+import { ExternalLinkIcon } from '../icons/ChakraIcons'
 
 interface FooterItem {
   name: string
@@ -52,9 +53,13 @@ const FooterBox: React.FC = () => {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-[2fr_1fr_1fr_1fr] md:gap-6">
           <div className="col-span-2 flex flex-col gap-3 md:col-span-1 md:pr-8">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/15 text-primary">
-                <LockIcon className="h-3.5 w-3.5" />
-              </span>
+              <Image
+                src="/favicon/favicon-96x96.png"
+                alt="MyMultiSig.app"
+                width={24}
+                height={24}
+                className="h-6 w-6 rounded-md"
+              />
               <span className="font-display text-sm font-bold tracking-tight text-foreground">MyMultiSig.app</span>
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">
