@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useChainId, useChains } from 'wagmi'
-import { ExternalLinkIcon, CheckCircleIcon, AddIcon, DeleteIcon, ArrowBackIcon } from '../icons/ChakraIcons'
-import { motion } from 'framer-motion'
+import { ExternalLinkIcon, CheckCircleIcon, CheckIcon, AddIcon, DeleteIcon, ArrowBackIcon } from '../icons/ChakraIcons'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { LoadingDots } from '@/components/ui/loading-dots'
@@ -46,11 +46,20 @@ const StepIndicator: React.FC<{ current: number }> = ({ current }) => (
   <div className='flex w-full items-center justify-center gap-0'>
     {STEPS.map((label, index) => (
       <React.Fragment key={label}>
-        {index > 0 && <div className={cn('h-px w-8 sm:w-16', index <= current ? 'bg-primary' : 'bg-border')} />}
+        {index > 0 && (
+          <div className='relative h-px w-8 overflow-hidden bg-border sm:w-16'>
+            <span
+              className={cn(
+                'absolute inset-0 origin-left bg-primary transition-transform duration-500 ease-out',
+                index <= current ? 'scale-x-100' : 'scale-x-0'
+              )}
+            />
+          </div>
+        )}
         <div className='flex items-center gap-2'>
           <span
             className={cn(
-              'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
+              'flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-mono text-xs transition-colors duration-300',
               index < current
                 ? 'bg-primary/20 text-primary'
                 : index === current
@@ -58,11 +67,11 @@ const StepIndicator: React.FC<{ current: number }> = ({ current }) => (
                   : 'border border-border text-muted-foreground'
             )}
           >
-            {index < current ? <CheckCircleIcon className='h-4 w-4' /> : index + 1}
+            {index < current ? <CheckIcon className='h-3.5 w-3.5 animate-pop-in' /> : `0${index + 1}`}
           </span>
           <span
             className={cn(
-              'hidden text-sm sm:inline',
+              'hidden text-sm transition-colors duration-300 sm:inline',
               index === current ? 'font-semibold text-foreground' : 'text-muted-foreground'
             )}
           >
@@ -158,6 +167,15 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
     <div className='flex w-full flex-col gap-6'>
       <StepIndicator current={step} />
 
+      <AnimatePresence mode='wait' initial={false}>
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6, transition: { duration: 0.15, ease: 'easeIn' } }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          className='w-full'
+        >
       {step === 0 && (
         <div className='flex w-full flex-col gap-4'>
           <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
@@ -390,6 +408,8 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
           )}
         </div>
       )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   )
 }
