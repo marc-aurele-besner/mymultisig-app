@@ -106,6 +106,44 @@
     --sidebar-ring: oklch(0.6 0.2 41.116 / 60%);
   }
 
+/*
+ * Motion vocabulary: exponential ease-outs for entrances and state changes.
+ * Feedback stays under 150ms, state changes 200-300ms, entrances up to 500ms.
+ */
+:root {
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes loading-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.85);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-pop-in {
+  animation: pop-in 200ms var(--ease-out-quart) both;
+}
+
 * {
   border-color: var(--border);
 }
