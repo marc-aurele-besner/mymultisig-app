@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
+import { TypedEyebrow, WordReveal } from '@/components/ui/reveal'
 import ConnectWallet from './ConnectWallet'
 import ConnectedWallet from './ConnectedWallet'
 import HeroQuorum from './HeroQuorum'
@@ -112,18 +113,28 @@ const Welcome: React.FC = () => {
 
       {/* Hero */}
       <section className="grid items-center gap-10 pt-2 md:pt-8 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
-        <motion.div variants={sectionVariants} initial="hidden" animate="visible">
-          <p className="mb-4 font-mono text-xs tracking-[0.2em] text-primary">
-            SHARED WALLETS, ENFORCED ONCHAIN
-          </p>
-          <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-6xl">
-            No single key can move the funds.
-          </h1>
-          <p className="mt-5 max-w-lg text-lg leading-relaxed text-muted-foreground">
+        <div>
+          <TypedEyebrow text="SHARED WALLETS, ENFORCED ONCHAIN" className="mb-4" />
+          <WordReveal
+            text="No single key can move the funds."
+            delay={0.25}
+            className="font-display text-4xl font-bold leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-6xl"
+          />
+          <motion.p
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.7, ease: 'easeOut' }}
+            className="mt-5 max-w-lg text-lg leading-relaxed text-muted-foreground"
+          >
             Create a shared wallet, choose its owners, and set how many must approve. Every transaction
             waits for that quorum—then anyone on the team can execute it.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.85, ease: 'easeOut' }}
+            className="mt-8 flex flex-col gap-3 sm:flex-row"
+          >
             <Button size="lg" className="gap-2 px-7" asChild>
               <Link href="/createMultiSig">
                 <AddIcon className="h-4 w-4" />
@@ -136,8 +147,13 @@ const Welcome: React.FC = () => {
                 Open an existing multisig
               </Link>
             </Button>
-          </div>
-          <div className="mt-6 flex items-center gap-5 font-mono text-xs text-muted-foreground">
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 1.05 }}
+            className="mt-6 flex items-center gap-5 font-mono text-xs text-muted-foreground"
+          >
             <Link href="/integration" className="transition-colors hover:text-foreground">
               Integration
             </Link>
@@ -151,8 +167,8 @@ const Welcome: React.FC = () => {
               Review the code
               <ExternalLinkIcon className="h-3 w-3" />
             </a>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
         <HeroQuorum />
       </section>

@@ -12,24 +12,41 @@ const OWNERS = [
 
 const THRESHOLD = 2
 
+// The card loops the core mechanic forever: owners sign, quorum is reached,
+// the transaction executes, and the next proposal begins.
+type Phase = 'idle' | 'sig1' | 'sig2' | 'executed'
+
+const NEXT_PHASE: Record<Phase, { next: Phase; after: number }> = {
+  idle: { next: 'sig1', after: 1400 },
+  sig1: { next: 'sig2', after: 1100 },
+  sig2: { next: 'executed', after: 2600 },
+  executed: { next: 'idle', after: 3200 }
+}
+
 /**
- * Illustrative pending transaction that plays the core mechanic on load:
- * two of three owners sign, quorum is reached, execute unlocks.
+ * Illustrative pending transaction that plays the core mechanic on a loop:
+ * two of three owners sign, quorum is reached, execute fires, and the ledger
+ * advances to the next proposal. Reduced motion shows the quorum state static.
  */
 const HeroQuorum: React.FC = () => {
   const prefersReducedMotion = useReducedMotion()
-  const [signedCount, setSignedCount] = useState(prefersReducedMotion ? THRESHOLD : 0)
+  const [phase, setPhase] = useState<Phase>(prefersReducedMotion ? 'sig2' : 'idle')
+  const [proposalNumber, setProposalNumber] = useState(42)
 
   useEffect(() => {
     if (prefersReducedMotion) return
-    const timers = [
-      setTimeout(() => setSignedCount(1), 900),
-      setTimeout(() => setSignedCount(2), 1900)
-    ]
-    return () => timers.forEach(clearTimeout)
-  }, [prefersReducedMotion])
+    const { next, after } = NEXT_PHASE[phase]
+    const timer = setTimeout(() => {
+      if (phase === 'executed') setProposalNumber((n) => n + 1)
+      setPhase(next)
+    }, after)
+    return () => clearTimeout(timer)
+  }, [phase, prefersReducedMotion])
 
+  const signedCount = phase === 'idle' ? 0 : phase === 'sig1' ? 1 : 2
   const quorumReached = signedCount >= THRESHOLD
+  const executed = phase === 'executed'
+  const status = executed ? 'EXECUTED' : quorumReached ? 'QUORUM REACHED' : 'AWAITING SIGNATURES'
 
   return (
     <motion.div
@@ -41,22 +58,41 @@ const HeroQuorum: React.FC = () => {
       <div
         className={cn(
           'relative overflow-hidden rounded-xl border border-border bg-card transition-shadow duration-700',
-          quorumReached && 'shadow-[0_0_70px_-18px] shadow-primary/35'
+          quorumReached && !executed && 'shadow-[0_0_70px_-18px] shadow-primary/35',
+          executed && 'shadow-[0_0_80px_-14px] shadow-primary/50'
         )}
       >
         <div className="pointer-events-none absolute left-[10%] right-[10%] top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
         <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
-          <span className="font-mono text-xs tracking-wider text-muted-foreground">PROPOSAL #0042</span>
+          <motion.span
+            key={proposalNumber}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="font-mono text-xs tracking-wider text-muted-foreground"
+          >
+            PROPOSAL #{String(proposalNumber).padStart(4, '0')}
+          </motion.span>
           <span
             className={cn(
               'rounded-full border px-2.5 py-0.5 font-mono text-[11px] tracking-wider transition-colors duration-500',
-              quorumReached
-                ? 'border-primary/40 bg-primary/15 text-primary'
-                : 'border-border bg-muted text-muted-foreground'
+              executed
+                ? 'border-primary bg-primary text-primary-foreground'
+                : quorumReached
+                  ? 'border-primary/40 bg-primary/15 text-primary'
+                  : 'border-border bg-muted text-muted-foreground'
             )}
           >
-            {quorumReached ? 'QUORUM REACHED' : 'AWAITING SIGNATURES'}
+            <motion.span
+              key={status}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="inline-block"
+            >
+              {status}
+            </motion.span>
           </span>
         </div>
 
@@ -120,9 +156,16 @@ const HeroQuorum: React.FC = () => {
               {signedCount} of {OWNERS.length} signed · {THRESHOLD} required
             </span>
           </div>
-          <Button size="sm" disabled={!quorumReached} className="shrink-0" tabIndex={-1}>
-            Execute transaction
-          </Button>
+          <motion.div
+            animate={executed && !prefersReducedMotion ? { scale: [1, 0.94, 1] } : { scale: 1 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="shrink-0"
+          >
+            <Button size="sm" disabled={!quorumReached} className="gap-1.5" tabIndex={-1}>
+              {executed && <CheckIcon className="h-3.5 w-3.5" />}
+              {executed ? 'Executed' : 'Execute transaction'}
+            </Button>
+          </motion.div>
         </div>
       </div>
 
