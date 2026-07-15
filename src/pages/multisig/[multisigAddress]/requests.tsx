@@ -2,6 +2,7 @@ import React from 'react'
 import { useRouter } from 'next/router'
 import { useAccount } from 'wagmi'
 
+import { LoadingDots } from '@/components/ui/loading-dots'
 import MultiSigPageLayout from '../../../components/multiSigDetails/MultiSigPageLayout'
 import MultiSigRequestList from '../../../components/multiSigDetails/MultiSigRequestList'
 import useMultiSigDetails from '../../../hooks/useMultiSigDetails'
@@ -21,9 +22,8 @@ const Page: React.FC = () => {
   return (
     <MultiSigPageLayout multiSigAddress={multisigAddress as `0x${string}`}>
       {multiSigDetails == null ? (
-        <div className='flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-muted/30 p-6'>
-          <span className='h-3 w-3 animate-pulse rounded-full bg-primary' />
-          <span className='text-sm text-muted-foreground'>Reading the multisig contract...</span>
+        <div className='flex w-full items-center justify-center rounded-xl border border-border bg-muted/30 p-6'>
+          <LoadingDots label='Reading the multisig contract...' />
         </div>
       ) : (
         <MultiSigRequestList multiSigAddress={multisigAddress as `0x${string}`} multiSigDetails={multiSigDetails} />

@@ -1,6 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { LoadingDots } from '@/components/ui/loading-dots'
 import { AddIcon } from '../icons/ChakraIcons'
 import { MultiSigOnChainData } from '../../models/MultiSigs'
 import useMultiSigRequests from '../../hooks/useMultiSigRequests'
@@ -30,9 +31,8 @@ const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({ multiSigAddre
 
   if (requests == null || isLoading) {
     return (
-      <div className='flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-muted/30 p-6'>
-        <span className='h-3 w-3 animate-pulse rounded-full bg-primary' />
-        <span className='text-sm text-muted-foreground'>Loading requests...</span>
+      <div className='flex w-full items-center justify-center rounded-xl border border-border bg-muted/30 p-6'>
+        <LoadingDots label='Loading requests...' />
       </div>
     )
   }

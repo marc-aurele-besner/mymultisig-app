@@ -2,6 +2,7 @@ import React from 'react'
 import { useChainId, useChains } from 'wagmi'
 import { formatEther } from 'viem'
 import { Button } from '@/components/ui/button'
+import { LoadingDots } from '@/components/ui/loading-dots'
 import { ExternalLinkIcon } from '../icons/ChakraIcons'
 import { cn } from '@/lib/utils'
 
@@ -196,9 +197,8 @@ const MultiSigActivityFeed: React.FC<MultiSigActivityFeedProps> = ({ multiSigAdd
       </div>
 
       {isLoading && (
-        <div className='flex items-center justify-center gap-3 p-2'>
-          <span className='h-3 w-3 animate-pulse rounded-full bg-primary' />
-          <span className='text-sm text-muted-foreground'>Scanning blocks for activity...</span>
+        <div className='flex items-center justify-center p-2'>
+          <LoadingDots label='Scanning blocks for activity...' />
         </div>
       )}
 

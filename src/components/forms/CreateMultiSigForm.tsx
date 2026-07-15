@@ -4,6 +4,7 @@ import { ExternalLinkIcon, CheckCircleIcon, AddIcon, DeleteIcon, ArrowBackIcon }
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import { LoadingDots } from '@/components/ui/loading-dots'
 import { cn } from '@/lib/utils'
 
 import TextInput from '../inputs/TextInput'
@@ -380,7 +381,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
               className='w-full rounded-xl border border-primary bg-primary/10 p-4'
             >
               <div className='flex items-center justify-center gap-3'>
-                <span className='h-3 w-3 animate-pulse rounded-full bg-primary' />
+                <LoadingDots />
                 <span className='text-sm font-medium text-primary'>
                   Please confirm the transaction in your wallet...
                 </span>

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useAccount, useBalance, useChainId, useChains } from 'wagmi'
 import { formatEther } from 'viem'
 import { Button } from '@/components/ui/button'
+import { LoadingDots } from '@/components/ui/loading-dots'
 import { cn } from '@/lib/utils'
 import { CoinsIcon } from '../icons/ChakraIcons'
 
@@ -79,9 +80,8 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
 
   if (multiSigDetails == null)
     return (
-      <div className='flex items-center justify-center gap-3 p-6'>
-        <span className='h-3 w-3 animate-pulse rounded-full bg-primary' />
-        <span className='text-sm text-muted-foreground'>Reading the multisig contract...</span>
+      <div className='flex items-center justify-center p-6'>
+        <LoadingDots label='Reading the multisig contract...' />
       </div>
     )
 
@@ -197,9 +197,8 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
               />
             ))
           ) : activityLoading ? (
-            <div className='flex items-center gap-3 p-2'>
-              <span className='h-2.5 w-2.5 animate-pulse rounded-full bg-primary' />
-              <span className='text-sm text-muted-foreground'>Scanning recent blocks...</span>
+            <div className='flex items-center p-2'>
+              <LoadingDots size='sm' label='Scanning recent blocks...' />
             </div>
           ) : (
             <p className='text-sm text-muted-foreground'>

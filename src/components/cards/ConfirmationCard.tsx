@@ -2,6 +2,7 @@ import React, { Fragment, useEffect } from 'react'
 import Link from 'next/link'
 import { useChainId, useChains } from 'wagmi'
 import { Button } from '@/components/ui/button'
+import { LoadingDots } from '@/components/ui/loading-dots'
 import { CheckCircleIcon, ExternalLinkIcon, SettingsIcon, AddIcon } from '../icons/ChakraIcons'
 
 import useConfirmation from '../../hooks/useConfirmation'
@@ -44,9 +45,8 @@ const ConfirmationWithEventDetailCard: React.FC<ConfirmationDetailProps> = ({
 
   if (!multiSigAddress) {
     return (
-      <div className='flex items-center justify-center gap-3 rounded-xl border border-border bg-muted/30 p-4'>
-        <span className='h-3 w-3 animate-pulse rounded-full bg-primary' />
-        <span className='text-sm text-muted-foreground'>Waiting for the wallet address on-chain...</span>
+      <div className='flex items-center justify-center rounded-xl border border-border bg-muted/30 p-4'>
+        <LoadingDots label='Waiting for the wallet address on-chain...' />
       </div>
     )
   }
@@ -93,19 +93,16 @@ const ConfirmationCard: React.FC<ConfirmationCardProps> = ({ hash, multiSigFacto
   return (
     <Fragment>
       {isLoading && (
-        <div className='flex items-center justify-center gap-3 rounded-xl border border-border bg-muted/30 p-4'>
-          <span className='h-3 w-3 animate-pulse rounded-full bg-primary' />
-          <span className='text-sm text-muted-foreground'>Waiting for the deployment to confirm...</span>
+        <div className='flex items-center justify-center rounded-xl border border-border bg-muted/30 p-4'>
+          <LoadingDots label='Waiting for the deployment to confirm...' />
         </div>
       )}
       {error && <p className='text-sm font-semibold text-destructive'>Error: {error.message}</p>}
       {isSuccess && (
         <Fragment>
           <div className='flex items-center gap-2'>
-            <CheckCircleIcon className='h-5 w-5 text-green-500' />
-            <p className='text-lg font-bold text-green-600 dark:text-green-400'>
-              Your multisig contract has been deployed!
-            </p>
+            <CheckCircleIcon className='h-5 w-5 animate-pop-in text-primary' />
+            <p className='text-lg font-bold text-foreground'>Your multisig contract has been deployed!</p>
           </div>
           <ConfirmationWithEventDetailCard
             hash={hash}
