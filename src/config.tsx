@@ -2,7 +2,7 @@ import Head from 'next/head'
 
 const titleDefault = 'MyMultiSig'
 const siteUrl = 'https://mymultisig.app'
-const descriptionDefault = 'A simple and easy MultiSig wallet for Ethereum and other EVMs networks'
+const descriptionDefault = 'A simple and easy MultiSig wallet for Ethereum and other EVM networks'
 const author = 'Marc-Aurele Besner'
 const ogImage = `${siteUrl}/images/og-image.png`
 
@@ -30,7 +30,6 @@ const Header = ({ title = titleDefault, description = descriptionDefault, path, 
       {/* Search Engine Optimization Meta Tags */}
       <title>{title}</title>
       <meta name='description' content={description} />
-      <meta name='keywords' content='nextjs,react,typescript,web3,ethereum,multisig,wallet,dapp' />
       <meta name='robots' content={noIndex ? 'noindex,nofollow' : 'index,follow'} />
       <meta name='distribution' content='web' />
       {canonicalUrl && <link rel='canonical' href={canonicalUrl} />}
@@ -63,6 +62,7 @@ const Header = ({ title = titleDefault, description = descriptionDefault, path, 
       <meta name='twitter:title' content={title} />
       <meta name='twitter:description' content={description} />
       <meta name='twitter:image' content={ogImage} />
+      <meta name='twitter:image:alt' content='MyMultiSig — open-source multisig wallet for Ethereum and EVM networks' />
     </Head>
   )
 }

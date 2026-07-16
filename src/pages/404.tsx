@@ -32,4 +32,13 @@ const Error: React.FC = () => {
   )
 }
 
+export async function getStaticProps() {
+  return {
+    props: {
+      title: 'Page not found — MyMultiSig',
+      noIndex: true
+    }
+  }
+}
+
 export default Error

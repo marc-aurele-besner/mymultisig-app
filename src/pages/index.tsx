@@ -14,7 +14,12 @@ const structuredData = {
       name: 'MyMultiSig',
       url: `${siteUrl}/`,
       logo: `${siteUrl}/favicon/web-app-manifest-512x512.png`,
-      sameAs: ['https://github.com/marc-aurele-besner/mymultisig-app']
+      sameAs: [
+        'https://github.com/marc-aurele-besner/mymultisig-app',
+        'https://github.com/marc-aurele-besner/mymultisig-contract',
+        'https://www.npmjs.com/package/mymultisig-contract',
+        'https://x.com/marcaureleb'
+      ]
     },
     {
       '@type': 'WebSite',
