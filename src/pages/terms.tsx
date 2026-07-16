@@ -7,7 +7,13 @@ const Page: React.FC = () => {
 }
 
 export async function getStaticProps() {
-  return { props: { title: 'MyMultiSig - Terms & Conditions' } }
+  return {
+    props: {
+      title: 'MyMultiSig - Terms & Conditions',
+      description: 'Terms and conditions for using the MyMultiSig app and its open-source multisig contracts.',
+      path: '/terms'
+    }
+  }
 }
 
 export default Page

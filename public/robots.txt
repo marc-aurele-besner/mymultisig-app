@@ -1,0 +1,9 @@
+# https://mymultisig.app — allow marketing pages, keep app/private routes out of search
+User-agent: *
+Allow: /
+Disallow: /multisig/
+Disallow: /request/
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://mymultisig.app/sitemap.xml

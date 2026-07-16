@@ -7,7 +7,13 @@ const Page: React.FC = () => {
 }
 
 export async function getStaticProps() {
-  return { props: { title: 'MyMultiSig - Contact' } }
+  return {
+    props: {
+      title: 'MyMultiSig - Contact',
+      description: 'Get in touch with the MyMultiSig team — questions, feedback, or issues with the multisig wallet.',
+      path: '/contact'
+    }
+  }
 }
 
 export default Page

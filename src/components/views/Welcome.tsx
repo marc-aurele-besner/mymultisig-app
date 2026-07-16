@@ -76,7 +76,7 @@ const whoItsFor = [
   'Anywhere shared custody or multiple signers are needed'
 ]
 
-const faqItems = [
+export const faqItems = [
   {
     q: 'What is a multisig?',
     a: 'A multisig (multi-signature) wallet is a shared wallet that requires multiple people to approve a transaction before it can be executed. No single person can move funds alone.'
@@ -114,8 +114,11 @@ const Welcome: React.FC = () => {
       {/* Hero */}
       <section className="grid items-center gap-10 pt-2 md:pt-8 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
         <div>
-          <TypedEyebrow text="SHARED WALLETS, ENFORCED ONCHAIN" className="mb-4" />
+          {/* The eyebrow carries the branded h1 so search engines see the product name;
+              the display line below stays the visual headline. */}
+          <TypedEyebrow as="h1" text="MYMULTISIG — SHARED WALLETS, ENFORCED ONCHAIN" className="mb-4" />
           <WordReveal
+            as="p"
             text="No single key can move the funds."
             delay={0.25}
             className="font-display text-4xl font-bold leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-6xl"

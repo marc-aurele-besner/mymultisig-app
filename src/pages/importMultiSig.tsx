@@ -7,7 +7,13 @@ const Page: React.FC = () => {
 }
 
 export async function getStaticProps() {
-  return { props: { title: 'MyMultiSig - Import your MultiSig' } }
+  return {
+    props: {
+      title: 'MyMultiSig - Import your MultiSig',
+      description: 'Import an existing multisig wallet by address to track and manage it with MyMultiSig.',
+      path: '/importMultiSig'
+    }
+  }
 }
 
 export default Page

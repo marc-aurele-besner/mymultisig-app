@@ -1,11 +1,22 @@
 import Head from 'next/head'
 
 const titleDefault = 'MyMultiSig'
-const url = 'https://mymultisig.app/'
-const description = 'A simple and easy MultiSig wallet for Ethereum and other EVMs networks'
+const siteUrl = 'https://mymultisig.app'
+const descriptionDefault = 'A simple and easy MultiSig wallet for Ethereum and other EVMs networks'
 const author = 'Marc-Aurele Besner'
+const ogImage = `${siteUrl}/images/og-image.png`
 
-const Header = ({ title = titleDefault }) => {
+interface HeaderProps {
+  title?: string
+  description?: string
+  /** Route path (e.g. '/about') — emits a canonical URL and matching og:url when set */
+  path?: string
+  /** Private/app pages set this so thin or duplicate URLs stay out of search results */
+  noIndex?: boolean
+}
+
+const Header = ({ title = titleDefault, description = descriptionDefault, path, noIndex = false }: HeaderProps) => {
+  const canonicalUrl = path != null ? `${siteUrl}${path === '/' ? '/' : path}` : undefined
   return (
     <Head>
       {/* Recommended Meta Tags */}
@@ -20,14 +31,20 @@ const Header = ({ title = titleDefault }) => {
       <title>{title}</title>
       <meta name='description' content={description} />
       <meta name='keywords' content='nextjs,react,typescript,web3,ethereum,multisig,wallet,dapp' />
-      <meta name='robots' content='index,follow' />
+      <meta name='robots' content={noIndex ? 'noindex,nofollow' : 'index,follow'} />
       <meta name='distribution' content='web' />
-      <meta name='og:title' content={title} />
-      <meta name='og:type' content='website' />
-      <meta name='og:url' content={url} />
-      <meta name='og:image' content={`${url}favicon/web-app-manifest-512x512.png`} />
-      <meta name='og:site_name' content={title} />
-      <meta name='og:description' content={description} />
+      {canonicalUrl && <link rel='canonical' href={canonicalUrl} />}
+
+      {/* Open Graph */}
+      <meta property='og:title' content={title} />
+      <meta property='og:type' content='website' />
+      {canonicalUrl && <meta property='og:url' content={canonicalUrl} />}
+      <meta property='og:image' content={ogImage} />
+      <meta property='og:image:width' content='1200' />
+      <meta property='og:image:height' content='630' />
+      <meta property='og:image:alt' content='MyMultiSig — open-source multisig wallet for Ethereum and EVM networks' />
+      <meta property='og:site_name' content={titleDefault} />
+      <meta property='og:description' content={description} />
 
       <link rel='icon' type='image/svg+xml' href='/favicon/favicon.svg' />
       <link rel='icon' type='image/png' sizes='96x96' href='/favicon/favicon-96x96.png' />
@@ -45,7 +62,7 @@ const Header = ({ title = titleDefault }) => {
       <meta name='twitter:site' content='@marcaureleb' />
       <meta name='twitter:title' content={title} />
       <meta name='twitter:description' content={description} />
-      <meta name='twitter:image' content={`${url}favicon/web-app-manifest-512x512.png`} />
+      <meta name='twitter:image' content={ogImage} />
     </Head>
   )
 }
