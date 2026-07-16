@@ -9,8 +9,9 @@ import { cn } from '@/lib/utils'
 
 import TextInput from '../inputs/TextInput'
 import ConfirmationCard from '../cards/ConfirmationCard'
-import { MultiSigFactory, MultiSigConstructorArgs, WalletType } from '../../models/MultiSigs'
+import { MultiSigFactory, MultiSigConstructorArgs, WalletType, isExtendedWallet } from '../../models/MultiSigs'
 import useCreateMultiSig from '../../hooks/useCreateMultiSig'
+import { isModernFactory } from '../../utils/contractVersions'
 
 interface CreateMultiSigFormProps {
   owner01: string
@@ -35,6 +36,15 @@ const WALLET_TYPE_FEATURES: Record<WalletType, { tagline: string; features: stri
       'Burn nonces to cancel pre-signed transactions',
       'Pin a request to a specific nonce',
       'Delegate inactive owner seats for recovery'
+    ]
+  },
+  advanced: {
+    tagline: 'Everything in Extended, tracked as an Advanced deployment.',
+    features: [
+      'Timelock on sensitive operations',
+      'Transaction guard and target allowlist',
+      'Per-owner daily spending allowances',
+      'Modules (plugins) and ERC-4337 account abstraction'
     ]
   }
 }
@@ -93,6 +103,10 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
   const [threshold, setThreshold] = useState(1)
   const [walletType, setWalletType] = useState<WalletType>('simple')
   const [isOnlyOwnerRequest, setIsOnlyOwnerRequest] = useState(false)
+  // Advanced creation (createMyMultiSigAdvanced) only exists on 0.5.0 factories.
+  const availableTypes: readonly WalletType[] = isModernFactory(factory.version)
+    ? (['simple', 'extended', 'advanced'] as const)
+    : (['simple', 'extended'] as const)
 
   const filledOwners = owners.filter((owner) => owner !== '')
   const ownersValid = filledOwners.length > 0 && filledOwners.every(isAddress)
@@ -116,7 +130,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
     owners: filledOwners,
     threshold,
     walletType,
-    isOnlyOwnerRequest: walletType === 'extended' ? isOnlyOwnerRequest : undefined
+    isOnlyOwnerRequest: isExtendedWallet(walletType) ? isOnlyOwnerRequest : undefined
   }
 
   const { data, isPending, isSuccess, writeContract } = useCreateMultiSig(constructorArgs, factory.address)
@@ -178,8 +192,8 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
         >
       {step === 0 && (
         <div className='flex w-full flex-col gap-4'>
-          <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-            {(['simple', 'extended'] as const).map((type) => (
+          <div className={cn('grid grid-cols-1 gap-4', availableTypes.length > 2 ? 'md:grid-cols-3' : 'md:grid-cols-2')}>
+            {availableTypes.map((type) => (
               <button
                 key={type}
                 type='button'
@@ -215,7 +229,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
               </button>
             ))}
           </div>
-          {walletType === 'extended' && (
+          {isExtendedWallet(walletType) && (
             <div className='flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-4'>
               <Switch checked={isOnlyOwnerRequest} onCheckedChange={setIsOnlyOwnerRequest} />
               <div className='flex flex-col'>
@@ -339,7 +353,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
               <span className='text-muted-foreground'>Wallet type</span>
               <span className='font-semibold capitalize text-foreground'>{walletType}</span>
             </div>
-            {walletType === 'extended' && (
+            {isExtendedWallet(walletType) && (
               <div className='flex justify-between gap-4'>
                 <span className='text-muted-foreground'>Request policy</span>
                 <span className='font-semibold text-foreground'>
@@ -388,7 +402,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
               disabled={writeContract == null || detailsError != null || isPending}
             >
               <AddIcon className='h-4 w-4' />
-              Deploy {walletType === 'extended' ? 'Extended ' : ''}MultiSig
+              Deploy {walletType === 'extended' ? 'Extended ' : walletType === 'advanced' ? 'Advanced ' : ''}MultiSig
             </Button>
           </div>
 
