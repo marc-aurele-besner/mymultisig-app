@@ -28,6 +28,8 @@ const footerColumns: FooterColumn[] = [
   {
     title: 'Resources',
     items: [
+      { name: 'Guides', href: '/docs' },
+      { name: 'Supported networks', href: '/networks' },
       { name: 'App code', href: 'https://github.com/marc-aurele-besner/mymultisig-app', external: true },
       { name: 'Contract code', href: 'https://github.com/marc-aurele-besner/mymultisig-contract', external: true },
       { name: 'npm package', href: 'https://www.npmjs.com/package/mymultisig-contract', external: true },

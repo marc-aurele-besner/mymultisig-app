@@ -244,6 +244,17 @@ const Welcome: React.FC = () => {
             </motion.div>
           ))}
         </div>
+        <p className="mt-8 text-sm text-muted-foreground">
+          Want more detail?{' '}
+          <Link href="/docs/what-is-a-multisig" className="text-primary underline-offset-4 hover:underline">
+            Read the full multisig guide
+          </Link>{' '}
+          or browse{' '}
+          <Link href="/docs" className="text-primary underline-offset-4 hover:underline">
+            all guides
+          </Link>
+          .
+        </p>
       </motion.section>
 
       {/* Wallet */}
