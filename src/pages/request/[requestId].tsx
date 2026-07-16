@@ -27,7 +27,7 @@ const Page: React.FC = () => {
             <MultiSigRequestDetail address={address} multiSigRequestId={requestId} />
           </div>
           <Button asChild className="m-4">
-            <Link href="/useYourMultiSig" onClick={() => setSelectedMultiSigAddress(null)}>
+            <Link href="/open-multisig" onClick={() => setSelectedMultiSigAddress(null)}>
               Select a different MultiSig to use
             </Link>
           </Button>

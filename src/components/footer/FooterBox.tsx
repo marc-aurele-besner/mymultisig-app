@@ -18,9 +18,9 @@ const footerColumns: FooterColumn[] = [
   {
     title: 'App',
     items: [
-      { name: 'Create a multisig', href: '/createMultiSig' },
-      { name: 'Import a multisig', href: '/importMultiSig' },
-      { name: 'Open existing multisig', href: '/useYourMultiSig' },
+      { name: 'Create a multisig', href: '/create-multisig' },
+      { name: 'Import a multisig', href: '/import-multisig' },
+      { name: 'Open existing multisig', href: '/open-multisig' },
       { name: 'Integration', href: '/integration' },
       { name: 'About', href: '/about' }
     ]

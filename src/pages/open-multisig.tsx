@@ -12,7 +12,7 @@ export async function getStaticProps() {
       title: 'MyMultiSig - Open existing multisig',
       description:
         'Open one of your existing multisig wallets to propose, approve, and execute transactions with your co-owners.',
-      path: '/useYourMultiSig'
+      path: '/open-multisig'
     }
   }
 }

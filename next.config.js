@@ -14,6 +14,12 @@ const nextConfig = {
   experimental: {},
   images: {},
   reactStrictMode: true,
+  // Old camelCase routes — permanent redirects preserve inbound links and SEO equity
+  redirects: async () => [
+    { source: '/createMultiSig', destination: '/create-multisig', permanent: true },
+    { source: '/useYourMultiSig', destination: '/open-multisig', permanent: true },
+    { source: '/importMultiSig', destination: '/import-multisig', permanent: true }
+  ],
   // mymultisig-contract ships its constants as raw .ts
   transpilePackages: ['mymultisig-contract'],
   webpack: (config) => {

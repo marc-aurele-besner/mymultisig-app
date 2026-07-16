@@ -139,13 +139,13 @@ const Welcome: React.FC = () => {
             className="mt-8 flex flex-col gap-3 sm:flex-row"
           >
             <Button size="lg" className="gap-2 px-7" asChild>
-              <Link href="/createMultiSig">
+              <Link href="/create-multisig">
                 <AddIcon className="h-4 w-4" />
                 Create a multisig
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="gap-2 px-7" asChild>
-              <Link href="/useYourMultiSig">
+              <Link href="/open-multisig">
                 <WalletIcon className="h-4 w-4" />
                 Open an existing multisig
               </Link>

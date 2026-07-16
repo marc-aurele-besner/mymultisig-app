@@ -24,7 +24,7 @@ const Error: React.FC = () => {
             <Link href='/'>Back to home</Link>
           </Button>
           <Button variant='outline' asChild>
-            <Link href='/useYourMultiSig'>Open a multisig</Link>
+            <Link href='/open-multisig'>Open a multisig</Link>
           </Button>
         </div>
       </motion.div>
