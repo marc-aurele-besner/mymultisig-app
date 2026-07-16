@@ -11,6 +11,7 @@ import TextInput from '../inputs/TextInput'
 import ConfirmationCard from '../cards/ConfirmationCard'
 import { MultiSigFactory, MultiSigConstructorArgs, WalletType, isExtendedWallet } from '../../models/MultiSigs'
 import useCreateMultiSig from '../../hooks/useCreateMultiSig'
+import useFactoryStats from '../../hooks/useFactoryStats'
 import { isModernFactory } from '../../utils/contractVersions'
 
 interface CreateMultiSigFormProps {
@@ -134,6 +135,9 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
   }
 
   const { data, isPending, isSuccess, writeContract } = useCreateMultiSig(constructorArgs, factory.address)
+  const { totalCount, simpleCount, extendedCount, advancedCount, supportsTypeCounts } = useFactoryStats(
+    factory.address
+  )
 
   const handleOwnerChange = (value: string, input: number) => {
     setOwners(owners.map((owner, index) => (index === input ? value : owner)))
@@ -239,6 +243,15 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
                 </span>
               </div>
             </div>
+          )}
+          {totalCount != null && totalCount > 0 && (
+            <p className='text-center text-xs text-muted-foreground'>
+              This factory has created {totalCount} wallet{totalCount === 1 ? '' : 's'}
+              {supportsTypeCounts
+                ? ` (${simpleCount ?? 0} simple, ${extendedCount ?? 0} extended, ${advancedCount ?? 0} advanced)`
+                : ''}
+              .
+            </p>
           )}
           <Button size='lg' className='w-full' onClick={() => setStep(1)}>
             Continue

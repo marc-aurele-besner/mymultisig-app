@@ -80,6 +80,23 @@ export const LegacyFactoryDeployAbi = [
 // (built from the pre-0.5.0 source commit recorded in that file).
 export const LEGACY_FACTORY_DEPLOY_VERSION = '0.1.1'
 
+// Factories deployed before 0.5.0 create Extended wallets without the
+// entryPoint argument; the 0.5.0 package ABI only carries the 5-arg shape.
+export const LegacyCreateExtendedFragment = [
+  {
+    inputs: [
+      { internalType: 'string', name: 'contractName', type: 'string' },
+      { internalType: 'address[]', name: 'owners', type: 'address[]' },
+      { internalType: 'uint16', name: 'threshold', type: 'uint16' },
+      { internalType: 'bool', name: 'isOnlyOwnerRequest', type: 'bool' }
+    ],
+    name: 'createMyMultiSigExtended',
+    outputs: [{ internalType: 'address', name: 'contractAddress', type: 'address' }],
+    stateMutability: 'payable',
+    type: 'function'
+  }
+] as const
+
 // Factory 0.1.x appends `threshold` to MyMultiSigCreated, changing the topic hash.
 export const LegacyMyMultiSigCreatedEvent = [
   {
