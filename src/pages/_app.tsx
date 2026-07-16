@@ -34,7 +34,12 @@ const App: React.FC<AppProps> = ({ Component, pageProps = { title: 'MyMultiSig' 
         }
       `}</style>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-        <Header title={pageProps.title} />
+        <Header
+          title={pageProps.title}
+          description={pageProps.description}
+          path={pageProps.path}
+          noIndex={pageProps.noIndex}
+        />
         {/* reducedMotion="user" makes every framer-motion animation respect prefers-reduced-motion */}
         <MotionConfig reducedMotion="user">
           <Web3Provider>
