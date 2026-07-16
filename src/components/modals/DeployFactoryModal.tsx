@@ -13,6 +13,7 @@ import NetworkIcon from '../icons/NetworkIcon'
 import contractConstants from 'mymultisig-contract/constants'
 import useDeployFactory, { DEPLOY_STEP_LABELS } from '../../hooks/useDeployFactory'
 import deployArtifacts from '../../constants/factoryDeployArtifacts.json'
+import { LEGACY_FACTORY_DEPLOY_VERSION } from '../../constants/abi/legacy'
 import useMultiSigs from '../../states/multiSigs'
 import { persistFactory } from '../../utils/accountSync'
 import { type NetworkStatus } from '../../constants/networkStatus'
@@ -52,7 +53,7 @@ const DeployFactoryModal: React.FC<DeployFactoryModalProps> = ({ chain, status, 
           chainName: chain.name,
           address: deployedAddress,
           name: contractConstants.CONTRACT_FACTORY_NAME,
-          version: contractConstants.CONTRACT_FACTORY_VERSION,
+          version: LEGACY_FACTORY_DEPLOY_VERSION,
           multiSigCount: 0
         }
         addMultiSigFactory(factory)

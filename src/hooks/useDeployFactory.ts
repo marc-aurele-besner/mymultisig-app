@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useDeployContract, usePublicClient, useWriteContract } from 'wagmi'
 import { toast } from 'sonner'
-import MyMultiSigFactoryAbi from 'mymultisig-contract/abi/MyMultiSigFactory.json'
 import MyMultiSigDeployerAbi from 'mymultisig-contract/abi/MyMultiSigDeployer.json'
 import MyMultiSigExtendedDeployerAbi from 'mymultisig-contract/abi/MyMultiSigExtendedDeployer.json'
 
 import deployArtifacts from '../constants/factoryDeployArtifacts.json'
+import { LegacyFactoryDeployAbi } from '../constants/abi/legacy'
 
 export const DEPLOY_STEP_LABELS = [
   'Deploy MyMultiSigDeployer',
@@ -60,8 +60,10 @@ const useDeployFactory = (chainName: string) => {
       )
       setStep(3)
       toast.info(`Deploying MyMultiSigFactory on ${chainName} (3/4)…`)
+      // The shipped bytecode is the pre-0.5.0 snapshot: its constructor takes
+      // two deployers, unlike the 0.5.0 ABI's three (see LegacyFactoryDeployAbi).
       const factory = await deployOne(
-        MyMultiSigFactoryAbi,
+        LegacyFactoryDeployAbi as unknown as unknown[],
         deployArtifacts.MyMultiSigFactory.bytecode as `0x${string}`,
         [deployer, extendedDeployer]
       )
@@ -69,7 +71,7 @@ const useDeployFactory = (chainName: string) => {
       toast.info(`Initializing the factory (4/4)…`)
       const initHash = await writeContractAsync({
         address: factory,
-        abi: MyMultiSigFactoryAbi,
+        abi: LegacyFactoryDeployAbi,
         functionName: 'initialize'
       })
       setHash(initHash)
