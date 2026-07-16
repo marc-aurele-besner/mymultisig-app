@@ -37,17 +37,18 @@ const WordReveal: React.FC<WordRevealProps> = ({ text, as: Tag = 'h1', className
 
 interface TypedEyebrowProps {
   text: string
+  as?: React.ElementType
   className?: string
   delay?: number
 }
 
 // Mono eyebrow that types on like terminal output, with a caret that blinks
 // while typing and then fades out.
-const TypedEyebrow: React.FC<TypedEyebrowProps> = ({ text, className, delay = 0.1 }) => {
+const TypedEyebrow: React.FC<TypedEyebrowProps> = ({ text, as: Tag = 'p', className, delay = 0.1 }) => {
   const charDelay = 0.03
   const typingTime = text.length * charDelay
   return (
-    <p className={cn('font-mono text-xs tracking-[0.2em] text-primary', className)}>
+    <Tag className={cn('font-mono text-xs tracking-[0.2em] text-primary', className)}>
       <span className='sr-only'>{text}</span>
       <span aria-hidden>
         {text.split('').map((ch, i) => (
@@ -67,7 +68,7 @@ const TypedEyebrow: React.FC<TypedEyebrowProps> = ({ text, className, delay = 0.
           transition={{ delay, duration: typingTime + 1.1, ease: 'linear', times: [0, 0.2, 0.4, 0.6, 0.8, 1] }}
         />
       </span>
-    </p>
+    </Tag>
   )
 }
 
