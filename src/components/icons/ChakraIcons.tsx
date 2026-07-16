@@ -23,6 +23,7 @@ import {
   Link as LinkIconLucide,
   Info as InfoIconLucide,
   ArrowLeft as ArrowLeftIconLucide,
+  ArrowRight as ArrowRightIconLucide,
   Coins as CoinsIconLucide,
   Image as ImageIconLucide,
   RefreshCw as RefreshIconLucide,
@@ -69,6 +70,7 @@ export const LinkIcon = withIcon(LinkIconLucide, 'LinkIcon')
 export const InfoIcon = withIcon(InfoIconLucide, 'InfoIcon')
 export const InfoOutlineIcon = withIcon(InfoIconLucide, 'InfoOutlineIcon')
 export const ArrowBackIcon = withIcon(ArrowLeftIconLucide, 'ArrowBackIcon')
+export const ArrowForwardIcon = withIcon(ArrowRightIconLucide, 'ArrowForwardIcon')
 export const CoinsIcon = withIcon(CoinsIconLucide, 'CoinsIcon')
 export const ImageIcon = withIcon(ImageIconLucide, 'ImageIcon')
 export const RefreshIcon = withIcon(RefreshIconLucide, 'RefreshIcon')
