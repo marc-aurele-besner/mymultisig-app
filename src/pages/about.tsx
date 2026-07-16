@@ -7,7 +7,14 @@ const Page: React.FC = () => {
 }
 
 export async function getStaticProps() {
-  return { props: { title: 'MyMultiSig - About' } }
+  return {
+    props: {
+      title: 'MyMultiSig - About',
+      description:
+        'Learn about MyMultiSig, an open-source multisig wallet project for Ethereum and EVM networks: why it exists, its design principles, and how to review the code.',
+      path: '/about'
+    }
+  }
 }
 
 export default Page

@@ -33,7 +33,7 @@ const Page: React.FC = () => {
 }
 
 export async function getStaticProps() {
-  return { props: { title: 'MyMultiSig - Transactions requests' } }
+  return { props: { title: 'MyMultiSig - Transactions requests', noIndex: true } }
 }
 
 export async function getStaticPaths() {

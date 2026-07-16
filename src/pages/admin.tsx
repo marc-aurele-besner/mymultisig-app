@@ -7,7 +7,7 @@ const Page: React.FC = () => {
 }
 
 export async function getStaticProps() {
-  return { props: { title: 'MyMultiSig - Admin' } }
+  return { props: { title: 'MyMultiSig - Admin', noIndex: true } }
 }
 
 export default Page

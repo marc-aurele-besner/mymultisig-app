@@ -7,7 +7,14 @@ const Page: React.FC = () => {
 }
 
 export async function getStaticProps() {
-  return { props: { title: 'MyMultiSig - Open existing multisig' } }
+  return {
+    props: {
+      title: 'MyMultiSig - Open existing multisig',
+      description:
+        'Open one of your existing multisig wallets to propose, approve, and execute transactions with your co-owners.',
+      path: '/useYourMultiSig'
+    }
+  }
 }
 
 export default Page

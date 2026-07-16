@@ -21,7 +21,7 @@ const Page: React.FC = () => {
 }
 
 export async function getStaticProps() {
-  return { props: { title: 'MyMultiSig - Build a request' } }
+  return { props: { title: 'MyMultiSig - Build a request', noIndex: true } }
 }
 
 export async function getStaticPaths() {
