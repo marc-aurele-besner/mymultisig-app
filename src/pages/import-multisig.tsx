@@ -11,7 +11,7 @@ export async function getStaticProps() {
     props: {
       title: 'MyMultiSig - Import your MultiSig',
       description: 'Import an existing multisig wallet by address to track and manage it with MyMultiSig.',
-      path: '/importMultiSig'
+      path: '/import-multisig'
     }
   }
 }

@@ -1,11 +1,11 @@
 import React from 'react'
 import type { StoryFn, Meta } from '@storybook/react'
 
-import Page from '../pages/useYourMultiSig'
+import Page from '../pages/create-multisig'
 import Web3Provider from '../components/web3/Web3Provider'
 
 const meta: Meta<typeof Page> = {
-  title: 'Pages/useYourMultiSig',
+  title: 'Pages/create-multisig',
   component: Page,
 }
 

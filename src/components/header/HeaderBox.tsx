@@ -42,9 +42,9 @@ const HeaderBox: React.FC = () => {
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const menu = [
-    { name: 'Create', link: '/createMultiSig', icon: <AddIcon boxSize={16} className='shrink-0' /> },
-    { name: 'Import', link: '/importMultiSig', icon: <ImportIcon boxSize={16} className='shrink-0' /> },
-    { name: 'My multisigs', link: '/useYourMultiSig', icon: <WalletIcon boxSize={16} className='shrink-0' /> },
+    { name: 'Create', link: '/create-multisig', icon: <AddIcon boxSize={16} className='shrink-0' /> },
+    { name: 'Import', link: '/import-multisig', icon: <ImportIcon boxSize={16} className='shrink-0' /> },
+    { name: 'My multisigs', link: '/open-multisig', icon: <WalletIcon boxSize={16} className='shrink-0' /> },
     { name: 'Integration', link: '/integration', icon: <LinkIcon boxSize={16} className='shrink-0' /> },
     { name: 'About', link: '/about', icon: <InfoOutlineIcon boxSize={16} className='shrink-0' /> }
   ]

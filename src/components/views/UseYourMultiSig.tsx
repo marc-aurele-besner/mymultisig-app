@@ -103,13 +103,13 @@ const UseYourMultiSig: React.FC = () => {
                   </div>
                   <div className="flex flex-wrap gap-3">
                     <Button asChild>
-                      <Link href="/createMultiSig" className="gap-2">
+                      <Link href="/create-multisig" className="gap-2">
                         <AddIcon className="h-4 w-4" />
                         Create a multisig
                       </Link>
                     </Button>
                     <Button variant="outline" asChild>
-                      <Link href="/importMultiSig" className="gap-2">
+                      <Link href="/import-multisig" className="gap-2">
                         <ImportIcon className="h-4 w-4" />
                         Import a multisig
                       </Link>
@@ -138,13 +138,13 @@ const UseYourMultiSig: React.FC = () => {
                 {filteredMultiSigs.length > 0 && (
                   <>
                     <Button variant="outline" asChild>
-                      <Link href="/createMultiSig" className="gap-2">
+                      <Link href="/create-multisig" className="gap-2">
                         <AddIcon className="h-4 w-4" />
                         Create a multisig
                       </Link>
                     </Button>
                     <Button variant="outline" asChild>
-                      <Link href="/importMultiSig" className="gap-2">
+                      <Link href="/import-multisig" className="gap-2">
                         <ImportIcon className="h-4 w-4" />
                         Import a multisig
                       </Link>

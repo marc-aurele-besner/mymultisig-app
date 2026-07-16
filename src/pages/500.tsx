@@ -30,4 +30,13 @@ const Error: React.FC = () => {
   )
 }
 
+export async function getStaticProps() {
+  return {
+    props: {
+      title: 'Something went wrong — MyMultiSig',
+      noIndex: true
+    }
+  }
+}
+
 export default Error

@@ -12,7 +12,7 @@ export async function getStaticProps() {
       title: 'MyMultiSig - Create a multisig',
       description:
         'Deploy a new multisig wallet on Ethereum or any supported EVM network. Choose the owners, set the approval threshold, and create your shared wallet in minutes.',
-      path: '/createMultiSig'
+      path: '/create-multisig'
     }
   }
 }
