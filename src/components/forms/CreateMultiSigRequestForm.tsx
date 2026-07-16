@@ -6,6 +6,8 @@ import { JsonFragment } from '@ethersproject/abi'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
+import { Switch } from '@/components/ui/switch'
+
 import TextInput from '../inputs/TextInput'
 import AddressBookInput from '../inputs/AddressBookInput'
 import SignRequest from '../buttons/SignRequest'
@@ -15,6 +17,7 @@ import useContracts from '../../states/contracts'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
 import { buildRawSignatureFromFunction } from '../../utils/buildFunctionSignature'
+import { isModernWallet } from '../../utils/contractVersions'
 
 interface CreateMultiSigRequestFormProps {
   multiSigAddress: `0x${string}`
@@ -83,12 +86,19 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
   const [steps, setSteps] = useState<RequestStep[]>([{ ...EMPTY_STEP }])
   const [description, setDescription] = useState('')
   const [pinnedNonce, setPinnedNonce] = useState('')
+  const [expiry, setExpiry] = useState('')
+  const [strictBatch, setStrictBatch] = useState(false)
+  const [delegateCall, setDelegateCall] = useState(false)
   const [newContractKey, setNewContractKey] = useState(0)
   const [showNewContract, setShowNewContract] = useState(false)
   const contracts = useContracts((state) => state.contracts)
   const { address } = useAccount()
   const { walletType, allowOnlyOwnerRequest } = useWalletType(multiSigAddress)
   const { data: detailsData } = useMultiSigDetails(multiSigAddress, address ?? '0x')
+  // 0.5.0 wallets: optional signature expiry, atomic batches, and (Extended)
+  // a DELEGATECALL operation byte gated on-chain to the wallet itself.
+  const walletVersion = detailsData != null ? String(detailsData[1]) : undefined
+  const modern = isModernWallet(walletVersion)
   // Extended wallets can restrict request creation to owners; the API enforces
   // the same rule server-side.
   const isOwner = detailsData != null ? Boolean(detailsData[5]) : undefined
@@ -146,12 +156,18 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
 
   const firstInvalidIndex = steps.findIndex((s) => stepError(s) != null)
   const stepsValid = firstInvalidIndex === -1
-  const ready = stepsValid && description.trim() !== ''
+  const expiryValid = expiry === '' || new Date(expiry).getTime() > Date.now()
+  const ready = stepsValid && description.trim() !== '' && expiryValid
   const isBatch = steps.length > 1
   const totalStepGas = steps.reduce((sum, s) => (isUint(s.txnGas) ? sum + Number(s.txnGas) : sum), 0)
+  // DELEGATECALL is only accepted on-chain when the target is the wallet
+  // itself, so the toggle only applies to a single self-targeted step.
+  const delegateCallAvailable =
+    modern && walletType === 'extended' && !isBatch && steps[0].to.toLowerCase() === multiSigAddress.toLowerCase()
 
   // Sign args: a single step goes out as-is; several steps self-call
-  // multiRequest so all of them run in one multisig transaction.
+  // multiRequest (or multiRequestStrict for atomic 0.5.0 batches) so all of
+  // them run in one multisig transaction.
   let signArgs: { to: `0x${string}`; value: string; data: `0x${string}`; txnGas: string } | null = null
   let batchSteps: { to: `0x${string}`; value: string; data: `0x${string}`; txnGas: string }[] | undefined
   if (ready) {
@@ -168,7 +184,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
         try {
           const encoded = encodeFunctionData({
             abi: MyMultiSig as Abi,
-            functionName: 'multiRequest',
+            functionName: modern && strictBatch ? 'multiRequestStrict' : 'multiRequest',
             args: [
               steps.map((s) => s.to),
               steps.map((s) => BigInt(s.value)),
@@ -210,8 +226,9 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
       <div className='flex w-full flex-col gap-4'>
         {isBatch && (
           <p className='text-sm text-muted-foreground'>
-            All steps run in order inside one multisig transaction. A failed step is reported per-step and does not
-            revert the others.
+            {modern && strictBatch
+              ? 'All steps run in order inside one atomic multisig transaction. The first failing step reverts the whole batch.'
+              : 'All steps run in order inside one multisig transaction. A failed step is reported per-step and does not revert the others.'}
           </p>
         )}
 
@@ -408,6 +425,45 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
               />,
               'Binds the request to an exact nonce so it can be pre-signed or ordered explicitly.'
             )}
+          {modern &&
+            field(
+              'Signatures expire (optional)',
+              <TextInput
+                className='md:w-full'
+                type='datetime-local'
+                placeholder='No expiry'
+                value={expiry}
+                isInvalid={!expiryValid}
+                onChange={(e) => setExpiry(e.target.value)}
+              />,
+              expiryValid
+                ? 'The deadline is signed into every approval; the wallet refuses the request past it. Leave empty for no expiry.'
+                : 'The expiry must be in the future.'
+            )}
+          {isBatch && modern && (
+            <div className='flex items-center gap-3'>
+              <Switch checked={strictBatch} onCheckedChange={setStrictBatch} />
+              <div className='flex flex-col'>
+                <span className='text-sm font-medium text-foreground'>Atomic batch (all-or-nothing)</span>
+                <span className='text-xs text-muted-foreground'>
+                  Runs through multiRequestStrict: the first failing step reverts every step. Use it when later steps
+                  depend on earlier ones (e.g. approve then swap).
+                </span>
+              </div>
+            </div>
+          )}
+          {delegateCallAvailable && (
+            <div className='flex items-center gap-3'>
+              <Switch checked={delegateCall} onCheckedChange={setDelegateCall} />
+              <div className='flex flex-col'>
+                <span className='text-sm font-medium text-foreground'>Execute as DELEGATECALL</span>
+                <span className='text-xs text-muted-foreground'>
+                  Runs the calldata in the wallet&apos;s own storage context (operation byte 1). The wallet only
+                  accepts this for calls targeting itself. For experts — a wrong payload can corrupt the wallet.
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className='flex flex-col items-end gap-1.5'>
@@ -419,7 +475,12 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
                 ...signArgs,
                 signatures: '',
                 ...(pinnedNonce !== '' && /^\d+$/.test(pinnedNonce) ? { txnNonce: pinnedNonce } : {}),
-                ...(batchSteps != null ? { batchSteps } : {})
+                ...(modern && expiry !== ''
+                  ? { validUntil: String(Math.floor(new Date(expiry).getTime() / 1000)) }
+                  : {}),
+                ...(delegateCallAvailable && delegateCall ? { operation: '1' } : {}),
+                ...(batchSteps != null ? { batchSteps } : {}),
+                ...(batchSteps != null && modern && strictBatch ? { strictBatch: true } : {})
               }}
             />
           ) : (

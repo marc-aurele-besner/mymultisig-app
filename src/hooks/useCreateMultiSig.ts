@@ -2,9 +2,11 @@ import { useEffect, useRef } from 'react'
 import { useAccount, useChainId, useChains, useWatchContractEvent } from 'wagmi'
 import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
 import contractConstants from 'mymultisig-contract/constants'
-import { LegacyMyMultiSigCreatedEvent } from '../constants/abi/legacy'
+import { JsonFragment } from '@ethersproject/abi'
+import { LegacyMyMultiSigCreatedEvent, LegacyCreateExtendedFragment } from '../constants/abi/legacy'
 
-import { MultiSigConstructorArgs, MultiSig } from '../models/MultiSigs'
+import { MultiSigConstructorArgs, MultiSig, isExtendedWallet } from '../models/MultiSigs'
+import { isModernFactory } from '../utils/contractVersions'
 import useMultiSigs from '../states/multiSigs'
 import { useNotification } from './notifications'
 import useFinalizeTransaction from './useFinalizeTransaction'
@@ -16,20 +18,38 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
   const chains = useChains()
   const chain = chains.find((c) => c.id === chainId)
   const { address: account } = useAccount()
-  const { addMultiSig, multiSigs } = useMultiSigs()
+  const { addMultiSig, multiSigs, multiSigFactory } = useMultiSigs()
   const { notificationInfo, notificationError, notificationSuccess } = useNotification()
-  const isExtended = constructorArgs.walletType === 'extended'
+  const isExtended = isExtendedWallet(constructorArgs.walletType)
+  // 0.5.0 factories take the ERC-4337 EntryPoint on the Extended/Advanced
+  // create calls; pre-0.5.0 factories keep the 4-arg shape, which the 0.5.0
+  // package ABI no longer carries (vendored legacy fragment).
+  const factoryVersion = multiSigFactory.find(
+    (f) => f.chainId === chain?.id && f.address.toLowerCase() === multiSigFactoryAddress.toLowerCase()
+  )?.version
+  const modernFactory = isModernFactory(factoryVersion)
   const config = {
     chainId: chain?.id,
     address: multiSigFactoryAddress,
-    abi: MyMultiSigFactory,
-    functionName: (isExtended ? 'createMyMultiSigExtended' : 'createMultiSig') as string,
+    abi:
+      isExtended && !modernFactory
+        ? ([
+            ...(MyMultiSigFactory as JsonFragment[]).filter((f) => f.name !== 'createMyMultiSigExtended'),
+            ...(LegacyCreateExtendedFragment as unknown as JsonFragment[])
+          ] as JsonFragment[])
+        : (MyMultiSigFactory as JsonFragment[]),
+    functionName: (isExtended
+      ? modernFactory && constructorArgs.walletType === 'advanced'
+        ? 'createMyMultiSigAdvanced'
+        : 'createMyMultiSigExtended'
+      : 'createMultiSig') as string,
     args: isExtended
       ? ([
           constructorArgs.contractName,
           constructorArgs.owners,
           constructorArgs.threshold,
-          constructorArgs.isOnlyOwnerRequest ?? false
+          constructorArgs.isOnlyOwnerRequest ?? false,
+          ...(modernFactory ? [contractConstants.ENTRY_POINT_V07_ADDRESS] : [])
         ] as const)
       : ([constructorArgs.contractName, constructorArgs.owners, constructorArgs.threshold] as const)
   }

@@ -7,7 +7,14 @@ export type MultiSigFactory = {
   multiSigCount: number
 }
 
-export type WalletType = 'simple' | 'extended'
+// 'advanced' wallets share the Extended bytecode; the distinction is factory
+// bookkeeping (createMyMultiSigAdvanced / advancedCount on 0.5.0 factories),
+// so on-chain probes report them as 'extended' and only the stored wallet
+// record remembers the creation type.
+export type WalletType = 'simple' | 'extended' | 'advanced'
+
+export const isExtendedWallet = (walletType: WalletType | undefined): boolean =>
+  walletType === 'extended' || walletType === 'advanced'
 
 export type MultiSig = {
   chainId: number
@@ -54,10 +61,19 @@ export type MultiSigExecTransactionArgs = {
   signatures: string
   // Extended wallets only: pin the request to an explicit nonce (6-arg overload)
   txnNonce?: string
+  // 0.5.0 wallets only: unix-seconds deadline bound into the EIP-712 hash;
+  // unset/'0' = no expiry. Signatures die past it (SignatureExpired).
+  validUntil?: string
+  // 0.5.0 Extended wallets only: '0' = CALL (default), '1' = DELEGATECALL
+  // (gated on-chain to to == the wallet itself). Bound into the EIP-712 hash.
+  operation?: string
   // Set when the request is a batch built through multiRequest; results are
   // filled in from the MultiRequestExecuted event after execution.
   batchSteps?: BatchStep[]
   batchResults?: BatchResult[]
+  // 0.5.0 wallets only: batch encoded as multiRequestStrict — atomic, the
+  // whole transaction reverts on the first failing step.
+  strictBatch?: boolean
 }
 
 export type MultiSigTransactionRequest = {

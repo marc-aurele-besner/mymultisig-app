@@ -4,9 +4,12 @@ import { v4 } from 'uuid'
 
 import { useNotificationSuccess, useNotificationError } from './notifications'
 import useMultiSigDetails from './useMultiSigDetails'
+import useWalletType from './useWalletType'
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../models/MultiSigs'
 import useMultiSigs from '../states/multiSigs'
 import { addContent, updateContent } from '../utils'
+import { buildTransactionTypedData } from '../utils/transactionTypedData'
+import { combineSignatures } from '../utils/signatureBlob'
 
 const useSignedMultiSigRequest = (
   multiSigAddress: `0x${string}`,
@@ -30,37 +33,8 @@ const useSignedMultiSigRequest = (
     'Successfully Signing MultiSig Request',
     'You signed the MultiSig request successfully.'
   )
-  const domain = {
-    name: multiSigDetails ? String(multiSigDetails[0]) : 'MyMultiSigFactory',
-    version: multiSigDetails ? String(multiSigDetails[1]) : '0.0.7',
-    chainId: chain?.id,
-    verifyingContract: multiSigAddress
-  } as const
-
-  const types = {
-    Transaction: [
-      {
-        name: 'to',
-        type: 'address'
-      },
-      {
-        name: 'value',
-        type: 'uint256'
-      },
-      {
-        name: 'data',
-        type: 'bytes'
-      },
-      {
-        name: 'gas',
-        type: 'uint256'
-      },
-      {
-        name: 'nonce',
-        type: 'uint96'
-      }
-    ]
-  } as const
+  const { walletType, isFetched: walletTypeFetched } = useWalletType(multiSigAddress)
+  const walletVersion = multiSigDetails ? String(multiSigDetails[1]) : undefined
 
   const isNumber = (value: string | number): boolean =>
     value != null && value !== '' && !isNaN(Number(value.toString()))
@@ -70,18 +44,27 @@ const useSignedMultiSigRequest = (
 
   const valueAndGasCheck = valueCheck && gasCheck ? true : false
 
-  const value = {
-    to: args.to,
-    value: valueCheck ? BigInt(args.value) : BigInt(0),
-    data: args.data,
-    gas: gasCheck ? BigInt(args.txnGas) : BigInt(0),
+  // The struct the wallet's typehash binds depends on its deployed version
+  // (0.5.0 adds validUntil, and operation on Extended), so signing must wait
+  // until both the on-chain details and the wallet type probe have answered.
+  const typedDataReady = multiSigDetails != null && walletTypeFetched
+  const typedData = buildTransactionTypedData({
+    domain: {
+      name: multiSigDetails ? String(multiSigDetails[0]) : 'MyMultiSigFactory',
+      version: walletVersion ?? '0.0.7',
+      chainId: chain?.id,
+      verifyingContract: multiSigAddress
+    },
+    args,
     // Requests pinned to an explicit nonce (Extended wallets) must be signed
     // against that nonce; everything else signs the wallet's current nonce.
     nonce:
       args.txnNonce != null && args.txnNonce !== ''
         ? BigInt(args.txnNonce)
-        : BigInt(multiSigDetails?.[4] != null ? String(multiSigDetails[4]) : 0)
-  } as const
+        : BigInt(multiSigDetails?.[4] != null ? String(multiSigDetails[4]) : 0),
+    walletVersion,
+    isExtended: walletType === 'extended'
+  })
 
   const { data, isError, isPending, isSuccess, error, signTypedData, reset } = useSignTypedData()
 
@@ -100,25 +83,31 @@ const useSignedMultiSigRequest = (
   useEffect(() => {
     if (isSuccess && data && chain && !dataAdded) {
       setDataAdded(true)
+      // request.signatures always holds the combined blob the wallet consumes:
+      // rebuilt from the parallel ownerSigners/signatures arrays so the
+      // version-specific encoding (flat concat pre-0.5.0, ABI-encoded
+      // (owner, sig)[] on 0.5.0) stays consistent as votes accumulate.
+      const allSigners = existingRequest
+        ? [...existingRequest.ownerSigners, address || '0x']
+        : [address || '0x']
+      const allSignatures = existingRequest ? [...existingRequest.signatures, data || '0x'] : [data || '0x']
+      const combined = combineSignatures(walletVersion, allSigners, allSignatures)
       const dataToAdd: MultiSigTransactionRequest = existingRequest
         ? {
             ...existingRequest,
             request: {
               ...existingRequest.request,
-              signatures:
-                existingRequest.request.signatures === ''
-                  ? data || '0x'
-                  : existingRequest.request.signatures + data?.substring(2)
+              signatures: combined
             },
-            signatures: [...existingRequest.signatures, data || '0x'],
-            ownerSigners: [...existingRequest.ownerSigners, address || '0x']
+            signatures: allSignatures,
+            ownerSigners: allSigners as `0x${string}`[]
           }
         : {
             id: v4(),
             multiSigAddress: multiSigAddress,
             request: {
               ...args,
-              signatures: args.signatures === '' ? data || '0x' : args.signatures + data?.substring(2)
+              signatures: combined
             },
             description,
             submitter: address || '0x',
@@ -163,7 +152,11 @@ const useSignedMultiSigRequest = (
     isSuccess,
     prepareError: !valueAndGasCheck ? null : 'Invalid value or gas',
     error,
-    signTypedData: () => signTypedData({ domain, types, primaryType: 'Transaction', message: value }),
+    // No-op until the wallet's version/type are known — signing the wrong
+    // struct shape would produce a signature the wallet rejects.
+    signTypedData: () => {
+      if (typedDataReady) signTypedData(typedData)
+    },
     reset
   }
 }

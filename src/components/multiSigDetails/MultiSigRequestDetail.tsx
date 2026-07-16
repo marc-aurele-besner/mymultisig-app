@@ -5,6 +5,9 @@ import { Textarea } from '@/components/ui/textarea'
 import SignRequest from '../buttons/SignRequest'
 import ExecuteRequest from '../buttons/ExecuteRequest'
 import ApproveRequest from '../buttons/ApproveRequest'
+import RevokeApproval from '../buttons/RevokeApproval'
+import ScheduledExecutionPanel from './ScheduledExecutionPanel'
+import { isModernWallet } from '../../utils/contractVersions'
 import useMultiSigRequestDetails from '../../hooks/useMultiSigRequestDetails'
 import useDeleteMultiSigRequest from '../../hooks/useDeleteMultiSigRequest'
 import useResetMultiSigRequest from '../../hooks/useResetMultiSigRequest'
@@ -28,7 +31,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
     requestDetails != null ? requestDetails.multiSigAddress : '0x',
     address
   )
-  const { supportsHybrid, txHash, approvedOwners, isValid, refetchApprovals } = useRequestApprovalState(
+  const { supportsHybrid, txHash, approvedOwners, isValid, walletVersion, refetchApprovals } = useRequestApprovalState(
     requestDetails != null ? requestDetails.multiSigAddress : '0x',
     requestDetails
   )
@@ -62,6 +65,13 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
   const preflightBlocked = supportsHybrid && thresholdReached && isValid === false
   const batchSteps = requestDetails.request.batchSteps
   const batchResults = requestDetails.request.batchResults
+  const modern = isModernWallet(walletVersion)
+  // 0.5.0 request metadata: signatures die past validUntil (SignatureExpired),
+  // and operation 1 runs the payload as a DELEGATECALL on the wallet itself.
+  const validUntil = requestDetails.request.validUntil
+  const hasExpiry = validUntil != null && validUntil !== '' && validUntil !== '0'
+  const isExpired = hasExpiry && Number(validUntil) * 1000 < Date.now()
+  const isDelegateCall = requestDetails.request.operation === '1'
 
   return (
     <Fragment>
@@ -97,6 +107,17 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
         {requestDetails.request.txnNonce != null &&
           requestDetails.request.txnNonce !== '' &&
           row('Pinned nonce', requestDetails.request.txnNonce)}
+        {hasExpiry &&
+          row(
+            'Signatures expire',
+            <span className={isExpired ? 'text-destructive' : undefined}>
+              {new Date(Number(validUntil) * 1000).toLocaleString()}
+              {isExpired ? ' — expired' : ''}
+            </span>
+          )}
+        {isDelegateCall && row('Operation', 'DELEGATECALL (runs in the wallet’s own storage context)')}
+        {batchSteps != null && batchSteps.length > 0 && requestDetails.request.strictBatch === true &&
+          row('Batch mode', 'Atomic — the first failing step reverts every step')}
         {row(
           'Approvals / Threshold',
           supportsHybrid
@@ -142,7 +163,14 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
           </div>
         ) : (
           <Fragment>
-            {thresholdReached && (
+            {isExpired && (
+              <div className="px-2 pt-2 text-lg font-bold text-destructive">
+                This request&apos;s signatures expired on {new Date(Number(validUntil) * 1000).toLocaleString()}. The
+                wallet refuses them (SignatureExpired). Reset the signatures and collect them again with a new
+                deadline.
+              </div>
+            )}
+            {thresholdReached && !isExpired && (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="px-2 pt-2 text-xl font-bold text-foreground">
                   Execute this request
@@ -161,6 +189,14 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
                   />
                 )}
               </div>
+            )}
+            {modern && !isExpired && txHash != null && (
+              <ScheduledExecutionPanel
+                multiSigAddress={requestDetails.multiSigAddress}
+                request={requestDetails}
+                txHash={txHash}
+                thresholdReached={thresholdReached}
+              />
             )}
             <div className="flex flex-wrap items-center gap-2">
               <span className="px-2 pt-2 text-xl font-bold text-foreground">Sign this request</span>
@@ -191,6 +227,18 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({
                   multiSigAddress={requestDetails.multiSigAddress}
                   txHash={txHash}
                   onApproved={() => refetchApprovals()}
+                />
+              </div>
+            )}
+            {modern && txHash != null && hasApproved && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-2 pt-2 text-xl font-bold text-foreground">
+                  Withdraw your approval
+                </span>
+                <RevokeApproval
+                  multiSigAddress={requestDetails.multiSigAddress}
+                  txHash={txHash}
+                  onRevoked={() => refetchApprovals()}
                 />
               </div>
             )}

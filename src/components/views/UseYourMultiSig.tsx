@@ -125,7 +125,7 @@ const UseYourMultiSig: React.FC = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                     >
-                      <MultiSigList multiSigAddress={multiSig.address} address={address} />
+                      <MultiSigList multiSigAddress={multiSig.address} address={address} multiSig={multiSig} />
                     </motion.div>
                   ))}
                 </motion.div>
