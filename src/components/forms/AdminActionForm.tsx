@@ -26,7 +26,7 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
   const [actionId, setActionId] = useState<string>('')
   const [values, setValues] = useState<Record<string, string>>({})
 
-  const actions = adminActionsFor(walletType)
+  const actions = adminActionsFor(walletType, multiSigDetails?.version)
   const action = actions.find((a) => a.id === actionId)
 
   const details = {

@@ -3,6 +3,11 @@ import { useAccount, useChainId } from 'wagmi'
 
 import AdminActionForm from '../forms/AdminActionForm'
 import ExtendedGovernancePanel from '../multiSigDetails/ExtendedGovernancePanel'
+import AdvancedFeaturesPanel from '../multiSigDetails/AdvancedFeaturesPanel'
+import SpendingAllowancePanel from '../multiSigDetails/SpendingAllowancePanel'
+import MessageSigningPanel from '../multiSigDetails/MessageSigningPanel'
+import AccountAbstractionPanel from '../multiSigDetails/AccountAbstractionPanel'
+import { isModernWallet } from '../../utils/contractVersions'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
 import useAdminEventSync from '../../hooks/useAdminEventSync'
@@ -70,6 +75,12 @@ const MultiSigSettings: React.FC<MultiSigSettingsProps> = ({ multiSigAddress }) 
       <AdminActionForm multiSigAddress={multiSigAddress} />
 
       {walletType === 'extended' && <ExtendedGovernancePanel multiSigAddress={multiSigAddress} owners={owners} />}
+
+      {/* 0.5.0 surface: each panel hides itself when the wallet lacks it. */}
+      {walletType === 'extended' && <AdvancedFeaturesPanel multiSigAddress={multiSigAddress} />}
+      {walletType === 'extended' && <SpendingAllowancePanel multiSigAddress={multiSigAddress} />}
+      {isModernWallet(multiSigDetails.version) && <MessageSigningPanel multiSigAddress={multiSigAddress} />}
+      {walletType === 'extended' && <AccountAbstractionPanel multiSigAddress={multiSigAddress} />}
     </div>
   )
 }
