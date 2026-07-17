@@ -34,12 +34,15 @@ const AdvancedFeaturesPanel: React.FC<AdvancedFeaturesPanelProps> = ({ multiSigA
     guard,
     allowedTargetsEnabled,
     sensitiveValueThreshold,
-    modules
+    modules,
+    requireTxSuccess
   } = useAdvancedFeatures(multiSigAddress)
 
   if (!supportsAdvanced) return null
 
-  const features: { label: string; bit: number; detail: React.ReactNode }[] = [
+  // Most cards reflect a bit of the advancedFeaturesEnabled bitmask; entries
+  // with an explicit `enabled` (the failure policy) sit outside the bitmask.
+  const features: { label: string; bit?: number; enabled?: boolean; detail: React.ReactNode }[] = [
     {
       label: 'Timelock',
       bit: FEATURE_TIMELOCK,
@@ -96,7 +99,18 @@ const AdvancedFeaturesPanel: React.FC<AdvancedFeaturesPanelProps> = ({ multiSigA
         ) : (
           'No modules enabled. Modules act for the wallet without owner signatures.'
         )
-    }
+    },
+    ...(requireTxSuccess != null
+      ? [
+          {
+            label: 'Require inner-call success',
+            enabled: requireTxSuccess,
+            detail: requireTxSuccess
+              ? 'On — an inner call that fails without revert data reverts the whole execution and preserves the nonce.'
+              : 'Off — an inner call that fails without revert data emits TxFailure and the nonce is consumed.'
+          }
+        ]
+      : [])
   ]
 
   return (
@@ -110,7 +124,7 @@ const AdvancedFeaturesPanel: React.FC<AdvancedFeaturesPanelProps> = ({ multiSigA
       </div>
       <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
         {features.map((feature) => {
-          const enabled = (featuresBitmask & feature.bit) !== 0
+          const enabled = feature.enabled ?? (feature.bit != null && (featuresBitmask & feature.bit) !== 0)
           return (
             <div key={feature.label} className='flex flex-col gap-1 rounded-lg border border-border p-3'>
               <div className='flex items-center justify-between gap-2'>
