@@ -1,41 +1,46 @@
-import { MultiSig, MultiSigTransactionRequest } from '../../models/MultiSigs'
+import { MultiSig, MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
 
-// Maps a PostgreSQL row (snake_case) to the client-side request shape.
-export function rowToMultiSigRequest(row: Record<string, any>): MultiSigTransactionRequest {
+import type { MultisigRequestRow, MultisigWalletRow } from './schema'
+
+// Narrow a drizzle row to the camelCase model the client already speaks.
+// Drizzle returns camelCase directly (column names in schema.ts map SQL →
+// TS), so these are essentially identity functions that drop server-only
+// fields (e.g. createdAt) and tighten JSONB shapes to the model types.
+
+export function rowToMultiSigRequest(row: MultisigRequestRow): MultiSigTransactionRequest {
   return {
     id: row.id,
-    multiSigAddress: row.multi_sig_address,
-    request: row.request,
+    multiSigAddress: row.multiSigAddress as `0x${string}`,
+    request: row.request as unknown as MultiSigExecTransactionArgs,
     description: row.description,
-    submitter: row.submitter,
-    signatures: row.signatures ?? [],
-    ownerSigners: row.owner_signers ?? [],
-    dateSubmitted: row.date_submitted,
-    dateExecuted: row.date_executed ?? '',
-    isActive: row.is_active ?? true,
-    isExecuted: row.is_executed ?? false,
-    isCancelled: row.is_cancelled ?? false,
-    isConfirmed: row.is_confirmed ?? false,
-    isSuccessful: row.is_successful ?? false
+    submitter: row.submitter as `0x${string}`,
+    signatures: row.signatures,
+    ownerSigners: row.ownerSigners as `0x${string}`[],
+    dateSubmitted: row.dateSubmitted,
+    dateExecuted: row.dateExecuted,
+    isActive: row.isActive,
+    isExecuted: row.isExecuted,
+    isCancelled: row.isCancelled,
+    isConfirmed: row.isConfirmed,
+    isSuccessful: row.isSuccessful
   }
 }
 
-// Maps a multisig_wallets row (snake_case) to the client-side wallet shape.
-export function rowToMultiSig(row: Record<string, any>): MultiSig {
+export function rowToMultiSig(row: MultisigWalletRow): MultiSig {
   return {
-    chainId: Number(row.chain_id),
-    chainName: row.chain_name,
-    factoryAddress: row.factory_address,
-    id: Number(row.contract_id),
+    chainId: row.chainId,
+    chainName: row.chainName,
+    factoryAddress: row.factoryAddress as `0x${string}`,
+    id: row.contractId,
     name: row.name,
     version: row.version,
-    address: row.address,
-    threshold: Number(row.threshold),
-    ownerCount: Number(row.owner_count),
-    nonce: Number(row.nonce ?? 0),
-    owners: row.owners ?? [],
-    isDeployed: row.is_deployed ?? true,
-    walletType: row.wallet_type === 'extended' ? 'extended' : 'simple',
-    allowOnlyOwnerRequest: row.allow_only_owner_request ?? false
+    address: row.address as `0x${string}`,
+    threshold: row.threshold,
+    ownerCount: row.ownerCount,
+    nonce: row.nonce,
+    owners: row.owners,
+    isDeployed: row.isDeployed ?? true,
+    walletType: row.walletType === 'extended' || row.walletType === 'advanced' ? row.walletType : 'simple',
+    allowOnlyOwnerRequest: row.allowOnlyOwnerRequest
   }
 }

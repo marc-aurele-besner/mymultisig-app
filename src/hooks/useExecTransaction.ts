@@ -9,7 +9,7 @@ import { useNotification, useNotificationWarning } from './notifications'
 import useFinalizeTransaction from './useFinalizeTransaction'
 import useWalletType from './useWalletType'
 import useMultiSigs from '../states/multiSigs'
-import { updateContent } from '../utils'
+import { patchMultiSigRequest } from '../utils'
 import { applyAdminActionToMultiSig, decodeSelfCall } from '../utils/adminActions'
 import { isModernWallet } from '../utils/contractVersions'
 import { transactionOperation, transactionValidUntil } from '../utils/transactionTypedData'
@@ -139,7 +139,7 @@ const useExecTransaction = (
       isExecuted: true,
       isSuccessful
     }
-    updateContent({ action: 'updateMultiSigRequest', data: patch }, existingRequestId).then(() => {
+    patchMultiSigRequest(existingRequestId, patch).then(() => {
       updateMultiSigTransactionRequest(existingRequest.id, { ...existingRequest, ...patch })
     })
     // Owner/threshold operations are self-calls; once executed, mirror their
@@ -178,7 +178,7 @@ const useExecTransaction = (
       )
       .forEach((r) => {
         const cancelPatch = { isActive: false, isCancelled: true }
-        updateContent({ action: 'updateMultiSigRequest', data: cancelPatch }, r.id).then(() => {
+        patchMultiSigRequest(r.id, cancelPatch).then(() => {
           updateMultiSigTransactionRequest(r.id, { ...r, ...cancelPatch })
         })
       })

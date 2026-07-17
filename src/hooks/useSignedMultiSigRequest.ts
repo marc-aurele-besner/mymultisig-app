@@ -7,7 +7,7 @@ import useMultiSigDetails from './useMultiSigDetails'
 import useWalletType from './useWalletType'
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../models/MultiSigs'
 import useMultiSigs from '../states/multiSigs'
-import { addContent, updateContent } from '../utils'
+import { addMultiSigRequest, patchMultiSigRequest } from '../utils'
 import { buildTransactionTypedData } from '../utils/transactionTypedData'
 import { combineSignatures } from '../utils/signatureBlob'
 
@@ -122,11 +122,11 @@ const useSignedMultiSigRequest = (
             isSuccessful: false
           }
       if (existingRequest && existingRequestId)
-        updateContent({ action: 'updateMultiSigRequest', data: dataToAdd }, existingRequestId).then(() => {
+        patchMultiSigRequest(existingRequestId, dataToAdd).then(() => {
           updateMultiSigTransactionRequest(existingRequest.id, dataToAdd)
         })
       else
-        addContent({ action: 'addMultiSigRequest', data: dataToAdd }).then(() => {
+        addMultiSigRequest(dataToAdd).then(() => {
           addMultiSigTransactionRequest(dataToAdd)
         })
     }

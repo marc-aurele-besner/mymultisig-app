@@ -11,7 +11,7 @@ import useMultiSigs from '../states/multiSigs'
 import { useNotification } from './notifications'
 import useFinalizeTransaction from './useFinalizeTransaction'
 import { extractMyMultiSigCreated } from '../utils/multiSigCreated'
-import { addContent } from '../utils'
+import { createMultiSigWallet } from '../utils'
 
 const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFactoryAddress: `0x${string}`) => {
   const chainId = useChainId()
@@ -81,7 +81,7 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
     dataFinal,
     isFinal
   } = useFinalizeTransaction(config, notificationInfo, notificationSuccess, notificationError)
-  // Addresses already handed to addContent this session, so the
+  // Addresses already handed to createMultiSigWallet this session, so the
   // receipt path and the event-watcher path cannot double-write to Neon (the
   // Zustand duplicate check alone races with the async API round-trip).
   const persistedAddresses = useRef(new Set<string>())
@@ -119,7 +119,7 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
       walletType: constructorArgs.walletType ?? 'simple',
       allowOnlyOwnerRequest: isExtended ? (constructorArgs.isOnlyOwnerRequest ?? false) : false
     }
-    addContent({ action: 'createMultiSigWallet', data: dataToAdd }).then(() => {
+    createMultiSigWallet(dataToAdd).then(() => {
       addMultiSig(dataToAdd)
     })
   }

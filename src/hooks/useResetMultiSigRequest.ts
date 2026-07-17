@@ -3,7 +3,7 @@ import { useAccount, useChainId, useChains } from 'wagmi'
 
 import { useNotificationSuccess, useNotificationError } from './notifications'
 import useMultiSigs from '../states/multiSigs'
-import { updateContent } from '../utils'
+import { resetMultiSigRequest } from '../utils'
 
 const useResetMultiSigRequest = (multiSigRequestId: string, existingRequestId: string, isConfirmed: boolean) => {
   const chainId = useChainId()
@@ -23,7 +23,7 @@ const useResetMultiSigRequest = (multiSigRequestId: string, existingRequestId: s
 
   useEffect(() => {
     if (chain && isConfirmed) {
-      updateContent({ action: 'resetMultiSigRequest', data: { signatures: [], ownerSigners: [] } }, multiSigRequestId)
+      resetMultiSigRequest(multiSigRequestId)
         .then(() => {
           removeMultiSigTransactionRequest(multiSigRequestId)
           notificationSuccess()

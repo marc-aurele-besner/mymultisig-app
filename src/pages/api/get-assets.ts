@@ -99,11 +99,8 @@ const fetchNfts = async (slug: string, address: string): Promise<{ nfts: NftHold
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('Function `%s` invoked', FUNCTION)
-  const data = JSON.parse(req.body)
-  if (data.action !== 'getWalletAssets' || data.data === undefined) {
-    return res.status(400).json({ message: 'Invalid data' })
-  }
-  const { address, chainId } = data.data
+  const raw = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+  const { address, chainId } = (raw ?? {}) as { address?: unknown; chainId?: unknown }
   if (typeof address !== 'string' || !/^0x[a-fA-F0-9]{40}$/.test(address) || typeof chainId !== 'number') {
     return res.status(400).json({ message: 'Invalid address or chainId' })
   }
