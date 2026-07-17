@@ -79,7 +79,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "lucide-react": "^0.577.0",
-    "mymultisig-contract": "0.5.0",
+    "mymultisig-contract": "0.5.1",
     "next-pwa": "^5.6.0",
     "next-themes": "^0.4.6",
     "react": "^19.2.3",
