@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 
 import TextInput from '../inputs/TextInput'
+import AddressBookInput from '../inputs/AddressBookInput'
 import DurationInput from '../inputs/DurationInput'
 import EthersInput from '../inputs/EthersInput'
 import HexSelectorInput from '../inputs/HexSelectorInput'
@@ -144,6 +145,16 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
                         onCheckedChange={(checked) => setValues({ ...values, [field.key]: String(checked) })}
                       />
                       <span className='text-sm text-foreground'>{field.label}</span>
+                    </div>
+                  ) : field.kind === 'address' ? (
+                    <div key={field.key} className='flex flex-col gap-1'>
+                      <span className='text-sm font-semibold text-foreground'>{field.label}</span>
+                      <AddressBookInput
+                        placeholder={field.placeholder ?? `${field.label} address (0x...)`}
+                        allowSave
+                        value={values[field.key] ?? ''}
+                        onChange={(next) => setValues({ ...values, [field.key]: next })}
+                      />
                     </div>
                   ) : field.kind === 'duration' ? (
                     <div key={field.key} className='flex flex-col gap-1'>
