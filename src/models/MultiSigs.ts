@@ -39,6 +39,10 @@ export type MultiSigConstructorArgs = {
   threshold: number
   walletType?: WalletType
   isOnlyOwnerRequest?: boolean
+  // 0.5.0 factories only: bytes32 CREATE2 salt. When set, creation goes
+  // through createDeterministic* so the same creator + salt + constructor
+  // arguments yield the same wallet address on every chain.
+  salt?: `0x${string}`
 }
 
 export type BatchStep = {

@@ -1,5 +1,5 @@
 import React from 'react'
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useAccount, useSwitchChain, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { toast } from 'sonner'
 import { JsonFragment } from '@ethersproject/abi'
 
@@ -18,7 +18,26 @@ const useFinalizeTransaction = <TFunctionName extends string>(
   notificationError: () => void
 ) => {
   const { data, error, isPending, isSuccess, isError, writeContract: writeContractFn, writeContractAsync, reset, status } = useWriteContract()
-  
+  const { chainId: walletChainId } = useAccount()
+  const { switchChainAsync } = useSwitchChain()
+
+  // The wallet can sit on a different chain than the app (the header selector
+  // only moves the app state when the connector will not follow), and wagmi's
+  // writeContract hard-errors on the mismatch instead of prompting. Ask the
+  // wallet to switch to the target chain first, and only then submit.
+  const ensureWalletChain = async (): Promise<boolean> => {
+    if (config.chainId == null || walletChainId === config.chainId) return true
+    try {
+      await switchChainAsync({ chainId: config.chainId })
+      return true
+    } catch (switchError) {
+      console.error('Chain switch rejected', switchError)
+      toast.error('Switch your wallet to the selected network to continue.')
+      notificationError()
+      return false
+    }
+  }
+
   // Handle errors and success via useEffect or mutation callbacks
   React.useEffect(() => {
     if (error) {
@@ -64,8 +83,15 @@ const useFinalizeTransaction = <TFunctionName extends string>(
     isError,
     isPending,
     isSuccess,
-    writeContract: () => writeContractFn(config),
-    writeContractAsync: () => writeContractAsync(config),
+    writeContract: () => {
+      ensureWalletChain().then((ok) => {
+        if (ok) writeContractFn(config)
+      })
+    },
+    writeContractAsync: async () => {
+      if (!(await ensureWalletChain())) throw new Error('The wallet is not on the selected network.')
+      return writeContractAsync(config)
+    },
     reset,
     status,
     dataFinal,

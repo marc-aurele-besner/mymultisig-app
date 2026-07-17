@@ -160,6 +160,18 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
     validate: () => null
   },
   {
+    id: 'setRequireTxSuccess',
+    group: 'policy',
+    label: 'Require inner-call success',
+    availableOn: 'both',
+    minWalletVersion: '0.5.0',
+    hint: 'When enabled, an inner call that fails without revert data reverts the whole execution and preserves the nonce, instead of emitting TxFailure and consuming it. Calls failing with revert data always revert the execution.',
+    fields: [{ key: 'required', label: 'Revert when the inner call fails', kind: 'boolean' }],
+    describe: (v) => `${v.required === 'true' ? 'Require' : 'Stop requiring'} inner-call success`,
+    buildArgs: (v) => [v.required === 'true'],
+    validate: () => null
+  },
+  {
     id: 'markNonceAsUsed',
     group: 'nonce',
     label: 'Burn a nonce',
@@ -287,6 +299,19 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
     validate: (v) => (isAddress(v.target) ? null : 'Enter a valid target address')
   },
   {
+    id: 'disableAllowlist',
+    group: 'security',
+    label: 'Turn off the target allowlist',
+    availableOn: 'extended',
+    minWalletVersion: '0.5.0',
+    danger: true,
+    hint: 'Switches the target allowlist off in one operation: the wallet can call any address again. Allowing a target later turns it back on.',
+    fields: [],
+    describe: () => 'Disable the target allowlist (the wallet may call any address again)',
+    buildArgs: () => [],
+    validate: () => null
+  },
+  {
     id: 'setDailySpendingLimit',
     group: 'allowance',
     label: 'Set a daily spending limit',
@@ -372,11 +397,12 @@ export const decodeSelfCall = (data: `0x${string}`): { functionName: string; arg
 }
 
 // Applies the effect of an executed self-call to the locally stored wallet so
-// owners/threshold stay in sync immediately (the contract stores owners as a
-// mapping, so there is no getOwners() to re-read). The OwnerAdded/OwnerRemoved/
-// ThresholdChanged event watchers in useAdminEventSync cover the same ground
-// for changes made by other clients; every patch here is idempotent so the two
-// paths cannot double-apply.
+// owners/threshold stay in sync immediately (pre-0.5.0 wallets store owners as
+// a bare mapping with no getOwners() to re-read; 0.5.0 wallets are re-read
+// live but the stored list still backs imports and older deployments). The
+// OwnerAdded/OwnerRemoved/ThresholdChanged event watchers in useAdminEventSync
+// cover the same ground for changes made by other clients; every patch here is
+// idempotent so the two paths cannot double-apply.
 export const applyAdminActionToMultiSig = (data: `0x${string}`, multiSig: MultiSig): Partial<MultiSig> | null => {
   const decoded = decodeSelfCall(data)
   if (!decoded) return null

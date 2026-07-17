@@ -10,7 +10,9 @@ import persistMultiSigWalletPatch from '../utils/persistWallet'
 // ThresholdChanged). This also picks up changes executed by other clients,
 // which the decode-the-self-call path in useExecTransaction cannot see.
 // All patches are idempotent so overlapping sync paths cannot double-apply.
-const useAdminEventSync = (multiSigAddress: `0x${string}`) => {
+// onOwnersChanged fires on every owner event so callers can refresh cached
+// on-chain reads (the getOwners() list on 0.5.0 wallets) alongside the store.
+const useAdminEventSync = (multiSigAddress: `0x${string}`, onOwnersChanged?: () => void) => {
   const chainId = useChainId()
   const { multiSigs, updateMultiSig } = useMultiSigs()
   const enabled = /^0x[a-fA-F0-9]{40}$/.test(multiSigAddress)
@@ -29,8 +31,9 @@ const useAdminEventSync = (multiSigAddress: `0x${string}`) => {
     abi: MyMultiSig,
     eventName: 'OwnerAdded',
     enabled,
-    onLogs: (logs) =>
-       
+    onLogs: (logs) => {
+      if (logs.length > 0) onOwnersChanged?.()
+
       logs.forEach((log: any) => {
         const owner = String(log.args?.owner ?? '')
         if (!owner) return
@@ -40,6 +43,7 @@ const useAdminEventSync = (multiSigAddress: `0x${string}`) => {
             : { owners: [...stored.owners, owner], ownerCount: stored.ownerCount + 1 }
         )
       })
+    }
   })
 
   useWatchContractEvent({
@@ -47,8 +51,9 @@ const useAdminEventSync = (multiSigAddress: `0x${string}`) => {
     abi: MyMultiSig,
     eventName: 'OwnerRemoved',
     enabled,
-    onLogs: (logs) =>
-       
+    onLogs: (logs) => {
+      if (logs.length > 0) onOwnersChanged?.()
+
       logs.forEach((log: any) => {
         const owner = String(log.args?.owner ?? '')
         if (!owner) return
@@ -61,6 +66,7 @@ const useAdminEventSync = (multiSigAddress: `0x${string}`) => {
             : null
         )
       })
+    }
   })
 
   useWatchContractEvent({

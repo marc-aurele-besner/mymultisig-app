@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useChainId, useChains } from 'wagmi'
+import { keccak256, stringToHex } from 'viem'
 import { ExternalLinkIcon, CheckCircleIcon, CheckIcon, AddIcon, DeleteIcon, ArrowBackIcon } from '../icons/ChakraIcons'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -12,6 +13,7 @@ import ConfirmationCard from '../cards/ConfirmationCard'
 import { MultiSigFactory, MultiSigConstructorArgs, WalletType, isExtendedWallet } from '../../models/MultiSigs'
 import useCreateMultiSig from '../../hooks/useCreateMultiSig'
 import useFactoryStats from '../../hooks/useFactoryStats'
+import usePredictMultiSigAddress from '../../hooks/usePredictMultiSigAddress'
 import { isModernFactory } from '../../utils/contractVersions'
 
 interface CreateMultiSigFormProps {
@@ -104,10 +106,17 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
   const [threshold, setThreshold] = useState(1)
   const [walletType, setWalletType] = useState<WalletType>('simple')
   const [isOnlyOwnerRequest, setIsOnlyOwnerRequest] = useState(false)
+  const [deterministic, setDeterministic] = useState(false)
+  const [saltText, setSaltText] = useState('')
   // Advanced creation (createMyMultiSigAdvanced) only exists on 0.5.0 factories.
-  const availableTypes: readonly WalletType[] = isModernFactory(factory.version)
+  const modernFactory = isModernFactory(factory.version)
+  const availableTypes: readonly WalletType[] = modernFactory
     ? (['simple', 'extended', 'advanced'] as const)
     : (['simple', 'extended'] as const)
+  // The salt (hashed from the user's phrase) feeds createDeterministic*: the
+  // same phrase + creator + name/owners/threshold reproduces the same wallet
+  // address on every chain with the canonical factory set.
+  const salt = modernFactory && deterministic && saltText.trim() !== '' ? keccak256(stringToHex(saltText.trim())) : undefined
 
   const filledOwners = owners.filter((owner) => owner !== '')
   const ownersValid = filledOwners.length > 0 && filledOwners.every(isAddress)
@@ -124,17 +133,23 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
         ? `Duplicate owner: ${truncateAddress(duplicateOwners[0])}`
         : !thresholdValid
           ? 'Pick a signature threshold'
-          : null
+          : modernFactory && deterministic && salt == null
+            ? 'Enter a salt phrase for the deterministic address'
+            : null
 
   const constructorArgs: MultiSigConstructorArgs = {
     contractName: name,
     owners: filledOwners,
     threshold,
     walletType,
-    isOnlyOwnerRequest: isExtendedWallet(walletType) ? isOnlyOwnerRequest : undefined
+    isOnlyOwnerRequest: isExtendedWallet(walletType) ? isOnlyOwnerRequest : undefined,
+    salt
   }
 
   const { data, isPending, isSuccess, writeContract } = useCreateMultiSig(constructorArgs, factory.address)
+  // Only predicted on the review step: the inputs are settled there, so the
+  // read does not re-fire on every keystroke of the earlier steps.
+  const { predictedAddress } = usePredictMultiSigAddress(constructorArgs, factory.address, salt != null && step === 2)
   const { totalCount, simpleCount, extendedCount, advancedCount, supportsTypeCounts } = useFactoryStats(
     factory.address
   )
@@ -342,6 +357,33 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
             )}
           </div>
 
+          {modernFactory && (
+            <div className='flex w-full flex-col gap-3 rounded-xl border border-border bg-muted/30 p-4'>
+              <div className='flex items-center gap-3'>
+                <Switch checked={deterministic} onCheckedChange={setDeterministic} />
+                <div className='flex flex-col'>
+                  <span className='text-sm font-medium text-foreground'>Deterministic address (CREATE2)</span>
+                  <span className='text-xs text-muted-foreground'>
+                    Deploy at an address you can reproduce on every supported chain.
+                  </span>
+                </div>
+              </div>
+              {deterministic && (
+                <div className='flex w-full flex-col gap-1'>
+                  <TextInput
+                    placeholder='Salt phrase (e.g. my-team-treasury)'
+                    value={saltText}
+                    onChange={(e) => setSaltText(e.target.value)}
+                  />
+                  <span className='text-xs text-muted-foreground'>
+                    The same phrase, creator wallet, name, owners and threshold always produce the same address — keep
+                    the phrase to redeploy this wallet on another chain.
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className='flex w-full gap-2'>
             <Button variant='outline' size='lg' className='gap-2' onClick={() => setStep(0)}>
               <ArrowBackIcon className='h-4 w-4' />
@@ -384,6 +426,19 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
                 {threshold} of {filledOwners.length} owner{filledOwners.length === 1 ? '' : 's'}
               </span>
             </div>
+            {salt != null && (
+              <div className='flex flex-col gap-1 border-t border-border pt-3'>
+                <span className='text-muted-foreground'>Deterministic address</span>
+                {predictedAddress != null ? (
+                  <span className='break-all font-mono text-xs text-foreground'>{predictedAddress}</span>
+                ) : (
+                  <span className='text-xs text-muted-foreground'>Predicting the wallet address…</span>
+                )}
+                <span className='text-xs text-muted-foreground'>
+                  Redeploying with the same salt phrase and settings reproduces this address on other chains.
+                </span>
+              </div>
+            )}
             <div className='flex flex-col gap-1 border-t border-border pt-3'>
               <span className='text-muted-foreground'>Owners</span>
               {filledOwners.map((owner) => (

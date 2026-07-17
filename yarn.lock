@@ -14684,10 +14684,10 @@ mute-stream@0.0.8:
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.8.tgz#1630c42b2251ff81e2a283de96a5497ea92e5e0d"
   integrity sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==
 
-mymultisig-contract@0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/mymultisig-contract/-/mymultisig-contract-0.5.0.tgz#809ddd9ac20f1b770ee93ccce96f14d9a11fb4ff"
-  integrity sha512-y4S8Xp5n5YoOTn2fA6k6ufBlky6jfUBIHmYdnIx7vKs1HDir3N1Z3zNYHYlfX7mCE4qAasSj69DwUcPb0KMrTQ==
+mymultisig-contract@0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/mymultisig-contract/-/mymultisig-contract-0.5.1.tgz#997f57e40bfa8e3c41b94df26689fa45882ff5cd"
+  integrity sha512-vjZlFoFNSXJx6DsMmoYJV0saX0OkezOlomSfMwvXCAQqmrG1WTnkUMIzqfagTy8Va6mwGvujPsXxPAODuZnfkQ==
   dependencies:
     "@openzeppelin/contracts" "^4.8.3"
     "@openzeppelin/contracts-upgradeable" "^4.8.3"

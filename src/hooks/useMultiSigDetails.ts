@@ -1,4 +1,4 @@
-import { useChainId, useChains, useReadContracts } from 'wagmi'
+import { useChainId, useChains, useReadContract, useReadContracts } from 'wagmi'
 import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 
 import { MultiSigOnChainData } from '../models/MultiSigs'
@@ -10,6 +10,17 @@ const useMultiSigDetails = (multiSigAddress: `0x${string}`, address: `0x${string
     abi: MyMultiSig,
     chainId: chain?.id
   }
+  // 0.5.0 wallets enumerate owners on-chain; the read reverts on older
+  // deployments (owners were a bare mapping), so it stays out of the
+  // allowFailure:false batch below and consumers fall back to the locally
+  // tracked list when onChainOwners is undefined.
+  const { data: ownersData, refetch: refetchOwners } = useReadContract({
+    ...myMultiSig,
+    functionName: 'getOwners',
+    query: { enabled: multiSigAddress !== '0x', retry: false }
+  })
+  const onChainOwners =
+    ownersData != null ? (ownersData as readonly string[]).map(String) : undefined
   const { data, error, isError, isLoading, isSuccess, isFetched, isRefetching, refetch, status } =
     useReadContracts({
       contracts: [
@@ -54,10 +65,12 @@ const useMultiSigDetails = (multiSigAddress: `0x${string}`, address: `0x${string
       threshold: Number(data[2]),
       ownerCount: Number(data[3]),
       nonce: Number(data[4]),
-      owners: [address]
+      owners: onChainOwners ?? [address]
     }
     return {
           multiSigDetails,
+          onChainOwners,
+          refetchOwners,
           data,
           error,
           isError,
@@ -71,6 +84,8 @@ const useMultiSigDetails = (multiSigAddress: `0x${string}`, address: `0x${string
       } else {
     return {
           multiSigDetails: null,
+          onChainOwners,
+          refetchOwners,
           data,
           error,
           isError,
