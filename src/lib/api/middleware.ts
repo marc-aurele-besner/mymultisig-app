@@ -54,4 +54,15 @@ export const parseIdParam = (req: NextApiRequest): string | null => {
   return id
 }
 
+// Coerce req.query into a flat {string: string} map. Next.js types every
+// value as `string | string[] | undefined`; most dedicated endpoints only
+// care about single-value keys, so collapse the rest into empty strings.
+export const parseQueryString = (req: NextApiRequest): Record<string, string> => {
+  const out: Record<string, string> = {}
+  for (const [key, value] of Object.entries(req.query)) {
+    if (typeof value === 'string') out[key] = value
+  }
+  return out
+}
+
 export type { Handler, SessionHandler }
