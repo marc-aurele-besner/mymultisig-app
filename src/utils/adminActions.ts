@@ -10,13 +10,31 @@ import { gteVersion } from './contractVersions'
 
 const abi = MyMultiSigExtended as Abi
 
-export type AdminFieldKind = 'address' | 'number' | 'boolean' | 'seconds' | 'bytes4' | 'wei'
+// 'duration' / 'ethers' / 'selector' are friendly variants of the raw
+// 'seconds' / 'wei' / 'bytes4' inputs — the AdminActionForm renders them as
+// human-friendly widgets (days/hours/minutes, ETH, named function dropdown)
+// and keeps a "raw units" toggle so power users still get the granular value.
+// Downstream validation/buildArgs continue to receive the raw string (seconds,
+// wei, 0x…), so the contract arg path is untouched.
+export type AdminFieldKind =
+  | 'address'
+  | 'number'
+  | 'boolean'
+  | 'seconds'
+  | 'bytes4'
+  | 'wei'
+  | 'duration'
+  | 'ethers'
+  | 'selector'
 
 export type AdminField = {
   key: string
   label: string
   placeholder?: string
   kind: AdminFieldKind
+  // For the duration family: a non-binding display of the contract minimum
+  // (e.g. 7-day floor for inactivity delegation); surfaced as friendly text.
+  minSeconds?: bigint
 }
 
 export type AdminActionGroup =
@@ -190,7 +208,12 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
     availableOn: 'extended',
     hint: 'Sets the minimum inactivity period (at least 7 days) before a delegatee can take over an owner seat.',
     fields: [
-      { key: 'seconds', label: 'Inactivity window (seconds)', placeholder: 'e.g. 604800 (7 days)', kind: 'seconds' }
+      {
+        key: 'seconds',
+        label: 'Inactivity window',
+        kind: 'duration',
+        minSeconds: 7n * 24n * 60n * 60n
+      }
     ],
     describe: (v) => `Set minimum inactivity window to ${v.seconds} seconds`,
     buildArgs: (v) => [BigInt(v.seconds)],
@@ -210,9 +233,8 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
       { key: 'owner', label: 'Owner', placeholder: 'Owner address (0x...)', kind: 'address' },
       {
         key: 'seconds',
-        label: 'Inactivity window (seconds)',
-        placeholder: 'Must exceed the wallet minimum',
-        kind: 'seconds'
+        label: 'Inactivity window',
+        kind: 'duration'
       },
       { key: 'delegatee', label: 'Delegatee', placeholder: 'Delegatee address (0x...)', kind: 'address' }
     ],
@@ -232,7 +254,7 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
     availableOn: 'extended',
     minWalletVersion: '0.5.0',
     hint: 'Sensitive calls (privileged self-calls, transfers above the wei threshold) must then be scheduled and wait out this delay before executing. Set 0 to turn the timelock off.',
-    fields: [{ key: 'seconds', label: 'Delay (seconds)', placeholder: 'e.g. 86400 (1 day)', kind: 'seconds' }],
+    fields: [{ key: 'seconds', label: 'Delay before sensitive calls execute', kind: 'duration' }],
     describe: (v) =>
       v.seconds === '0' ? 'Disable the timelock' : `Set the timelock delay to ${v.seconds} seconds`,
     buildArgs: (v) => [BigInt(v.seconds)],
@@ -246,7 +268,7 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
     minWalletVersion: '0.5.0',
     hint: 'Registers (or clears) a 4-byte function selector as sensitive when called on the wallet itself. The wallet pre-registers its own admin selectors at deployment.',
     fields: [
-      { key: 'selector', label: 'Function selector', placeholder: 'e.g. 0x7065cb48 (addOwner)', kind: 'bytes4' },
+      { key: 'selector', label: 'Function on this wallet to gate', kind: 'selector' },
       { key: 'sensitive', label: 'Treat as sensitive', kind: 'boolean' }
     ],
     describe: (v) => `${v.sensitive === 'true' ? 'Mark' : 'Unmark'} selector ${v.selector} as sensitive`,
@@ -260,7 +282,9 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
     availableOn: 'extended',
     minWalletVersion: '0.5.0',
     hint: 'Any transaction moving at least this many wei counts as sensitive and must go through the timelock. Set 0 to disable value-based sensitivity.',
-    fields: [{ key: 'wei', label: 'Threshold (wei)', placeholder: 'e.g. 1000000000000000000 (1 ETH)', kind: 'wei' }],
+    fields: [
+      { key: 'wei', label: 'Transfers of this size or larger are sensitive', kind: 'ethers' }
+    ],
     describe: (v) =>
       v.wei === '0' ? 'Disable the sensitive-value threshold' : `Treat transfers of ${v.wei} wei or more as sensitive`,
     buildArgs: (v) => [BigInt(v.wei)],
@@ -320,7 +344,7 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
     hint: 'Lets this owner spend up to the cap per rolling 24h window with just their own signature (no threshold). Set 0 to remove the allowance.',
     fields: [
       { key: 'owner', label: 'Owner', placeholder: 'Owner address (0x...)', kind: 'address' },
-      { key: 'wei', label: 'Daily cap (wei)', placeholder: 'e.g. 1000000000000000000 (1 ETH)', kind: 'wei' }
+      { key: 'wei', label: 'Daily cap', kind: 'ethers' }
     ],
     describe: (v) =>
       v.wei === '0'
