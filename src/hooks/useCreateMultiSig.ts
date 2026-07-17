@@ -28,6 +28,9 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
     (f) => f.chainId === chain?.id && f.address.toLowerCase() === multiSigFactoryAddress.toLowerCase()
   )?.version
   const modernFactory = isModernFactory(factoryVersion)
+  // 0.5.0 factories also expose the CREATE2 path: same creator + salt + args
+  // -> same wallet address on every chain the factory set is deployed at.
+  const deterministic = modernFactory && constructorArgs.salt != null
   const config = {
     chainId: chain?.id,
     address: multiSigFactoryAddress,
@@ -40,18 +43,30 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
         : (MyMultiSigFactory as JsonFragment[]),
     functionName: (isExtended
       ? modernFactory && constructorArgs.walletType === 'advanced'
-        ? 'createMyMultiSigAdvanced'
-        : 'createMyMultiSigExtended'
-      : 'createMultiSig') as string,
+        ? deterministic
+          ? 'createDeterministicMyMultiSigAdvanced'
+          : 'createMyMultiSigAdvanced'
+        : deterministic
+          ? 'createDeterministicMyMultiSigExtended'
+          : 'createMyMultiSigExtended'
+      : deterministic
+        ? 'createDeterministicMultiSig'
+        : 'createMultiSig') as string,
     args: isExtended
       ? ([
           constructorArgs.contractName,
           constructorArgs.owners,
           constructorArgs.threshold,
           constructorArgs.isOnlyOwnerRequest ?? false,
-          ...(modernFactory ? [contractConstants.ENTRY_POINT_V07_ADDRESS] : [])
+          ...(modernFactory ? [contractConstants.ENTRY_POINT_V07_ADDRESS] : []),
+          ...(deterministic ? [constructorArgs.salt] : [])
         ] as const)
-      : ([constructorArgs.contractName, constructorArgs.owners, constructorArgs.threshold] as const)
+      : ([
+          constructorArgs.contractName,
+          constructorArgs.owners,
+          constructorArgs.threshold,
+          ...(deterministic ? [constructorArgs.salt] : [])
+        ] as const)
   }
   const {
     data,
