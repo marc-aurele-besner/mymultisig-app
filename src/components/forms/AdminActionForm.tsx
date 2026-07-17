@@ -1,10 +1,16 @@
 import React, { useState } from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useChainId, useChains } from 'wagmi'
+import type { Abi } from 'viem'
+import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
+import MyMultiSigExtended from 'mymultisig-contract/abi/MyMultiSigExtended.json'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 
 import TextInput from '../inputs/TextInput'
+import DurationInput from '../inputs/DurationInput'
+import EthersInput from '../inputs/EthersInput'
+import HexSelectorInput from '../inputs/HexSelectorInput'
 import SignRequest from '../buttons/SignRequest'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
@@ -21,6 +27,10 @@ const DEFAULT_ADMIN_GAS = '75000'
 // Actions are grouped by concern; selecting one expands its form inline.
 const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) => {
   const { address } = useAccount()
+  const chainId = useChainId()
+  const chains = useChains()
+  const chain = chains.find((c) => c.id === chainId)
+  const nativeSymbol = chain?.nativeCurrency.symbol ?? 'ETH'
   const { multiSigDetails } = useMultiSigDetails(multiSigAddress, address ?? '0x')
   const { walletType } = useWalletType(multiSigAddress)
   const [actionId, setActionId] = useState<string>('')
@@ -28,6 +38,13 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
 
   const actions = adminActionsFor(walletType, multiSigDetails?.version)
   const action = actions.find((a) => a.id === actionId)
+
+  // Wallet ABIs HexSelectorInput can name for the user. The base wallet covers
+  // every wallet; the Extended ABIs add the 0.5.0-only surface that the
+  // timelock-sensitive-selector action is most likely to flip on.
+  const walletAbis: Abi[] = walletType === 'extended'
+    ? [MyMultiSigExtended as Abi, MyMultiSig as Abi]
+    : [MyMultiSig as Abi]
 
   const details = {
     threshold: multiSigDetails?.threshold ?? 1,
@@ -127,6 +144,33 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
                         onCheckedChange={(checked) => setValues({ ...values, [field.key]: String(checked) })}
                       />
                       <span className='text-sm text-foreground'>{field.label}</span>
+                    </div>
+                  ) : field.kind === 'duration' ? (
+                    <div key={field.key} className='flex flex-col gap-1'>
+                      <span className='text-sm font-semibold text-foreground'>{field.label}</span>
+                      <DurationInput
+                        value={values[field.key] ?? ''}
+                        minSeconds={field.minSeconds}
+                        onChange={(next) => setValues({ ...values, [field.key]: next })}
+                      />
+                    </div>
+                  ) : field.kind === 'ethers' ? (
+                    <div key={field.key} className='flex flex-col gap-1'>
+                      <span className='text-sm font-semibold text-foreground'>{field.label}</span>
+                      <EthersInput
+                        symbol={nativeSymbol}
+                        value={values[field.key] ?? ''}
+                        onChange={(next) => setValues({ ...values, [field.key]: next })}
+                      />
+                    </div>
+                  ) : field.kind === 'selector' ? (
+                    <div key={field.key} className='flex flex-col gap-1'>
+                      <span className='text-sm font-semibold text-foreground'>{field.label}</span>
+                      <HexSelectorInput
+                        abis={walletAbis}
+                        value={values[field.key] ?? ''}
+                        onChange={(next) => setValues({ ...values, [field.key]: next })}
+                      />
                     </div>
                   ) : (
                     <div key={field.key} className='flex flex-col gap-1'>
