@@ -49,6 +49,51 @@ export type TransactionTypedData = {
   message: Record<string, unknown>
 }
 
+// 0.5.1 wallets domain-separate the single-signer allowance path: it signs a
+// dedicated AllowanceTransaction struct bound to the wallet's allowanceNonce()
+// (not the transaction nonce), so an allowance signature can never be replayed
+// against execTransaction or re-used after a failed inner call.
+export type AllowanceTypedDataInput = {
+  domain: TransactionTypedDataInput['domain']
+  to: `0x${string}`
+  value: bigint
+  data: `0x${string}`
+  gas: bigint
+  allowanceNonce: bigint
+  validUntil: bigint
+}
+
+export type AllowanceTypedData = {
+  domain: TransactionTypedDataInput['domain']
+  types: { AllowanceTransaction: { name: string; type: string }[] }
+  primaryType: 'AllowanceTransaction'
+  message: Record<string, unknown>
+}
+
+export const buildAllowanceTypedData = ({
+  domain,
+  to,
+  value,
+  data,
+  gas,
+  allowanceNonce,
+  validUntil
+}: AllowanceTypedDataInput): AllowanceTypedData => ({
+  domain,
+  types: {
+    AllowanceTransaction: [
+      { name: 'to', type: 'address' },
+      { name: 'value', type: 'uint256' },
+      { name: 'data', type: 'bytes' },
+      { name: 'gas', type: 'uint256' },
+      { name: 'nonce', type: 'uint96' },
+      { name: 'validUntil', type: 'uint256' }
+    ]
+  },
+  primaryType: 'AllowanceTransaction' as const,
+  message: { to, value, data, gas, nonce: allowanceNonce, validUntil }
+})
+
 export const buildTransactionTypedData = ({
   domain,
   args,

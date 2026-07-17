@@ -14,9 +14,10 @@ export const SCHEDULE_EXECUTED_SENTINEL = 2n ** 256n - 1n
 // registered selector, or value above the configured threshold) revert on the
 // direct execTransaction path with SensitiveCallRequiresDelay and must go
 // schedule -> wait timelockDelay -> executeScheduled instead. The schedule is
-// keyed by the transaction hash, consumes the same owner signatures as a
-// direct execution, and binds the request's validUntil across the whole
-// window. cancelScheduled needs no signatures (any owner).
+// keyed by the transaction hash and consumes the owner signatures at
+// scheduleTransaction time; executeScheduled needs none (the schedule entry
+// is the authorization) and cancelScheduled takes just the schedule's tx hash
+// (any owner, no signatures).
 const useScheduledTransaction = (
   multiSigAddress: `0x${string}`,
   request: MultiSigTransactionRequest,
@@ -102,7 +103,7 @@ const useScheduledTransaction = (
     {
       ...base,
       functionName: 'executeScheduled',
-      args: [...(scheduleArgs ?? []), signatures]
+      args: scheduleArgs ?? []
     },
     notificationInfo,
     notificationSuccess,
@@ -112,7 +113,7 @@ const useScheduledTransaction = (
     {
       ...base,
       functionName: 'cancelScheduled',
-      args: scheduleArgs ?? []
+      args: [txHash ?? '0x']
     },
     notificationInfo,
     notificationSuccess,
