@@ -5,6 +5,7 @@ import { MultiSig, MultiSigFactory } from '../models/MultiSigs'
 import useMultiSigs from '../states/multiSigs'
 import useContracts from '../states/contracts'
 import shippedFactories from '../constants/multiSigFactory'
+import { createMultiSigWallet, listMultiSigWallets } from './api'
 import { addContent, getContent } from './index'
 
 // Account-scoped data that must survive the browser: wallets, call-builder
@@ -29,14 +30,21 @@ const pull = async (action: string, ownerAddress: string) => {
 
 export const syncWalletsWithRemote = async (ownerAddress: string, chainId: number) => {
   try {
-    const remote = (await pull('getMultiSigWallets', ownerAddress)) as MultiSig[] | null
+    const response = await listMultiSigWallets(ownerAddress)
+    const remote = Array.isArray(response?.content) ? (response.content as MultiSig[]) : null
     if (remote == null) return
     const { multiSigs, addMultiSig } = useMultiSigs.getState()
     const localKeys = new Set(multiSigs.map(keyOf))
     const remoteKeys = new Set(remote.map(keyOf))
     remote.filter((w) => !localKeys.has(keyOf(w))).forEach((w) => addMultiSig(w))
     // Wallets saved before the read-back sync existed (or while offline).
-    multiSigs.filter((w) => !remoteKeys.has(keyOf(w))).forEach((w) => push('createMultiSigWallet', w))
+    for (const w of multiSigs.filter((w) => !remoteKeys.has(keyOf(w)))) {
+      try {
+        await createMultiSigWallet(w)
+      } catch {
+        // Best-effort; the local store already has the change.
+      }
+    }
   } catch {
     // Offline or DB unavailable; localStorage keeps working.
   }

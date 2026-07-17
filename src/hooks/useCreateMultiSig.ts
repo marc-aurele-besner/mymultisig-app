@@ -11,7 +11,7 @@ import useMultiSigs from '../states/multiSigs'
 import { useNotification } from './notifications'
 import useFinalizeTransaction from './useFinalizeTransaction'
 import { extractMyMultiSigCreated } from '../utils/multiSigCreated'
-import { addContent } from '../utils'
+import { createMultiSigWallet } from '../utils'
 
 const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFactoryAddress: `0x${string}`) => {
   const chainId = useChainId()
@@ -119,7 +119,7 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
       walletType: constructorArgs.walletType ?? 'simple',
       allowOnlyOwnerRequest: isExtended ? (constructorArgs.isOnlyOwnerRequest ?? false) : false
     }
-    addContent({ action: 'createMultiSigWallet', data: dataToAdd }).then(() => {
+    createMultiSigWallet(dataToAdd).then(() => {
       addMultiSig(dataToAdd)
     })
   }
