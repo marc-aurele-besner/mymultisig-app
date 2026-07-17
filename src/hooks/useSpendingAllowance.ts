@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useAccount, useChainId, useChains, usePublicClient, useReadContract, useSignTypedData, useWriteContract } from 'wagmi'
+import { useAccount, useChainId, useChains, usePublicClient, useReadContract, useSignTypedData, useSwitchChain, useWriteContract } from 'wagmi'
 import { toast } from 'sonner'
 import MyMultiSigExtended from 'mymultisig-contract/abi/MyMultiSigExtended.json'
 import { JsonFragment } from '@ethersproject/abi'
@@ -20,7 +20,8 @@ const useSpendingAllowance = (multiSigAddress: `0x${string}`) => {
   const chainId = useChainId()
   const chains = useChains()
   const chain = chains.find((c) => c.id === chainId)
-  const { address } = useAccount()
+  const { address, chainId: walletChainId } = useAccount()
+  const { switchChainAsync } = useSwitchChain()
   const publicClient = usePublicClient()
   const { data: details } = useMultiSigDetails(multiSigAddress, address ?? '0x')
   const { signTypedDataAsync } = useSignTypedData()
@@ -61,6 +62,9 @@ const useSpendingAllowance = (multiSigAddress: `0x${string}`) => {
     }
     setIsPending(true)
     try {
+      // The signature domain and the write both target the app's chain; bring
+      // the wallet there first or wagmi rejects the write with ChainMismatch.
+      if (walletChainId !== chain.id) await switchChainAsync({ chainId: chain.id })
       const typedData = buildAllowanceTypedData({
         domain: {
           name: String(details[0]),
