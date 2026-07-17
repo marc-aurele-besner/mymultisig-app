@@ -4,7 +4,7 @@ import { LoadingDots } from '@/components/ui/loading-dots'
 import { ExternalLinkIcon, LockIcon } from '../icons/ChakraIcons'
 
 import BigCard from '../cards/BigCard'
-import { getContent } from '../../utils'
+import { listPublicAddressBook } from '../../utils'
 
 interface PublicEntry {
   id: string
@@ -59,7 +59,7 @@ const PublicAddressBook: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await getContent({ action: 'getPublicAddressBook', data: {} })
+        const response = await listPublicAddressBook()
         if (response != null && Array.isArray(response.content)) {
           setEntries(response.content as PublicEntry[])
         } else {

@@ -5,8 +5,14 @@ import { MultiSig, MultiSigFactory } from '../models/MultiSigs'
 import useMultiSigs from '../states/multiSigs'
 import useContracts from '../states/contracts'
 import shippedFactories from '../constants/multiSigFactory'
-import { createMultiSigWallet, listMultiSigWallets } from './api'
-import { addContent, getContent } from './index'
+import {
+  addFactory,
+  createMultiSigWallet,
+  listFactories,
+  listMultiSigWallets,
+  listSavedContracts,
+  upsertSavedContract
+} from './api'
 
 // Account-scoped data that must survive the browser: wallets, call-builder
 // contracts, and user-deployed factories. Same contract as the address book
@@ -15,16 +21,6 @@ import { addContent, getContent } from './index'
 
 const isAddress = (value: string) => /^0x[a-fA-F0-9]{40}$/.test(value)
 const keyOf = (e: { chainId: number; address: string }) => `${e.chainId}-${e.address.toLowerCase()}`
-
-const push = (action: string, data: object) =>
-  addContent({ action, data }).catch(() => {
-    // Best-effort; the local store already has the change.
-  })
-
-const pull = async (action: string, ownerAddress: string) => {
-  const response = await getContent({ action, data: { ownerAddress } })
-  return Array.isArray(response?.content) ? response.content : null
-}
 
 // --- Wallets -------------------------------------------------------------
 
@@ -54,19 +50,22 @@ export const syncWalletsWithRemote = async (ownerAddress: string, chainId: numbe
 
 export const persistSavedContract = (contract: Contract, ownerAddress: string | undefined) => {
   if (ownerAddress == null || !isAddress(contract.address)) return
-  void push('addSavedContract', {
+  void upsertSavedContract({
     ownerAddress,
     chainId: contract.chainId,
     chainName: contract.chainName,
     address: contract.address,
     name: contract.name,
     abi: contract.abi
+  }).catch(() => {
+    // DB persistence is best-effort; the local store already has the change.
   })
 }
 
 export const syncSavedContractsWithRemote = async (ownerAddress: string, chainId: number) => {
   try {
-    const remote = await pull('getSavedContracts', ownerAddress)
+    const response = await listSavedContracts(ownerAddress)
+    const remote = Array.isArray(response?.content) ? response.content : null
     if (remote == null) return
     const { contracts, addContract } = useContracts.getState()
     const localKeys = new Set(contracts.filter((c) => isAddress(c.address)).map(keyOf))
@@ -107,19 +106,22 @@ const isShippedFactory = (factory: { chainId: number; address: string }) =>
 
 export const persistFactory = (factory: MultiSigFactory, ownerAddress: string | undefined) => {
   if (ownerAddress == null || isShippedFactory(factory)) return
-  void push('addFactory', {
+  void addFactory({
     ownerAddress,
     chainId: factory.chainId,
     chainName: factory.chainName,
     address: factory.address,
     name: factory.name,
     version: factory.version
+  }).catch(() => {
+    // Best-effort; the local store already has the change.
   })
 }
 
 export const syncFactoriesWithRemote = async (ownerAddress: string, chainId: number) => {
   try {
-    const remote = (await pull('getFactories', ownerAddress)) as MultiSigFactory[] | null
+    const response = await listFactories(ownerAddress)
+    const remote = Array.isArray(response?.content) ? (response.content as MultiSigFactory[]) : null
     if (remote == null) return
     const { multiSigFactory, addMultiSigFactory } = useMultiSigs.getState()
     const localKeys = new Set(multiSigFactory.map(keyOf))
