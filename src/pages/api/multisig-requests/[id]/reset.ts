@@ -13,9 +13,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     res.setHeader('Allow', 'POST')
     return res.status(405).json({ message: 'Method not allowed' })
   }
-  const id = parseIdParam(req)
-  if (id == null) return res.status(400).json({ message: 'Missing request id' })
-  return withSession(async (sessionReq, sessionRes) => {
+  const resetHandler = withSession(async (sessionReq, sessionRes) => {
+    const id = parseIdParam(sessionReq)
+    if (id == null) return sessionRes.status(400).json({ message: 'Missing request id' })
     const sql = getSql()
     const rows = (await sql`SELECT * FROM multisig_requests WHERE id = ${id}`) as Record<string, unknown>[]
     if (rows.length === 0) {
@@ -32,7 +32,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       message: 'Data updated',
       content: rowToMultiSigRequest(updated[0])
     })
-  })(req, res)
+  })
+  return resetHandler(req, res)
 }
 
 export default handler

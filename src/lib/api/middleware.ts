@@ -2,27 +2,43 @@ import { NextApiRequest, NextApiResponse } from 'next'
 
 import { getVerifiedAddress } from '../auth/siwe'
 
-type Handler = (req: NextApiRequest, res: NextApiResponse) => Promise<unknown> | unknown
-type SessionHandler = (req: NextApiRequest, res: NextApiResponse, address: string) => Promise<unknown> | unknown
+type Handler<T extends unknown[] = []> = (req: NextApiRequest, res: NextApiResponse, ...rest: T) => Promise<unknown> | unknown
+type SessionHandler<T extends unknown[] = []> = (
+  req: NextApiRequest,
+  res: NextApiResponse,
+  address: string,
+  ...rest: T
+) => Promise<unknown> | unknown
 
 // Reject the request when the caller has no SIWE session cookie, then hand
 // the verified address to the handler. Every dedicated write endpoint rides
-// on this so the 401 message + status stay consistent.
-export const withSession = (handler: SessionHandler): Handler => async (req, res) => {
+// on this so the 401 message + status stay consistent. Extra trailing args
+// are forwarded unchanged so routes like /api/.../[id] can keep carrying the
+// captured id through the wrapper.
+export const withSession = <T extends unknown[] = []>(handler: SessionHandler<T>): Handler<T> => async (
+  req,
+  res,
+  ...rest
+) => {
   const address = getVerifiedAddress(req)
   if (address == null) {
     return res.status(401).json({ message: 'Wallet not verified: sign in with your wallet first' })
   }
-  return handler(req, res, address)
+  return handler(req, res, address, ...rest)
 }
 
 // Session + identity match: extract the address a payload claims to act as
 // (from query, body, or wherever), reject when it is missing or doesn't equal
 // the verified wallet. Used by every route that stores data per-owner.
-export const withVerifiedAs = (
+export const withVerifiedAs = <T extends unknown[] = []>(
   extractClaimed: (req: NextApiRequest) => string | null | undefined,
-  handler: (req: NextApiRequest, res: NextApiResponse, claimed: string) => Promise<unknown> | unknown
-): Handler => async (req, res) => {
+  handler: (
+    req: NextApiRequest,
+    res: NextApiResponse,
+    claimed: string,
+    ...rest: T
+  ) => Promise<unknown> | unknown
+): Handler<T> => async (req, res, ...rest) => {
   const verified = getVerifiedAddress(req)
   if (verified == null) {
     return res.status(401).json({ message: 'Wallet not verified: sign in with your wallet first' })
@@ -31,7 +47,7 @@ export const withVerifiedAs = (
   if (claimed == null || verified !== String(claimed).toLowerCase()) {
     return res.status(401).json({ message: 'Identity does not match the verified wallet' })
   }
-  return handler(req, res, claimed)
+  return handler(req, res, claimed, ...rest)
 }
 
 // Next.js usually pre-parses JSON bodies, but the legacy {action, data}

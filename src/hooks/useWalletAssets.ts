@@ -20,7 +20,7 @@ const useWalletAssets = (address: `0x${string}`) => {
     setIsLoading(true)
     setIsError(false)
     try {
-      const data = await getAssets({ action: 'getWalletAssets', data: { address, chainId: chain.id } })
+      const data = await getAssets({ address, chainId: chain.id })
       if (data != null && data.content != null) {
         setAssets(data.content as WalletAssets)
       } else {

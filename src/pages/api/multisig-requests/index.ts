@@ -18,7 +18,7 @@ const createHandler = withVerifiedAs(
   async (req, res) => {
     const sql = getSql()
     const body = parseBody(req) as Record<string, unknown>
-    const doc = { id: uuid(), ...body }
+    const doc: Record<string, unknown> = { id: uuid(), ...body }
 
     const wallets = (await sql`
       SELECT owners, allow_only_owner_request FROM multisig_wallets

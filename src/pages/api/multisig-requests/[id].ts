@@ -10,9 +10,13 @@ import { parseBody, parseIdParam, withSession } from '../../../lib/api/middlewar
 //   DELETE deleteMultiSigRequest     (session required)
 //
 // `getMultiSigRequestById` is public so the detail view can render before
-// sign-in; mutations still go through `withSession`.
+// sign-in; mutations still go through `withSession`. Each handler pulls the
+// captured id from req.query so the wrappers stay uniform with the rest of
+// the API.
 
-const getHandler = async (req: NextApiRequest, res: NextApiResponse, id: string) => {
+const getHandler = async (req: NextApiRequest, res: NextApiResponse) => {
+  const id = parseIdParam(req)
+  if (id == null) return res.status(400).json({ message: 'Missing request id' })
   const sql = getSql()
   const arr = (await sql`SELECT * FROM multisig_requests WHERE id = ${id}`) as Record<string, unknown>[]
   if (arr.length === 0) return res.status(404).json({ message: 'Data not found' })
@@ -22,7 +26,9 @@ const getHandler = async (req: NextApiRequest, res: NextApiResponse, id: string)
   })
 }
 
-const patchHandler = withSession(async (req, res, id) => {
+const patchHandler = withSession(async (req, res) => {
+  const id = parseIdParam(req)
+  if (id == null) return res.status(400).json({ message: 'Missing request id' })
   const sql = getSql()
   const rows = (await sql`SELECT * FROM multisig_requests WHERE id = ${id}`) as Record<string, unknown>[]
   if (rows.length === 0) {
@@ -58,7 +64,9 @@ const patchHandler = withSession(async (req, res, id) => {
   })
 })
 
-const deleteHandler = withSession(async (req, res, id) => {
+const deleteHandler = withSession(async (req, res) => {
+  const id = parseIdParam(req)
+  if (id == null) return res.status(400).json({ message: 'Missing request id' })
   const sql = getSql()
   await sql`DELETE FROM multisig_requests WHERE id = ${id}`
   return res.status(200).json({
@@ -68,13 +76,9 @@ const deleteHandler = withSession(async (req, res, id) => {
 })
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const id = parseIdParam(req)
-  if (id == null) {
-    return res.status(400).json({ message: 'Missing request id' })
-  }
-  if (req.method === 'GET') return getHandler(req, res, id)
-  if (req.method === 'PATCH') return patchHandler(req, res, id)
-  if (req.method === 'DELETE') return deleteHandler(req, res, id)
+  if (req.method === 'GET') return getHandler(req, res)
+  if (req.method === 'PATCH') return patchHandler(req, res)
+  if (req.method === 'DELETE') return deleteHandler(req, res)
   res.setHeader('Allow', 'GET, PATCH, DELETE')
   return res.status(405).json({ message: 'Method not allowed' })
 }
