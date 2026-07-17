@@ -1,5 +1,5 @@
 import useAddressBook, { AddressBookEntry } from '../states/addressBook'
-import { addContent, getContent } from './index'
+import { listAddressBook, removeAddressBookEntry, upsertAddressBookEntry } from './api'
 
 // Mirrors address-book mutations to Neon so labels follow the user across
 // browsers. The local Zustand store stays the source of truth for rendering;
@@ -7,14 +7,11 @@ import { addContent, getContent } from './index'
 // Rows are keyed by (ownerAddress, chainId, address), so no id mapping is
 // needed between the local store and the database.
 
-const push = (action: 'addAddressBookEntry' | 'removeAddressBookEntry', data: object) =>
-  addContent({ action, data }).catch(() => {
-    // DB persistence is best-effort; the local store already has the change.
-  })
-
 export const persistAddressBookUpsert = (entry: Omit<AddressBookEntry, 'id'>, ownerAddress: string | undefined) => {
   if (ownerAddress == null) return
-  void push('addAddressBookEntry', { ...entry, ownerAddress })
+  upsertAddressBookEntry({ ...entry, ownerAddress }).catch(() => {
+    // DB persistence is best-effort; the local store already has the change.
+  })
 }
 
 export const persistAddressBookRemoval = (
@@ -22,10 +19,12 @@ export const persistAddressBookRemoval = (
   ownerAddress: string | undefined
 ) => {
   if (ownerAddress == null) return
-  void push('removeAddressBookEntry', {
+  removeAddressBookEntry({
     chainId: entry.chainId,
     address: entry.address,
     ownerAddress
+  }).catch(() => {
+    // DB persistence is best-effort; the local store already has the change.
   })
 }
 
@@ -33,7 +32,7 @@ export const persistAddressBookRemoval = (
 // local-only entries (e.g. saved while signed out or on another network) up.
 export const syncAddressBookWithRemote = async (ownerAddress: string, chainId: number) => {
   try {
-    const response = await getContent({ action: 'getAddressBook', data: { ownerAddress } })
+    const response = await listAddressBook(ownerAddress)
     if (response?.content == null || !Array.isArray(response.content)) return
     const remote = response.content as AddressBookEntry[]
     const { entries, addEntry } = useAddressBook.getState()
