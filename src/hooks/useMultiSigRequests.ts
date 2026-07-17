@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useChainId, useChains } from 'wagmi'
 
 import { MultiSigTransactionRequest } from '../models/MultiSigs'
-import { getContent } from '../utils'
+import { listMultiSigRequests } from '../utils'
 
 const useMultiSigRequests = (multiSigAddress: `0x${string}`) => {
   const chainId = useChainId()
@@ -17,7 +17,7 @@ const useMultiSigRequests = (multiSigAddress: `0x${string}`) => {
     setIsLoading(true)
     setIsError(false)
     try {
-      const data = await getContent({ action: 'getMultiSigRequests', data: { multiSigAddress } })
+      const data = await listMultiSigRequests(multiSigAddress)
       if (data != null && Array.isArray(data.content)) {
         setRequests(data.content)
       } else {

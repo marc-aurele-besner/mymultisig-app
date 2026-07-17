@@ -3,7 +3,7 @@ import { useAccount, useChainId, useChains } from 'wagmi'
 
 import { useNotificationSuccess, useNotificationError } from './notifications'
 import useMultiSigs from '../states/multiSigs'
-import { deleteContent } from '../utils'
+import { deleteMultiSigRequest } from '../utils'
 
 const useDeleteMultiSigRequest = (multiSigRequestId: string, existingRequestId: string, isConfirmed: boolean) => {
   const chainId = useChainId()
@@ -23,7 +23,7 @@ const useDeleteMultiSigRequest = (multiSigRequestId: string, existingRequestId: 
 
   useEffect(() => {
     if (chain && isConfirmed) {
-      deleteContent({ action: 'deleteMultiSigRequest', data: { existingRequestId } }, existingRequestId)
+      deleteMultiSigRequest(existingRequestId)
         .then(() => {
           removeMultiSigTransactionRequest(multiSigRequestId)
           notificationSuccess()

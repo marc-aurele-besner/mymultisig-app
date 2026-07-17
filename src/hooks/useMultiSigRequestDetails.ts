@@ -3,7 +3,7 @@ import { useChainId, useChains, useAccount } from 'wagmi'
 
 import { MultiSigTransactionRequest } from '../models/MultiSigs'
 import useMultiSigs from '../states/multiSigs'
-import { getContent } from '../utils'
+import { getMultiSigRequestById } from '../utils'
 
 const useMultiSigRequestDetails = (multiSigRequestId: string) => {
   const chainId = useChainId()
@@ -17,7 +17,7 @@ const useMultiSigRequestDetails = (multiSigRequestId: string) => {
   useEffect(() => {
     if (chain && !dataIsLoading && address) {
       setDataIsLoading(true)
-      getContent({ action: 'getMultiSigRequestById', data: { multiSigRequestId } }).then((data) => {
+      getMultiSigRequestById(multiSigRequestId).then((data) => {
         if (data && data.content) setRequestDetails(data.content[0])
       })
     }
