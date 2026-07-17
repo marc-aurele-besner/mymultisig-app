@@ -1,6 +1,7 @@
 import React from 'react'
 import { erc20Abi } from 'viem'
 import { useChainId, useSendTransaction, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import decodeContractError from '../utils/decodeContractError'
@@ -11,6 +12,7 @@ import { useNotification } from './notifications'
 // so this bypasses the request/approval machinery entirely.
 const useFundMultiSig = (multiSigAddress: `0x${string}`) => {
   const chainId = useChainId()
+  const queryClient = useQueryClient()
   const { notificationInfo, notificationError, notificationSuccess } = useNotification()
   const native = useSendTransaction()
   const token = useWriteContract()
@@ -45,7 +47,15 @@ const useFundMultiSig = (multiSigAddress: `0x${string}`) => {
   React.useEffect(() => {
     if (isFinal && receipt) {
       notificationSuccess()
+      // The pages under the modal read balances through cached wagmi queries
+      // (the multisig's native balance tile, ERC-20 reads); invalidate them so
+      // the new funds show up without a hard refresh.
+      queryClient.invalidateQueries({ queryKey: ['balance'] })
+      queryClient.invalidateQueries({ queryKey: ['readContract'] })
+      queryClient.invalidateQueries({ queryKey: ['readContracts'] })
     }
+    // queryClient is stable; the receipt is the real dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFinal, receipt, notificationSuccess])
 
   const fundNative = (amount: bigint) => native.sendTransaction({ chainId, to: multiSigAddress, value: amount })
