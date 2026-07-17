@@ -44,7 +44,7 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 - **Neon PostgreSQL** via `@neondatabase/serverless` for storing multisig wallets and transaction requests
 - Schema in `src/lib/db/schema.sql`; client in `src/lib/db/neon.ts`
 - Auth via SIWE session cookies (`src/lib/auth/siwe.ts`): writes require a valid session, and identity-claiming actions must match the session wallet (`isVerifiedAs`)
-- API routes in `src/pages/api/` handle CRUD; request bodies are `{ action, data }`
+- API routes in `src/pages/api/` handle CRUD with one dedicated endpoint per action (e.g. `POST /api/multisig-requests`, `PATCH /api/multisig-requests/[id]`); per-endpoint auth is wrapped in `withSession` / `withVerifiedAs` from `src/lib/api/middleware.ts`. Public reads (`GET /api/multisig-requests`, `GET /api/multisig-requests/[id]`) skip the session guard so the detail view can render before sign-in.
 
 ## Key Patterns
 
@@ -57,8 +57,8 @@ All contract writes follow the same flow:
 
 ### Data Flow for Mutations
 1. User action triggers a wagmi write
-2. On success event, hook calls `addContent`/`updateContent` with `{ action, data }` (→ `/api/add-content` or `/api/update-content/[id]`)
-3. API route checks the SIWE session cookie before writing to Neon
+2. On success event, hook calls a typed helper from `src/utils/api.ts` (`addMultiSigRequest`, `patchMultiSigRequest`, `createMultiSigWallet`, `upsertAddressBookEntry`, `removeAddressBookEntry`, …) which hits the matching dedicated endpoint (e.g. `PATCH /api/multisig-requests/[id]`)
+3. API route checks the SIWE session cookie (via `withSession` / `withVerifiedAs` from `src/lib/api/middleware.ts`) before writing to Neon
 4. Zustand store updated locally on API success
 
 ### Component Conventions
