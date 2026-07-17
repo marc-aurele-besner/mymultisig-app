@@ -151,7 +151,7 @@ const getABI = (data: object) => {
   })
 }
 
-const getAssets = (data: object) => {
+const getAssets = (data: { address: string; chainId: number }) => {
   return fetch('/api/get-assets', {
     body: JSON.stringify(data),
     method: 'POST'
