@@ -1,7 +1,8 @@
+import { and, eq, sql } from 'drizzle-orm'
 import { NextApiRequest, NextApiResponse } from 'next'
-import { v4 as uuid } from 'uuid'
 
-import { getSql } from '../../../lib/db/neon'
+import { getDb } from '../../../lib/db/neon'
+import { addressBook } from '../../../lib/db/schema'
 import { parseBody, parseQueryString, withVerifiedAs } from '../../../lib/api/middleware'
 
 // /api/address-book hosts three actions on one path:
@@ -16,28 +17,40 @@ import { parseBody, parseQueryString, withVerifiedAs } from '../../../lib/api/mi
 const addHandler = withVerifiedAs(
   (req) => (parseBody(req) as { ownerAddress?: string }).ownerAddress,
   async (req, res) => {
-    const sql = getSql()
+    const db = getDb()
     const doc = parseBody(req) as Record<string, unknown>
     if (!doc.ownerAddress || !doc.address || doc.chainId === undefined || !doc.label) {
       return res.status(400).json({ message: 'Missing address book fields' })
     }
-    const existing = (await sql`
-      SELECT id FROM address_book
-      WHERE LOWER(owner_address) = LOWER(${doc.ownerAddress})
-        AND chain_id = ${doc.chainId}
-        AND LOWER(address) = LOWER(${doc.address})
-      LIMIT 1
-    `) as { id: string }[]
+    const existing = await db
+      .select({ id: addressBook.id })
+      .from(addressBook)
+      .where(
+        and(
+          sql`LOWER(${addressBook.ownerAddress}) = LOWER(${String(doc.ownerAddress)})`,
+          eq(addressBook.chainId, Number(doc.chainId)),
+          sql`LOWER(${addressBook.address}) = LOWER(${String(doc.address)})`
+        )
+      )
+      .limit(1)
     if (existing.length > 0) {
-      await sql`
-        UPDATE address_book SET label = ${doc.label}, kind = ${doc.kind ?? 'wallet'}, is_public = ${doc.isPublic ?? false}
-        WHERE id = ${existing[0].id}
-      `
+      await db
+        .update(addressBook)
+        .set({
+          label: String(doc.label),
+          kind: (doc.kind as string) ?? 'wallet',
+          isPublic: Boolean(doc.isPublic ?? false)
+        })
+        .where(eq(addressBook.id, existing[0].id))
     } else {
-      await sql`
-        INSERT INTO address_book (id, owner_address, chain_id, address, label, kind, is_public)
-        VALUES (${uuid()}, ${doc.ownerAddress}, ${doc.chainId}, ${doc.address}, ${doc.label}, ${doc.kind ?? 'wallet'}, ${doc.isPublic ?? false})
-      `
+      await db.insert(addressBook).values({
+        ownerAddress: String(doc.ownerAddress),
+        chainId: Number(doc.chainId),
+        address: String(doc.address),
+        label: String(doc.label),
+        kind: (doc.kind as string) ?? 'wallet',
+        isPublic: Boolean(doc.isPublic ?? false)
+      })
     }
     console.log('Address book upsert done')
     return res.status(200).json({ message: 'Address book upsert done' })
@@ -47,17 +60,20 @@ const addHandler = withVerifiedAs(
 const removeHandler = withVerifiedAs(
   (req) => (parseBody(req) as { ownerAddress?: string }).ownerAddress,
   async (req, res) => {
-    const sql = getSql()
+    const db = getDb()
     const doc = parseBody(req) as Record<string, unknown>
     if (!doc.ownerAddress || !doc.address || doc.chainId === undefined) {
       return res.status(400).json({ message: 'Missing address book fields' })
     }
-    await sql`
-      DELETE FROM address_book
-      WHERE LOWER(owner_address) = LOWER(${doc.ownerAddress})
-        AND chain_id = ${doc.chainId}
-        AND LOWER(address) = LOWER(${doc.address})
-    `
+    await db
+      .delete(addressBook)
+      .where(
+        and(
+          sql`LOWER(${addressBook.ownerAddress}) = LOWER(${String(doc.ownerAddress)})`,
+          eq(addressBook.chainId, Number(doc.chainId)),
+          sql`LOWER(${addressBook.address}) = LOWER(${String(doc.address)})`
+        )
+      )
     console.log('Address book removal done')
     return res.status(200).json({ message: 'Address book removal done' })
   }
@@ -66,21 +82,28 @@ const removeHandler = withVerifiedAs(
 const listHandler = withVerifiedAs(
   (req) => parseQueryString(req).ownerAddress,
   async (req, res) => {
-    const sql = getSql()
+    const db = getDb()
     const ownerAddress = parseQueryString(req).ownerAddress
-    const rows = (await sql`
-      SELECT id, chain_id, address, label, kind, is_public FROM address_book
-      WHERE LOWER(owner_address) = LOWER(${ownerAddress})
-    `) as Record<string, unknown>[]
+    const rows = await db
+      .select({
+        id: addressBook.id,
+        chainId: addressBook.chainId,
+        address: addressBook.address,
+        label: addressBook.label,
+        kind: addressBook.kind,
+        isPublic: addressBook.isPublic
+      })
+      .from(addressBook)
+      .where(sql`LOWER(${addressBook.ownerAddress}) = LOWER(${ownerAddress})`)
     return res.status(200).json({
       message: 'Data retrieved',
       content: rows.map((row) => ({
         id: String(row.id),
-        chainId: Number(row.chain_id),
+        chainId: Number(row.chainId),
         address: String(row.address),
         label: String(row.label),
         kind: String(row.kind),
-        isPublic: Boolean(row.is_public)
+        isPublic: Boolean(row.isPublic)
       }))
     })
   }

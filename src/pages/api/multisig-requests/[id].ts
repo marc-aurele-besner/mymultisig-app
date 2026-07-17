@@ -1,6 +1,8 @@
+import { eq } from 'drizzle-orm'
 import { NextApiRequest, NextApiResponse } from 'next'
 
-import { getSql } from '../../../lib/db/neon'
+import { getDb } from '../../../lib/db/neon'
+import { multisigRequests } from '../../../lib/db/schema'
 import { rowToMultiSigRequest } from '../../../lib/db/mappers'
 import { parseBody, parseIdParam, withSession } from '../../../lib/api/middleware'
 
@@ -17,47 +19,42 @@ import { parseBody, parseIdParam, withSession } from '../../../lib/api/middlewar
 const getHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   const id = parseIdParam(req)
   if (id == null) return res.status(400).json({ message: 'Missing request id' })
-  const sql = getSql()
-  const arr = (await sql`SELECT * FROM multisig_requests WHERE id = ${id}`) as Record<string, unknown>[]
-  if (arr.length === 0) return res.status(404).json({ message: 'Data not found' })
+  const db = getDb()
+  const rows = await db.select().from(multisigRequests).where(eq(multisigRequests.id, id)).limit(1)
+  if (rows.length === 0) return res.status(404).json({ message: 'Data not found' })
   return res.status(200).json({
     message: 'Data retrieved',
-    content: [rowToMultiSigRequest(arr[0])]
+    content: [rowToMultiSigRequest(rows[0])]
   })
 }
 
 const patchHandler = withSession(async (req, res) => {
   const id = parseIdParam(req)
   if (id == null) return res.status(400).json({ message: 'Missing request id' })
-  const sql = getSql()
-  const rows = (await sql`SELECT * FROM multisig_requests WHERE id = ${id}`) as Record<string, unknown>[]
-  if (rows.length === 0) {
+  const db = getDb()
+  const existingRows = await db.select().from(multisigRequests).where(eq(multisigRequests.id, id)).limit(1)
+  if (existingRows.length === 0) {
     return res.status(400).json({ message: 'Invalid document id' })
   }
-  const existing = rows[0]
+  const existing = existingRows[0]
   const patch = parseBody(req) as Record<string, unknown>
-  const request = patch.request ?? existing.request
-  const signatures = patch.signatures ?? existing.signatures ?? []
-  const ownerSigners = patch.ownerSigners ?? existing.owner_signers ?? []
-  const dateExecuted = patch.dateExecuted ?? existing.date_executed ?? ''
-  const isExecuted = patch.isExecuted ?? existing.is_executed ?? false
-  const isSuccessful = patch.isSuccessful ?? patch.isSuccess ?? existing.is_successful ?? false
-  const isActive = patch.isActive ?? existing.is_active ?? true
-  const isCancelled = patch.isCancelled ?? existing.is_cancelled ?? false
 
-  await sql`
-    UPDATE multisig_requests SET
-      request = ${JSON.stringify(request)},
-      signatures = ${JSON.stringify(signatures)},
-      owner_signers = ${JSON.stringify(ownerSigners)},
-      date_executed = ${dateExecuted},
-      is_executed = ${isExecuted},
-      is_successful = ${isSuccessful},
-      is_active = ${isActive},
-      is_cancelled = ${isCancelled}
-    WHERE id = ${id}
-  `
-  const updated = (await sql`SELECT * FROM multisig_requests WHERE id = ${id}`) as Record<string, unknown>[]
+  await db
+    .update(multisigRequests)
+    .set({
+      request: (patch.request as Record<string, unknown>) ?? (existing.request as Record<string, unknown>),
+      signatures: (patch.signatures as string[]) ?? existing.signatures ?? [],
+      ownerSigners: (patch.ownerSigners as string[]) ?? existing.ownerSigners ?? [],
+      dateExecuted: (patch.dateExecuted as string) ?? existing.dateExecuted ?? '',
+      isExecuted: (patch.isExecuted as boolean) ?? existing.isExecuted ?? false,
+      isSuccessful:
+        (patch.isSuccessful as boolean) ?? (patch.isSuccess as boolean) ?? existing.isSuccessful ?? false,
+      isActive: (patch.isActive as boolean) ?? existing.isActive ?? true,
+      isCancelled: (patch.isCancelled as boolean) ?? existing.isCancelled ?? false
+    })
+    .where(eq(multisigRequests.id, id))
+
+  const updated = await db.select().from(multisigRequests).where(eq(multisigRequests.id, id)).limit(1)
   return res.status(200).json({
     message: 'Data updated',
     content: rowToMultiSigRequest(updated[0])
@@ -67,8 +64,8 @@ const patchHandler = withSession(async (req, res) => {
 const deleteHandler = withSession(async (req, res) => {
   const id = parseIdParam(req)
   if (id == null) return res.status(400).json({ message: 'Missing request id' })
-  const sql = getSql()
-  await sql`DELETE FROM multisig_requests WHERE id = ${id}`
+  const db = getDb()
+  await db.delete(multisigRequests).where(eq(multisigRequests.id, id))
   return res.status(200).json({
     message: 'Data retrieved',
     content: 'Ref deleted'

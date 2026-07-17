@@ -1,6 +1,8 @@
+import { desc, eq } from 'drizzle-orm'
 import { NextApiRequest, NextApiResponse } from 'next'
 
-import { getSql } from '../../../lib/db/neon'
+import { getDb } from '../../../lib/db/neon'
+import { addressBook } from '../../../lib/db/schema'
 import { isVerifiedAdmin } from '../../../lib/auth/siwe'
 import { withSession } from '../../../lib/api/middleware'
 
@@ -18,18 +20,25 @@ const handler = withSession(async (req, res) => {
   if (!isVerifiedAdmin(req)) {
     return res.status(403).json({ message: 'Only MyMultiSig admins can view the public address book' })
   }
-  const sql = getSql()
-  const rows = (await sql`
-    SELECT id, owner_address, chain_id, address, label, kind FROM address_book
-    WHERE is_public = true
-    ORDER BY created_at DESC
-  `) as Record<string, unknown>[]
+  const db = getDb()
+  const rows = await db
+    .select({
+      id: addressBook.id,
+      ownerAddress: addressBook.ownerAddress,
+      chainId: addressBook.chainId,
+      address: addressBook.address,
+      label: addressBook.label,
+      kind: addressBook.kind
+    })
+    .from(addressBook)
+    .where(eq(addressBook.isPublic, true))
+    .orderBy(desc(addressBook.createdAt))
   return res.status(200).json({
     message: 'Data retrieved',
     content: rows.map((row) => ({
       id: String(row.id),
-      ownerAddress: String(row.owner_address),
-      chainId: Number(row.chain_id),
+      ownerAddress: String(row.ownerAddress),
+      chainId: Number(row.chainId),
       address: String(row.address),
       label: String(row.label),
       kind: String(row.kind)

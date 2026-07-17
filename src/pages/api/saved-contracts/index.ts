@@ -1,7 +1,8 @@
+import { and, eq, sql } from 'drizzle-orm'
 import { NextApiRequest, NextApiResponse } from 'next'
-import { v4 as uuid } from 'uuid'
 
-import { getSql } from '../../../lib/db/neon'
+import { getDb } from '../../../lib/db/neon'
+import { savedContracts } from '../../../lib/db/schema'
 import { parseBody, parseQueryString, withVerifiedAs } from '../../../lib/api/middleware'
 
 // /api/saved-contracts:
@@ -10,28 +11,36 @@ import { parseBody, parseQueryString, withVerifiedAs } from '../../../lib/api/mi
 const addHandler = withVerifiedAs(
   (req) => (parseBody(req) as { ownerAddress?: string }).ownerAddress,
   async (req, res) => {
-    const sql = getSql()
+    const db = getDb()
     const doc = parseBody(req) as Record<string, unknown>
     if (!doc.ownerAddress || !doc.address || doc.chainId === undefined || !doc.name || doc.abi == null) {
       return res.status(400).json({ message: 'Missing saved contract fields' })
     }
-    const existing = (await sql`
-      SELECT id FROM saved_contracts
-      WHERE LOWER(owner_address) = LOWER(${doc.ownerAddress})
-        AND chain_id = ${doc.chainId}
-        AND LOWER(address) = LOWER(${doc.address})
-      LIMIT 1
-    `) as { id: string }[]
+    const existing = await db
+      .select({ id: savedContracts.id })
+      .from(savedContracts)
+      .where(
+        and(
+          sql`LOWER(${savedContracts.ownerAddress}) = LOWER(${String(doc.ownerAddress)})`,
+          eq(savedContracts.chainId, Number(doc.chainId)),
+          sql`LOWER(${savedContracts.address}) = LOWER(${String(doc.address)})`
+        )
+      )
+      .limit(1)
     if (existing.length > 0) {
-      await sql`
-        UPDATE saved_contracts SET name = ${doc.name}, abi = ${JSON.stringify(doc.abi)}
-        WHERE id = ${existing[0].id}
-      `
+      await db
+        .update(savedContracts)
+        .set({ name: String(doc.name), abi: doc.abi as unknown[] })
+        .where(eq(savedContracts.id, existing[0].id))
     } else {
-      await sql`
-        INSERT INTO saved_contracts (id, owner_address, chain_id, chain_name, address, name, abi)
-        VALUES (${uuid()}, ${doc.ownerAddress}, ${doc.chainId}, ${doc.chainName ?? ''}, ${doc.address}, ${doc.name}, ${JSON.stringify(doc.abi)})
-      `
+      await db.insert(savedContracts).values({
+        ownerAddress: String(doc.ownerAddress),
+        chainId: Number(doc.chainId),
+        chainName: (doc.chainName as string) ?? '',
+        address: String(doc.address),
+        name: String(doc.name),
+        abi: doc.abi as unknown[]
+      })
     }
     console.log('Saved contract upsert done')
     return res.status(200).json({ message: 'Saved contract upsert done' })
@@ -41,18 +50,25 @@ const addHandler = withVerifiedAs(
 const listHandler = withVerifiedAs(
   (req) => parseQueryString(req).ownerAddress,
   async (req, res) => {
-    const sql = getSql()
+    const db = getDb()
     const ownerAddress = parseQueryString(req).ownerAddress
-    const rows = (await sql`
-      SELECT id, chain_id, chain_name, address, name, abi FROM saved_contracts
-      WHERE LOWER(owner_address) = LOWER(${ownerAddress})
-    `) as Record<string, unknown>[]
+    const rows = await db
+      .select({
+        id: savedContracts.id,
+        chainId: savedContracts.chainId,
+        chainName: savedContracts.chainName,
+        address: savedContracts.address,
+        name: savedContracts.name,
+        abi: savedContracts.abi
+      })
+      .from(savedContracts)
+      .where(sql`LOWER(${savedContracts.ownerAddress}) = LOWER(${ownerAddress})`)
     return res.status(200).json({
       message: 'Data retrieved',
       content: rows.map((row) => ({
         id: String(row.id),
-        chainId: Number(row.chain_id),
-        chainName: String(row.chain_name ?? ''),
+        chainId: Number(row.chainId),
+        chainName: String(row.chainName ?? ''),
         address: String(row.address),
         name: String(row.name),
         abi: row.abi ?? []
