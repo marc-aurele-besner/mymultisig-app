@@ -81,7 +81,7 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
     dataFinal,
     isFinal
   } = useFinalizeTransaction(config, notificationInfo, notificationSuccess, notificationError)
-  // Addresses already handed to addContent this session, so the
+  // Addresses already handed to createMultiSigWallet this session, so the
   // receipt path and the event-watcher path cannot double-write to Neon (the
   // Zustand duplicate check alone races with the async API round-trip).
   const persistedAddresses = useRef(new Set<string>())

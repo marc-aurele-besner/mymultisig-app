@@ -131,7 +131,10 @@ export const listFactories = (ownerAddress: string) =>
 export const listPublicAddressBook = () =>
   fetchJson('/api/admin/public-address-book', { method: 'GET' })
 
-// --- Legacy helpers (kept during migration, will be removed) ------------
+// --- Legacy callers --------------------------------------------------------
+// Pre-existing single-purpose endpoints that pre-date the dedicated-API
+// refactor. They do their own key management server-side and need no SIWE
+// session, so they survive unchanged.
 
 const verifyContract = (data: object) => {
   return fetch('/api/verify', {
@@ -160,40 +163,8 @@ const getAssets = (data: { address: string; chainId: number }) => {
   })
 }
 
-const getContent = (data: object) => {
-  return fetch('/api/get-content', {
-    body: JSON.stringify(data),
-    method: 'POST'
-  }).then(handleContentResponse)
-}
-
-const addContent = (data: object) => {
-  return fetch('/api/add-content', {
-    body: JSON.stringify(data),
-    method: 'POST'
-  }).then(handleContentResponse)
-}
-
-const updateContent = (data: object, documentId: string) => {
-  return fetch('/api/update-content/' + documentId, {
-    body: JSON.stringify(data),
-    method: 'POST'
-  }).then(handleContentResponse)
-}
-
-const deleteContent = (data: object, documentId: string) => {
-  return fetch('/api/delete-content/' + documentId, {
-    body: JSON.stringify(data),
-    method: 'POST'
-  }).then(handleContentResponse)
-}
-
 export {
   verifyContract,
   getABI,
-  addContent,
-  deleteContent,
-  getAssets,
-  getContent,
-  updateContent
+  getAssets
 }
