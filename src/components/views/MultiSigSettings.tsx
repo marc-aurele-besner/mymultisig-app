@@ -25,12 +25,14 @@ const MultiSigSettings: React.FC<MultiSigSettingsProps> = ({ multiSigAddress }) 
   const { address } = useAccount()
   const chainId = useChainId()
   const { labelFor } = useAddressLabels(chainId)
-  const { multiSigDetails, data } = useMultiSigDetails(multiSigAddress, address ?? '0x')
+  const { multiSigDetails, data, onChainOwners, refetchOwners } = useMultiSigDetails(multiSigAddress, address ?? '0x')
   const { walletType } = useWalletType(multiSigAddress)
   const { multiSigs } = useMultiSigs()
-  useAdminEventSync(multiSigAddress)
+  useAdminEventSync(multiSigAddress, refetchOwners)
   const stored = multiSigs.find((m) => m.address.toLowerCase() === multiSigAddress.toLowerCase())
-  const owners = stored?.owners ?? []
+  // 0.5.0 wallets report the authoritative list via getOwners(); older
+  // deployments fall back to the locally tracked one.
+  const owners = onChainOwners ?? stored?.owners ?? []
 
   if (multiSigDetails == null) return null
 
@@ -64,9 +66,9 @@ const MultiSigSettings: React.FC<MultiSigSettingsProps> = ({ multiSigAddress }) 
           ))
         ) : (
           <p className='text-sm text-muted-foreground'>
-            The contract stores owners as a mapping, so the app tracks the list locally: it is seeded at create/import
-            time and kept in sync from the wallet&apos;s OwnerAdded / OwnerRemoved events as owner operations execute.{' '}
-            {multiSigDetails.ownerCount} owner
+            Wallets deployed before 0.5.0 store owners as a bare mapping (no getOwners()), so the app tracks the list
+            locally: it is seeded at create/import time and kept in sync from the wallet&apos;s OwnerAdded /
+            OwnerRemoved events as owner operations execute. {multiSigDetails.ownerCount} owner
             {multiSigDetails.ownerCount === 1 ? ' is' : 's are'} registered on-chain.
           </p>
         )}

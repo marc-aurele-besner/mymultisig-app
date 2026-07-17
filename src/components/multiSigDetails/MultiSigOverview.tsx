@@ -66,7 +66,7 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
   const chains = useChains()
   const chain = chains.find((c) => c.id === chainId)
   const { address } = useAccount()
-  const { multiSigDetails, data } = useMultiSigDetails(multiSigAddress, address ?? '0x')
+  const { multiSigDetails, data, onChainOwners, refetchOwners } = useMultiSigDetails(multiSigAddress, address ?? '0x')
   const { data: balance } = useBalance({ address: multiSigAddress, chainId: chain?.id })
   const { requests, isError: requestsError } = useMultiSigRequests(multiSigAddress)
   // A light scan (fewer RPC windows) is enough for a preview; the Activity tab
@@ -78,10 +78,12 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
   const { multiSigs } = useMultiSigs()
   const { labelFor } = useAddressLabels(chain?.id)
   const [fundModalOpen, setFundModalOpen] = React.useState(false)
-  useAdminEventSync(multiSigAddress)
+  useAdminEventSync(multiSigAddress, refetchOwners)
 
   const stored = multiSigs.find((m) => m.address.toLowerCase() === multiSigAddress.toLowerCase())
-  const owners = stored?.owners ?? []
+  // 0.5.0 wallets report the authoritative list via getOwners(); older
+  // deployments fall back to the locally tracked one.
+  const owners = onChainOwners ?? stored?.owners ?? []
   const explorerUrl = chain?.blockExplorers?.default?.url
 
   if (multiSigDetails == null)
@@ -176,8 +178,8 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
           ) : (
             <p className='text-sm text-muted-foreground'>
               {multiSigDetails.ownerCount} owner{multiSigDetails.ownerCount === 1 ? ' is' : 's are'} registered
-              on-chain. The contract stores owners as a mapping, so the app can only list addresses it has seen; owner
-              operations fill this in over time.
+              on-chain. Wallets deployed before 0.5.0 store owners as a bare mapping (no getOwners()), so the app can
+              only list addresses it has seen; owner operations fill this in over time.
             </p>
           )}
         </div>
