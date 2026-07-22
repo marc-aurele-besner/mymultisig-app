@@ -4,7 +4,8 @@ import { EntryPointAbi } from '../constants/abi/entryPoint'
 
 // ERC-4337 gas deposit for a 0.5.0 Extended wallet: bundlers draw the fees of
 // a UserOperation from the wallet's balance held inside the EntryPoint.
-// Anyone can prefund it via the payable depositTo(wallet).
+// Anyone can prefund it via the payable depositTo(wallet). The owner can
+// withdraw the deposit back to themselves via `withdrawTo`.
 const useEntryPointDeposit = (entryPoint: `0x${string}` | undefined, multiSigAddress: `0x${string}`) => {
   const chainId = useChainId()
   const chains = useChains()
@@ -32,9 +33,22 @@ const useEntryPointDeposit = (entryPoint: `0x${string}` | undefined, multiSigAdd
     refetch()
   }
 
+  const withdraw = async (recipient: `0x${string}`, amountWei: bigint) => {
+    if (entryPoint == null) return
+    await writeContractAsync({
+      chainId: chain?.id,
+      address: entryPoint,
+      abi: EntryPointAbi,
+      functionName: 'withdrawTo',
+      args: [recipient, amountWei]
+    })
+    refetch()
+  }
+
   return {
     depositBalance: depositBalance != null ? BigInt(depositBalance) : undefined,
     deposit,
+    withdraw,
     isPending,
     refetch
   }
