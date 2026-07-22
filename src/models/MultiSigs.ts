@@ -57,6 +57,38 @@ export type BatchResult = {
   returnData: string
 }
 
+// JSON-safe (hex-string) mirror of the EntryPoint v0.7 PackedUserOperation.
+// BigInts go over the wire as `0x`-prefixed hex strings so the request payload
+// survives the JSONB round-trip through Neon + Zustand's localStorage.
+export type PackedUserOpJson = {
+  sender: `0x${string}`
+  nonce: string
+  initCode: `0x${string}`
+  callData: `0x${string}`
+  accountGasLimits: `0x${string}`
+  preVerificationGas: string
+  gasFees: `0x${string}`
+  paymasterAndData: `0x${string}`
+  signature: `0x${string}`
+}
+
+export type UserOpGas = {
+  verificationGasLimit: string
+  callGasLimit: string
+  preVerificationGas: string
+  maxFeePerGas: string
+  maxPriorityFeePerGas: string
+}
+
+export type UserOpReceipt = {
+  userOpHash: `0x${string}`
+  blockHash: `0x${string}`
+  blockNumber: string
+  txHash: `0x${string}`
+  success: boolean
+  reason?: string
+}
+
 export type MultiSigExecTransactionArgs = {
   to: `0x${string}`
   value: string
@@ -78,6 +110,28 @@ export type MultiSigExecTransactionArgs = {
   // 0.5.0 wallets only: batch encoded as multiRequestStrict — atomic, the
   // whole transaction reverts on the first failing step.
   strictBatch?: boolean
+  // 'userop' on 0.5.0 Extended wallets when the request is meant to be
+  // dispatched through a bundler (callData is wallet.execute(...), signatures
+  // are personal_sign over userOpSigningHash). Undefined/'standard' = the
+  // classic execTransaction flow.
+  mode?: 'standard' | 'userop'
+  // ERC-4337 hashes the bundler / contract binds to the request. Both are
+  // kept so the detail view can re-derive approvals on refresh.
+  userOpHash?: `0x${string}`
+  userOpSigningHash?: `0x${string}`
+  // The fully-built PackedUserOperation (signature is filled in at submit
+  // time, not at sign time, so the same slot can be re-signed/replayed).
+  userOpJson?: PackedUserOpJson
+  // The bundler/intent params captured at build time (hex strings). Cheap
+  // to keep here so re-estimating doesn't require a full rebuild.
+  userOpNonce?: string
+  userOpGas?: UserOpGas
+  // The bundler/paymaster URL the creator used, captured per request so a
+  // second owner can verify the same target bundler.
+  bundlerUrl?: string
+  paymasterUrl?: string
+  // Final receipt after a successful send-to-bundler.
+  userOpReceipt?: UserOpReceipt
 }
 
 export type MultiSigTransactionRequest = {

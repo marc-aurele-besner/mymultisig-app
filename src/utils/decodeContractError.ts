@@ -57,7 +57,22 @@ const ERROR_MESSAGES: Record<string, string> = {
   NotEntryPoint: 'Only the ERC-4337 EntryPoint can call this function.',
   InvalidNonce: 'The transaction nonce does not match the wallet’s current nonce.',
   BatchCallFailed: 'A step of the atomic batch failed, so the whole batch reverted.',
-  MessageNotSigned: 'This message was never signed by the wallet.'
+  MessageNotSigned: 'This message was never signed by the wallet.',
+  // EntryPoint v0.7 custom errors (the bundler surfaces these when the
+  // UserOp fails inside handleOps).
+  FailedOp:
+    'The bundler refused the UserOperation. Read the bundled transaction’s revert reason for the exact failure.',
+  FailedOpWithRevert: 'The bundler refused the UserOperation and included the inner revert reason.',
+  SignatureValidationFailed: 'The collected owner signatures do not satisfy the wallet’s threshold.',
+  InvalidSender: 'The UserOp’s sender is not a deployed smart account on this EntryPoint.',
+  InvalidPaymaster: 'The UserOp’s paymasterAndData is not a valid paymaster for this EntryPoint.',
+  PaymasterDepositTooLow: 'The paymaster has insufficient deposit to cover this UserOp’s gas.',
+  PaymasterAndDataEmpty: 'The paymaster stub rejected the op — paymasterAndData is empty.',
+  SenderAddressMismatch: 'The address recovered from initCode does not match the UserOp sender.',
+  InvalidAccount: 'The wallet does not recognise the UserOp sender.',
+  ReentrancyGuard: 'A re-entrant call to the EntryPoint was blocked.',
+  EntryPointInsufficientBalance: 'The wallet has no EntryPoint deposit to pay for this UserOp.',
+  BundlerRejected: 'The bundler rejected the UserOperation before submission.'
 }
 
 // Extracts a human-readable reason from a wagmi/viem contract error, decoding
