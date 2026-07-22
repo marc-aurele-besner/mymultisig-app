@@ -1,5 +1,5 @@
 import React, { Fragment, useState } from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useChainId } from 'wagmi'
 import { encodeFunctionData, type Abi } from 'viem'
 import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 import { JsonFragment } from '@ethersproject/abi'
@@ -11,11 +11,15 @@ import { Switch } from '@/components/ui/switch'
 import TextInput from '../inputs/TextInput'
 import AddressBookInput from '../inputs/AddressBookInput'
 import SignRequest from '../buttons/SignRequest'
+import SignUserOp from '../buttons/SignUserOp'
 import NewContract from '../modals/NewContract'
 import { AddIcon, DeleteIcon } from '../icons/ChakraIcons'
 import useContracts from '../../states/contracts'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
+import useAdvancedFeatures from '../../hooks/useAdvancedFeatures'
+import useEntryPointNonce from '../../hooks/useEntryPointNonce'
+import useBundlerConfig from '../../states/bundlerConfig'
 import { buildRawSignatureFromFunction } from '../../utils/buildFunctionSignature'
 import { isModernWallet } from '../../utils/contractVersions'
 
@@ -44,6 +48,10 @@ const EMPTY_STEP: RequestStep = {
   txnGas: '35000',
   data: '0x'
 }
+
+// useChainId() returns the wagmi-context chain id; this thin wrapper makes
+// the line above read more naturally when we need it outside the hook list.
+const useChainIdSafe = () => useChainId()
 
 // Gas consumed by the multiRequest loop itself, on top of the inner calls.
 const BATCH_OVERHEAD_GAS = 50000
@@ -89,16 +97,27 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
   const [expiry, setExpiry] = useState('')
   const [strictBatch, setStrictBatch] = useState(false)
   const [delegateCall, setDelegateCall] = useState(false)
+  const [useBundler, setUseBundler] = useState(false)
   const [newContractKey, setNewContractKey] = useState(0)
   const [showNewContract, setShowNewContract] = useState(false)
   const contracts = useContracts((state) => state.contracts)
   const { address } = useAccount()
   const { walletType, allowOnlyOwnerRequest } = useWalletType(multiSigAddress)
   const { data: detailsData } = useMultiSigDetails(multiSigAddress, address ?? '0x')
+  const { supportsAdvanced, entryPoint } = useAdvancedFeatures(multiSigAddress)
+  const { nonce: entryPointNonce } = useEntryPointNonce(entryPoint, multiSigAddress)
+  const getBundlerUrl = useBundlerConfig((s) => s.getBundlerUrl)
+  const getPaymasterUrl = useBundlerConfig((s) => s.getPaymasterUrl)
+  const bundlerUrl = getBundlerUrl(useChainIdSafe())
+  const paymasterUrl = getPaymasterUrl(useChainIdSafe())
   // 0.5.0 wallets: optional signature expiry, atomic batches, and (Extended)
   // a DELEGATECALL operation byte gated on-chain to the wallet itself.
   const walletVersion = detailsData != null ? String(detailsData[1]) : undefined
   const modern = isModernWallet(walletVersion)
+  // The bundler toggle is only meaningful on 0.5.0 Extended wallets (the
+  // only type that exposes the ERC-4337 surface).
+  const bundlerAvailable = supportsAdvanced && entryPoint != null && walletType === 'extended'
+  const bundlerConfigured = bundlerUrl != null && bundlerUrl !== ''
   // Extended wallets can restrict request creation to owners; the API enforces
   // the same rule server-side.
   const isOwner = detailsData != null ? Boolean(detailsData[5]) : undefined
@@ -157,13 +176,25 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
   const firstInvalidIndex = steps.findIndex((s) => stepError(s) != null)
   const stepsValid = firstInvalidIndex === -1
   const expiryValid = expiry === '' || new Date(expiry).getTime() > Date.now()
-  const ready = stepsValid && description.trim() !== '' && expiryValid
   const isBatch = steps.length > 1
+  // Bundler mode is single-step only (the wallet's execute(to,value,data)
+  // entry can't carry a multiRequest sequence) and disables EIP-712-only
+  // options (validUntil, operation, pinned nonce).
+  const bundlerModeEffective = useBundler && bundlerAvailable
+  const ready =
+    stepsValid &&
+    description.trim() !== '' &&
+    expiryValid &&
+    (!bundlerModeEffective || (!isBatch && entryPoint != null && bundlerConfigured))
   const totalStepGas = steps.reduce((sum, s) => (isUint(s.txnGas) ? sum + Number(s.txnGas) : sum), 0)
   // DELEGATECALL is only accepted on-chain when the target is the wallet
   // itself, so the toggle only applies to a single self-targeted step.
   const delegateCallAvailable =
-    modern && walletType === 'extended' && !isBatch && steps[0].to.toLowerCase() === multiSigAddress.toLowerCase()
+    !bundlerModeEffective &&
+    modern &&
+    walletType === 'extended' &&
+    !isBatch &&
+    steps[0].to.toLowerCase() === multiSigAddress.toLowerCase()
 
   // Sign args: a single step goes out as-is; several steps self-call
   // multiRequest (or multiRequestStrict for atomic 0.5.0 batches) so all of
@@ -246,7 +277,12 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
                   {isBatch ? `Step ${i + 1}` : 'What should this request do?'}
                 </h3>
                 {isBatch && (
-                  <Button variant='outline' size='icon' aria-label={`Remove step ${i + 1}`} onClick={() => removeStep(i)}>
+                  <Button
+                    variant='outline'
+                    size='icon'
+                    aria-label={`Remove step ${i + 1}`}
+                    onClick={() => removeStep(i)}
+                  >
                     <DeleteIcon className='h-4 w-4' />
                   </Button>
                 )}
@@ -294,16 +330,16 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
                 functions.length > 0 &&
                 field(
                   'Function to call',
-                  <Select
-                    value={step.functionSig}
-                    onValueChange={(v) => updateStep(i, { functionSig: v, args: {} })}
-                  >
+                  <Select value={step.functionSig} onValueChange={(v) => updateStep(i, { functionSig: v, args: {} })}>
                     <SelectTrigger className='w-full'>
                       <SelectValue placeholder='Select a function' />
                     </SelectTrigger>
                     <SelectContent>
                       {functions.map((item) => (
-                        <SelectItem key={buildRawSignatureFromFunction(item)} value={buildRawSignatureFromFunction(item)}>
+                        <SelectItem
+                          key={buildRawSignatureFromFunction(item)}
+                          value={buildRawSignatureFromFunction(item)}
+                        >
                           {item.name}
                         </SelectItem>
                       ))}
@@ -328,7 +364,9 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
                           className='md:w-full'
                           placeholder={input.type?.includes('[') ? `JSON array, e.g. ["a", "b"]` : String(input.name)}
                           value={step.args[String(input.name)] ?? ''}
-                          onChange={(e) => updateStep(i, { args: { ...step.args, [String(input.name)]: e.target.value } })}
+                          onChange={(e) =>
+                            updateStep(i, { args: { ...step.args, [String(input.name)]: e.target.value } })
+                          }
                         />
                       )
                     )
@@ -387,7 +425,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
         })}
 
         <div className='flex flex-wrap items-center justify-between gap-2'>
-          <Button variant='outline' className='gap-2' onClick={addStep}>
+          <Button variant='outline' className='gap-2' onClick={addStep} disabled={bundlerModeEffective}>
             <AddIcon className='h-4 w-4' />
             Add a step
           </Button>
@@ -395,6 +433,11 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
             <span className='font-mono text-xs text-muted-foreground'>
               {steps.length} steps · {totalStepGas.toLocaleString()} gas + {BATCH_OVERHEAD_GAS.toLocaleString()} batch
               overhead
+            </span>
+          ) : bundlerModeEffective ? (
+            <span className='text-xs text-muted-foreground'>
+              Bundler mode is single-step only — the wallet&apos;s execute(to,value,data) entry does not carry a
+              multiRequest sequence.
             </span>
           ) : (
             <span className='text-xs text-muted-foreground'>
@@ -415,6 +458,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
             />
           )}
           {walletType === 'extended' &&
+            !bundlerModeEffective &&
             field(
               'Pin to nonce (optional)',
               <TextInput
@@ -426,6 +470,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
               'Binds the request to an exact nonce so it can be pre-signed or ordered explicitly.'
             )}
           {modern &&
+            !bundlerModeEffective &&
             field(
               'Signatures expire (optional)',
               <TextInput
@@ -440,7 +485,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
                 ? 'The deadline is signed into every approval; the wallet refuses the request past it. Leave empty for no expiry.'
                 : 'The expiry must be in the future.'
             )}
-          {isBatch && modern && (
+          {isBatch && modern && !bundlerModeEffective && (
             <div className='flex items-center gap-3'>
               <Switch checked={strictBatch} onCheckedChange={setStrictBatch} />
               <div className='flex flex-col'>
@@ -458,8 +503,31 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
               <div className='flex flex-col'>
                 <span className='text-sm font-medium text-foreground'>Execute as DELEGATECALL</span>
                 <span className='text-xs text-muted-foreground'>
-                  Runs the calldata in the wallet&apos;s own storage context (operation byte 1). The wallet only
-                  accepts this for calls targeting itself. For experts — a wrong payload can corrupt the wallet.
+                  Runs the calldata in the wallet&apos;s own storage context (operation byte 1). The wallet only accepts
+                  this for calls targeting itself. For experts — a wrong payload can corrupt the wallet.
+                </span>
+              </div>
+            </div>
+          )}
+          {bundlerAvailable && (
+            <div className='flex items-center gap-3'>
+              <Switch
+                checked={useBundler}
+                onCheckedChange={(next) => {
+                  setUseBundler(next)
+                  // DELEGATECALL and a UserOp are mutually exclusive on the
+                  // ERC-4337 path: the wallet only accepts a plain CALL into
+                  // `execute(to, value, data)` from the EntryPoint.
+                  if (next) setDelegateCall(false)
+                }}
+              />
+              <div className='flex flex-col'>
+                <span className='text-sm font-medium text-foreground'>Submit via bundler (ERC-4337)</span>
+                <span className='text-xs text-muted-foreground'>
+                  {bundlerConfigured
+                    ? 'Owners sign the EntryPoint userOpHash via personal_sign; once the threshold is reached, send the UserOp to the configured bundler.'
+                    : 'No bundler configured for this chain — set one on the Owners & settings tab before sending.'}{' '}
+                  Batch + DELEGATECALL options are disabled on this path.
                 </span>
               </div>
             </div>
@@ -467,7 +535,21 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
         </div>
 
         <div className='flex flex-col items-end gap-1.5'>
-          {ready && signArgs != null ? (
+          {ready && signArgs != null && bundlerModeEffective && entryPoint != null ? (
+            <SignUserOp
+              wallet={multiSigAddress}
+              entryPoint={entryPoint}
+              nonce={entryPointNonce}
+              bundlerUrl={bundlerUrl}
+              paymasterUrl={paymasterUrl}
+              description={description}
+              args={{
+                ...signArgs,
+                signatures: '',
+                mode: 'userop'
+              }}
+            />
+          ) : ready && signArgs != null ? (
             <SignRequest
               multiSigAddress={multiSigAddress}
               description={description}
@@ -486,16 +568,20 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
           ) : (
             <Fragment>
               {/* Same look and position as SignRequest's button, disabled until the request is complete. */}
-              <div className='flex justify-center'>
+              <div className='flex flex-col items-center gap-2'>
                 <Button variant='default' className='mr-8 mt-4' disabled>
-                  Sign transaction request
+                  {bundlerModeEffective ? 'Sign UserOp' : 'Sign transaction request'}
                 </Button>
+                <p className='mr-8 text-xs text-muted-foreground'>
+                  {bundlerModeEffective && !bundlerConfigured
+                    ? 'No bundler configured for this chain — set one on the Owners & settings tab.'
+                    : bundlerModeEffective && isBatch
+                      ? 'Bundler mode is single-step only.'
+                      : firstInvalidIndex !== -1
+                        ? `${isBatch ? `Step ${firstInvalidIndex + 1}` : 'The request'} ${stepError(steps[firstInvalidIndex])}.`
+                        : 'Add a description so the other owners know what this request does.'}
+                </p>
               </div>
-              <p className='mr-8 text-xs text-muted-foreground'>
-                {firstInvalidIndex !== -1
-                  ? `${isBatch ? `Step ${firstInvalidIndex + 1}` : 'The request'} ${stepError(steps[firstInvalidIndex])}.`
-                  : 'Add a description so the other owners know what this request does.'}
-              </p>
             </Fragment>
           )}
         </div>
