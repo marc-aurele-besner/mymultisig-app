@@ -1,12 +1,12 @@
 # PRD: Full Smart-Contract Feature Parity in mymultisig.app
 
-| Field | Value |
-| --- | --- |
-| Product | mymultisig-app |
-| Contract source of truth | [marc-aurele-besner/mymultisig-contract](https://github.com/marc-aurele-besner/mymultisig-contract) `main` |
-| App package today | `mymultisig-contract@0.1.0` (ABI lagging behind GitHub) |
-| Goal | Expose every user-facing capability of `MyMultiSig`, `MyMultiSigExtended`, and `MyMultiSigFactory` in the web app |
-| Non-goal | Rebuilding the contracts; Slack/Discord bots; Safe connector UX |
+| Field                    | Value                                                                                                             |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Product                  | mymultisig-app                                                                                                    |
+| Contract source of truth | [marc-aurele-besner/mymultisig-contract](https://github.com/marc-aurele-besner/mymultisig-contract) `main`        |
+| App package today        | `mymultisig-contract@0.1.0` (ABI lagging behind GitHub)                                                           |
+| Goal                     | Expose every user-facing capability of `MyMultiSig`, `MyMultiSigExtended`, and `MyMultiSigFactory` in the web app |
+| Non-goal                 | Rebuilding the contracts; Slack/Discord bots; Safe connector UX                                                   |
 
 ## 1. Problem
 
@@ -22,20 +22,20 @@ Until the app ships these, contract features exist but are effectively unused.
 
 ## 2. Current state (gap summary)
 
-| Area | Contract | App today |
-| --- | --- | --- |
-| Create simple multisig | `createMultiSig` | Supported |
-| Create extended multisig | `createMyMultiSigExtended` | Not supported |
-| Factory bookkeeping | `multiSig*`, `creationType` | Hook unused / no UI |
-| Sign (EIP-712) | Off-chain | Supported |
-| On-chain approve | `approveHash` | Not supported |
-| Execute | `execTransaction` | Supported (simple signature) |
-| Execute w/ explicit nonce | Extended overload | Not supported |
-| Admin (owners/threshold) | `add/remove/replaceOwner`, `changeThreshold` | Indirect only |
-| Batch | `multiRequest` + results event | Indirect only; no results UI |
-| Extended governance | Delegation, takeover, nonce burn, owner-only requests | Not supported |
-| Preflight | `generateHash`, `isValidSignature` | Not used |
-| Events | incl. `ApproveHash`, `MultiRequestExecuted`, `TxFailure` | Partial (`TransactionExecuted`/`Failed`; EOL log-only) |
+| Area                      | Contract                                                 | App today                                              |
+| ------------------------- | -------------------------------------------------------- | ------------------------------------------------------ |
+| Create simple multisig    | `createMultiSig`                                         | Supported                                              |
+| Create extended multisig  | `createMyMultiSigExtended`                               | Not supported                                          |
+| Factory bookkeeping       | `multiSig*`, `creationType`                              | Hook unused / no UI                                    |
+| Sign (EIP-712)            | Off-chain                                                | Supported                                              |
+| On-chain approve          | `approveHash`                                            | Not supported                                          |
+| Execute                   | `execTransaction`                                        | Supported (simple signature)                           |
+| Execute w/ explicit nonce | Extended overload                                        | Not supported                                          |
+| Admin (owners/threshold)  | `add/remove/replaceOwner`, `changeThreshold`             | Indirect only                                          |
+| Batch                     | `multiRequest` + results event                           | Indirect only; no results UI                           |
+| Extended governance       | Delegation, takeover, nonce burn, owner-only requests    | Not supported                                          |
+| Preflight                 | `generateHash`, `isValidSignature`                       | Not used                                               |
+| Events                    | incl. `ApproveHash`, `MultiRequestExecuted`, `TxFailure` | Partial (`TransactionExecuted`/`Failed`; EOL log-only) |
 
 ## 3. Prerequisites (blocking)
 
@@ -144,13 +144,13 @@ Recent contract changes the app must absorb:
 
 Today these require building a self-call request. Ship first-class flows that still go through the normal sign → execute pipeline (they must be multisig txs).
 
-| Feature | Contract | UX |
-| --- | --- | --- |
-| Add owner | `addOwner` | Form + confirmation of new threshold implications |
-| Remove owner | `removeOwner` | Block if would break threshold |
-| Replace owner | `replaceOwner` | Old → new |
-| Change threshold | `changeThreshold` | Validate 1 ≤ threshold ≤ ownerCount |
-| Skip / bump nonce | `incrementNonce` | Danger zone: invalidate pending requests at old nonce |
+| Feature           | Contract          | UX                                                    |
+| ----------------- | ----------------- | ----------------------------------------------------- |
+| Add owner         | `addOwner`        | Form + confirmation of new threshold implications     |
+| Remove owner      | `removeOwner`     | Block if would break threshold                        |
+| Replace owner     | `replaceOwner`    | Old → new                                             |
+| Change threshold  | `changeThreshold` | Validate 1 ≤ threshold ≤ ownerCount                   |
+| Skip / bump nonce | `incrementNonce`  | Danger zone: invalidate pending requests at old nonce |
 
 Also:
 
@@ -266,21 +266,24 @@ Create flow: Simple | Extended tabs/toggle on create page.
 - `signatures: …` (existing)
 - `txnNonce` (especially Extended)
 - `batchSteps?` + `batchResults?` after execute
+- `mode?: 'standard' | 'userop'` (ERC-4337 path; standard requests stay implicit)
+- `userOpHash?`, `userOpSigningHash?`, `userOpJson?`, `userOpReceipt?` (live PackedUserOperation + receipt when the request is dispatched through a bundler)
+- `bundlerUrl?`, `paymasterUrl?` (captured per request so a second owner can verify the same target)
 
 ## 7. Phased delivery
 
-| Phase | Scope | Outcome |
-| --- | --- | --- |
-| 0 | Package bump, wallet-type detection, owner sync, event rename, factory deployers | App speaks current contract |
-| 1 | Extended create + factory discovery + admin settings UI + ETH sign fix | Parity on create/admin |
-| 2 | `approveHash` hybrid approval + preflight `isValidSignature` | Safe-style UX |
-| 3 | `multiRequest` builder + results | Batch payroll / distributions |
-| 4 | Extended: policy, nonce burn, explicit nonce, takeover, EOL UX | Full Extended surface |
-| 5 | Multi-chain factories, better verify, error decoding | Production hardening |
+| Phase | Scope                                                                            | Outcome                       |
+| ----- | -------------------------------------------------------------------------------- | ----------------------------- |
+| 0     | Package bump, wallet-type detection, owner sync, event rename, factory deployers | App speaks current contract   |
+| 1     | Extended create + factory discovery + admin settings UI + ETH sign fix           | Parity on create/admin        |
+| 2     | `approveHash` hybrid approval + preflight `isValidSignature`                     | Safe-style UX                 |
+| 3     | `multiRequest` builder + results                                                 | Batch payroll / distributions |
+| 4     | Extended: policy, nonce burn, explicit nonce, takeover, EOL UX                   | Full Extended surface         |
+| 5     | Multi-chain factories, better verify, error decoding                             | Production hardening          |
+| 6     | ERC-4337 UserOp path: build, sign, send-to-bundler, paymaster                   | Account-abstraction parity    |
 
 ## 8. Out of scope (for this PRD)
 
-- ChugSplash-specific factory path as primary UX
 - Replacing Neon off-chain requests entirely with on-chain-only approvals (hybrid is the target)
 - Automatic owner enumeration without events/DB (impossible on-chain today)
 - Smart-contract audits / redeploy strategy (ops decision; app should support both old Goerli factory and new addresses)
@@ -292,6 +295,7 @@ Create flow: Simple | Extended tabs/toggle on create page.
 - ≥ 1 successful hybrid execute (`approveHash` + ECDSA) in staging
 - Batch request shows correct per-leg success/fail in UI
 - Zero reliance on outdated 0.1.0 ABI in production
+- ≥ 1 successful UserOp end-to-end (off-chain signature + bundler receipt) in staging on Sepolia
 
 ## 10. Open decisions
 
@@ -299,3 +303,62 @@ Create flow: Simple | Extended tabs/toggle on create page.
 - **Approval default**: keep off-chain-first, or push `approveHash` as primary for hardware wallets?
 - **Redeploy**: keep supporting old Goerli factory version, or migrate users to a new factory version?
 - **Package**: publish npm from GitHub `main` before Phase 0, or pin app to git dependency temporarily?
+
+## 11. Account Abstraction (ERC-4337) — Epic G
+
+The 0.5.0 Extended wallet is a real ERC-4337 v0.7 IAccount: it exposes `validateUserOp`, `userOpSigningHash`, and an EntryPoint-only `execute(to, value, data)`. The wallet's transaction nonce is **not** used on this path — replay protection lives in the EntryPoint's 2D nonce. The owner signature format is the same `(owner, sig)[]` blob the classic `execTransaction` consumes, but the digest is `userOpSigningHash(userOpHash)` (= `EIP191(userOpHash)`) instead of an EIP-712 transaction hash.
+
+**G1. Build**
+
+- UserOp builder: packs `accountGasLimits` and `gasFees` into the two bytes32 fields and fills `callData = wallet.execute(to, value, data)`.
+- Default gas fields are conservative Sepolia-friendly values; the bundler's `eth_estimateUserOperationGas` refines them at submit time.
+- EntryPoint nonce is read from `getNonce(sender, 192)` and refreshed on the bundler receipt.
+
+**G2. Sign (off-chain ECDSA)**
+
+- Toggle on the build-request form: "Submit via bundler (ERC-4337)".
+- When enabled, the EIP-712-only fields (validUntil, operation, pinned nonce, batch) are hidden and the callData is bound to `execute(to, value, data)` instead of `multiRequest` / `execTransaction`.
+- Each owner signs the *inner* `userOpHash` via `personal_sign`; the signature is over `EIP191(userOpHash) = userOpSigningHash`, which is what `_checkSignatures` recovers from in `validateUserOp`.
+- Votes accumulate in the request's `signatures` / `ownerSigners` arrays using the same `(owner, sig)[]` packed encoding the classic path uses.
+
+**G3. Approve on-chain**
+
+- Owners can call `wallet.approveHash(userOpSigningHash(userOpHash))` to count toward the threshold without producing an off-chain signature. Idempotent per (owner, hash).
+- The detail view reads `getApprovedOwners(userOpSigningHash)` and counts it alongside off-chain ECDSA signatures (the contract prevents double votes).
+
+**G4. Send to bundler**
+
+- Configurable bundler URL: per-chain env var `NEXT_PUBLIC_BUNDLER_URL_<chainId>` with a global `NEXT_PUBLIC_BUNDLER_URL` fallback; per-chain override via the AccountAbstractionPanel (stored in localStorage).
+- On threshold, the detail view shows a Send-to-bundler CTA. The hook calls `pm_getPaymasterData` (if a paymaster URL is configured), `eth_estimateUserOperationGas`, `eth_sendUserOperation`, then polls `eth_getUserOperationReceipt` until `success` is set.
+- The bundled tx hash is shown with the chain's explorer link.
+
+**G5. Paymaster**
+
+- Optional per-chain paymaster URL (`NEXT_PUBLIC_PAYMASTER_URL_<chainId>` / `NEXT_PUBLIC_PAYMASTER_URL`). The paymaster endpoint answers `pm_getPaymasterData`; the result is used verbatim for `paymasterAndData`, callGasLimit, and verificationGasLimit (Pimlico contract).
+- Sponsor signing is out of scope for v1.
+
+**G6. EntryPoint deposit**
+
+- Anyone can prefund via `EntryPoint.depositTo(wallet)` (existing).
+- Owner can withdraw via `EntryPoint.withdrawTo(recipient, amount)` from the panel.
+
+**G7. Storage**
+
+- The same `multisig_requests` table holds UserOp requests; the request JSONB carries `mode: 'userop'`, `userOpHash`, `userOpSigningHash`, `userOpJson`, `userOpReceipt`, `bundlerUrl`, `paymasterUrl`, and `userOpGas`. No schema migration.
+
+**Acceptance**
+
+- An Extended wallet can build, sign, and dispatch a UserOp end-to-end.
+- Hybrid votes (off-chain ECDSA + on-chain `approveHash`) reach the threshold and execute.
+- A paymaster (when configured) sponsors gas; without one, the wallet's EntryPoint deposit is debited.
+- The AccountAbstractionPanel surfaces the EntryPoint nonce, deposit, bundler URL, paymaster URL, and withdraw form.
+- Zero regressions on the classic `execTransaction` path.
+
+**Out of scope (v1)**
+
+- Auto gas price oracle (viem `estimateFeesPerGas` or the bundler's estimator suffices).
+- Multi-bundler failover.
+- UserOp simulation / `eth_simulateUserOpAssetChanges`.
+- Bundle traces from `debug_traceCall` against the EntryPoint.
+- Sponsor-signed paymaster flows (verifying paymaster stubs, signed sponsorship blobs).
+- `multiRequest` batch results on the UserOp path (the inner `execute(to, value, data)` only carries the URL-encoded `execute` call; per-step results would need a new wallet event).
