@@ -1,6 +1,6 @@
 import React from 'react'
 
-import SlackSettings from '../components/views/SlackSettings'
+import SlackSettings from '../../components/views/SlackSettings'
 
 const Page: React.FC = () => {
   return <SlackSettings />
