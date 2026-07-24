@@ -1,6 +1,13 @@
 import { MultiSig, MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
+import { SlackChannelConfig, SlackUserLink, SlackWorkspace } from '../../models/Slack'
 
-import type { MultisigRequestRow, MultisigWalletRow } from './schema'
+import type {
+  MultisigRequestRow,
+  MultisigWalletRow,
+  SlackChannelConfigRow,
+  SlackUserLinkRow,
+  SlackWorkspaceRow
+} from './schema'
 
 // Narrow a drizzle row to the camelCase model the client already speaks.
 // Drizzle returns camelCase directly (column names in schema.ts map SQL →
@@ -42,5 +49,44 @@ export function rowToMultiSig(row: MultisigWalletRow): MultiSig {
     isDeployed: row.isDeployed ?? true,
     walletType: row.walletType === 'extended' || row.walletType === 'advanced' ? row.walletType : 'simple',
     allowOnlyOwnerRequest: row.allowOnlyOwnerRequest
+  }
+}
+
+// Slack mappers: drop server-only fields (the encrypted token) from the
+// client-facing shape so React never sees ciphertext.
+export function rowToSlackWorkspace(row: SlackWorkspaceRow): SlackWorkspace {
+  return {
+    teamId: row.teamId,
+    teamName: row.teamName,
+    hasToken: row.botTokenEncrypted.length > 0,
+    botUserId: row.botUserId,
+    scope: row.scope,
+    installedByWallet: row.installedByWallet,
+    installedAt: row.installedAt?.toISOString() ?? null,
+    updatedAt: row.updatedAt?.toISOString() ?? null
+  }
+}
+
+export function rowToSlackUserLink(row: SlackUserLinkRow): SlackUserLink {
+  return {
+    id: row.id,
+    teamId: row.teamId,
+    slackUserId: row.slackUserId,
+    walletAddress: row.walletAddress,
+    createdAt: row.createdAt?.toISOString() ?? null,
+    updatedAt: row.updatedAt?.toISOString() ?? null
+  }
+}
+
+export function rowToSlackChannelConfig(row: SlackChannelConfigRow): SlackChannelConfig {
+  return {
+    id: row.id,
+    teamId: row.teamId,
+    channelId: row.channelId,
+    channelName: row.channelName,
+    multisigAddress: row.multisigAddress as `0x${string}`,
+    chainId: row.chainId,
+    createdBy: row.createdBy,
+    createdAt: row.createdAt?.toISOString() ?? null
   }
 }

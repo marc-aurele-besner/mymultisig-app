@@ -1,0 +1,120 @@
+// Small Block Kit message builders for the four slash commands. Each
+// builder returns the shape Slack expects:
+//   { response_type, text, blocks }
+//
+// response_type is 'in_channel' for read-only commands (the result is
+// useful to anyone watching the channel) and 'ephemeral' for stubs that
+// only the requester should see (e.g. 'coming soon' responses).
+
+export interface SlackSlashResponse {
+  response_type: 'in_channel' | 'ephemeral'
+  text: string
+   
+  blocks: any[]
+}
+
+const APP_URL = (): string => {
+  // Public app URL. The settings page links here; the button targets on the
+  // command responses use the same. Override via NEXT_PUBLIC_APP_URL.
+  return process.env.NEXT_PUBLIC_APP_URL ?? 'https://mymultisig.app'
+}
+
+const shortenAddress = (address: string): string => `${address.slice(0, 6)}…${address.slice(-4)}`
+
+export const balanceMessage = (chainName: string, address: string, balanceEth: string): SlackSlashResponse => ({
+  response_type: 'in_channel',
+  text: `${chainName} ${shortenAddress(address)} — ${balanceEth} ETH`,
+  blocks: [
+    {
+      type: 'section',
+      text: { type: 'mrkdwn', text: `*Balance on ${chainName}*\n\`${balanceEth}\` ETH` }
+    },
+    {
+      type: 'context',
+      elements: [
+        { type: 'mrkdwn', text: `Multisig \`${address}\`` },
+        { type: 'mrkdwn', text: `<${APP_URL()}/multisig/${address}|Open in app →` }
+      ]
+    }
+  ]
+})
+
+export const addressBookMessage = (
+  chainName: string,
+  address: string,
+  labels: { label: string; kind: string; isPublic: boolean }[]
+): SlackSlashResponse => {
+  const labelLines =
+    labels.length === 0
+      ? '_No labels in the public address book for this address._'
+      : labels.map((l) => `• \`${l.label}\` _(${l.kind}${l.isPublic ? ', public' : ''})_`).join('\n')
+  return {
+    response_type: 'in_channel',
+    text: `${labels.length} label(s) for ${shortenAddress(address)} on ${chainName}`,
+    blocks: [
+      {
+        type: 'section',
+        text: { type: 'mrkdwn', text: `*Address book — ${chainName}*\n${labelLines}` }
+      },
+      {
+        type: 'context',
+        elements: [{ type: 'mrkdwn', text: `Address \`${address}\`` }]
+      }
+    ]
+  }
+}
+
+export const comingSoonMessage = (feature: string, actionUrl: string, actionLabel: string): SlackSlashResponse => ({
+  response_type: 'ephemeral',
+  text: `${feature} is coming soon — use the app for now.`,
+  blocks: [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `:hourglass_flowing_sand: *${feature}* is coming in the next release. For now, use the app.`
+      }
+    },
+    {
+      type: 'actions',
+      elements: [
+        {
+          type: 'button',
+          text: { type: 'plain_text', text: actionLabel },
+          url: `${APP_URL()}${actionUrl}`,
+          style: 'primary'
+        }
+      ]
+    }
+  ]
+})
+
+export const errorMessage = (text: string): SlackSlashResponse => ({
+  response_type: 'ephemeral',
+  text,
+  blocks: [
+    {
+      type: 'section',
+      text: { type: 'mrkdwn', text: `:warning: ${text}` }
+    }
+  ]
+})
+
+export const helpMessage = (): SlackSlashResponse => ({
+  response_type: 'ephemeral',
+  text: 'MyMultiSig slash commands',
+  blocks: [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text:
+          '*MyMultiSig slash commands*\n' +
+          '• `/balance <chain> <multisig>` — show the native ETH (or chain equivalent) balance\n' +
+          '• `/address-book <chain> <address>` — list the public labels for an address\n' +
+          '• `/propose` — propose a new request (coming soon)\n' +
+          '• `/sign <request_id>` — open a request to sign (coming soon)'
+      }
+    }
+  ]
+})

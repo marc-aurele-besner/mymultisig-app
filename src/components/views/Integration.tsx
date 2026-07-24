@@ -1,11 +1,12 @@
 import React from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import BigCard from '../cards/BigCard'
 import { CheckIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
 import { cn } from '@/lib/utils'
 
-type IntegrationStatus = 'in development' | 'planned'
+type IntegrationStatus = 'in development' | 'alpha' | 'planned'
 
 interface NotificationIntegration {
   keyword: string
@@ -14,6 +15,7 @@ interface NotificationIntegration {
   description: string
   features: string[]
   note?: string
+  cta?: { label: string; href: string }
 }
 
 const lifecycleEvents = ['request proposed', 'awaiting signatures', 'ready to execute']
@@ -22,7 +24,7 @@ const notificationIntegrations: NotificationIntegration[] = [
   {
     keyword: 'slack',
     title: 'Slack',
-    status: 'in development',
+    status: 'alpha',
     description: 'Bring requests to the channel where your team already talks.',
     features: [
       'Post each new request to a channel of your choice',
@@ -30,7 +32,8 @@ const notificationIntegrations: NotificationIntegration[] = [
       'One-click link to the request page to sign',
       'Slash commands: propose, sign, balance, address book'
     ],
-    note: 'A first version of the bot lives in the app’s API and is being wired up.'
+    note: 'The app install + slash commands (/balance, /address-book) are live; /propose and /sign are next. New-request notifications follow. See /settings/slack to try it in your workspace.',
+    cta: { label: 'Try the alpha', href: '/settings/slack' }
   },
   {
     keyword: 'discord',
@@ -86,47 +89,51 @@ const requestIssueUrl =
 
 const statusBadgeClassName: Record<IntegrationStatus, string> = {
   'in development': 'border-primary/40 bg-primary/15 text-primary',
+  alpha: 'border-amber-500/40 bg-amber-500/15 text-amber-700 dark:text-amber-300',
   planned: 'border-border bg-muted text-muted-foreground'
 }
 
 const Integration: React.FC = () => {
   return (
-    <div className="flex justify-center">
-      <BigCard className="max-w-[1000px]">
+    <div className='flex justify-center'>
+      <BigCard className='max-w-[1000px]'>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
-          className="flex w-full flex-col gap-10"
+          className='flex w-full flex-col gap-10'
         >
           <div>
-            <p className="mb-3 font-mono text-xs tracking-[0.2em] text-primary">INTEGRATIONS</p>
-            <h1 className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+            <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>INTEGRATIONS</p>
+            <h1 className='font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>
               Team chat &amp; notifications
             </h1>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              A multisig only moves when people show up to sign. These integrations bring the three
-              moments that matter to wherever your team already is.
+            <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground'>
+              A multisig only moves when people show up to sign. These integrations bring the three moments that matter
+              to wherever your team already is.
             </p>
           </div>
 
           {/* The lifecycle every integration hooks into */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <div className='flex flex-wrap items-center gap-x-3 gap-y-2'>
             {lifecycleEvents.map((event, index) => (
               <React.Fragment key={event}>
-                {index > 0 && <span aria-hidden className="h-px w-6 bg-border" />}
-                <span className="rounded-full border border-border px-3 py-1 font-mono text-[11px] tracking-wider text-muted-foreground">
+                {index > 0 && <span aria-hidden className='h-px w-6 bg-border' />}
+                <span className='rounded-full border border-border px-3 py-1 font-mono text-[11px] tracking-wider text-muted-foreground'>
                   {event}
                 </span>
               </React.Fragment>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
             {notificationIntegrations.map((integration) => (
-              <div key={integration.keyword} className="flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-xs text-primary">{integration.keyword}</span>
+              <div
+                key={integration.keyword}
+                className='flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-5'
+              >
+                <div className='flex items-center justify-between gap-2'>
+                  <span className='font-mono text-xs text-primary'>{integration.keyword}</span>
                   <span
                     className={cn(
                       'rounded-full border px-2 py-0.5 font-mono text-[10px] tracking-wider',
@@ -137,63 +144,69 @@ const Integration: React.FC = () => {
                   </span>
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-foreground">{integration.title}</h2>
-                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                    {integration.description}
-                  </p>
+                  <h2 className='text-lg font-semibold text-foreground'>{integration.title}</h2>
+                  <p className='mt-1 text-sm leading-relaxed text-muted-foreground'>{integration.description}</p>
                 </div>
-                <ul className="flex flex-col gap-1.5">
+                <ul className='flex flex-col gap-1.5'>
                   {integration.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
-                      <CheckIcon className="mt-0.5 h-3 w-3 shrink-0 text-primary/70" />
+                    <li key={feature} className='flex items-start gap-2 text-xs leading-relaxed text-muted-foreground'>
+                      <CheckIcon className='mt-0.5 h-3 w-3 shrink-0 text-primary/70' />
                       {feature}
                     </li>
                   ))}
                 </ul>
                 {integration.note && (
-                  <p className="mt-auto border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground/80">
+                  <p className='mt-auto border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground/80'>
                     {integration.note}
                   </p>
+                )}
+                {integration.cta && (
+                  <Button asChild variant='outline' className='mt-2 w-fit'>
+                    <Link href={integration.cta.href} className='gap-2'>
+                      {integration.cta.label}
+                      <ExternalLinkIcon className='h-3.5 w-3.5' />
+                    </Link>
+                  </Button>
                 )}
               </div>
             ))}
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-dashed border-border p-5">
-            <p className="text-sm leading-relaxed text-muted-foreground">
+          <div className='flex flex-wrap items-center justify-between gap-4 rounded-xl border border-dashed border-border p-5'>
+            <p className='text-sm leading-relaxed text-muted-foreground'>
               Which one should ship first? Tell us how your team would use it.
             </p>
-            <Button variant="outline" asChild>
-              <a href={requestIssueUrl} target="_blank" rel="noopener noreferrer" className="gap-2">
+            <Button variant='outline' asChild>
+              <a href={requestIssueUrl} target='_blank' rel='noopener noreferrer' className='gap-2'>
                 Request an integration
-                <ExternalLinkIcon className="h-3.5 w-3.5" />
+                <ExternalLinkIcon className='h-3.5 w-3.5' />
               </a>
             </Button>
           </div>
 
-          <div className="border-t border-border pt-8">
-            <h2 className="font-display text-xl font-bold tracking-tight text-foreground md:text-2xl">
+          <div className='border-t border-border pt-8'>
+            <h2 className='font-display text-xl font-bold tracking-tight text-foreground md:text-2xl'>
               Build your own
             </h2>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              Everything the app does is public. If you need an integration we don&apos;t have, the
-              pieces are already on the table.
+            <p className='mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground'>
+              Everything the app does is public. If you need an integration we don&apos;t have, the pieces are already
+              on the table.
             </p>
-            <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className='mt-5 grid grid-cols-1 gap-4 md:grid-cols-3'>
               {buildYourOwn.map((item) => (
                 <a
                   key={item.keyword}
                   href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group rounded-lg border border-border p-4 transition-colors hover:border-primary/40 hover:bg-accent/40"
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='group rounded-lg border border-border p-4 transition-colors hover:border-primary/40 hover:bg-accent/40'
                 >
-                  <span className="font-mono text-xs text-primary">{item.keyword}</span>
-                  <span className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                  <span className='font-mono text-xs text-primary'>{item.keyword}</span>
+                  <span className='mt-1 flex items-center gap-1.5 text-sm font-semibold text-foreground'>
                     {item.title}
-                    <ExternalLinkIcon className="h-3 w-3 text-muted-foreground transition-colors group-hover:text-primary" />
+                    <ExternalLinkIcon className='h-3 w-3 text-muted-foreground transition-colors group-hover:text-primary' />
                   </span>
-                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.description}</p>
+                  <p className='mt-1 text-xs leading-relaxed text-muted-foreground'>{item.description}</p>
                 </a>
               ))}
             </div>
