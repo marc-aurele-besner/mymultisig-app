@@ -1,0 +1,65 @@
+{
+  "display_information": {
+    "name": "MyMultiSig",
+    "description": "Sign multisig requests, post new-request notifications, and read chain state from Slack.",
+    "background_color": "#1f2937",
+    "long_description": "MyMultiSig brings multisig request notifications and slash commands to Slack. Install the app to a workspace, run /balance or /address-book to read state, and (next release) get a Block Kit message in your channel whenever a new request is proposed or the signing threshold is reached."
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "MyMultiSig",
+      "always_online": false
+    },
+    "slash_commands": [
+      {
+        "command": "/balance",
+        "description": "Show the native balance of a multisig on a chain",
+        "should_escape": false,
+        "url": "__SLACK_COMMANDS_URL__"
+      },
+      {
+        "command": "/address-book",
+        "description": "List the public labels for an address",
+        "should_escape": false,
+        "url": "__SLACK_COMMANDS_URL__"
+      },
+      {
+        "command": "/propose",
+        "description": "Propose a new transaction request (coming soon)",
+        "should_escape": false,
+        "url": "__SLACK_COMMANDS_URL__"
+      },
+      {
+        "command": "/sign",
+        "description": "Open a request to sign (coming soon)",
+        "should_escape": false,
+        "url": "__SLACK_COMMANDS_URL__"
+      },
+      {
+        "command": "/help",
+        "description": "Show available MyMultiSig commands",
+        "should_escape": false,
+        "url": "__SLACK_COMMANDS_URL__"
+      }
+    ]
+  },
+  "oauth_config": {
+    "redirect_urls": ["__SLACK_OAUTH_REDIRECT_URL__"],
+    "scopes": {
+      "bot": ["commands", "chat:write", "chat:write.public", "users:read", "app_mentions:read"]
+    }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "request_url": "__SLACK_EVENTS_URL__",
+      "bot_events": ["app_uninstalled", "app_mention"]
+    },
+    "interactivity": {
+      "is_enabled": true,
+      "request_url": "__SLACK_INTERACTIVE_URL__"
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}
