@@ -79,6 +79,43 @@ export const factories = pgTable('factories', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 })
 
+// Slack app installation. See src/lib/db/schema.sql for the column-level
+// rationale. The bot token is encrypted at rest; the mapper drops it from
+// the client-facing type and exposes a `hasToken` boolean instead so the
+// React layer never sees ciphertext.
+export const slackWorkspaces = pgTable('slack_workspaces', {
+  teamId: text('team_id').primaryKey(),
+  teamName: text('team_name').notNull(),
+  botTokenEncrypted: text('bot_token_encrypted').notNull(),
+  botUserId: text('bot_user_id').notNull(),
+  scope: text('scope').notNull(),
+  // Nullable: an install from a non-SIWE browser is allowed; the row is
+  // simply absent from any wallet's /api/slack/workspaces list.
+  installedByWallet: text('installed_by_wallet'),
+  installedAt: timestamp('installed_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+})
+
+export const slackUserLinks = pgTable('slack_user_links', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  teamId: text('team_id').notNull(),
+  slackUserId: text('slack_user_id').notNull(),
+  walletAddress: text('wallet_address'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+})
+
+export const slackChannelConfigs = pgTable('slack_channel_configs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  teamId: text('team_id').notNull(),
+  channelId: text('channel_id').notNull(),
+  channelName: text('channel_name'),
+  multisigAddress: text('multisig_address').notNull(),
+  chainId: integer('chain_id').notNull(),
+  createdBy: text('created_by').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+})
+
 export type MultisigRequestRow = typeof multisigRequests.$inferSelect
 export type MultisigRequestInsert = typeof multisigRequests.$inferInsert
 export type MultisigWalletRow = typeof multisigWallets.$inferSelect
@@ -89,3 +126,9 @@ export type SavedContractRow = typeof savedContracts.$inferSelect
 export type SavedContractInsert = typeof savedContracts.$inferInsert
 export type FactoryRow = typeof factories.$inferSelect
 export type FactoryInsert = typeof factories.$inferInsert
+export type SlackWorkspaceRow = typeof slackWorkspaces.$inferSelect
+export type SlackWorkspaceInsert = typeof slackWorkspaces.$inferInsert
+export type SlackUserLinkRow = typeof slackUserLinks.$inferSelect
+export type SlackUserLinkInsert = typeof slackUserLinks.$inferInsert
+export type SlackChannelConfigRow = typeof slackChannelConfigs.$inferSelect
+export type SlackChannelConfigInsert = typeof slackChannelConfigs.$inferInsert

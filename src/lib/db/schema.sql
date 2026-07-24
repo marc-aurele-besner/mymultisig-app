@@ -104,3 +104,54 @@ CREATE TABLE IF NOT EXISTS factories (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_factories_owner_chain_address
   ON factories (LOWER(owner_address), chain_id, LOWER(address));
+
+-- Slack app installation. One row per Slack workspace that installed the bot.
+-- The bot token is encrypted at rest (AES-256-GCM, see src/lib/slack/crypto.ts).
+-- installed_by_wallet is nullable: an install from a non-SIWE browser still
+-- succeeds; the row is just absent from any wallet's /api/slack/workspaces list.
+CREATE TABLE IF NOT EXISTS slack_workspaces (
+  team_id TEXT PRIMARY KEY,
+  team_name TEXT NOT NULL,
+  bot_token_encrypted TEXT NOT NULL,
+  bot_user_id TEXT NOT NULL,
+  scope TEXT NOT NULL,
+  installed_by_wallet TEXT,
+  installed_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_slack_workspaces_installed_by_wallet
+  ON slack_workspaces (LOWER(installed_by_wallet));
+
+-- Per-(workspace, slack_user) row that maps a Slack identity to an optional
+-- wallet address. The next PR will populate this when a user runs a slash
+-- command from their linked wallet.
+CREATE TABLE IF NOT EXISTS slack_user_links (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  team_id TEXT NOT NULL,
+  slack_user_id TEXT NOT NULL,
+  wallet_address TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_slack_user_links_team_user
+  ON slack_user_links (team_id, slack_user_id);
+
+-- Per-(workspace, channel, multisig) binding. Tells the notifier which channel
+-- a new-request message should land in. Channel bindings are created from the
+-- settings page (next PR); the table is here so the foundation can already
+-- read the shape and so subsequent migrations don't have to add a column.
+CREATE TABLE IF NOT EXISTS slack_channel_configs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  team_id TEXT NOT NULL,
+  channel_id TEXT NOT NULL,
+  channel_name TEXT,
+  multisig_address TEXT NOT NULL,
+  chain_id INTEGER NOT NULL,
+  created_by TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_slack_channel_configs_binding
+  ON slack_channel_configs (team_id, channel_id, LOWER(multisig_address), chain_id);
