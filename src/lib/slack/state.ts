@@ -80,7 +80,11 @@ export const issueState = (res: NextApiResponse, extra: { returnTo?: string; tea
   return state
 }
 
-export const consumeState = (req: NextApiRequest, res: NextApiResponse, incomingState: string): SlackStatePayload | null => {
+export const consumeState = (
+  req: NextApiRequest,
+  res: NextApiResponse,
+  incomingState: string
+): SlackStatePayload | null => {
   const token = req.cookies[STATE_COOKIE]
   // Always clear the cookie on consume (single-use).
   appendCookie(res, serializeCookie(STATE_COOKIE, '', 0))

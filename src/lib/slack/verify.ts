@@ -20,12 +20,7 @@ export interface SlackVerifyInput {
   rawBody: string
 }
 
-export const verifySlackRequest = ({
-  signingSecret,
-  signature,
-  timestamp,
-  rawBody
-}: SlackVerifyInput): boolean => {
+export const verifySlackRequest = ({ signingSecret, signature, timestamp, rawBody }: SlackVerifyInput): boolean => {
   if (typeof signature !== 'string' || typeof timestamp !== 'string') return false
   if (!signature.startsWith(SIGNATURE_VERSION)) return false
 
