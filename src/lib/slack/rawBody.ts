@@ -7,10 +7,27 @@ import { NextApiRequest } from 'next'
 // middleware (`withSession`, `withVerifiedAs`) is unaffected because it
 // reads `req.cookies`, not `req.body`.
 
+// 1 MiB matches Next.js's default bodyParser sizeLimit. Slack events
+// and slash command bodies are well under 64 KiB in practice; the cap
+// is a runaway-client / OOM guard, not a real product constraint.
+const MAX_BODY_BYTES = 1024 * 1024
+
 export const readRawBody = (req: NextApiRequest): Promise<string> =>
   new Promise((resolve, reject) => {
     const chunks: Buffer[] = []
-    req.on('data', (chunk: Buffer) => chunks.push(chunk))
+    let total = 0
+    req.on('data', (chunk: Buffer) => {
+      total += chunk.length
+      if (total > MAX_BODY_BYTES) {
+        // 413 Payload Too Large would be the right code, but we can't
+        // respond from inside the stream listener without unhandled
+        // exception warnings. Destroying the request is enough; the
+        // route's outer catch surfaces the error.
+        req.destroy(new Error('Slack request body exceeds 1 MiB limit'))
+        return
+      }
+      chunks.push(chunk)
+    })
     req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
     req.on('error', reject)
   })
