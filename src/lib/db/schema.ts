@@ -116,6 +116,44 @@ export const slackChannelConfigs = pgTable('slack_channel_configs', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 })
 
+// Discord app installation. See src/lib/db/schema.sql for the column-level
+// rationale. The bot token is encrypted at rest; the mapper drops it from
+// the client-facing type and exposes a `hasToken` boolean instead so the
+// React layer never sees ciphertext. Mirrors slackWorkspaces with
+// team_id → guild_id.
+export const discordWorkspaces = pgTable('discord_workspaces', {
+  guildId: text('guild_id').primaryKey(),
+  guildName: text('guild_name').notNull(),
+  botTokenEncrypted: text('bot_token_encrypted').notNull(),
+  applicationId: text('application_id').notNull(),
+  scope: text('scope').notNull(),
+  // Nullable: an install from a non-SIWE browser is allowed; the row is
+  // simply absent from any wallet's /api/discord/workspaces list.
+  installedByWallet: text('installed_by_wallet'),
+  installedAt: timestamp('installed_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+})
+
+export const discordUserLinks = pgTable('discord_user_links', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  guildId: text('guild_id').notNull(),
+  discordUserId: text('discord_user_id').notNull(),
+  walletAddress: text('wallet_address'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+})
+
+export const discordChannelConfigs = pgTable('discord_channel_configs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  guildId: text('guild_id').notNull(),
+  channelId: text('channel_id').notNull(),
+  channelName: text('channel_name'),
+  multisigAddress: text('multisig_address').notNull(),
+  chainId: integer('chain_id').notNull(),
+  createdBy: text('created_by').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+})
+
 export type MultisigRequestRow = typeof multisigRequests.$inferSelect
 export type MultisigRequestInsert = typeof multisigRequests.$inferInsert
 export type MultisigWalletRow = typeof multisigWallets.$inferSelect
@@ -132,3 +170,9 @@ export type SlackUserLinkRow = typeof slackUserLinks.$inferSelect
 export type SlackUserLinkInsert = typeof slackUserLinks.$inferInsert
 export type SlackChannelConfigRow = typeof slackChannelConfigs.$inferSelect
 export type SlackChannelConfigInsert = typeof slackChannelConfigs.$inferInsert
+export type DiscordWorkspaceRow = typeof discordWorkspaces.$inferSelect
+export type DiscordWorkspaceInsert = typeof discordWorkspaces.$inferInsert
+export type DiscordUserLinkRow = typeof discordUserLinks.$inferSelect
+export type DiscordUserLinkInsert = typeof discordUserLinks.$inferInsert
+export type DiscordChannelConfigRow = typeof discordChannelConfigs.$inferSelect
+export type DiscordChannelConfigInsert = typeof discordChannelConfigs.$inferInsert

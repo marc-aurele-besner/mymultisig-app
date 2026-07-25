@@ -38,13 +38,15 @@ const notificationIntegrations: NotificationIntegration[] = [
   {
     keyword: 'discord',
     title: 'Discord',
-    status: 'planned',
+    status: 'alpha',
     description: 'The same flow for DAOs and communities that live on Discord.',
     features: [
-      'Webhook posts each new request to a channel',
-      'Ping the signer role when approvals are missing',
-      'One-click link to the request page to sign'
-    ]
+      'Slash commands: /balance, /address-book, /propose, /sign',
+      'Embeds with chain name, balance, and one-click "Open in app"',
+      'Per-command ephemeral vs in-channel responses'
+    ],
+    note: 'The bot install + slash commands (/balance, /address-book, /propose, /sign) are live. New-request notifications follow. See /settings/discord to try it in your server.',
+    cta: { label: 'Try the alpha', href: '/settings/discord' }
   },
   {
     keyword: 'email',
