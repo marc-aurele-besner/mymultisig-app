@@ -49,6 +49,20 @@ const notificationIntegrations: NotificationIntegration[] = [
     cta: { label: 'Try the alpha', href: '/settings/discord' }
   },
   {
+    keyword: 'telegram',
+    title: 'Telegram',
+    status: 'alpha',
+    description: 'The same flow for teams that coordinate in Telegram DMs and groups.',
+    features: [
+      'Slash commands: /balance, /address-book, /propose, /sign',
+      'HTML replies with chain name, balance, and inline "Open in app" button',
+      'Per-bot webhook secret — only your server verifies deliveries',
+      'One bot at a time: registering a new bot auto-disables the previous one'
+    ],
+    note: 'The bot install + slash commands (/balance, /address-book, /propose, /sign) are live. New-request notifications follow. See /settings/telegram to register your bot.',
+    cta: { label: 'Try the alpha', href: '/settings/telegram' }
+  },
+  {
     keyword: 'email',
     title: 'Email',
     status: 'planned',
@@ -86,7 +100,7 @@ const requestIssueUrl =
   'https://github.com/marc-aurele-besner/mymultisig-app/issues/new' +
   `?title=${encodeURIComponent('Integration request: ')}` +
   `&body=${encodeURIComponent(
-    'Which integration do you need (Slack / Discord / Email / other)?\n\nHow does your team use MyMultiSig?\n'
+    'Which integration do you need (Slack / Discord / Telegram / Email / other)?\n\nHow does your team use MyMultiSig?\n'
   )}`
 
 const statusBadgeClassName: Record<IntegrationStatus, string> = {

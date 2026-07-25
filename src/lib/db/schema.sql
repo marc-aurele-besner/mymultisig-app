@@ -208,3 +208,68 @@ CREATE TABLE IF NOT EXISTS discord_channel_configs (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_discord_channel_configs_binding
   ON discord_channel_configs (guild_id, channel_id, LOWER(multisig_address), chain_id);
+
+-- Telegram bot installation. Telegram has no workspace concept like Slack
+-- teams or Discord guilds — one bot token maps to one global installation.
+-- We track the encrypted bot token AND the encrypted webhook secret token
+-- (the latter is generated at install time and sent back on every update
+-- via the X-Telegram-Bot-Api-Secret-Token header). Mirrors discord_workspaces
+-- with guild_id → id (UUID PK) and the added is_active column.
+--
+-- is_active enforces "at most one active installation" at the DB level via
+-- a partial unique index — a second setWebhook would override the first
+-- anyway, so the handler accepts the new one and deactivates the previous.
+-- installed_by_wallet is nullable for the same reason as the Discord/Slack
+-- rows: an install from a non-SIWE browser still succeeds.
+CREATE TABLE IF NOT EXISTS telegram_installations (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  bot_username TEXT NOT NULL,
+  bot_id BIGINT NOT NULL,
+  bot_token_encrypted TEXT NOT NULL,
+  webhook_secret_encrypted TEXT NOT NULL,
+  installed_by_wallet TEXT,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  installed_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_telegram_installations_installed_by_wallet
+  ON telegram_installations (LOWER(installed_by_wallet));
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_telegram_installations_active
+  ON telegram_installations (is_active) WHERE is_active = true;
+
+-- Per-(installation, telegram_user) row that maps a Telegram identity to an
+-- optional wallet address. Populated when a user runs a slash command from
+-- a wallet they have already verified via SIWE — the next PR wires the
+-- SIWE-style challenge inside Telegram.
+CREATE TABLE IF NOT EXISTS telegram_user_links (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  installation_id UUID NOT NULL,
+  telegram_user_id BIGINT NOT NULL,
+  chat_id BIGINT,
+  wallet_address TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_telegram_user_links_installation_user
+  ON telegram_user_links (installation_id, telegram_user_id);
+
+-- Per-(bot, chat, multisig) binding. Mirrors discord_channel_configs with
+-- guild_id/channel_id → installation_id/chat_id. The settings UI exposes
+-- bindings in the next PR; the table exists here so the schema commit is
+-- additive and the binding flow doesn't require another migration.
+CREATE TABLE IF NOT EXISTS telegram_chat_configs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  installation_id UUID NOT NULL,
+  chat_id BIGINT NOT NULL,
+  chat_title TEXT,
+  multisig_address TEXT NOT NULL,
+  chain_id INTEGER NOT NULL,
+  created_by TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_telegram_chat_configs_binding
+  ON telegram_chat_configs (installation_id, chat_id, LOWER(multisig_address), chain_id);

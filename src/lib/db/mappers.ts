@@ -1,6 +1,7 @@
 import { MultiSig, MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
 import { DiscordChannelConfig, DiscordUserLink, DiscordWorkspace } from '../../models/Discord'
 import { SlackChannelConfig, SlackUserLink, SlackWorkspace } from '../../models/Slack'
+import { TelegramChatConfig, TelegramInstallation, TelegramUserLink } from '../../models/Telegram'
 
 import type {
   DiscordChannelConfigRow,
@@ -10,7 +11,10 @@ import type {
   MultisigWalletRow,
   SlackChannelConfigRow,
   SlackUserLinkRow,
-  SlackWorkspaceRow
+  SlackWorkspaceRow,
+  TelegramChatConfigRow,
+  TelegramInstallationRow,
+  TelegramUserLinkRow
 } from './schema'
 
 // Narrow a drizzle row to the camelCase model the client already speaks.
@@ -128,6 +132,48 @@ export function rowToDiscordChannelConfig(row: DiscordChannelConfigRow): Discord
     guildId: row.guildId,
     channelId: row.channelId,
     channelName: row.channelName,
+    multisigAddress: row.multisigAddress as `0x${string}`,
+    chainId: row.chainId,
+    createdBy: row.createdBy,
+    createdAt: row.createdAt?.toISOString() ?? null
+  }
+}
+
+// Telegram mappers: drop server-only fields (the encrypted bot token and
+// the encrypted webhook secret) from the client-facing shape so React
+// never sees ciphertext. Mirrors the Discord mappers with guild_id → id
+// and the added isActive + botId fields.
+export function rowToTelegramInstallation(row: TelegramInstallationRow): TelegramInstallation {
+  return {
+    id: row.id,
+    botUsername: row.botUsername,
+    botId: row.botId,
+    hasToken: row.botTokenEncrypted.length > 0 && row.webhookSecretEncrypted.length > 0,
+    installedByWallet: row.installedByWallet,
+    isActive: row.isActive,
+    installedAt: row.installedAt?.toISOString() ?? null,
+    updatedAt: row.updatedAt?.toISOString() ?? null
+  }
+}
+
+export function rowToTelegramUserLink(row: TelegramUserLinkRow): TelegramUserLink {
+  return {
+    id: row.id,
+    installationId: row.installationId,
+    telegramUserId: row.telegramUserId,
+    chatId: row.chatId,
+    walletAddress: row.walletAddress,
+    createdAt: row.createdAt?.toISOString() ?? null,
+    updatedAt: row.updatedAt?.toISOString() ?? null
+  }
+}
+
+export function rowToTelegramChatConfig(row: TelegramChatConfigRow): TelegramChatConfig {
+  return {
+    id: row.id,
+    installationId: row.installationId,
+    chatId: row.chatId,
+    chatTitle: row.chatTitle,
     multisigAddress: row.multisigAddress as `0x${string}`,
     chainId: row.chainId,
     createdBy: row.createdBy,
