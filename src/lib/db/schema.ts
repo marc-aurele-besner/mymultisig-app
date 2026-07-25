@@ -1,4 +1,4 @@
-import { boolean, integer, jsonb, pgTable, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { bigint, boolean, integer, jsonb, pgTable, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 // Drizzle table definitions for the mymultisig Neon database. Column names
 // stay snake_case to match the production schema in src/lib/db/schema.sql
@@ -154,6 +154,47 @@ export const discordChannelConfigs = pgTable('discord_channel_configs', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 })
 
+// Telegram bot installation. Mirrors discordWorkspaces with guild_id → id
+// (UUID PK; one bot token = one global installation) plus an is_active
+// flag. See src/lib/db/schema.sql for the column-level rationale. Both
+// the bot token AND the webhook secret token are encrypted at rest; the
+// mapper drops both and exposes hasToken: true so React never sees
+// ciphertext.
+export const telegramInstallations = pgTable('telegram_installations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  botUsername: text('bot_username').notNull(),
+  botId: bigint('bot_id', { mode: 'number' }).notNull(),
+  botTokenEncrypted: text('bot_token_encrypted').notNull(),
+  webhookSecretEncrypted: text('webhook_secret_encrypted').notNull(),
+  // Nullable: an install from a non-SIWE browser is allowed; the row is
+  // simply absent from any wallet's /api/telegram/installations list.
+  installedByWallet: text('installed_by_wallet'),
+  isActive: boolean('is_active').notNull().default(true),
+  installedAt: timestamp('installed_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+})
+
+export const telegramUserLinks = pgTable('telegram_user_links', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  installationId: uuid('installation_id').notNull(),
+  telegramUserId: bigint('telegram_user_id', { mode: 'number' }).notNull(),
+  chatId: bigint('chat_id', { mode: 'number' }),
+  walletAddress: text('wallet_address'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+})
+
+export const telegramChatConfigs = pgTable('telegram_chat_configs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  installationId: uuid('installation_id').notNull(),
+  chatId: bigint('chat_id', { mode: 'number' }).notNull(),
+  chatTitle: text('chat_title'),
+  multisigAddress: text('multisig_address').notNull(),
+  chainId: integer('chain_id').notNull(),
+  createdBy: text('created_by').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+})
+
 export type MultisigRequestRow = typeof multisigRequests.$inferSelect
 export type MultisigRequestInsert = typeof multisigRequests.$inferInsert
 export type MultisigWalletRow = typeof multisigWallets.$inferSelect
@@ -176,3 +217,9 @@ export type DiscordUserLinkRow = typeof discordUserLinks.$inferSelect
 export type DiscordUserLinkInsert = typeof discordUserLinks.$inferInsert
 export type DiscordChannelConfigRow = typeof discordChannelConfigs.$inferSelect
 export type DiscordChannelConfigInsert = typeof discordChannelConfigs.$inferInsert
+export type TelegramInstallationRow = typeof telegramInstallations.$inferSelect
+export type TelegramInstallationInsert = typeof telegramInstallations.$inferInsert
+export type TelegramUserLinkRow = typeof telegramUserLinks.$inferSelect
+export type TelegramUserLinkInsert = typeof telegramUserLinks.$inferInsert
+export type TelegramChatConfigRow = typeof telegramChatConfigs.$inferSelect
+export type TelegramChatConfigInsert = typeof telegramChatConfigs.$inferInsert
