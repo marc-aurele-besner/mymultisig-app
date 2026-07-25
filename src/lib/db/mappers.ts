@@ -1,7 +1,11 @@
 import { MultiSig, MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
+import { DiscordChannelConfig, DiscordUserLink, DiscordWorkspace } from '../../models/Discord'
 import { SlackChannelConfig, SlackUserLink, SlackWorkspace } from '../../models/Slack'
 
 import type {
+  DiscordChannelConfigRow,
+  DiscordUserLinkRow,
+  DiscordWorkspaceRow,
   MultisigRequestRow,
   MultisigWalletRow,
   SlackChannelConfigRow,
@@ -82,6 +86,46 @@ export function rowToSlackChannelConfig(row: SlackChannelConfigRow): SlackChanne
   return {
     id: row.id,
     teamId: row.teamId,
+    channelId: row.channelId,
+    channelName: row.channelName,
+    multisigAddress: row.multisigAddress as `0x${string}`,
+    chainId: row.chainId,
+    createdBy: row.createdBy,
+    createdAt: row.createdAt?.toISOString() ?? null
+  }
+}
+
+// Discord mappers: drop server-only fields (the encrypted token) from the
+// client-facing shape so React never sees ciphertext. Mirrors the Slack
+// mappers with team_id → guild_id.
+export function rowToDiscordWorkspace(row: DiscordWorkspaceRow): DiscordWorkspace {
+  return {
+    guildId: row.guildId,
+    guildName: row.guildName,
+    hasToken: row.botTokenEncrypted.length > 0,
+    applicationId: row.applicationId,
+    scope: row.scope,
+    installedByWallet: row.installedByWallet,
+    installedAt: row.installedAt?.toISOString() ?? null,
+    updatedAt: row.updatedAt?.toISOString() ?? null
+  }
+}
+
+export function rowToDiscordUserLink(row: DiscordUserLinkRow): DiscordUserLink {
+  return {
+    id: row.id,
+    guildId: row.guildId,
+    discordUserId: row.discordUserId,
+    walletAddress: row.walletAddress,
+    createdAt: row.createdAt?.toISOString() ?? null,
+    updatedAt: row.updatedAt?.toISOString() ?? null
+  }
+}
+
+export function rowToDiscordChannelConfig(row: DiscordChannelConfigRow): DiscordChannelConfig {
+  return {
+    id: row.id,
+    guildId: row.guildId,
     channelId: row.channelId,
     channelName: row.channelName,
     multisigAddress: row.multisigAddress as `0x${string}`,

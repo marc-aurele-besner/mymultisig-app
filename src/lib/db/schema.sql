@@ -155,3 +155,56 @@ CREATE TABLE IF NOT EXISTS slack_channel_configs (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_slack_channel_configs_binding
   ON slack_channel_configs (team_id, channel_id, LOWER(multisig_address), chain_id);
+
+-- Discord app installation. One row per Discord guild that installed the bot.
+-- Mirrors slack_workspaces (team_id → guild_id) so the same encryption,
+-- null-installed_by_wallet semantics, and lazy-deletion patterns apply.
+-- The bot token is encrypted at rest (AES-256-GCM, see src/lib/discord/crypto.ts).
+-- installed_by_wallet is nullable: an install from a non-SIWE browser still
+-- succeeds; the row is just absent from any wallet's /api/discord/workspaces list.
+CREATE TABLE IF NOT EXISTS discord_workspaces (
+  guild_id TEXT PRIMARY KEY,
+  guild_name TEXT NOT NULL,
+  bot_token_encrypted TEXT NOT NULL,
+  application_id TEXT NOT NULL,
+  scope TEXT NOT NULL,
+  installed_by_wallet TEXT,
+  installed_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_discord_workspaces_installed_by_wallet
+  ON discord_workspaces (LOWER(installed_by_wallet));
+
+-- Per-(guild, discord_user) row that maps a Discord identity to an optional
+-- wallet address. Populated when a user runs a slash command from a wallet
+-- they have already verified via SIWE.
+CREATE TABLE IF NOT EXISTS discord_user_links (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  guild_id TEXT NOT NULL,
+  discord_user_id TEXT NOT NULL,
+  wallet_address TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_discord_user_links_guild_user
+  ON discord_user_links (guild_id, discord_user_id);
+
+-- Per-(guild, channel, multisig) binding. Tells the notifier which channel a
+-- new-request message should land in. Channel bindings are created from the
+-- settings page (next PR); the table is here so the foundation can already
+-- read the shape and so subsequent migrations don't have to add a column.
+CREATE TABLE IF NOT EXISTS discord_channel_configs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  guild_id TEXT NOT NULL,
+  channel_id TEXT NOT NULL,
+  channel_name TEXT,
+  multisig_address TEXT NOT NULL,
+  chain_id INTEGER NOT NULL,
+  created_by TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_discord_channel_configs_binding
+  ON discord_channel_configs (guild_id, channel_id, LOWER(multisig_address), chain_id);
