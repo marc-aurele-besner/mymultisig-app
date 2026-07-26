@@ -5,11 +5,18 @@
 // response_type is 'in_channel' for read-only commands (the result is
 // useful to anyone watching the channel) and 'ephemeral' for stubs that
 // only the requester should see (e.g. 'coming soon' responses).
+//
+// newRequestMessage (added with the notifier) renders a "new request"
+// notification — a different message shape from the slash command
+// replies. Used by src/lib/notifications/dispatcher.ts to fan out
+// cross-cutting notifications.
+
+import type { NewRequestInput } from '../notifications/dispatcher'
 
 export interface SlackSlashResponse {
   response_type: 'in_channel' | 'ephemeral'
   text: string
-   
+
   blocks: any[]
 }
 
@@ -118,3 +125,64 @@ export const helpMessage = (): SlackSlashResponse => ({
     }
   ]
 })
+
+// "New request" notification builder. Used by the dispatcher to post into
+// every Slack channel bound to (multisigAddress, chainId). Renders the
+// same logical content as the Discord and Telegram equivalents, but in
+// Block Kit (section + section + context + actions).
+//
+// The slack message is in_channel so the whole channel sees the request
+// (matching how /balance posts its result for the whole room). The
+// `text` field is the fallback for clients that don't render blocks.
+export const newRequestMessage = (input: NewRequestInput): SlackSlashResponse => {
+  const chainName = input.chainName ?? 'unknown chain'
+  const threshold = input.threshold ?? '?'
+  const description = input.request.description
+  const requestUrl = `${APP_URL()}/request/${input.request.id}`
+  const explorerUrl = input.explorerUrl ? `${input.explorerUrl}/address/${input.request.multiSigAddress}` : null
+
+  return {
+    response_type: 'in_channel',
+    text: `New request on ${chainName} — ${description}`,
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `:sparkles: *New request on ${chainName}*\n${description}`
+        }
+      },
+      {
+        type: 'section',
+        fields: [
+          { type: 'mrkdwn', text: `*Threshold*\n${input.request.signatures.length}/${threshold} signatures` },
+          { type: 'mrkdwn', text: `*Submitter*\n\`${shortenAddress(input.request.submitter)}\`` }
+        ]
+      },
+      {
+        type: 'context',
+        elements: [{ type: 'mrkdwn', text: `Multisig \`${input.request.multiSigAddress}\`` }]
+      },
+      {
+        type: 'actions',
+        elements: [
+          {
+            type: 'button',
+            text: { type: 'plain_text', text: 'View request' },
+            url: requestUrl,
+            style: 'primary'
+          },
+          ...(explorerUrl != null
+            ? [
+                {
+                  type: 'button',
+                  text: { type: 'plain_text', text: 'View on explorer' },
+                  url: explorerUrl
+                }
+              ]
+            : [])
+        ]
+      }
+    ]
+  }
+}
