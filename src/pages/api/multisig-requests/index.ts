@@ -149,13 +149,36 @@ const listHandler = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(400).json({ message: 'Missing multiSigAddress' })
   }
   const db = getDb()
+  // LEFT JOIN reads the wallet nonce in the same query so the list view
+  // can show a "Next" badge without a second round-trip. The join is
+  // LOWER-case-insensitive because users paste addresses mixed-case.
   const rows = await db
-    .select()
+    .select({
+      request: multisigRequests,
+      walletNonce: multisigWallets.nonce
+    })
     .from(multisigRequests)
+    .leftJoin(
+      multisigWallets,
+      sql`LOWER(${multisigWallets.address}) = LOWER(${multisigRequests.multiSigAddress})`
+    )
     .where(and(eq(multisigRequests.multiSigAddress, multiSigAddress), eq(multisigRequests.isActive, true)))
+    // Queue ordering. UserOp requests (request.mode='userop') use the
+    // EntryPoint nonce, not the wallet's transaction nonce — push them
+    // to the end of the list. Then by effective nonce (pinned txn_nonce
+    // ascending, NULLS LAST keeps unpinned requests — whose effective
+    // nonce is the wallet nonce — at the top), then by submission time
+    // as a tiebreaker.
+    .orderBy(
+      sql`(${multisigRequests.request}->>'mode') = 'userop' ASC`,
+      multisigRequests.isCancelled,
+      sql`${multisigRequests.txnNonce} ASC NULLS LAST`,
+      multisigRequests.dateSubmitted
+    )
   return res.status(200).json({
     message: 'Data retrieved',
-    content: rows.map(rowToMultiSigRequest)
+    content: rows.map((row) => rowToMultiSigRequest(row.request)),
+    walletNonce: rows[0]?.walletNonce ?? null
   })
 }
 
