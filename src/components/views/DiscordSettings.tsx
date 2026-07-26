@@ -3,13 +3,13 @@ import { useAccount } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
 import { Button } from '@/components/ui/button'
-import { DiscordWorkspace } from '../../models/Discord'
+import { DiscordChannelConfig, DiscordWorkspace } from '../../models/Discord'
 import { CheckIcon, DeleteIcon, ExternalLinkIcon, WarningIcon } from '../icons/ChakraIcons'
 
 type Status =
   | { kind: 'loading' }
   | { kind: 'signedOut' }
-  | { kind: 'ready'; workspaces: DiscordWorkspace[] }
+  | { kind: 'ready'; workspaces: DiscordWorkspace[]; bindings: DiscordChannelConfig[] }
   | { kind: 'error'; message: string }
 
 const formatDate = (iso: string | null): string => {
@@ -21,10 +21,13 @@ const formatDate = (iso: string | null): string => {
   }
 }
 
+const shortenAddress = (address: string): string => `${address.slice(0, 6)}…${address.slice(-4)}`
+
 const DiscordSettings: React.FC = () => {
   const { isConnected, address } = useAccount()
   const [status, setStatus] = useState<Status>({ kind: 'loading' })
   const [uninstalling, setUninstalling] = useState<string | null>(null)
+  const [unbinding, setUnbinding] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     if (!isConnected) {
@@ -33,14 +36,18 @@ const DiscordSettings: React.FC = () => {
     }
     setStatus({ kind: 'loading' })
     try {
-      const res = await fetch('/api/discord/workspaces', { credentials: 'include' })
-      if (!res.ok) {
-        const text = await res.text()
-        setStatus({ kind: 'error', message: `Failed to load workspaces (${res.status}): ${text}` })
+      const [wsRes, bindRes] = await Promise.all([
+        fetch('/api/discord/workspaces', { credentials: 'include' }),
+        fetch('/api/discord/channel-bindings', { credentials: 'include' })
+      ])
+      if (!wsRes.ok) {
+        const text = await wsRes.text()
+        setStatus({ kind: 'error', message: `Failed to load workspaces (${wsRes.status}): ${text}` })
         return
       }
-      const body = (await res.json()) as { workspaces: DiscordWorkspace[] }
-      setStatus({ kind: 'ready', workspaces: body.workspaces })
+      const wsBody = (await wsRes.json()) as { workspaces: DiscordWorkspace[] }
+      const bindings = bindRes.ok ? ((await bindRes.json()) as { bindings: DiscordChannelConfig[] }).bindings : []
+      setStatus({ kind: 'ready', workspaces: wsBody.workspaces, bindings })
     } catch (e) {
       setStatus({ kind: 'error', message: (e as Error).message })
     }
@@ -61,7 +68,6 @@ const DiscordSettings: React.FC = () => {
       const err = params.get('error') ?? 'unknown'
       setStatus({ kind: 'error', message: `Discord install failed: ${err}` })
     }
-    // strip the query so a refresh doesn't re-trigger
     if (params.has('installed')) {
       const url = new URL(window.location.href)
       url.searchParams.delete('installed')
@@ -72,7 +78,7 @@ const DiscordSettings: React.FC = () => {
 
   const onUninstall = useCallback(
     async (guildId: string) => {
-      if (!window.confirm(`Uninstall the Discord bot from this server? The bot will stop responding in Discord.`))
+      if (!window.confirm('Uninstall the Discord bot from this server? The bot will stop responding in Discord.'))
         return
       setUninstalling(guildId)
       try {
@@ -92,6 +98,28 @@ const DiscordSettings: React.FC = () => {
     [load]
   )
 
+  const onUnbind = useCallback(
+    async (bindingId: string) => {
+      if (!window.confirm('Unbind this channel from the multisig? New-request notifications will stop posting here.'))
+        return
+      setUnbinding(bindingId)
+      try {
+        const res = await fetch(`/api/discord/channel-bindings/${encodeURIComponent(bindingId)}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        })
+        if (!res.ok && res.status !== 204) {
+          const text = await res.text()
+          alert(`Unbind failed (${res.status}): ${text}`)
+        }
+        await load()
+      } finally {
+        setUnbinding(null)
+      }
+    },
+    [load]
+  )
+
   return (
     <div className='flex justify-center'>
       <BigCard className='max-w-[1000px]'>
@@ -100,11 +128,12 @@ const DiscordSettings: React.FC = () => {
             <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>SETTINGS</p>
             <h1 className='font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>Discord</h1>
             <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground'>
-              Add the MyMultiSig bot to a Discord server. Slash commands
+              Add the MyMultiSig bot to a Discord server, then bind a channel to a multisig. Slash commands work in any
+              channel the bot can see
               <span className='font-mono'>{' /balance'}</span>,<span className='font-mono'>{' /address-book'}</span>,
+              <span className='font-mono'>{' /bind'}</span>,<span className='font-mono'>{' /unbind'}</span>,
               <span className='font-mono'>{' /propose'}</span>, and
-              <span className='font-mono'>{' /sign'}</span> work in any channel the bot can see; new-request notifications
-              (coming next) post into the channel you bind to a multisig.
+              <span className='font-mono'>{' /sign'}</span>; new-request notifications post into bound channels.
             </p>
           </div>
 
@@ -112,8 +141,8 @@ const DiscordSettings: React.FC = () => {
 
           {status.kind === 'signedOut' && (
             <div className='rounded-lg border border-border p-4 text-sm text-muted-foreground'>
-              Sign in with your wallet to view the Discord servers linked to it. The list is filtered to the wallet that
-              added the bot to each server.
+              Sign in with your wallet to view the Discord servers linked to it. The list is filtered to the wallet
+              that added the bot to each server.
             </div>
           )}
 
@@ -178,13 +207,57 @@ const DiscordSettings: React.FC = () => {
                   </Button>
                 </div>
               ))}
+
+              <div className='mt-2 flex flex-col gap-2'>
+                <div className='flex items-center justify-between gap-3 rounded-lg border border-border p-4'>
+                  <div className='flex flex-col gap-1'>
+                    <span className='text-sm font-semibold text-foreground'>Channel bindings</span>
+                    <span className='text-xs text-muted-foreground'>
+                      Channels that will receive new-request notifications for the multisigs they&apos;re bound to.
+                    </span>
+                  </div>
+                  <span className='font-mono text-xs text-muted-foreground'>
+                    {status.bindings.length === 0
+                      ? 'No bindings'
+                      : `${status.bindings.length} binding${status.bindings.length === 1 ? '' : 's'}`}
+                  </span>
+                </div>
+                {status.bindings.map((b) => (
+                  <div
+                    key={b.id}
+                    className='flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4'
+                  >
+                    <div className='flex flex-col gap-1'>
+                      <span className='text-sm font-semibold text-foreground'>
+                        {b.channelName != null ? `#${b.channelName}` : 'channel'}
+                      </span>
+                      <span className='font-mono text-xs text-muted-foreground'>{b.channelId}</span>
+                      <span className='text-xs text-muted-foreground'>
+                        Bound to <span className='font-mono'>{shortenAddress(b.multisigAddress)}</span> on chain{' '}
+                        <span className='font-mono'>{b.chainId}</span> · created by{' '}
+                        <span className='font-mono'>{b.createdBy}</span>
+                      </span>
+                    </div>
+                    <Button
+                      variant='outline'
+                      onClick={() => void onUnbind(b.id)}
+                      disabled={unbinding === b.id}
+                      className='gap-2'
+                    >
+                      <DeleteIcon className='h-4 w-4' />
+                      {unbinding === b.id ? 'Unbinding…' : 'Unbind'}
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           <div className='rounded-lg border border-dashed border-border p-4 text-xs leading-relaxed text-muted-foreground'>
             <p>
-              Slash commands currently respond from this app&apos;s server. Channel binding (so the bot can post into a
-              specific channel) and the new-request notification loop are coming in the next release.
+              Type <span className='font-mono'>/bind &lt;chain&gt; &lt;multisig&gt;</span> in any channel where the bot
+              is present to receive new-request notifications there. <span className='font-mono'>/unbind</span> removes
+              the binding.
             </p>
           </div>
         </div>

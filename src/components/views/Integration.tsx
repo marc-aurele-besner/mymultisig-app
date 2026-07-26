@@ -28,11 +28,11 @@ const notificationIntegrations: NotificationIntegration[] = [
     description: 'Bring requests to the channel where your team already talks.',
     features: [
       'Post each new request to a channel of your choice',
-      '@mention the signers whose approval is missing',
       'One-click link to the request page to sign',
-      'Slash commands: propose, sign, balance, address book'
+      'Slash commands: /balance, /address-book, /bind, /unbind, /propose, /sign',
+      'Bind a channel with /bind <chain> <multisig>'
     ],
-    note: 'The app install + slash commands (/balance, /address-book) are live; /propose and /sign are next. New-request notifications follow. See /settings/slack to try it in your workspace.',
+    note: 'The bot install, slash commands, and channel binding (/bind) are live. New-request notifications post into bound channels. See /settings/slack to try it in your workspace.',
     cta: { label: 'Try the alpha', href: '/settings/slack' }
   },
   {
@@ -41,11 +41,12 @@ const notificationIntegrations: NotificationIntegration[] = [
     status: 'alpha',
     description: 'The same flow for DAOs and communities that live on Discord.',
     features: [
-      'Slash commands: /balance, /address-book, /propose, /sign',
+      'Slash commands: /balance, /address-book, /bind, /unbind, /propose, /sign',
       'Embeds with chain name, balance, and one-click "Open in app"',
+      'Bind a channel with /bind <chain> <multisig>',
       'Per-command ephemeral vs in-channel responses'
     ],
-    note: 'The bot install + slash commands (/balance, /address-book, /propose, /sign) are live. New-request notifications follow. See /settings/discord to try it in your server.',
+    note: 'The bot install, slash commands, and channel binding (/bind) are live. New-request notifications post into bound channels. See /settings/discord to try it in your server.',
     cta: { label: 'Try the alpha', href: '/settings/discord' }
   },
   {
@@ -54,12 +55,12 @@ const notificationIntegrations: NotificationIntegration[] = [
     status: 'alpha',
     description: 'The same flow for teams that coordinate in Telegram DMs and groups.',
     features: [
-      'Slash commands: /balance, /address-book, /propose, /sign',
+      'Slash commands: /balance, /address-book, /bind, /unbind, /propose, /sign',
       'HTML replies with chain name, balance, and inline "Open in app" button',
-      'Per-bot webhook secret — only your server verifies deliveries',
+      'Bind a chat with /bind <chain> <multisig>',
       'One bot at a time: registering a new bot auto-disables the previous one'
     ],
-    note: 'The bot install + slash commands (/balance, /address-book, /propose, /sign) are live. New-request notifications follow. See /settings/telegram to register your bot.',
+    note: 'The bot install, slash commands, and chat binding (/bind) are live. New-request notifications post into bound chats. See /settings/telegram to register your bot.',
     cta: { label: 'Try the alpha', href: '/settings/telegram' }
   },
   {

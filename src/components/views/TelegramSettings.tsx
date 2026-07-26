@@ -3,13 +3,13 @@ import { useAccount } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
 import { Button } from '@/components/ui/button'
-import { TelegramInstallation } from '../../models/Telegram'
+import { TelegramChatConfig, TelegramInstallation } from '../../models/Telegram'
 import { CheckIcon, DeleteIcon, ExternalLinkIcon, WarningIcon } from '../icons/ChakraIcons'
 
 type Status =
   | { kind: 'loading' }
   | { kind: 'signedOut' }
-  | { kind: 'ready'; installations: TelegramInstallation[] }
+  | { kind: 'ready'; installations: TelegramInstallation[]; bindings: TelegramChatConfig[] }
   | { kind: 'error'; message: string }
 
 const formatDate = (iso: string | null): string => {
@@ -21,10 +21,13 @@ const formatDate = (iso: string | null): string => {
   }
 }
 
+const shortenAddress = (address: string): string => `${address.slice(0, 6)}…${address.slice(-4)}`
+
 const TelegramSettings: React.FC = () => {
   const { isConnected, address } = useAccount()
   const [status, setStatus] = useState<Status>({ kind: 'loading' })
   const [uninstalling, setUninstalling] = useState<string | null>(null)
+  const [unbinding, setUnbinding] = useState<string | null>(null)
   const [installToken, setInstallToken] = useState('')
   const [installing, setInstalling] = useState(false)
   const [installError, setInstallError] = useState<string | null>(null)
@@ -36,14 +39,18 @@ const TelegramSettings: React.FC = () => {
     }
     setStatus({ kind: 'loading' })
     try {
-      const res = await fetch('/api/telegram/installations', { credentials: 'include' })
-      if (!res.ok) {
-        const text = await res.text()
-        setStatus({ kind: 'error', message: `Failed to load installations (${res.status}): ${text}` })
+      const [instRes, bindRes] = await Promise.all([
+        fetch('/api/telegram/installations', { credentials: 'include' }),
+        fetch('/api/telegram/chat-bindings', { credentials: 'include' })
+      ])
+      if (!instRes.ok) {
+        const text = await instRes.text()
+        setStatus({ kind: 'error', message: `Failed to load installations (${instRes.status}): ${text}` })
         return
       }
-      const body = (await res.json()) as { installations: TelegramInstallation[] }
-      setStatus({ kind: 'ready', installations: body.installations })
+      const instBody = (await instRes.json()) as { installations: TelegramInstallation[] }
+      const bindings = bindRes.ok ? ((await bindRes.json()) as { bindings: TelegramChatConfig[] }).bindings : []
+      setStatus({ kind: 'ready', installations: instBody.installations, bindings })
     } catch (e) {
       setStatus({ kind: 'error', message: (e as Error).message })
     }
@@ -110,6 +117,28 @@ const TelegramSettings: React.FC = () => {
         await load()
       } finally {
         setUninstalling(null)
+      }
+    },
+    [load]
+  )
+
+  const onUnbind = useCallback(
+    async (bindingId: string) => {
+      if (!window.confirm('Unbind this chat from the multisig? New-request notifications will stop posting here.'))
+        return
+      setUnbinding(bindingId)
+      try {
+        const res = await fetch(`/api/telegram/chat-bindings/${encodeURIComponent(bindingId)}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        })
+        if (!res.ok && res.status !== 204) {
+          const text = await res.text()
+          alert(`Unbind failed (${res.status}): ${text}`)
+        }
+        await load()
+      } finally {
+        setUnbinding(null)
       }
     },
     [load]
@@ -237,13 +266,56 @@ const TelegramSettings: React.FC = () => {
                   </Button>
                 </div>
               ))}
+
+              <div className='mt-2 flex flex-col gap-2'>
+                <div className='flex items-center justify-between gap-3 rounded-lg border border-border p-4'>
+                  <div className='flex flex-col gap-1'>
+                    <span className='text-sm font-semibold text-foreground'>Chat bindings</span>
+                    <span className='text-xs text-muted-foreground'>
+                      Chats that will receive new-request notifications for the multisigs they&apos;re bound to.
+                    </span>
+                  </div>
+                  <span className='font-mono text-xs text-muted-foreground'>
+                    {status.bindings.length === 0
+                      ? 'No bindings'
+                      : `${status.bindings.length} binding${status.bindings.length === 1 ? '' : 's'}`}
+                  </span>
+                </div>
+                {status.bindings.map((b) => (
+                  <div
+                    key={b.id}
+                    className='flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4'
+                  >
+                    <div className='flex flex-col gap-1'>
+                      <span className='text-sm font-semibold text-foreground'>
+                        {b.chatTitle != null ? b.chatTitle : 'chat'} <span className='font-mono text-xs text-muted-foreground'>({b.chatId})</span>
+                      </span>
+                      <span className='text-xs text-muted-foreground'>
+                        Bound to <span className='font-mono'>{shortenAddress(b.multisigAddress)}</span> on chain{' '}
+                        <span className='font-mono'>{b.chainId}</span> · created by{' '}
+                        <span className='font-mono'>{b.createdBy}</span>
+                      </span>
+                    </div>
+                    <Button
+                      variant='outline'
+                      onClick={() => void onUnbind(b.id)}
+                      disabled={unbinding === b.id}
+                      className='gap-2'
+                    >
+                      <DeleteIcon className='h-4 w-4' />
+                      {unbinding === b.id ? 'Unbinding…' : 'Unbind'}
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           <div className='rounded-lg border border-dashed border-border p-4 text-xs leading-relaxed text-muted-foreground'>
             <p>
-              Slash commands respond from this app&apos;s server. Channel binding (so the bot can post into a specific
-              chat) and the new-request notification loop are coming in the next release.
+              Type <span className='font-mono'>/bind &lt;chain&gt; &lt;multisig&gt;</span> in any chat where the bot is
+              present to receive new-request notifications there. <span className='font-mono'>/unbind</span> removes the
+              binding.
             </p>
             <p className='mt-2'>
               <b>One bot at a time:</b> Telegram&apos;s webhook URL is global per bot, so registering a new bot
