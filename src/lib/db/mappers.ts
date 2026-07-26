@@ -37,7 +37,10 @@ export function rowToMultiSigRequest(row: MultisigRequestRow): MultiSigTransacti
     isExecuted: row.isExecuted,
     isCancelled: row.isCancelled,
     isConfirmed: row.isConfirmed,
-    isSuccessful: row.isSuccessful
+    isSuccessful: row.isSuccessful,
+    txnNonce: row.txnNonce,
+    dateCancelled: row.dateCancelled,
+    cancelledBy: row.cancelledBy
   }
 }
 

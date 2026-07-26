@@ -24,6 +24,14 @@ export const multisigRequests = pgTable('multisig_requests', {
   isCancelled: boolean('is_cancelled').notNull().default(false),
   isConfirmed: boolean('is_confirmed').notNull().default(false),
   isSuccessful: boolean('is_successful').notNull().default(false),
+  // Effective nonce copy. For pinned (Extended) requests this matches
+  // request->>'txnNonce'; for unpinned requests it stays NULL so the cascade
+  // predicate can treat them as "at the wallet's current nonce".
+  txnNonce: text('txn_nonce'),
+  // Set when the cascade invalidates a row or the owner manually cancels
+  // it. cancelled_by carries 'cascade' or the owner's wallet address.
+  dateCancelled: text('date_cancelled').notNull().default(''),
+  cancelledBy: text('cancelled_by').notNull().default(''),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 })
 

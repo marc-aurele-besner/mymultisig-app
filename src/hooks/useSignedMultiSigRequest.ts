@@ -119,7 +119,10 @@ const useSignedMultiSigRequest = (
             isExecuted: false,
             isCancelled: false,
             isConfirmed: false,
-            isSuccessful: false
+            isSuccessful: false,
+            txnNonce: args.txnNonce && args.txnNonce !== '' ? args.txnNonce : null,
+            dateCancelled: '',
+            cancelledBy: ''
           }
       if (existingRequest && existingRequestId)
         patchMultiSigRequest(existingRequestId, dataToAdd).then(() => {

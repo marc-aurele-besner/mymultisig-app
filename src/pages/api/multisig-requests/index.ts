@@ -93,6 +93,9 @@ const createHandler = withVerifiedAs(
         isCancelled: (doc.isCancelled as boolean) ?? false,
         isConfirmed: (doc.isConfirmed as boolean) ?? false,
         isSuccessful: (doc.isSuccessful as boolean) ?? false,
+        txnNonce: ((doc.request as Record<string, unknown> | undefined)?.txnNonce as string | null) ?? null,
+        dateCancelled: '',
+        cancelledBy: '',
         createdAt: null
       } as any)
       void notifyNewRequest({

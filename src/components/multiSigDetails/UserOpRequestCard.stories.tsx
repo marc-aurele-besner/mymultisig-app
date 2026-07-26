@@ -25,6 +25,9 @@ const sampleRequest: MultiSigTransactionRequest = {
   isCancelled: false,
   isConfirmed: false,
   isSuccessful: false,
+  txnNonce: null,
+  dateCancelled: '',
+  cancelledBy: '',
   request: {
     to: '0x3333333333333333333333333333333333333333',
     value: '1000000000000000',

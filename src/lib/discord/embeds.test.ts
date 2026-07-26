@@ -18,7 +18,10 @@ const baseRequest: MultiSigTransactionRequest = {
   isExecuted: false,
   isCancelled: false,
   isConfirmed: false,
-  isSuccessful: false
+  isSuccessful: false,
+  txnNonce: null,
+  dateCancelled: '',
+  cancelledBy: ''
 }
 
 const baseInput: NewRequestInput = {

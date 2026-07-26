@@ -34,6 +34,9 @@ export const Basic: StoryFn<typeof ExecuteRequest> = () => (
         isCancelled: false,
         isConfirmed: false,
         isSuccessful: false,
+        txnNonce: null,
+        dateCancelled: '',
+        cancelledBy: '',
       }}
       existingRequestId={'REQ-123'}
     />

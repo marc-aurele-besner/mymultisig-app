@@ -180,7 +180,10 @@ const useUserOpSigning = ({
             isExecuted: false,
             isCancelled: false,
             isConfirmed: false,
-            isSuccessful: false
+            isSuccessful: false,
+            txnNonce: null,
+            dateCancelled: '',
+            cancelledBy: ''
           }
       if (existingRequest && existingRequestId)
         patchMultiSigRequest(existingRequestId, dataToAdd).then(() => {

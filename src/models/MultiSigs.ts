@@ -149,6 +149,16 @@ export type MultiSigTransactionRequest = {
   isCancelled: boolean
   isConfirmed: boolean
   isSuccessful: boolean
+  // Effective nonce for queue ordering. Copied from request.txnNonce on
+  // POST; NULL for unpinned requests whose effective nonce resolves to
+  // the wallet's current nonce at read time.
+  txnNonce?: string | null
+  // ISO timestamp when cascade or the owner cancelled the request. ''
+  // when the request is still live.
+  dateCancelled: string
+  // 'cascade' when invalidated by another request's reset/execute/fail,
+  // or the owner's address when they clicked Cancel. '' while live.
+  cancelledBy: string
 }
 
 export type MultiSigOnChainData = {
