@@ -9,6 +9,10 @@ const useMultiSigRequests = (multiSigAddress: `0x${string}`) => {
   const chains = useChains()
   const chain = chains.find((c) => c.id === chainId)
   const [requests, setRequests] = useState<MultiSigTransactionRequest[] | null>(null)
+  // The wallet's current nonce, joined server-side on GET. Used by
+  // useRequestQueue to mark the request at the wallet's current nonce as
+  // "Next" in the queue.
+  const [walletNonce, setWalletNonce] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isError, setIsError] = useState(false)
 
@@ -17,9 +21,13 @@ const useMultiSigRequests = (multiSigAddress: `0x${string}`) => {
     setIsLoading(true)
     setIsError(false)
     try {
-      const data = await listMultiSigRequests(multiSigAddress)
+      const data = (await listMultiSigRequests(multiSigAddress)) as {
+        content?: MultiSigTransactionRequest[]
+        walletNonce?: number | null
+      }
       if (data != null && Array.isArray(data.content)) {
         setRequests(data.content)
+        setWalletNonce(data.walletNonce ?? null)
       } else {
         setIsError(true)
       }
@@ -32,10 +40,11 @@ const useMultiSigRequests = (multiSigAddress: `0x${string}`) => {
 
   useEffect(() => {
     setRequests(null)
+    setWalletNonce(null)
     void fetchRequests()
   }, [fetchRequests])
 
-  return { requests, isLoading, isError, refetch: fetchRequests }
+  return { requests, walletNonce, isLoading, isError, refetch: fetchRequests }
 }
 
 export default useMultiSigRequests
