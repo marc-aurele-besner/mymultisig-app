@@ -151,12 +151,45 @@ export const helpEmbed = (): DiscordInteractionResponse => ({
         description:
           '• `/balance <chain> <multisig>` — show the native ETH (or chain equivalent) balance\n' +
           '• `/address-book <chain> <address>` — list the public labels for an address\n' +
+          '• `/bind <chain> <multisig>` — bind this channel to a multisig for new-request notifications\n' +
+          '• `/unbind <chain> <multisig>` — remove a binding\n' +
           '• `/propose` — propose a new request (coming soon)\n' +
           '• `/sign <request_id>` — open a request to sign (coming soon)\n' +
           '• `/help` — show this message'
       }
     ],
     flags: 64 // EPHEMERAL
+  }
+})
+
+// Confirmation for /bind. EPHEMERAL so only the inviter sees it.
+// Mirrors Slack's bindSuccessMessage and Telegram's bindSuccessPayload.
+export const bindSuccessEmbed = (chainName: string, address: string): DiscordInteractionResponse => ({
+  type: 4,
+  data: {
+    embeds: [
+      {
+        ...PRIMARY_BRAND,
+        title: `:white_check_mark: Bound ${shortenAddress(address)} on ${chainName}`,
+        description: 'Anyone in this channel can now receive new-request notifications.'
+      }
+    ],
+    flags: 64
+  }
+})
+
+// Confirmation for /unbind.
+export const bindRemovedEmbed = (chainName: string, address: string): DiscordInteractionResponse => ({
+  type: 4,
+  data: {
+    embeds: [
+      {
+        ...PRIMARY_BRAND,
+        title: `:wastebasket: Unbound ${shortenAddress(address)} on ${chainName}`,
+        description: 'This channel will no longer receive new-request notifications.'
+      }
+    ],
+    flags: 64
   }
 })
 

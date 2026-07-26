@@ -5,7 +5,9 @@ import type { NeonHttpDatabase } from 'drizzle-orm/neon-http'
 import { decryptToken } from '../slack/crypto'
 import { slackApi } from '../slack/slackApi'
 import { newRequestMessage } from '../slack/blockKit'
-import { slackChannelConfigs, slackWorkspaces } from '../db/schema'
+import { discordApi } from '../discord/discordApi'
+import { newRequestEmbed } from '../discord/embeds'
+import { slackChannelConfigs, slackWorkspaces, discordChannelConfigs, discordWorkspaces } from '../db/schema'
 import { getDb } from '../db/neon'
 
 // Cross-cutting notification dispatcher. When a new multisig request is
@@ -100,7 +102,19 @@ export const findBoundChannels = async (
       .where(
         sql`LOWER(${slackChannelConfigs.multisigAddress}) = LOWER(${multiSigAddress}) AND ${slackChannelConfigs.chainId} = ${chainId}`
       ),
-    Promise.resolve([] as DiscordBoundChannel[]),
+    db
+      .select({
+        id: discordChannelConfigs.id,
+        guildId: discordChannelConfigs.guildId,
+        channelId: discordChannelConfigs.channelId,
+        channelName: discordChannelConfigs.channelName,
+        botTokenEncrypted: discordWorkspaces.botTokenEncrypted
+      })
+      .from(discordChannelConfigs)
+      .innerJoin(discordWorkspaces, eq(discordWorkspaces.guildId, discordChannelConfigs.guildId))
+      .where(
+        sql`LOWER(${discordChannelConfigs.multisigAddress}) = LOWER(${multiSigAddress}) AND ${discordChannelConfigs.chainId} = ${chainId}`
+      ),
     Promise.resolve([] as TelegramBoundChannel[])
   ])
   return {
@@ -111,7 +125,13 @@ export const findBoundChannels = async (
       channelName: r.channelName,
       botToken: decryptToken(r.botTokenEncrypted)
     })),
-    discord: discordRows,
+    discord: discordRows.map((r) => ({
+      id: r.id,
+      guildId: r.guildId,
+      channelId: r.channelId,
+      channelName: r.channelName,
+      botToken: decryptToken(r.botTokenEncrypted)
+    })),
     telegram: telegramRows
   }
 }
@@ -157,8 +177,19 @@ const postToSlack = async (channel: SlackBoundChannel, input: NewRequestInput): 
   })
 }
 
-const postToDiscord = async (_channel: DiscordBoundChannel, _input: NewRequestInput): Promise<void> => {
-  throw new Error('notifyNewRequest.postToDiscord: not implemented (commit 3)')
+// Free-form channel post — Discord's POST /channels/{id}/messages. The
+// interactions endpoint only returns type-4 responses, but this route is
+// a regular HTTP call from our server, so we use the free-form shape.
+// The embed + components from newRequestEmbed are reused as-is.
+const postToDiscord = async (channel: DiscordBoundChannel, input: NewRequestInput): Promise<void> => {
+  const embed = newRequestEmbed(input)
+  await discordApi(`channels/${encodeURIComponent(channel.channelId)}/messages`, {
+    token: channel.botToken,
+    json: {
+      embeds: embed.data.embeds,
+      components: embed.data.components
+    }
+  })
 }
 
 const postToTelegram = async (_channel: TelegramBoundChannel, _input: NewRequestInput): Promise<void> => {

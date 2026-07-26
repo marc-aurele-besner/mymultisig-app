@@ -67,7 +67,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   if (parsed.type === 2 && parsed.data != null) {
     const name = typeof parsed.data.name === 'string' ? parsed.data.name : ''
-    const response = await routeCommand(name, parsed.data.options)
+    const response = await routeCommand({
+      name,
+      options: parsed.data.options,
+      guildId: parsed.guild_id,
+      channelId: parsed.channel_id,
+      userId: parsed.user?.id
+    })
     // Discord expects the response within 3s. We return the type-4
     // channel-message shape with embeds + components directly.
     return res.status(200).json(response)
