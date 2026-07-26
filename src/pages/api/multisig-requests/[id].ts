@@ -4,7 +4,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { getDb } from '../../../lib/db/neon'
 import { multisigRequests } from '../../../lib/db/schema'
 import { rowToMultiSigRequest } from '../../../lib/db/mappers'
-import { parseBody, parseIdParam, withSession } from '../../../lib/api/middleware'
+import { parseBody, parseIdParam, withSession, withVerifiedAsOwner } from '../../../lib/api/middleware'
 
 // Per-request endpoints under /api/multisig-requests/[id]:
 //   GET    getMultiSigRequestById     (public read; returns {content: [row]})
@@ -28,13 +28,11 @@ const getHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   })
 }
 
-const patchHandler = withSession(async (req, res) => {
-  const id = parseIdParam(req)
-  if (id == null) return res.status(400).json({ message: 'Missing request id' })
+const patchHandler = withVerifiedAsOwner(parseIdParam, async (req, res, _address, id) => {
   const db = getDb()
   const existingRows = await db.select().from(multisigRequests).where(eq(multisigRequests.id, id)).limit(1)
   if (existingRows.length === 0) {
-    return res.status(400).json({ message: 'Invalid document id' })
+    return res.status(404).json({ message: 'Data not found' })
   }
   const existing = existingRows[0]
   const patch = parseBody(req) as Record<string, unknown>
@@ -61,13 +59,13 @@ const patchHandler = withSession(async (req, res) => {
   })
 })
 
-const deleteHandler = withSession(async (req, res) => {
-  const id = parseIdParam(req)
-  if (id == null) return res.status(400).json({ message: 'Missing request id' })
+const deleteHandler = withVerifiedAsOwner(parseIdParam, async (_req, res, _address, id) => {
+  // Delete does NOT cascade — it is the explicit "gone" verb and wipes the
+  // row from Neon. The owner check is enough.
   const db = getDb()
   await db.delete(multisigRequests).where(eq(multisigRequests.id, id))
   return res.status(200).json({
-    message: 'Data retrieved',
+    message: 'Data deleted',
     content: 'Ref deleted'
   })
 })
