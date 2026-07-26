@@ -4,8 +4,16 @@ import * as viemChains from 'viem/chains'
 
 import networks from '../../constants/networks'
 import { getDb } from '../db/neon'
-import { addressBook } from '../db/schema'
-import { addressBookEmbed, balanceEmbed, comingSoonEmbed, errorEmbed, helpEmbed } from './embeds'
+import { addressBook, discordChannelConfigs } from '../db/schema'
+import {
+  addressBookEmbed,
+  balanceEmbed,
+  bindRemovedEmbed,
+  bindSuccessEmbed,
+  comingSoonEmbed,
+  errorEmbed,
+  helpEmbed
+} from './embeds'
 import type { DiscordInteractionResponse } from './embeds'
 
 // Slash command dispatch. Each handler is async and returns a
@@ -18,6 +26,10 @@ import type { DiscordInteractionResponse } from './embeds'
 // `data.options[0]?.value` when the option is a string. The router is
 // the single place that interprets those args, mirroring
 // src/lib/slack/commandRouter.ts.
+//
+// CommandContext was extended with guildId/channelId/userId for the /bind
+// and /unbind handlers. Discord interactions carry these fields in the
+// top-level JSON body (guild_id, channel_id, user.id).
 
 const findChain = (raw: string): Chain | null => {
   const trimmed = raw.trim()
@@ -153,23 +165,111 @@ const handlerSign = (text: string): DiscordInteractionResponse => {
 
 const handlerHelp = (): DiscordInteractionResponse => helpEmbed()
 
-const ROUTES: Record<string, (text: string) => Promise<DiscordInteractionResponse> | DiscordInteractionResponse> = {
-  balance: handlerBalance,
-  'address-book': handlerAddressBook,
-  propose: () => handlerPropose(),
-  sign: handlerSign,
-  help: () => handlerHelp()
+// /bind <chain> <multisig> — bind the current channel to a multisig.
+// Same MVP-no-ownership-check model as Slack; audit via
+// created_by = `discord:<userId>`.
+const handlerBind = async (
+  text: string,
+  ctx: { guildId: string; channelId: string; userId: string }
+): Promise<DiscordInteractionResponse> => {
+  const parts = text.trim().split(/\s+/)
+  if (parts.length < 2) return errorEmbed('Usage: `/bind <chain> <multisig>` — e.g. `/bind mainnet 0xabc...`')
+  const chain = findChain(parts[0])
+  if (chain == null) return errorEmbed(`Unknown chain: \`${parts[0]}\`. Try \`mainnet\`, \`sepolia\`, \`1\`, etc.`)
+  const address = parts[1]
+  if (!isAddress(address)) return errorEmbed(`Not a valid address: \`${address}\``)
+  const db = getDb()
+  try {
+    await db.insert(discordChannelConfigs).values({
+      guildId: ctx.guildId,
+      channelId: ctx.channelId,
+      multisigAddress: address,
+      chainId: chain.id,
+      createdBy: `discord:${ctx.userId}`
+    })
+    return bindSuccessEmbed(chain.name, address)
+  } catch (e) {
+    const msg = (e as Error).message
+    if (msg.includes('unique') || msg.includes('duplicate') || msg.includes('idx_discord_channel_configs_binding')) {
+      return bindSuccessEmbed(chain.name, address)
+    }
+    return errorEmbed(`Bind failed: ${msg}`)
+  }
 }
 
-export const routeCommand = async (name: string, options: unknown): Promise<DiscordInteractionResponse> => {
-  const handler = ROUTES[name]
+// /unbind <chain> <multisig>.
+const handlerUnbind = async (
+  text: string,
+  ctx: { guildId: string; channelId: string }
+): Promise<DiscordInteractionResponse> => {
+  const parts = text.trim().split(/\s+/)
+  if (parts.length < 2) return errorEmbed('Usage: `/unbind <chain> <multisig>` — e.g. `/unbind mainnet 0xabc...`')
+  const chain = findChain(parts[0])
+  if (chain == null) return errorEmbed(`Unknown chain: \`${parts[0]}\``)
+  const address = parts[1]
+  if (!isAddress(address)) return errorEmbed(`Not a valid address: \`${address}\``)
+  const db = getDb()
+  try {
+    await db
+      .delete(discordChannelConfigs)
+      .where(
+        and(
+          eq(discordChannelConfigs.guildId, ctx.guildId),
+          eq(discordChannelConfigs.channelId, ctx.channelId),
+          eq(discordChannelConfigs.chainId, chain.id),
+          sql`LOWER(${discordChannelConfigs.multisigAddress}) = LOWER(${address})`
+        )
+      )
+    return bindRemovedEmbed(chain.name, address)
+  } catch (e) {
+    return errorEmbed(`Unbind failed: ${(e as Error).message}`)
+  }
+}
+
+export interface CommandContext {
+  // Discord slash commands arrive as { type: 2, data: { name, options } }.
+  // name + options are the original fields; guildId/channelId/userId are
+  // extracted from the top-level interaction body.
+  name: string
+  options: unknown
+  guildId?: string
+  channelId?: string
+  userId?: string
+}
+
+const ROUTES: Record<string, (ctx: CommandContext) => Promise<DiscordInteractionResponse> | DiscordInteractionResponse> = {
+  balance: ({ options }) => handlerBalance(extractText(options)),
+  'address-book': ({ options }) => handlerAddressBook(extractText(options)),
+  propose: () => handlerPropose(),
+  sign: ({ options }) => handlerSign(extractText(options)),
+  help: () => handlerHelp(),
+  bind: (ctx) => {
+    if (ctx.guildId == null || ctx.channelId == null || ctx.userId == null) {
+      return errorEmbed('Bind is unavailable: missing channel context. Open a GitHub issue.')
+    }
+    return handlerBind(extractText(ctx.options), {
+      guildId: ctx.guildId,
+      channelId: ctx.channelId,
+      userId: ctx.userId
+    })
+  },
+  unbind: (ctx) => {
+    if (ctx.guildId == null || ctx.channelId == null) {
+      return errorEmbed('Unbind is unavailable: missing channel context. Open a GitHub issue.')
+    }
+    return handlerUnbind(extractText(ctx.options), { guildId: ctx.guildId, channelId: ctx.channelId })
+  }
+}
+
+export const routeCommand = async (ctx: CommandContext): Promise<DiscordInteractionResponse> => {
+  const handler = ROUTES[ctx.name]
   if (handler == null) {
     return errorEmbed(
-      `Unknown command \`/${name}\`. Try \`/balance\`, \`/address-book\`, \`/propose\`, \`/sign\`, or \`/help\`.`
+      `Unknown command \`/${ctx.name}\`. Try \`/balance\`, \`/address-book\`, \`/propose\`, \`/sign\`, \`/bind\`, \`/unbind\`, or \`/help\`.`
     )
   }
   try {
-    return await handler(extractText(options))
+    return await handler(ctx)
   } catch (e) {
     return errorEmbed(`Command failed: ${(e as Error).message}`)
   }

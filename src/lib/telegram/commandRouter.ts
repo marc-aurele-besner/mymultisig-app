@@ -4,10 +4,12 @@ import * as viemChains from 'viem/chains'
 
 import networks from '../../constants/networks'
 import { getDb } from '../db/neon'
-import { addressBook } from '../db/schema'
+import { addressBook, telegramChatConfigs } from '../db/schema'
 import {
   addressBookMessage,
   balanceMessage,
+  bindRemovedPayload,
+  bindSuccessPayload,
   comingSoonMessage,
   errorMessage,
   helpMessage,
@@ -20,16 +22,22 @@ import {
 //   /address-book <chain> <address>
 //   /propose                (stub — coming soon)
 //   /sign <request_id>      (stub — coming soon)
+//   /bind <chain> <multisig>     (bind this chat to a multisig)
+//   /unbind <chain> <multisig>   (remove a binding)
 //   /help
 //
 // Telegram's update payload is flat JSON: update.message.text is the
 // full "/command args" string. The handler at
 // src/pages/api/telegram/webhook.ts splits the text into a command name
-// and the post-command text and calls routeCommand(command, args).
+// and the post-command text and calls routeCommand(ctx).
 //
 // Each handler returns a TelegramMessagePayload (a sendMessage shape)
 // ready for telegramApi('sendMessage', { token, ...payload }). The
 // handler attaches the bot token; this module never sees secrets.
+//
+// CommandContext was extended with installationId + telegramUserId for
+// /bind and /unbind. The webhook route populates these from the active
+// installation row + the message.from field.
 
 const findChain = (raw: string): Chain | null => {
   const trimmed = raw.trim()
@@ -150,29 +158,110 @@ const handlerSign = (chatId: number | string, text: string): TelegramMessagePayl
 
 const handlerHelp = (chatId: number | string): TelegramMessagePayload => helpMessage(chatId)
 
-const ROUTES: Record<string, (chatId: number | string, text: string) => Promise<TelegramMessagePayload> | TelegramMessagePayload> = {
-  balance: handlerBalance,
-  'address-book': handlerAddressBook,
-  propose: (chatId) => handlerPropose(chatId),
-  sign: handlerSign,
-  help: (chatId) => handlerHelp(chatId)
+// /bind <chain> <multisig> — bind this chat to a multisig. No ownership
+// check in the MVP; audit via created_by = `telegram:<userId>`.
+const handlerBind = async (
+  chatId: number | string,
+  text: string,
+  ctx: { installationId: string; telegramUserId: number }
+): Promise<TelegramMessagePayload> => {
+  const parts = text.trim().split(/\s+/)
+  if (parts.length < 2) return errorMessage(chatId, 'Usage: /bind <chain> <multisig> — e.g. /bind mainnet 0xabc...')
+  const chain = findChain(parts[0])
+  if (chain == null) return errorMessage(chatId, `Unknown chain: ${parts[0]}. Try mainnet, sepolia, 1, etc.`)
+  const address = parts[1]
+  if (!isAddress(address)) return errorMessage(chatId, `Not a valid address: ${address}`)
+  const db = getDb()
+  try {
+    await db.insert(telegramChatConfigs).values({
+      installationId: ctx.installationId,
+      chatId: typeof chatId === 'string' ? Number(chatId) : chatId,
+      multisigAddress: address,
+      chainId: chain.id,
+      createdBy: `telegram:${ctx.telegramUserId}`
+    })
+    return bindSuccessPayload(chatId, chain.name, address)
+  } catch (e) {
+    const msg = (e as Error).message
+    if (msg.includes('unique') || msg.includes('duplicate') || msg.includes('idx_telegram_chat_configs_binding')) {
+      return bindSuccessPayload(chatId, chain.name, address)
+    }
+    return errorMessage(chatId, `Bind failed: ${msg}`)
+  }
 }
 
-export const routeCommand = async (
+// /unbind <chain> <multisig>.
+const handlerUnbind = async (
   chatId: number | string,
-  name: string,
-  text: string
+  text: string,
+  ctx: { installationId: string }
 ): Promise<TelegramMessagePayload> => {
-  const handler = ROUTES[name]
+  const parts = text.trim().split(/\s+/)
+  if (parts.length < 2) return errorMessage(chatId, 'Usage: /unbind <chain> <multisig> — e.g. /unbind mainnet 0xabc...')
+  const chain = findChain(parts[0])
+  if (chain == null) return errorMessage(chatId, `Unknown chain: ${parts[0]}`)
+  const address = parts[1]
+  if (!isAddress(address)) return errorMessage(chatId, `Not a valid address: ${address}`)
+  const db = getDb()
+  try {
+    await db
+      .delete(telegramChatConfigs)
+      .where(
+        and(
+          eq(telegramChatConfigs.installationId, ctx.installationId),
+          eq(telegramChatConfigs.chatId, typeof chatId === 'string' ? Number(chatId) : chatId),
+          eq(telegramChatConfigs.chainId, chain.id),
+          sql`LOWER(${telegramChatConfigs.multisigAddress}) = LOWER(${address})`
+        )
+      )
+    return bindRemovedPayload(chatId, chain.name, address)
+  } catch (e) {
+    return errorMessage(chatId, `Unbind failed: ${(e as Error).message}`)
+  }
+}
+
+export interface CommandContext {
+  chatId: number | string
+  command: string
+  text: string
+  installationId?: string
+  telegramUserId?: number
+}
+
+const ROUTES: Record<string, (ctx: CommandContext) => Promise<TelegramMessagePayload> | TelegramMessagePayload> = {
+  balance: ({ chatId, text }) => handlerBalance(chatId, text),
+  'address-book': ({ chatId, text }) => handlerAddressBook(chatId, text),
+  propose: ({ chatId }) => handlerPropose(chatId),
+  sign: ({ chatId, text }) => handlerSign(chatId, text),
+  help: ({ chatId }) => handlerHelp(chatId),
+  bind: (ctx) => {
+    if (ctx.installationId == null || ctx.telegramUserId == null) {
+      return errorMessage(ctx.chatId, 'Bind is unavailable: missing installation context. Open a GitHub issue.')
+    }
+    return handlerBind(ctx.chatId, ctx.text, {
+      installationId: ctx.installationId,
+      telegramUserId: ctx.telegramUserId
+    })
+  },
+  unbind: (ctx) => {
+    if (ctx.installationId == null) {
+      return errorMessage(ctx.chatId, 'Unbind is unavailable: missing installation context. Open a GitHub issue.')
+    }
+    return handlerUnbind(ctx.chatId, ctx.text, { installationId: ctx.installationId })
+  }
+}
+
+export const routeCommand = async (ctx: CommandContext): Promise<TelegramMessagePayload> => {
+  const handler = ROUTES[ctx.command]
   if (handler == null) {
     return errorMessage(
-      chatId,
-      `Unknown command /${name}. Try /balance, /address-book, /propose, /sign, or /help.`
+      ctx.chatId,
+      `Unknown command /${ctx.command}. Try /balance, /address-book, /bind, /unbind, /propose, /sign, or /help.`
     )
   }
   try {
-    return await handler(chatId, text)
+    return await handler(ctx)
   } catch (e) {
-    return errorMessage(chatId, `Command failed: ${(e as Error).message}`)
+    return errorMessage(ctx.chatId, `Command failed: ${(e as Error).message}`)
   }
 }

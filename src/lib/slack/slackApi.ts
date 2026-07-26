@@ -39,6 +39,10 @@ interface SlackApiOptions {
   // application/x-www-form-urlencoded body (no token; token comes from caller
   // separately when needed).
   form?: Record<string, string>
+  // JSON body. Used by chat.postMessage and any future JSON-only method.
+  // Wins when both `form` and `json` are set, matching discordApi's
+  // behavior.
+  json?: Record<string, unknown>
   // Bearer token. Used by auth.test and any future per-team read.
   token?: string
 }
@@ -49,7 +53,10 @@ export const slackApi = async (method: string, opts: SlackApiOptions = {}): Prom
   if (opts.token != null) {
     headers['Authorization'] = `Bearer ${opts.token}`
   }
-  if (opts.form != null) {
+  if (opts.json != null) {
+    body = JSON.stringify(opts.json)
+    headers['Content-Type'] = 'application/json; charset=utf-8'
+  } else if (opts.form != null) {
     body = formEncode(opts.form)
     headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8'
   }

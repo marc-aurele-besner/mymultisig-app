@@ -5,7 +5,16 @@ import * as viemChains from 'viem/chains'
 import networks from '../../constants/networks'
 import { getDb } from '../db/neon'
 import { addressBook } from '../db/schema'
-import { addressBookMessage, balanceMessage, comingSoonMessage, errorMessage, helpMessage } from './blockKit'
+import { slackChannelConfigs } from '../db/schema'
+import {
+  addressBookMessage,
+  balanceMessage,
+  bindRemovedMessage,
+  bindSuccessMessage,
+  comingSoonMessage,
+  errorMessage,
+  helpMessage
+} from './blockKit'
 import type { SlackSlashResponse } from './blockKit'
 
 // Slash command dispatch. Each handler is async and returns a
@@ -15,6 +24,11 @@ import type { SlackSlashResponse } from './blockKit'
 // Slash command bodies come in as application/x-www-form-urlencoded with
 // `text` carrying everything after the command (e.g. '1 0xabc...' for
 // /balance). The router is the single place that interprets those args.
+//
+// CommandContext was extended with teamId/channelId/channelName/userId
+// for the /bind and /unbind handlers — Slack's slash-command form
+// already carries these fields, so the route just populates them. Older
+// handlers ignore the extra fields.
 
 const findChain = (raw: string): Chain | null => {
   const trimmed = raw.trim()
@@ -140,28 +154,117 @@ const handlerSign = (text: string): SlackSlashResponse => {
 
 const handlerHelp = (): SlackSlashResponse => helpMessage()
 
+// /bind <chain> <multisig> — bind the current channel to a multisig so
+// new-request notifications post here. No wallet ownership check in the
+// MVP (slash-command payloads don't carry a wallet; SIWE-in-chat is a
+// follow-up). Audit trail via created_by = `slack:${userId}`.
+const handlerBind = async (
+  text: string,
+  ctx: { teamId: string; channelId: string; channelName: string | null; userId: string }
+): Promise<SlackSlashResponse> => {
+  const parts = text.trim().split(/\s+/)
+  if (parts.length < 2) return errorMessage('Usage: `/bind <chain> <multisig>` — e.g. `/bind mainnet 0xabc...`')
+  const chain = findChain(parts[0])
+  if (chain == null) return errorMessage(`Unknown chain: \`${parts[0]}\`. Try \`mainnet\`, \`sepolia\`, \`1\`, etc.`)
+  const address = parts[1]
+  if (!isAddress(address)) return errorMessage(`Not a valid address: \`${address}\``)
+  const db = getDb()
+  try {
+    await db.insert(slackChannelConfigs).values({
+      teamId: ctx.teamId,
+      channelId: ctx.channelId,
+      channelName: ctx.channelName,
+      multisigAddress: address,
+      chainId: chain.id,
+      createdBy: `slack:${ctx.userId}`
+    })
+    return bindSuccessMessage(chain.name, address)
+  } catch (e) {
+    // Unique-index conflict means the binding already exists — treat as a
+    // success so the user gets a clear message either way.
+    const msg = (e as Error).message
+    if (msg.includes('unique') || msg.includes('duplicate') || msg.includes('idx_slack_channel_configs_binding')) {
+      return bindSuccessMessage(chain.name, address)
+    }
+    return errorMessage(`Bind failed: ${msg}`)
+  }
+}
+
+// /unbind <chain> <multisig> — remove the binding. Same auth model as
+// /bind: anyone in the channel can unbind (since they could rebind).
+const handlerUnbind = async (
+  text: string,
+  ctx: { teamId: string; channelId: string }
+): Promise<SlackSlashResponse> => {
+  const parts = text.trim().split(/\s+/)
+  if (parts.length < 2) return errorMessage('Usage: `/unbind <chain> <multisig>` — e.g. `/unbind mainnet 0xabc...`')
+  const chain = findChain(parts[0])
+  if (chain == null) return errorMessage(`Unknown chain: \`${parts[0]}\``)
+  const address = parts[1]
+  if (!isAddress(address)) return errorMessage(`Not a valid address: \`${address}\``)
+  const db = getDb()
+  try {
+    await db
+      .delete(slackChannelConfigs)
+      .where(
+        and(
+          eq(slackChannelConfigs.teamId, ctx.teamId),
+          eq(slackChannelConfigs.channelId, ctx.channelId),
+          eq(slackChannelConfigs.chainId, chain.id),
+          sql`LOWER(${slackChannelConfigs.multisigAddress}) = LOWER(${address})`
+        )
+      )
+    return bindRemovedMessage(chain.name, address)
+  } catch (e) {
+    return errorMessage(`Unbind failed: ${(e as Error).message}`)
+  }
+}
+
 interface CommandContext {
   command: string
   text: string
+  // Required for /bind and /unbind. The route at src/pages/api/slack/commands.ts
+  // populates these from the form. Older handlers ignore them.
+  teamId?: string
+  channelId?: string
+  channelName?: string | null
+  userId?: string
 }
 
-const ROUTES: Record<string, (text: string) => Promise<SlackSlashResponse> | SlackSlashResponse> = {
-  '/balance': handlerBalance,
-  '/address-book': handlerAddressBook,
+const ROUTES: Record<string, (ctx: CommandContext) => Promise<SlackSlashResponse> | SlackSlashResponse> = {
+  '/balance': ({ text }) => handlerBalance(text),
+  '/address-book': ({ text }) => handlerAddressBook(text),
   '/propose': () => handlerPropose(),
-  '/sign': handlerSign,
-  '/help': () => handlerHelp()
+  '/sign': ({ text }) => handlerSign(text),
+  '/help': () => handlerHelp(),
+  '/bind': (ctx) => {
+    if (ctx.teamId == null || ctx.channelId == null || ctx.userId == null) {
+      return errorMessage('Bind is unavailable: missing channel context. Open a Slack issue.')
+    }
+    return handlerBind(ctx.text, {
+      teamId: ctx.teamId,
+      channelId: ctx.channelId,
+      channelName: ctx.channelName ?? null,
+      userId: ctx.userId
+    })
+  },
+  '/unbind': (ctx) => {
+    if (ctx.teamId == null || ctx.channelId == null) {
+      return errorMessage('Unbind is unavailable: missing channel context. Open a Slack issue.')
+    }
+    return handlerUnbind(ctx.text, { teamId: ctx.teamId, channelId: ctx.channelId })
+  }
 }
 
-export const routeCommand = async ({ command, text }: CommandContext): Promise<SlackSlashResponse> => {
-  const handler = ROUTES[command]
+export const routeCommand = async (ctx: CommandContext): Promise<SlackSlashResponse> => {
+  const handler = ROUTES[ctx.command]
   if (handler == null) {
     return errorMessage(
-      `Unknown command \`${command}\`. Try \`/balance\`, \`/address-book\`, \`/propose\`, \`/sign\`, or \`/help\`.`
+      `Unknown command \`${ctx.command}\`. Try \`/balance\`, \`/address-book\`, \`/propose\`, \`/sign\`, \`/bind\`, \`/unbind\`, or \`/help\`.`
     )
   }
   try {
-    return await handler(text)
+    return await handler(ctx)
   } catch (e) {
     return errorMessage(`Command failed: ${(e as Error).message}`)
   }

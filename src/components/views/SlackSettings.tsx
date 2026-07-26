@@ -3,13 +3,13 @@ import { useAccount } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
 import { Button } from '@/components/ui/button'
-import { SlackWorkspace } from '../../models/Slack'
+import { SlackChannelConfig, SlackWorkspace } from '../../models/Slack'
 import { CheckIcon, DeleteIcon, ExternalLinkIcon, WarningIcon } from '../icons/ChakraIcons'
 
 type Status =
   | { kind: 'loading' }
   | { kind: 'signedOut' }
-  | { kind: 'ready'; workspaces: SlackWorkspace[] }
+  | { kind: 'ready'; workspaces: SlackWorkspace[]; bindings: SlackChannelConfig[] }
   | { kind: 'error'; message: string }
 
 const formatDate = (iso: string | null): string => {
@@ -21,10 +21,13 @@ const formatDate = (iso: string | null): string => {
   }
 }
 
+const shortenAddress = (address: string): string => `${address.slice(0, 6)}…${address.slice(-4)}`
+
 const SlackSettings: React.FC = () => {
   const { isConnected, address } = useAccount()
   const [status, setStatus] = useState<Status>({ kind: 'loading' })
   const [uninstalling, setUninstalling] = useState<string | null>(null)
+  const [unbinding, setUnbinding] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     if (!isConnected) {
@@ -33,14 +36,18 @@ const SlackSettings: React.FC = () => {
     }
     setStatus({ kind: 'loading' })
     try {
-      const res = await fetch('/api/slack/workspaces', { credentials: 'include' })
-      if (!res.ok) {
-        const text = await res.text()
-        setStatus({ kind: 'error', message: `Failed to load workspaces (${res.status}): ${text}` })
+      const [wsRes, bindRes] = await Promise.all([
+        fetch('/api/slack/workspaces', { credentials: 'include' }),
+        fetch('/api/slack/channel-bindings', { credentials: 'include' })
+      ])
+      if (!wsRes.ok) {
+        const text = await wsRes.text()
+        setStatus({ kind: 'error', message: `Failed to load workspaces (${wsRes.status}): ${text}` })
         return
       }
-      const body = (await res.json()) as { workspaces: SlackWorkspace[] }
-      setStatus({ kind: 'ready', workspaces: body.workspaces })
+      const wsBody = (await wsRes.json()) as { workspaces: SlackWorkspace[] }
+      const bindings = bindRes.ok ? ((await bindRes.json()) as { bindings: SlackChannelConfig[] }).bindings : []
+      setStatus({ kind: 'ready', workspaces: wsBody.workspaces, bindings })
     } catch (e) {
       setStatus({ kind: 'error', message: (e as Error).message })
     }
@@ -91,6 +98,28 @@ const SlackSettings: React.FC = () => {
     [load]
   )
 
+  const onUnbind = useCallback(
+    async (bindingId: string) => {
+      if (!window.confirm('Unbind this channel from the multisig? New-request notifications will stop posting here.'))
+        return
+      setUnbinding(bindingId)
+      try {
+        const res = await fetch(`/api/slack/channel-bindings/${encodeURIComponent(bindingId)}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        })
+        if (!res.ok && res.status !== 204) {
+          const text = await res.text()
+          alert(`Unbind failed (${res.status}): ${text}`)
+        }
+        await load()
+      } finally {
+        setUnbinding(null)
+      }
+    },
+    [load]
+  )
+
   return (
     <div className='flex justify-center'>
       <BigCard className='max-w-[1000px]'>
@@ -99,9 +128,10 @@ const SlackSettings: React.FC = () => {
             <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>SETTINGS</p>
             <h1 className='font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>Slack</h1>
             <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground'>
-              Install the MyMultiSig Slack app into a workspace. The bot posts new-request notifications (coming next)
-              and answers slash commands
+              Install the MyMultiSig Slack app into a workspace, then bind a channel to a multisig. The bot posts
+              new-request notifications into bound channels and answers slash commands
               <span className='font-mono'>{' /balance'}</span>,<span className='font-mono'>{' /address-book'}</span>,
+              <span className='font-mono'>{' /bind'}</span>,<span className='font-mono'>{' /unbind'}</span>,
               <span className='font-mono'>{' /propose'}</span>, and
               <span className='font-mono'>{' /sign'}</span>.
             </p>
@@ -177,22 +207,57 @@ const SlackSettings: React.FC = () => {
                   </Button>
                 </div>
               ))}
+
+              <div className='mt-2 flex flex-col gap-2'>
+                <div className='flex items-center justify-between gap-3 rounded-lg border border-border p-4'>
+                  <div className='flex flex-col gap-1'>
+                    <span className='text-sm font-semibold text-foreground'>Channel bindings</span>
+                    <span className='text-xs text-muted-foreground'>
+                      Channels that will receive new-request notifications for the multisigs they&apos;re bound to.
+                    </span>
+                  </div>
+                  <span className='font-mono text-xs text-muted-foreground'>
+                    {status.bindings.length === 0
+                      ? 'No bindings'
+                      : `${status.bindings.length} binding${status.bindings.length === 1 ? '' : 's'}`}
+                  </span>
+                </div>
+                {status.bindings.map((b) => (
+                  <div
+                    key={b.id}
+                    className='flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4'
+                  >
+                    <div className='flex flex-col gap-1'>
+                      <span className='text-sm font-semibold text-foreground'>
+                        {b.channelName != null ? `#${b.channelName}` : 'channel'}
+                      </span>
+                      <span className='font-mono text-xs text-muted-foreground'>{b.channelId}</span>
+                      <span className='text-xs text-muted-foreground'>
+                        Bound to <span className='font-mono'>{shortenAddress(b.multisigAddress)}</span> on chain{' '}
+                        <span className='font-mono'>{b.chainId}</span> · created by{' '}
+                        <span className='font-mono'>{b.createdBy}</span>
+                      </span>
+                    </div>
+                    <Button
+                      variant='outline'
+                      onClick={() => void onUnbind(b.id)}
+                      disabled={unbinding === b.id}
+                      className='gap-2'
+                    >
+                      <DeleteIcon className='h-4 w-4' />
+                      {unbinding === b.id ? 'Unbinding…' : 'Unbind'}
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           <div className='rounded-lg border border-dashed border-border p-4 text-xs leading-relaxed text-muted-foreground'>
             <p>
-              Slash commands currently respond from this app&apos;s server. Channel binding (so the bot can post into a
-              specific channel) and the new-request notification loop are coming in the next release — see
-              <a
-                className='ml-1 underline'
-                href='https://github.com/marc-aurele-besner/mymultisig-app/issues/40'
-                target='_blank'
-                rel='noopener noreferrer'
-              >
-                issue #40
-              </a>
-              .
+              Type <span className='font-mono'>/bind &lt;chain&gt; &lt;multisig&gt;</span> in any channel where the bot
+              is present to receive new-request notifications there. <span className='font-mono'>/unbind</span> removes
+              the binding.
             </p>
           </div>
         </div>

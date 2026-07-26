@@ -14,6 +14,12 @@
 // All builders return the shape the webhook handler forwards to
 // telegramApi('sendMessage', ...) — the handler is responsible for
 // adding the bot token, so the builder doesn't carry secrets.
+//
+// newRequestPayload (added with the notifier) renders a "new request"
+// notification. Used by src/lib/notifications/dispatcher.ts to fan out
+// cross-cutting notifications.
+
+import type { NewRequestInput } from '../notifications/dispatcher'
 
 const APP_URL = (): string => process.env.NEXT_PUBLIC_APP_URL ?? 'https://mymultisig.app'
 
@@ -26,6 +32,8 @@ const escapeHtml = (s: string): string =>
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
+
+const shortenAddress = (address: string): string => `${address.slice(0, 6)}…${address.slice(-4)}`
 
 export interface TelegramInlineButton {
   text: string
@@ -99,7 +107,60 @@ export const helpMessage = (chatId: number | string): TelegramMessagePayload => 
     '🤖 <b>MyMultiSig commands</b>\n\n' +
     '• <code>/balance &lt;chain&gt; &lt;multisig&gt;</code> — show the native balance\n' +
     '• <code>/address-book &lt;chain&gt; &lt;address&gt;</code> — list the public labels for an address\n' +
+    '• <code>/bind &lt;chain&gt; &lt;multisig&gt;</code> — bind this chat to a multisig for new-request notifications\n' +
+    '• <code>/unbind &lt;chain&gt; &lt;multisig&gt;</code> — remove a binding\n' +
     '• <code>/propose</code> — propose a new request (coming soon)\n' +
     '• <code>/sign &lt;request_id&gt;</code> — open a request to sign (coming soon)\n' +
     '• <code>/help</code> — show this message'
 })
+
+// Confirmation for /bind. Telegram has no ephemeral concept — the message
+// is visible to everyone in the chat, but it's small and acts as a
+// confirmation receipt. Mirrors Slack's bindSuccessMessage and
+// Discord's bindSuccessEmbed.
+export const bindSuccessPayload = (chatId: number | string, chainName: string, address: string): TelegramMessagePayload => ({
+  method: 'sendMessage',
+  chat_id: chatId,
+  parse_mode: 'HTML',
+  text: `✅ <b>Bound <code>${escapeHtml(shortenAddress(address))}</code> on ${escapeHtml(chainName)}</b>\nAnyone in this chat can now receive new-request notifications.`
+})
+
+// Confirmation for /unbind.
+export const bindRemovedPayload = (chatId: number | string, chainName: string, address: string): TelegramMessagePayload => ({
+  method: 'sendMessage',
+  chat_id: chatId,
+  parse_mode: 'HTML',
+  text: `🗑 <b>Unbound <code>${escapeHtml(shortenAddress(address))}</code> on ${escapeHtml(chainName)}</b>\nThis chat will no longer receive new-request notifications.`
+})
+
+// "New request" notification builder. Used by the dispatcher to post
+// into every Telegram chat bound to (multisigAddress, chainId). chat_id
+// is a placeholder (0) — the dispatcher overrides it with the per-
+// binding chat id before posting. The text uses parse_mode: 'HTML' so we
+// can bold labels and wrap addresses in <code> for monospace.
+export const newRequestPayload = (input: NewRequestInput): TelegramMessagePayload => {
+  const chainName = input.chainName ?? 'unknown chain'
+  const threshold = input.threshold ?? '?'
+  const requestUrl = `${APP_URL()}/request/${input.request.id}`
+  const explorerUrl = input.explorerUrl ? `${input.explorerUrl}/address/${input.request.multiSigAddress}` : null
+
+  return {
+    method: 'sendMessage',
+    chat_id: 0,
+    parse_mode: 'HTML',
+    text:
+      `:sparkles: <b>New request on ${escapeHtml(chainName)}</b>\n` +
+      `${escapeHtml(input.request.description)}\n\n` +
+      `<b>Threshold:</b> ${input.request.signatures.length}/${threshold} signatures\n` +
+      `<b>Submitter:</b> <code>${escapeHtml(shortenAddress(input.request.submitter))}</code>\n` +
+      `<b>Multisig:</b> <code>${escapeHtml(input.request.multiSigAddress)}</code>`,
+    reply_markup: {
+      inline_keyboard: [
+        [
+          linkButton('View request', requestUrl),
+          ...(explorerUrl != null ? [linkButton('View on explorer', explorerUrl)] : [])
+        ]
+      ]
+    }
+  }
+}

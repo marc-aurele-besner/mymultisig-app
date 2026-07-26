@@ -14,6 +14,14 @@
 // We only return type 4 from the slash command router; type 1 is handled
 // inline in the interactions route, and the foundation has no async paths
 // that would need type 5.
+//
+// newRequestEmbed (added with the notifier) renders a "new request"
+// notification. Unlike the slash command replies, this shape is sent as
+// a free-form channel message (POST /channels/{id}/messages), not as an
+// interaction response. The dispatcher in src/lib/notifications/dispatcher.ts
+// unpacks data.embeds / data.components and posts them via discordApi.
+
+import type { NewRequestInput } from '../notifications/dispatcher'
 
 const APP_URL = (): string => {
   // Public app URL. The settings page links here; the button targets on
@@ -143,6 +151,8 @@ export const helpEmbed = (): DiscordInteractionResponse => ({
         description:
           '• `/balance <chain> <multisig>` — show the native ETH (or chain equivalent) balance\n' +
           '• `/address-book <chain> <address>` — list the public labels for an address\n' +
+          '• `/bind <chain> <multisig>` — bind this channel to a multisig for new-request notifications\n' +
+          '• `/unbind <chain> <multisig>` — remove a binding\n' +
           '• `/propose` — propose a new request (coming soon)\n' +
           '• `/sign <request_id>` — open a request to sign (coming soon)\n' +
           '• `/help` — show this message'
@@ -151,3 +161,74 @@ export const helpEmbed = (): DiscordInteractionResponse => ({
     flags: 64 // EPHEMERAL
   }
 })
+
+// Confirmation for /bind. EPHEMERAL so only the inviter sees it.
+// Mirrors Slack's bindSuccessMessage and Telegram's bindSuccessPayload.
+export const bindSuccessEmbed = (chainName: string, address: string): DiscordInteractionResponse => ({
+  type: 4,
+  data: {
+    embeds: [
+      {
+        ...PRIMARY_BRAND,
+        title: `:white_check_mark: Bound ${shortenAddress(address)} on ${chainName}`,
+        description: 'Anyone in this channel can now receive new-request notifications.'
+      }
+    ],
+    flags: 64
+  }
+})
+
+// Confirmation for /unbind.
+export const bindRemovedEmbed = (chainName: string, address: string): DiscordInteractionResponse => ({
+  type: 4,
+  data: {
+    embeds: [
+      {
+        ...PRIMARY_BRAND,
+        title: `:wastebasket: Unbound ${shortenAddress(address)} on ${chainName}`,
+        description: 'This channel will no longer receive new-request notifications.'
+      }
+    ],
+    flags: 64
+  }
+})
+
+// "New request" notification builder. Used by the dispatcher to post
+// into every Discord channel bound to (multisigAddress, chainId). Mirrors
+// the Slack Block Kit and Telegram HTML builders one-for-one.
+//
+// Note: the return type is still DiscordInteractionResponse (type 4
+// shape), but the dispatcher unpacks `data.embeds` + `data.components`
+// and posts them via discordApi('channels/{id}/messages'). The `type: 4`
+// wrapper is harmless in that context — Discord's free-form message API
+// accepts the same embed + component shapes.
+export const newRequestEmbed = (input: NewRequestInput): DiscordInteractionResponse => {
+  const chainName = input.chainName ?? 'unknown chain'
+  const threshold = input.threshold ?? '?'
+  const requestUrl = `${APP_URL()}/request/${input.request.id}`
+  const explorerUrl = input.explorerUrl ? `${input.explorerUrl}/address/${input.request.multiSigAddress}` : null
+
+  return {
+    type: 4,
+    data: {
+      embeds: [
+        {
+          ...PRIMARY_BRAND,
+          title: `:sparkles: New request on ${chainName}`,
+          description: input.request.description,
+          fields: [
+            { name: 'Threshold', value: `${input.request.signatures.length}/${threshold} signatures`, inline: true },
+            { name: 'Submitter', value: `\`${shortenAddress(input.request.submitter)}\``, inline: true }
+          ],
+          footer: { text: `Multisig ${input.request.multiSigAddress}` }
+        }
+      ],
+      components: [
+        actionRow([
+          linkButton('View request', requestUrl),
+          ...(explorerUrl != null ? [linkButton('View on explorer', explorerUrl)] : [])
+        ])
+      ]
+    }
+  }
+}
