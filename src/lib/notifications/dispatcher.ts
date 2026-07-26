@@ -1,4 +1,12 @@
 import type { MultiSigTransactionRequest } from '../../models/MultiSigs'
+import { eq, sql } from 'drizzle-orm'
+import type { NeonHttpDatabase } from 'drizzle-orm/neon-http'
+
+import { decryptToken } from '../slack/crypto'
+import { slackApi } from '../slack/slackApi'
+import { newRequestMessage } from '../slack/blockKit'
+import { slackChannelConfigs, slackWorkspaces } from '../db/schema'
+import { getDb } from '../db/neon'
 
 // Cross-cutting notification dispatcher. When a new multisig request is
 // created on the server (POST /api/multisig-requests), this module fans
@@ -62,17 +70,51 @@ export interface BoundChannels {
 }
 
 // Look up every binding for (multiSigAddress, chainId) across the three
-// platforms. Filled in by commits 2/3/4 (each adds its own query inside
-// Promise.allSettled). Until then, returns all-empty arrays so the public
-// surface is testable end-to-end.
+// platforms. Each platform's query JOINs the binding table to the
+// installation table to pull the encrypted bot token, which the caller
+// decrypts in-memory. The decrypt happens lazily per channel inside
+// postToSlack/postToDiscord/postToTelegram so one platform's bad key
+// doesn't block the others.
+//
+// Until commit 4 (Telegram wiring) lands, the discord + telegram arrays
+// are empty — commits 2/3 fill in their branches as they're wired.
 export const findBoundChannels = async (
-  _multiSigAddress: `0x${string}`,
-  _chainId: number | null
-): Promise<BoundChannels> => ({
-  slack: [],
-  discord: [],
-  telegram: []
-})
+  multiSigAddress: `0x${string}`,
+  chainId: number | null
+): Promise<BoundChannels> => {
+  if (chainId == null) {
+    return { slack: [], discord: [], telegram: [] }
+  }
+  const db = getDb()
+  const [slackRows, discordRows, telegramRows] = await Promise.all([
+    db
+      .select({
+        id: slackChannelConfigs.id,
+        teamId: slackChannelConfigs.teamId,
+        channelId: slackChannelConfigs.channelId,
+        channelName: slackChannelConfigs.channelName,
+        botTokenEncrypted: slackWorkspaces.botTokenEncrypted
+      })
+      .from(slackChannelConfigs)
+      .innerJoin(slackWorkspaces, eq(slackWorkspaces.teamId, slackChannelConfigs.teamId))
+      .where(
+        sql`LOWER(${slackChannelConfigs.multisigAddress}) = LOWER(${multiSigAddress}) AND ${slackChannelConfigs.chainId} = ${chainId}`
+      ),
+    Promise.resolve([] as DiscordBoundChannel[]),
+    Promise.resolve([] as TelegramBoundChannel[])
+  ])
+  return {
+    slack: slackRows.map((r) => ({
+      id: r.id,
+      teamId: r.teamId,
+      channelId: r.channelId,
+      channelName: r.channelName,
+      botToken: decryptToken(r.botTokenEncrypted)
+    })),
+    discord: discordRows,
+    telegram: telegramRows
+  }
+}
 
 // ─── Dispatcher ──────────────────────────────────────────────────────────
 
@@ -103,17 +145,22 @@ export const notifyNewRequest = async (input: NewRequestInput): Promise<void> =>
 
 // ─── Per-platform post helpers (filled in by commits 2/3/4) ─────────────
 
- 
-const postToSlack = async (_channel: SlackBoundChannel, _input: NewRequestInput): Promise<void> => {
-  throw new Error('notifyNewRequest.postToSlack: not implemented (commit 2)')
+const postToSlack = async (channel: SlackBoundChannel, input: NewRequestInput): Promise<void> => {
+  const message = newRequestMessage(input)
+  await slackApi('chat.postMessage', {
+    token: channel.botToken,
+    json: {
+      channel: channel.channelId,
+      text: message.text,
+      blocks: message.blocks
+    }
+  })
 }
 
- 
 const postToDiscord = async (_channel: DiscordBoundChannel, _input: NewRequestInput): Promise<void> => {
   throw new Error('notifyNewRequest.postToDiscord: not implemented (commit 3)')
 }
 
- 
 const postToTelegram = async (_channel: TelegramBoundChannel, _input: NewRequestInput): Promise<void> => {
   throw new Error('notifyNewRequest.postToTelegram: not implemented (commit 4)')
 }

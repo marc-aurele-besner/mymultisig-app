@@ -50,8 +50,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const form = parseForm(rawBody)
   const command = typeof form.command === 'string' ? form.command : ''
   const text = typeof form.text === 'string' ? form.text : ''
+  // Slack's slash-command form carries the team, channel, and user ids;
+  // /bind and /unbind need them to write the channel_configs row.
+  const teamId = typeof form.team_id === 'string' ? form.team_id : undefined
+  const channelId = typeof form.channel_id === 'string' ? form.channel_id : undefined
+  const channelName = typeof form.channel_name === 'string' ? form.channel_name : undefined
+  const userId = typeof form.user_id === 'string' ? form.user_id : undefined
 
-  const response = await routeCommand({ command, text })
+  const response = await routeCommand({ command, text, teamId, channelId, channelName, userId })
   // Slack expects the response within 3s. We return application/json with
   // the Block Kit body; the response_type controls visibility
   // ('in_channel' for everyone, 'ephemeral' for the requester only).

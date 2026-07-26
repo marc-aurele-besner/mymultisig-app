@@ -107,6 +107,39 @@ export const errorMessage = (text: string): SlackSlashResponse => ({
   ]
 })
 
+// Confirmation message for the /bind slash command. Ephemeral so only
+// the inviter sees the success/failure (no need to clutter the channel).
+// Mirrors the Discord bindSuccessEmbed and Telegram bindSuccessPayload
+// in shape — chain name + multisig short form.
+export const bindSuccessMessage = (chainName: string, address: string): SlackSlashResponse => ({
+  response_type: 'ephemeral',
+  text: `Bound ${shortenAddress(address)} on ${chainName}`,
+  blocks: [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `:white_check_mark: Bound \`${shortenAddress(address)}\` on *${chainName}*. Anyone in this channel can now receive new-request notifications.`
+      }
+    }
+  ]
+})
+
+// Confirmation for /unbind. Same shape as bindSuccessMessage.
+export const bindRemovedMessage = (chainName: string, address: string): SlackSlashResponse => ({
+  response_type: 'ephemeral',
+  text: `Unbound ${shortenAddress(address)} on ${chainName}`,
+  blocks: [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `:wastebasket: Unbound \`${shortenAddress(address)}\` on *${chainName}*. This channel will no longer receive new-request notifications.`
+      }
+    }
+  ]
+})
+
 export const helpMessage = (): SlackSlashResponse => ({
   response_type: 'ephemeral',
   text: 'MyMultiSig slash commands',
@@ -119,6 +152,8 @@ export const helpMessage = (): SlackSlashResponse => ({
           '*MyMultiSig slash commands*\n' +
           '• `/balance <chain> <multisig>` — show the native ETH (or chain equivalent) balance\n' +
           '• `/address-book <chain> <address>` — list the public labels for an address\n' +
+          '• `/bind <chain> <multisig>` — bind this channel to a multisig for new-request notifications\n' +
+          '• `/unbind <chain> <multisig>` — remove a binding\n' +
           '• `/propose` — propose a new request (coming soon)\n' +
           '• `/sign <request_id>` — open a request to sign (coming soon)'
       }
