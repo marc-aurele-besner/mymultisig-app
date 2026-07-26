@@ -59,6 +59,13 @@ export const resetMultiSigRequest = (id: string) =>
     body: JSON.stringify({})
   })
 
+export const cancelMultiSigRequest = (id: string) =>
+  fetchJson(`/api/multisig-requests/${encode(id)}/cancel`, {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({})
+  })
+
 // --- Multisig wallets ----------------------------------------------------
 //
 // POST is an idempotent upsert on (chainId, address); PATCH is a partial

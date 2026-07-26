@@ -8,6 +8,7 @@ import SubmitUserOpRequest from '../buttons/SubmitUserOpRequest'
 import SignUserOp from '../buttons/SignUserOp'
 import ApproveUserOpRequest from '../buttons/ApproveUserOpRequest'
 import RevokeUserOpApproval from '../buttons/RevokeUserOpApproval'
+import CancelRequestButton from './CancelRequestButton'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useAdvancedFeatures from '../../hooks/useAdvancedFeatures'
 import useEntryPointNonce from '../../hooks/useEntryPointNonce'
@@ -195,6 +196,16 @@ const UserOpRequestCard: React.FC<UserOpRequestCardProps> = ({ request, threshol
                 Reset
               </Button>
             </div>
+            {!request.isCancelled && (
+              <div className='flex flex-wrap items-center gap-2'>
+                <span className='px-2 pt-2 text-xl font-bold text-foreground'>Cancel this request</span>
+                <CancelRequestButton
+                  multiSigRequestId={request.id}
+                  existingRequestId={request.id}
+                  description={request.description}
+                />
+              </div>
+            )}
             <div className='flex flex-wrap items-center gap-2'>
               <span className='px-2 pt-2 text-xl font-bold text-foreground'>Delete this request</span>
               <Button variant='destructive' className='mx-2 mt-2' onClick={onDelete}>

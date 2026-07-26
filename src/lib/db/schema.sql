@@ -27,6 +27,24 @@ CREATE INDEX IF NOT EXISTS idx_multisig_requests_multi_sig_address_is_active
 
 CREATE INDEX IF NOT EXISTS idx_multisig_requests_id ON multisig_requests (id);
 
+-- Queue ordering + cascade invalidation columns. Added after the initial
+-- release so existing rows backfill implicitly (nullable txn_nonce; the two
+-- text columns default to ''). Run the same ALTER TABLE statements on Neon
+-- before deploying the API changes that read them.
+ALTER TABLE multisig_requests
+  ADD COLUMN IF NOT EXISTS txn_nonce TEXT;
+ALTER TABLE multisig_requests
+  ADD COLUMN IF NOT EXISTS date_cancelled TEXT NOT NULL DEFAULT '';
+ALTER TABLE multisig_requests
+  ADD COLUMN IF NOT EXISTS cancelled_by TEXT NOT NULL DEFAULT '';
+
+-- Composite index that matches the GET /api/multisig-requests ordering:
+-- active rows for one wallet, sorted by effective nonce then submission
+-- time. txn_nonce NULLS LAST keeps unpinned requests (effective nonce =
+-- wallet nonce) above pinned higher-nonced ones.
+CREATE INDEX IF NOT EXISTS idx_multisig_requests_queue_order
+  ON multisig_requests (multi_sig_address, is_active, is_executed, is_cancelled, txn_nonce NULLS LAST, date_submitted);
+
 CREATE TABLE IF NOT EXISTS multisig_wallets (
   id SERIAL PRIMARY KEY,
   chain_id INTEGER NOT NULL,

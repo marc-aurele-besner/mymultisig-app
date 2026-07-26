@@ -87,3 +87,37 @@ All contract writes follow the same flow:
 - PWA (`next-pwa`) disabled due to `lru-cache` incompatibility with Next.js 16
 - Ledger and Safe wallet connectors commented out in `Web3Provider.tsx`
 - `src/constants/providers.ts` is legacy (no-op); transports configured inline in `Web3Provider.tsx`
+
+## Request Lifecycle
+
+The `multisig_requests` table is the source of truth for queued requests. Mutations are split across dedicated endpoints with strict auth:
+
+- **POST** `/api/multisig-requests` — `withVerifiedAs` (SIWE wallet matches body `submitter`); also enforces `allow_only_owner_request` when set.
+- **PATCH / DELETE / POST .../reset / POST .../cancel** — `withVerifiedAsOwner` (the connected wallet must be on the wallet's owners list). Non-owner wallets get **403**.
+- **POST .../cascade** — `withSession` only (internal fan-out so other clients converge after a peer triggered a reset/execute/cancel).
+
+### Cascade invalidation
+
+When a request is **reset**, **executed** (success or fail), or **manually cancelled**, every other active request in the same wallet with a strictly greater *effective nonce* has its signatures wiped and is marked `isActive=false, isCancelled=true, cancelledBy='cascade', dateCancelled=<ISO>`. The cascade is **server-side** (single `UPDATE…RETURNING` in `src/lib/api/cascade.ts`) so every client picks it up on their next refresh — the old Zustand-only scan in `useExecTransaction.ts` was incomplete.
+
+**Effective nonce** = `request.txnNonce` (pinned, Extended wallets) OR the wallet's current `nonce()` (unpinned). For unpinned source, the cascade invalidates `(txn_nonce IS NULL) OR (txn_nonce > wallet_nonce)` so all other live requests in the queue are wiped (issue #39 "auto reset all requests signatures if one request is reset or fail in queue"). UserOp requests are excluded — they use the EntryPoint nonce, not the wallet's.
+
+### Manual cancel UX
+
+`src/components/multiSigDetails/CancelRequestButton.tsx` renders a confirmation dialog gated on `(isOwner && !isExecuted && !isCancelled)`. The server enforces owner-only; non-owner wallets get 403 even if they bypass the UI.
+
+### Queue ordering
+
+`GET /api/multisig-requests?multiSigAddress=…` orders active rows by:
+
+1. `request->>'mode' = 'userop'` ASC — UserOps to the end.
+2. `is_cancelled` ASC — cancelled rows float to the bottom.
+3. `txn_nonce` ASC NULLS LAST — pinned ascending; NULLS LAST keeps unpinned (effective nonce = wallet nonce) at the top.
+4. `date_submitted` ASC — submission-time tiebreaker.
+
+The response envelope now includes `walletNonce: number | null` (LEFT JOIN on `multisig_wallets.nonce`) so the list view can draw a "Next" badge without a second round-trip.
+
+### Breaking changes (this PR)
+
+- `withVerifiedAsOwner` replaces `withSession` on `PATCH`, `DELETE`, `/reset`, and `/cancel`. A signed-in wallet that is **not** an owner of the target multisig now gets **403** on any of those endpoints. Every existing in-app call site runs as the submitter (who is by definition an owner), so the practical blast radius is limited to shared-machine profiles that swap between owner wallets in one session.
+- `POST /api/multisig-requests` now persists the client-supplied `id` UUID (validates it; 400 on garbage) and returns `{ content: { id } }`. Previously the response was only `{ message }` so the client UUID and the Neon UUID diverged.

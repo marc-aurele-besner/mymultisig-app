@@ -38,5 +38,8 @@ Basic.args = {
     isCancelled: false,
     isConfirmed: false,
     isSuccessful: false,
+    txnNonce: null,
+    dateCancelled: '',
+    cancelledBy: '',
   },
 }

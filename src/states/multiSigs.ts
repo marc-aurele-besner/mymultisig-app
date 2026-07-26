@@ -4,12 +4,25 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { MultiSigFactory, MultiSig, MultiSigTransactionRequest } from '../models/MultiSigs'
 import multiSigFactories from '../constants/multiSigFactory'
 
+export type CascadeTrigger = 'executed' | 'failed' | 'reset' | 'cancelled'
+
+export type LastCascade = {
+  sourceId: string
+  trigger: CascadeTrigger
+  cancelledIds: string[]
+  at: string
+}
+
 interface MultiSigDefaultState {
   multiSigFactory: MultiSigFactory[]
   multiSigs: MultiSig[]
   selectedMultiSigAddress: `0x${string}` | null
   multiSigTransactionRequests: MultiSigTransactionRequest[]
   selectedMultiSigTransactionRequest: string | null
+  // Transient banner info for the cascade that just ran. Not persisted
+  // — the banner auto-dismisses after 60s and we don't want stale
+  // notifications to survive a page reload.
+  lastCascade: LastCascade | null
 }
 
 interface MultiSigState extends MultiSigDefaultState {
@@ -26,6 +39,7 @@ interface MultiSigState extends MultiSigDefaultState {
   removeMultiSigTransactionRequest: (id: string) => void
   setSelectedMultiSigTransactionRequest: (selectedMultiSigTransactionRequest: string | null) => void
   clearAllMultiSigTransactionRequests: () => void
+  setLastCascade: (lastCascade: LastCascade | null) => void
 }
 
 const initialState: MultiSigDefaultState = {
@@ -33,7 +47,8 @@ const initialState: MultiSigDefaultState = {
   multiSigs: [],
   selectedMultiSigAddress: null,
   multiSigTransactionRequests: [],
-  selectedMultiSigTransactionRequest: null
+  selectedMultiSigTransactionRequest: null,
+  lastCascade: null
 }
 
 const useMultiSigs = create<MultiSigState>()(
@@ -75,7 +90,8 @@ const useMultiSigs = create<MultiSigState>()(
         })),
       setSelectedMultiSigTransactionRequest: (selectedMultiSigTransactionRequest) =>
         set(() => ({ selectedMultiSigTransactionRequest })),
-      clearAllMultiSigTransactionRequests: () => set(() => ({ ...initialState }))
+      clearAllMultiSigTransactionRequests: () => set(() => ({ ...initialState })),
+      setLastCascade: (lastCascade) => set(() => ({ lastCascade }))
     }),
     {
       name: 'multiSigs-storage',
@@ -96,7 +112,7 @@ const useMultiSigs = create<MultiSigState>()(
             (candidate) => !multiSigFactories.some((factory) => sameFactory(candidate, factory))
           )
         ]
-        return { ...currentState, ...persisted, multiSigFactory }
+        return { ...currentState, ...persisted, multiSigFactory, lastCascade: null }
       }
     }
   )

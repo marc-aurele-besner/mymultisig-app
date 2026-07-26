@@ -18,6 +18,7 @@ export {
   patchMultiSigWallet,
   removeAddressBookEntry,
   resetMultiSigRequest,
+  cancelMultiSigRequest,
   upsertAddressBookEntry,
   upsertSavedContract,
   addFactory

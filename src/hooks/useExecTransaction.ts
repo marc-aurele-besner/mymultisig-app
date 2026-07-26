@@ -10,7 +10,7 @@ import useFinalizeTransaction from './useFinalizeTransaction'
 import useWalletType from './useWalletType'
 import useMultiSigs from '../states/multiSigs'
 import { patchMultiSigRequest } from '../utils'
-import { applyAdminActionToMultiSig, decodeSelfCall } from '../utils/adminActions'
+import { applyAdminActionToMultiSig } from '../utils/adminActions'
 import { isModernWallet } from '../utils/contractVersions'
 import { transactionOperation, transactionValidUntil } from '../utils/transactionTypedData'
 import persistMultiSigWalletPatch from '../utils/persistWallet'
@@ -140,12 +140,21 @@ const useExecTransaction = (
       isSuccessful
     }
     patchMultiSigRequest(existingRequestId, patch).then(() => {
+      // The server now returns { content, cascade } — apply both so the
+      // local Zustand mirrors what every other client will see on their
+      // next refresh.
       updateMultiSigTransactionRequest(existingRequest.id, { ...existingRequest, ...patch })
     })
     // Owner/threshold operations are self-calls; once executed, mirror their
     // effect onto the locally stored wallet and into Neon (there is no
     // getOwners() to re-read; useAdminEventSync covers changes made by other
     // clients via the OwnerAdded/OwnerRemoved/ThresholdChanged events).
+    //
+    // Downstream-cascade invalidation moved server-side: PATCH now runs
+    // cascadeInvalidate when isExecuted flips, so every client converges
+    // on the next refresh. The previous client-side cancelStaleRequests
+    // only saw the local Zustand store and missed requests opened in
+    // other sessions.
     if (isSuccessful && args.to.toLowerCase() === multiSigAddress.toLowerCase()) {
       const stored = multiSigs.find((m) => m.address.toLowerCase() === multiSigAddress.toLowerCase())
       if (stored) {
@@ -155,34 +164,13 @@ const useExecTransaction = (
           persistMultiSigWalletPatch(chain.id, multiSigAddress, walletPatch)
         }
       }
-      // Nonce-invalidating admin actions kill requests bound to the dropped
-      // nonce; mark them cancelled instead of leaving them to fail preflight.
-      const decoded = decodeSelfCall(args.data)
-      if (decoded?.functionName === 'incrementNonce')
-        cancelStaleRequests((r) => r.request.txnNonce == null || r.request.txnNonce === '')
-      else if (decoded?.functionName === 'markNonceAsUsed')
-        cancelStaleRequests((r) => r.request.txnNonce === String(decoded.args?.[0] ?? ''))
     }
   }
 
-  const cancelStaleRequests = (isBoundToDroppedNonce: (r: MultiSigTransactionRequest) => boolean) => {
-    if (!chain) return
-    multiSigTransactionRequests
-      .filter(
-        (r) =>
-          r.multiSigAddress.toLowerCase() === multiSigAddress.toLowerCase() &&
-          r.id !== existingRequest.id &&
-          !r.isExecuted &&
-          !r.isCancelled &&
-          isBoundToDroppedNonce(r)
-      )
-      .forEach((r) => {
-        const cancelPatch = { isActive: false, isCancelled: true }
-        patchMultiSigRequest(r.id, cancelPatch).then(() => {
-          updateMultiSigTransactionRequest(r.id, { ...r, ...cancelPatch })
-        })
-      })
-  }
+  // Removed: cancelStaleRequests. The cascade helper now runs from the
+  // PATCH handler when isExecuted flips, so this client-side filter is no
+  // longer needed (and was incomplete — it only saw the local Zustand
+  // store). Kept here as a no-op reference marker; see git history.
 
   // Shared success handler for TransactionExecuted / TransactionExecutedOp.
   // Best-effort batches also emit MultiRequestExecuted, whose handler owns the

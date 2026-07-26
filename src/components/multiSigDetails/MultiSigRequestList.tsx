@@ -4,8 +4,10 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { LoadingDots } from '@/components/ui/loading-dots'
 import { AddIcon } from '../icons/ChakraIcons'
-import { MultiSigOnChainData } from '../../models/MultiSigs'
+import CascadeBanner from './CascadeBanner'
+import { MultiSigOnChainData, MultiSigTransactionRequest } from '../../models/MultiSigs'
 import useMultiSigRequests from '../../hooks/useMultiSigRequests'
+import useRequestQueue from '../../hooks/useRequestQueue'
 import useMultiSigs from '../../states/multiSigs'
 
 interface MultiSigRequestListProps {
@@ -13,8 +15,77 @@ interface MultiSigRequestListProps {
   multiSigDetails: MultiSigOnChainData
 }
 
+// One row. Hoisted so it can call useRequestQueue (a hook) at the top
+// level — calling hooks inside .map() callbacks violates React's rules
+// of hooks. The parent passes the already-sorted list and the row picks
+// out its own position.
+const RequestRow: React.FC<{
+  request: MultiSigTransactionRequest
+  index: number
+  threshold: number
+  requests: MultiSigTransactionRequest[]
+  walletNonce: number | null
+  onSelect: (id: string) => void
+}> = ({ request, index, threshold, requests, walletNonce, onSelect }) => {
+  const queue = useRequestQueue(requests, request.id, walletNonce)
+  const signaturesShown = Math.min(request.signatures.length, threshold)
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: Math.min(index, 8) * 0.04, ease: 'easeOut' }}
+      className='flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3 transition-colors hover:border-primary/40 hover:bg-muted/30'
+    >
+      <div className='flex min-w-0 flex-1 flex-col gap-1.5'>
+        <div className='flex flex-wrap items-center gap-2'>
+          <span className='truncate text-sm font-semibold text-foreground'>{request.description}</span>
+          {queue.isNext && (
+            <span className='rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground'>
+              Next
+            </span>
+          )}
+          {queue.position > 0 && queue.total > 0 && !request.isExecuted && !request.isCancelled && (
+            <span className='text-[10px] font-mono text-muted-foreground'>
+              #{queue.position} of {queue.total}
+            </span>
+          )}
+        </div>
+        <span className='text-xs text-muted-foreground'>
+          {request.isExecuted
+            ? 'Executed'
+            : request.isCancelled
+              ? `Cancelled${request.dateCancelled !== '' ? ` on ${new Date(request.dateCancelled).toLocaleDateString()}` : ''}`
+              : `${request.signatures.length} of ${threshold} signature${
+                  threshold === 1 ? '' : 's'
+                } collected`}
+          {!request.isCancelled &&
+            request.dateSubmitted !== '' &&
+            ` — submitted ${new Date(Number(request.dateSubmitted)).toLocaleDateString()}`}
+        </span>
+        {!request.isExecuted && !request.isCancelled && (
+          <div className='flex max-w-40 gap-1' aria-hidden>
+            {Array.from({ length: threshold }, (_, i) => (
+              <span
+                key={i}
+                className={`h-1 flex-1 rounded-full transition-colors duration-500 ${
+                  i < signaturesShown ? 'bg-primary' : 'bg-muted'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+      <Button asChild variant='outline' size='sm'>
+        <Link href={`/request/${request.id}`} onClick={() => onSelect(request.id)}>
+          Open
+        </Link>
+      </Button>
+    </motion.div>
+  )
+}
+
 const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({ multiSigAddress, multiSigDetails }) => {
-  const { requests, isLoading, isError, refetch } = useMultiSigRequests(multiSigAddress)
+  const { requests, walletNonce, isLoading, isError, refetch } = useMultiSigRequests(multiSigAddress)
   const { setSelectedMultiSigTransactionRequest } = useMultiSigs()
 
   if (multiSigDetails == null) return null
@@ -61,48 +132,18 @@ const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({ multiSigAddre
 
   return (
     <div className='flex w-full flex-col gap-2'>
-      {requests.map((request, index) => {
-        const signaturesShown = Math.min(request.signatures.length, multiSigDetails.threshold)
-        return (
-          <motion.div
-            key={`Request-${request.id}`}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: Math.min(index, 8) * 0.04, ease: 'easeOut' }}
-            className='flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3 transition-colors hover:border-primary/40 hover:bg-muted/30'
-          >
-            <div className='flex min-w-0 flex-1 flex-col gap-1.5'>
-              <span className='truncate text-sm font-semibold text-foreground'>{request.description}</span>
-              <span className='text-xs text-muted-foreground'>
-                {request.isExecuted
-                  ? 'Executed'
-                  : `${request.signatures.length} of ${multiSigDetails.threshold} signature${
-                      multiSigDetails.threshold === 1 ? '' : 's'
-                    } collected`}
-                {request.dateSubmitted !== '' &&
-                  ` — submitted ${new Date(Number(request.dateSubmitted)).toLocaleDateString()}`}
-              </span>
-              {!request.isExecuted && (
-                <div className='flex max-w-40 gap-1' aria-hidden>
-                  {Array.from({ length: multiSigDetails.threshold }, (_, i) => (
-                    <span
-                      key={i}
-                      className={`h-1 flex-1 rounded-full transition-colors duration-500 ${
-                        i < signaturesShown ? 'bg-primary' : 'bg-muted'
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-            <Button asChild variant='outline' size='sm'>
-              <Link href={`/request/${request.id}`} onClick={() => setSelectedMultiSigTransactionRequest(request.id)}>
-                Open
-              </Link>
-            </Button>
-          </motion.div>
-        )
-      })}
+      <CascadeBanner />
+      {requests.map((request, index) => (
+        <RequestRow
+          key={request.id}
+          request={request}
+          index={index}
+          threshold={multiSigDetails.threshold}
+          requests={requests}
+          walletNonce={walletNonce}
+          onSelect={setSelectedMultiSigTransactionRequest}
+        />
+      ))}
     </div>
   )
 }
