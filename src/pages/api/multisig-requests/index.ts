@@ -32,6 +32,16 @@ const createHandler = withVerifiedAs(
     const body = parseBody(req) as Record<string, unknown>
     const doc: Record<string, unknown> = { ...body }
 
+    // Reject garbage UUIDs from clients that don't know the column is UUID.
+    // The column would 500 on a non-UUID insert otherwise.
+    if (
+      doc.id != null &&
+      (typeof doc.id !== 'string' ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(doc.id))
+    ) {
+      return res.status(400).json({ message: 'id must be a UUID' })
+    }
+
     const wallets = await db
       .select({
         allowOnlyOwnerRequest: multisigWallets.allowOnlyOwnerRequest,
@@ -55,6 +65,13 @@ const createHandler = withVerifiedAs(
     const inserted = await db
       .insert(multisigRequests)
       .values({
+        // Persist the client-supplied UUID when present (the browser generates
+        // one optimistically so the new row appears in the list immediately).
+        // Falls back to the column's uuid_generate_v4() default when missing.
+        // Invalid UUIDs are rejected with 400 below before reaching this point.
+        ...(typeof doc.id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(doc.id)
+          ? { id: doc.id }
+          : {}),
         multiSigAddress: String(doc.multiSigAddress),
         request: doc.request as Record<string, unknown>,
         description: String(doc.description),
@@ -67,7 +84,19 @@ const createHandler = withVerifiedAs(
         isExecuted: (doc.isExecuted as boolean) ?? false,
         isCancelled: (doc.isCancelled as boolean) ?? false,
         isConfirmed: (doc.isConfirmed as boolean) ?? false,
-        isSuccessful: (doc.isSuccessful as boolean) ?? false
+        isSuccessful: (doc.isSuccessful as boolean) ?? false,
+        // Pin the queue column when the request was built against an explicit
+        // txnNonce (Extended wallets). Empty/undefined becomes NULL — unpinned
+        // requests whose effective nonce resolves to the wallet's current
+        // nonce at read time.
+        txnNonce: (() => {
+          const fromRequest = (doc.request as Record<string, unknown> | undefined)?.txnNonce
+          if (typeof fromRequest === 'string' && fromRequest !== '') return fromRequest
+          if (typeof doc.txnNonce === 'string' && doc.txnNonce !== '') return doc.txnNonce
+          return null
+        })(),
+        dateCancelled: '',
+        cancelledBy: ''
       })
       .returning({ id: multisigRequests.id })
     const insertedId = inserted[0]?.id
@@ -110,7 +139,7 @@ const createHandler = withVerifiedAs(
     }
 
     console.log('Add request done')
-    return res.status(200).json({ message: 'Add request done' })
+    return res.status(200).json({ message: 'Add request done', content: { id: insertedId ?? null } })
   }
 )
 
