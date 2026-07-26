@@ -1,11 +1,13 @@
 import React, { Fragment, useState } from 'react'
 import Link from 'next/link'
+import { useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import SignRequest from '../buttons/SignRequest'
 import ExecuteRequest from '../buttons/ExecuteRequest'
 import ApproveRequest from '../buttons/ApproveRequest'
 import RevokeApproval from '../buttons/RevokeApproval'
+import CancelRequestButton from './CancelRequestButton'
 import ScheduledExecutionPanel from './ScheduledExecutionPanel'
 import UserOpRequestCard from './UserOpRequestCard'
 import { isModernWallet } from '../../utils/contractVersions'
@@ -25,7 +27,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
   const [isDeleted, setIsDeleted] = useState(false)
   const [isReset, setIsReset] = useState(false)
   const requestDetails = useMultiSigRequestDetails(multiSigRequestId)
-  const { multiSigDetails } = useMultiSigDetails(
+  const { multiSigDetails, onChainOwners } = useMultiSigDetails(
     requestDetails != null ? requestDetails.multiSigAddress : '0x',
     address
   )
@@ -36,6 +38,14 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
 
   const deleted = useDeleteMultiSigRequest(multiSigRequestId, multiSigRequestId, isDeleted)
   const { setSelectedMultiSigTransactionRequest } = useMultiSigs()
+  // Owner check: prefer on-chain owners (0.5.0); fall back to address
+  // being the only listed owner when the contract doesn't expose
+  // getOwners (legacy wallets).
+  const { address: connectedAddress } = useAccount()
+  const isOwner =
+    onChainOwners != null
+      ? onChainOwners.map((o) => o.toLowerCase()).includes((connectedAddress ?? address).toLowerCase())
+      : (connectedAddress ?? address).toLowerCase() !== '0x'
 
   useResetMultiSigRequest(multiSigRequestId, multiSigRequestId, isReset)
   if (deleted) setSelectedMultiSigTransactionRequest(null)
@@ -250,6 +260,21 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
                 Reset signatures
               </Button>
             </div>
+            {isOwner && !requestDetails.isCancelled && (
+              <div className='flex flex-wrap items-center gap-2'>
+                <span className='px-2 pt-2 text-xl font-bold text-foreground'>Cancel this request</span>
+                <CancelRequestButton
+                  multiSigRequestId={multiSigRequestId}
+                  existingRequestId={multiSigRequestId}
+                  description={requestDetails.description}
+                />
+              </div>
+            )}
+            {!isOwner && (
+              <div className='px-2 pt-2 text-xs text-muted-foreground'>
+                You must be an owner of this wallet to cancel the request.
+              </div>
+            )}
             <div className='flex flex-wrap items-center gap-2'>
               <span className='px-2 pt-2 text-xl font-bold text-foreground'>Delete this request</span>
               <Button variant='destructive' className='mx-2 mt-2' onClick={() => setIsDeleted(true)}>
