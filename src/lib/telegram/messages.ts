@@ -107,9 +107,30 @@ export const helpMessage = (chatId: number | string): TelegramMessagePayload => 
     '🤖 <b>MyMultiSig commands</b>\n\n' +
     '• <code>/balance &lt;chain&gt; &lt;multisig&gt;</code> — show the native balance\n' +
     '• <code>/address-book &lt;chain&gt; &lt;address&gt;</code> — list the public labels for an address\n' +
+    '• <code>/bind &lt;chain&gt; &lt;multisig&gt;</code> — bind this chat to a multisig for new-request notifications\n' +
+    '• <code>/unbind &lt;chain&gt; &lt;multisig&gt;</code> — remove a binding\n' +
     '• <code>/propose</code> — propose a new request (coming soon)\n' +
     '• <code>/sign &lt;request_id&gt;</code> — open a request to sign (coming soon)\n' +
     '• <code>/help</code> — show this message'
+})
+
+// Confirmation for /bind. Telegram has no ephemeral concept — the message
+// is visible to everyone in the chat, but it's small and acts as a
+// confirmation receipt. Mirrors Slack's bindSuccessMessage and
+// Discord's bindSuccessEmbed.
+export const bindSuccessPayload = (chatId: number | string, chainName: string, address: string): TelegramMessagePayload => ({
+  method: 'sendMessage',
+  chat_id: chatId,
+  parse_mode: 'HTML',
+  text: `✅ <b>Bound <code>${escapeHtml(shortenAddress(address))}</code> on ${escapeHtml(chainName)}</b>\nAnyone in this chat can now receive new-request notifications.`
+})
+
+// Confirmation for /unbind.
+export const bindRemovedPayload = (chatId: number | string, chainName: string, address: string): TelegramMessagePayload => ({
+  method: 'sendMessage',
+  chat_id: chatId,
+  parse_mode: 'HTML',
+  text: `🗑 <b>Unbound <code>${escapeHtml(shortenAddress(address))}</code> on ${escapeHtml(chainName)}</b>\nThis chat will no longer receive new-request notifications.`
 })
 
 // "New request" notification builder. Used by the dispatcher to post

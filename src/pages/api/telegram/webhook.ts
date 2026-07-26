@@ -132,7 +132,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const chatId = update.message.chat?.id
     if (parsed != null && chatId != null) {
       try {
-        const payload = await routeCommand(chatId, parsed.command, parsed.args)
+        const payload = await routeCommand({
+          chatId,
+          command: parsed.command,
+          text: parsed.args,
+          installationId: installation.id,
+          telegramUserId: update.message.from?.id
+        })
         await telegramApi('sendMessage', {
           token: decryptToken(installation.botTokenEncrypted),
           json: payload as unknown as Record<string, unknown>

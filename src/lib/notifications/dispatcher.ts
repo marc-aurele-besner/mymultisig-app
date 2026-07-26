@@ -2,12 +2,23 @@ import type { MultiSigTransactionRequest } from '../../models/MultiSigs'
 import { eq, sql } from 'drizzle-orm'
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http'
 
-import { decryptToken } from '../slack/crypto'
+import { decryptToken as decryptSlackToken } from '../slack/crypto'
+import { decryptToken as decryptDiscordToken } from '../discord/crypto'
+import { decryptToken as decryptTelegramToken } from '../telegram/crypto'
 import { slackApi } from '../slack/slackApi'
 import { newRequestMessage } from '../slack/blockKit'
 import { discordApi } from '../discord/discordApi'
 import { newRequestEmbed } from '../discord/embeds'
-import { slackChannelConfigs, slackWorkspaces, discordChannelConfigs, discordWorkspaces } from '../db/schema'
+import { telegramApi } from '../telegram/telegramApi'
+import { newRequestPayload } from '../telegram/messages'
+import {
+  slackChannelConfigs,
+  slackWorkspaces,
+  discordChannelConfigs,
+  discordWorkspaces,
+  telegramChatConfigs,
+  telegramInstallations
+} from '../db/schema'
 import { getDb } from '../db/neon'
 
 // Cross-cutting notification dispatcher. When a new multisig request is
@@ -115,7 +126,19 @@ export const findBoundChannels = async (
       .where(
         sql`LOWER(${discordChannelConfigs.multisigAddress}) = LOWER(${multiSigAddress}) AND ${discordChannelConfigs.chainId} = ${chainId}`
       ),
-    Promise.resolve([] as TelegramBoundChannel[])
+    db
+      .select({
+        id: telegramChatConfigs.id,
+        installationId: telegramChatConfigs.installationId,
+        chatId: telegramChatConfigs.chatId,
+        chatTitle: telegramChatConfigs.chatTitle,
+        botTokenEncrypted: telegramInstallations.botTokenEncrypted
+      })
+      .from(telegramChatConfigs)
+      .innerJoin(telegramInstallations, eq(telegramInstallations.id, telegramChatConfigs.installationId))
+      .where(
+        sql`LOWER(${telegramChatConfigs.multisigAddress}) = LOWER(${multiSigAddress}) AND ${telegramChatConfigs.chainId} = ${chainId}`
+      )
   ])
   return {
     slack: slackRows.map((r) => ({
@@ -123,16 +146,22 @@ export const findBoundChannels = async (
       teamId: r.teamId,
       channelId: r.channelId,
       channelName: r.channelName,
-      botToken: decryptToken(r.botTokenEncrypted)
+      botToken: decryptSlackToken(r.botTokenEncrypted)
     })),
     discord: discordRows.map((r) => ({
       id: r.id,
       guildId: r.guildId,
       channelId: r.channelId,
       channelName: r.channelName,
-      botToken: decryptToken(r.botTokenEncrypted)
+      botToken: decryptDiscordToken(r.botTokenEncrypted)
     })),
-    telegram: telegramRows
+    telegram: telegramRows.map((r) => ({
+      id: r.id,
+      installationId: r.installationId,
+      chatId: r.chatId,
+      chatTitle: r.chatTitle,
+      botToken: decryptTelegramToken(r.botTokenEncrypted)
+    }))
   }
 }
 
@@ -192,6 +221,15 @@ const postToDiscord = async (channel: DiscordBoundChannel, input: NewRequestInpu
   })
 }
 
-const postToTelegram = async (_channel: TelegramBoundChannel, _input: NewRequestInput): Promise<void> => {
-  throw new Error('notifyNewRequest.postToTelegram: not implemented (commit 4)')
+// Telegram sendMessage with the per-binding chat_id. newRequestPayload's
+// placeholder chat_id (0) is overridden here before posting.
+const postToTelegram = async (channel: TelegramBoundChannel, input: NewRequestInput): Promise<void> => {
+  const payload = newRequestPayload(input)
+  await telegramApi('sendMessage', {
+    token: channel.botToken,
+    json: {
+      ...payload,
+      chat_id: channel.chatId
+    }
+  })
 }
