@@ -125,7 +125,7 @@
     "eslint-plugin-promise": "^7.2.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-storybook": "^10.1.11",
-    "framer-motion": "^12.23.26",
+    "motion": "^12.23.26",
     "husky": "^9.1.7",
     "jest": "^30.2.0",
     "lint-staged": "^16.2.7",
