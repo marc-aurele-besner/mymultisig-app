@@ -27,7 +27,7 @@ describe('verifyDiscordRequest', () => {
   // Generate a key pair once for the valid-case tests. Each negative
   // test mints its own pair so the failures can't accidentally pass
   // because of shared state.
-  const validSecret = ed25519.utils.randomSecretKey()
+  const validSecret = ed25519.utils.randomPrivateKey()
   const validPublic = ed25519.getPublicKey(validSecret)
   const valid = makeSigned(validSecret, validPublic, freshTs, RAW_BODY)
 
@@ -43,7 +43,7 @@ describe('verifyDiscordRequest', () => {
   })
 
   it('rejects a signature produced by a different key', () => {
-    const otherSecret = ed25519.utils.randomSecretKey()
+    const otherSecret = ed25519.utils.randomPrivateKey()
     const otherPublic = ed25519.getPublicKey(otherSecret)
     const wrong = makeSigned(otherSecret, otherPublic, freshTs, RAW_BODY)
     expect(

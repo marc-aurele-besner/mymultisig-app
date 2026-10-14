@@ -99,7 +99,7 @@ const baseInput: NewRequestInput = {
   request: {
     id: '7f3c1b2e-9a4d-4e8b-9c2f-1a2b3c4d5e6f',
     multiSigAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-    request: { to: '0xvictim', value: '0', data: '0x', operation: 0 },
+    request: { to: '0xvictim', value: '0', data: '0x', operation: '0', txnGas: '0', signatures: '0x' },
     description: 'Test request',
     submitter: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
     signatures: [],
@@ -110,7 +110,10 @@ const baseInput: NewRequestInput = {
     isExecuted: false,
     isCancelled: false,
     isConfirmed: false,
-    isSuccessful: false
+    isSuccessful: false,
+    txnNonce: null,
+    dateCancelled: '',
+    cancelledBy: ''
   },
   chainId: 1,
   chainName: 'Mainnet',
