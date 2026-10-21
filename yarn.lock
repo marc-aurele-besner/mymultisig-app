@@ -6307,13 +6307,13 @@
     axe-core "^4.2.0"
 
 "@storybook/addon-docs@^10.1.11":
-  version "10.6.2"
-  resolved "https://registry.yarnpkg.com/@storybook/addon-docs/-/addon-docs-10.6.2.tgz#393910044c4743f7fb1b48a9bd19012c205975cd"
-  integrity sha512-f7Rv/rzX1sk4lUDTeoIRkXWcWvNwLv7vBnfpFGb3f88MliB+M4ZekGKNiKtrmi44uLFt52gzwwPzj2eGDu0DQQ==
+  version "10.6.3"
+  resolved "https://registry.yarnpkg.com/@storybook/addon-docs/-/addon-docs-10.6.3.tgz#24a8bfa2f2f56a23b031ae5e3196bd36fcd6dc7c"
+  integrity sha512-365f712au4w/xvFqEKY6TIvTeGGAY7FKRB8zP4CFa3VSv9oyxHaq/ublFg4YDbCeRagppwl1PZ6k4+PoUor3+A==
   dependencies:
     "@mdx-js/react" "^3.0.0"
     "@storybook/icons" "^2.0.2"
-    "@storybook/react-dom-shim" "10.6.2"
+    "@storybook/react-dom-shim" "10.6.3"
     react "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
     react-dom "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
     ts-dedent "^2.0.0"
@@ -6431,11 +6431,6 @@
     micromatch "^4.0.2"
     react-docgen-typescript "^2.2.2"
     tslib "^2.0.0"
-
-"@storybook/react-dom-shim@10.6.2":
-  version "10.6.2"
-  resolved "https://registry.yarnpkg.com/@storybook/react-dom-shim/-/react-dom-shim-10.6.2.tgz#863ffe89bad54ef16e4bf01af536137577e8365b"
-  integrity sha512-k0262Vqxjk3wHeg3g/QO/ENDrkC7kkbuwsFSXOdYr7Sl888tsF1DAS7uQ/gr+s/BRz1FLYRX7wBY3smEUV4MJg==
 
 "@storybook/react-dom-shim@10.6.3":
   version "10.6.3"
