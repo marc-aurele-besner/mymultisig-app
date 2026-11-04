@@ -30,7 +30,10 @@ const nextConfig = {
       porto: false,
       'porto/internal': false,
       // MetaMask SDK optional React Native dep — not used in web
-      '@react-native-async-storage/async-storage': false
+      '@react-native-async-storage/async-storage': false,
+      // viem's optional `mppx` peer dep — only needed for Tempo gateway payments,
+      // which this app does not use (it has no Tempo chain)
+      'mppx/client': false
     }
     return config
   }
