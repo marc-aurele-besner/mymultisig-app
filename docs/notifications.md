@@ -111,10 +111,11 @@ Discord uses embeds + action row. Telegram uses HTML + inline_keyboard.
 
 - **Notifications read `0/N` for the threshold on the first
   delivery.** The notification fires when the request is first
-  persisted, so the submitter's signature is the only one in. A
-  follow-up PR will fire a "threshold-reached" notification from the
-  on-chain `MultiRequestExecuted` event watcher in
-  `useExecTransaction.ts`.
+  persisted, so the submitter's signature is the only one in. Slack
+  channels also get a "Ready to execute" message (`notifyReadyToExecute`)
+  when a signature PATCH crosses the threshold, or on creation when the
+  request is already at threshold. Discord and Telegram don't have that
+  message yet. See [slack-integration.md](./slack-integration.md).
 - **No ownership check on `/bind`.** Documented above. SIWE-in-chat
   is the follow-up.
 - **One active Telegram bot per deployment.** Telegram's webhook URL

@@ -1,58 +1,80 @@
 {
+  "_metadata": {
+    "major_version": 1,
+    "minor_version": 1
+  },
   "display_information": {
     "name": "MyMultiSig",
-    "description": "Sign multisig requests, post new-request notifications, and read chain state from Slack.",
-    "background_color": "#1f2937",
-    "long_description": "MyMultiSig brings multisig request notifications and slash commands to Slack. Install the app to a workspace, run /balance or /address-book to read state, and (next release) get a Block Kit message in your channel whenever a new request is proposed or the signing threshold is reached."
+    "description": "Multisig request notifications and read-only chain lookups for your Slack channels.",
+    "background_color": "#1a1a1a",
+    "long_description": "MyMultiSig posts a message into your Slack channels whenever a new transaction request is proposed on one of your multisig wallets, and again when a request collects enough signatures to be executed. Each message links straight to the request page so signers can review and sign in one click.\r\n\r\nGetting started:\r\n1. Add the app to your workspace from https://mymultisig.app/settings/slack (sign in with your wallet first).\r\n2. In the channel that should get notifications, run /bind <chain> <multisig address>. For private channels, /invite the bot first.\r\n3. That's it. Run /multisig help any time for the full command list.\r\n\r\nThe bot never holds keys and cannot sign or execute anything; signing always happens in your own wallet on mymultisig.app."
   },
   "features": {
     "bot_user": {
       "display_name": "MyMultiSig",
-      "always_online": false
+      "always_online": true
     },
     "slash_commands": [
       {
+        "command": "/multisig",
+        "url": "__SLACK_COMMANDS_URL__",
+        "description": "MyMultiSig: help, bind, unbind, balance, address-book",
+        "usage_hint": "help | bind <chain> <multisig> | unbind <chain> <multisig> | balance <chain> <address>",
+        "should_escape": false
+      },
+      {
+        "command": "/bind",
+        "url": "__SLACK_COMMANDS_URL__",
+        "description": "Post this multisig's request notifications in this channel",
+        "usage_hint": "<chain> <multisig address>",
+        "should_escape": false
+      },
+      {
+        "command": "/unbind",
+        "url": "__SLACK_COMMANDS_URL__",
+        "description": "Stop posting this multisig's notifications in this channel",
+        "usage_hint": "<chain> <multisig address>",
+        "should_escape": false
+      },
+      {
         "command": "/balance",
-        "description": "Show the native balance of a multisig on a chain",
-        "should_escape": false,
-        "url": "__SLACK_COMMANDS_URL__"
+        "url": "__SLACK_COMMANDS_URL__",
+        "description": "Show the native balance of an address on a chain",
+        "usage_hint": "<chain> <address>",
+        "should_escape": false
       },
       {
         "command": "/address-book",
-        "description": "List the public labels for an address",
-        "should_escape": false,
-        "url": "__SLACK_COMMANDS_URL__"
+        "url": "__SLACK_COMMANDS_URL__",
+        "description": "List the public MyMultiSig labels for an address",
+        "usage_hint": "<chain> <address>",
+        "should_escape": false
       },
       {
         "command": "/propose",
-        "description": "Propose a new transaction request (coming soon)",
-        "should_escape": false,
-        "url": "__SLACK_COMMANDS_URL__"
+        "url": "__SLACK_COMMANDS_URL__",
+        "description": "Open the app to propose a new transaction request",
+        "should_escape": false
       },
       {
         "command": "/sign",
-        "description": "Open a request to sign (coming soon)",
-        "should_escape": false,
-        "url": "__SLACK_COMMANDS_URL__"
-      },
-      {
-        "command": "/help",
-        "description": "Show available MyMultiSig commands",
-        "should_escape": false,
-        "url": "__SLACK_COMMANDS_URL__"
+        "url": "__SLACK_COMMANDS_URL__",
+        "description": "Open a request in the app to sign it",
+        "usage_hint": "<request id>",
+        "should_escape": false
       }
     ]
   },
   "oauth_config": {
     "redirect_urls": ["__SLACK_OAUTH_REDIRECT_URL__"],
     "scopes": {
-      "bot": ["commands", "chat:write", "chat:write.public", "users:read", "app_mentions:read"]
+      "bot": ["commands", "chat:write", "chat:write.public", "app_mentions:read"]
     }
   },
   "settings": {
     "event_subscriptions": {
       "request_url": "__SLACK_EVENTS_URL__",
-      "bot_events": ["app_uninstalled", "app_mention"]
+      "bot_events": ["app_uninstalled", "tokens_revoked", "app_mention"]
     },
     "interactivity": {
       "is_enabled": true,

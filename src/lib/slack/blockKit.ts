@@ -28,6 +28,13 @@ const APP_URL = (): string => {
 
 const shortenAddress = (address: string): string => `${address.slice(0, 6)}…${address.slice(-4)}`
 
+// Escape the three characters Slack treats as control sequences in mrkdwn
+// (https://api.slack.com/reference/surfaces/formatting#escaping). Request
+// descriptions are free text from whoever submitted the request, so without
+// this a description containing `<!channel>` would ping the whole channel.
+export const escapeMrkdwn = (text: string): string =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
 export const balanceMessage = (chainName: string, address: string, balanceEth: string): SlackSlashResponse => ({
   response_type: 'in_channel',
   text: `${chainName} ${shortenAddress(address)} — ${balanceEth} ETH`,
@@ -40,7 +47,7 @@ export const balanceMessage = (chainName: string, address: string, balanceEth: s
       type: 'context',
       elements: [
         { type: 'mrkdwn', text: `Multisig \`${address}\`` },
-        { type: 'mrkdwn', text: `<${APP_URL()}/multisig/${address}|Open in app →` }
+        { type: 'mrkdwn', text: `<${APP_URL()}/multisig/${address}|Open in app →>` }
       ]
     }
   ]
@@ -71,16 +78,16 @@ export const addressBookMessage = (
   }
 }
 
-export const comingSoonMessage = (feature: string, actionUrl: string, actionLabel: string): SlackSlashResponse => ({
+// Reply for /propose and /sign. Proposing and signing need the user's own
+// wallet, so the bot never does either; it hands the user a deep link into
+// the app instead.
+export const openInAppMessage = (text: string, actionUrl: string, actionLabel: string): SlackSlashResponse => ({
   response_type: 'ephemeral',
-  text: `${feature} is coming soon — use the app for now.`,
+  text,
   blocks: [
     {
       type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: `:hourglass_flowing_sand: *${feature}* is coming in the next release. For now, use the app.`
-      }
+      text: { type: 'mrkdwn', text }
     },
     {
       type: 'actions',
@@ -150,13 +157,52 @@ export const helpMessage = (): SlackSlashResponse => ({
         type: 'mrkdwn',
         text:
           '*MyMultiSig slash commands*\n' +
-          '• `/balance <chain> <multisig>` — show the native ETH (or chain equivalent) balance\n' +
+          '• `/bind <chain> <multisig>` — post new-request and ready-to-execute notifications for a multisig in this channel\n' +
+          '• `/unbind <chain> <multisig>` — stop posting them here\n' +
+          '• `/balance <chain> <address>` — show the native balance of an address\n' +
           '• `/address-book <chain> <address>` — list the public labels for an address\n' +
-          '• `/bind <chain> <multisig>` — bind this channel to a multisig for new-request notifications\n' +
-          '• `/unbind <chain> <multisig>` — remove a binding\n' +
-          '• `/propose` — propose a new request (coming soon)\n' +
-          '• `/sign <request_id>` — open a request to sign (coming soon)'
+          '• `/propose` — open the app to propose a request\n' +
+          '• `/sign <request_id>` — open a request in the app to sign it\n' +
+          'Every command also works as `/multisig <command> …`, e.g. `/multisig bind sepolia 0xabc…`.\n' +
+          '`<chain>` is a name (`mainnet`, `sepolia`, `polygon`, …) or a chain id (`1`, `11155111`, …).'
       }
+    },
+    {
+      type: 'context',
+      elements: [
+        {
+          type: 'mrkdwn',
+          text: 'Private channel? Run `/invite @MyMultiSig` first so the bot can post there.'
+        }
+      ]
+    }
+  ]
+})
+
+// Message the bot posts into the channel right after a successful /bind.
+// Posting it doubles as a delivery check: if the bot cannot write to the
+// channel (private channel it was not invited to, DM, archived channel),
+// chat.postMessage fails and the router rolls the binding back.
+export const bindAnnouncementMessage = (
+  chainName: string,
+  address: string,
+  userId: string
+): { text: string; blocks: any[] } => ({
+  text: `This channel will now get MyMultiSig notifications for ${shortenAddress(address)} on ${chainName}.`,
+  blocks: [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `:bell: <@${userId}> connected this channel to multisig \`${address}\` on *${chainName}*. New requests and requests that are ready to execute will be posted here.`
+      }
+    },
+    {
+      type: 'context',
+      elements: [
+        { type: 'mrkdwn', text: `<${APP_URL()}/multisig/${address}|Open the multisig in MyMultiSig →>` },
+        { type: 'mrkdwn', text: 'Run `/unbind` with the same arguments to stop.' }
+      ]
     }
   ]
 })
@@ -169,22 +215,39 @@ export const helpMessage = (): SlackSlashResponse => ({
 // The slack message is in_channel so the whole channel sees the request
 // (matching how /balance posts its result for the whole room). The
 // `text` field is the fallback for clients that don't render blocks.
-export const newRequestMessage = (input: NewRequestInput): SlackSlashResponse => {
+export const newRequestMessage = (input: NewRequestInput): SlackSlashResponse =>
+  requestNotification(input, { emoji: ':sparkles:', heading: 'New request', buttonLabel: 'View request' })
+
+// "Ready to execute" notification: fired once, on the signature that brings
+// a request up to the wallet threshold (or on creation when the submitter's
+// signature alone is enough). Same layout as newRequestMessage so the two
+// read as a pair in the channel.
+export const readyToExecuteMessage = (input: NewRequestInput): SlackSlashResponse =>
+  requestNotification(input, {
+    emoji: ':white_check_mark:',
+    heading: 'Ready to execute',
+    buttonLabel: 'Execute request'
+  })
+
+const requestNotification = (
+  input: NewRequestInput,
+  copy: { emoji: string; heading: string; buttonLabel: string }
+): SlackSlashResponse => {
   const chainName = input.chainName ?? 'unknown chain'
   const threshold = input.threshold ?? '?'
-  const description = input.request.description
+  const description = escapeMrkdwn(input.request.description)
   const requestUrl = `${APP_URL()}/request/${input.request.id}`
   const explorerUrl = input.explorerUrl ? `${input.explorerUrl}/address/${input.request.multiSigAddress}` : null
 
   return {
     response_type: 'in_channel',
-    text: `New request on ${chainName} — ${description}`,
+    text: `${copy.heading} on ${chainName} — ${description}`,
     blocks: [
       {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `:sparkles: *New request on ${chainName}*\n${description}`
+          text: `${copy.emoji} *${copy.heading} on ${chainName}*\n${description}`
         }
       },
       {
@@ -203,7 +266,7 @@ export const newRequestMessage = (input: NewRequestInput): SlackSlashResponse =>
         elements: [
           {
             type: 'button',
-            text: { type: 'plain_text', text: 'View request' },
+            text: { type: 'plain_text', text: copy.buttonLabel },
             url: requestUrl,
             style: 'primary'
           },

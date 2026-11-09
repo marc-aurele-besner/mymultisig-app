@@ -6,6 +6,8 @@ import { multisigRequests, multisigWallets } from '../../../lib/db/schema'
 import { rowToMultiSigRequest } from '../../../lib/db/mappers'
 import { cascadeInvalidate } from '../../../lib/api/cascade'
 import { notifyThresholdReached } from '../../../lib/email/notifier'
+import { explorerUrlForChain } from '../../../lib/notifications/chains'
+import { notifyReadyToExecute } from '../../../lib/notifications/dispatcher'
 import { trackTransactionExecuted, trackTransactionReset, trackTransactionSigned } from '../../../lib/channlize/events'
 import { parseBody, parseIdParam, withSession, withVerifiedAsOwner } from '../../../lib/api/middleware'
 
@@ -136,7 +138,8 @@ const patchHandler = withVerifiedAsOwner(parseIdParam, async (req, res, _address
         name: multisigWallets.name,
         chainName: multisigWallets.chainName,
         owners: multisigWallets.owners,
-        threshold: multisigWallets.threshold
+        threshold: multisigWallets.threshold,
+        chainId: multisigWallets.chainId
       })
       .from(multisigWallets)
       .where(sql`LOWER(${multisigWallets.address}) = LOWER(${existing.multiSigAddress})`)
@@ -161,6 +164,15 @@ const patchHandler = withVerifiedAsOwner(parseIdParam, async (req, res, _address
         }
       ).catch((e) => {
         console.error('email notification failed', (e as Error).message)
+      })
+      void notifyReadyToExecute({
+        request: rowToMultiSigRequest({ ...existing, signatures: patch.signatures as string[] }),
+        chainId: wallet.chainId,
+        chainName: wallet.chainName ?? null,
+        threshold: wallet.threshold,
+        explorerUrl: explorerUrlForChain(wallet.chainId)
+      }).catch((e) => {
+        console.error('chat notification failed', (e as Error).message)
       })
     }
   }
