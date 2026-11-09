@@ -7,6 +7,7 @@ import AdvancedFeaturesPanel from '../multiSigDetails/AdvancedFeaturesPanel'
 import SpendingAllowancePanel from '../multiSigDetails/SpendingAllowancePanel'
 import MessageSigningPanel from '../multiSigDetails/MessageSigningPanel'
 import AccountAbstractionPanel from '../multiSigDetails/AccountAbstractionPanel'
+import MultiSigRpcPanel from '../multiSigDetails/MultiSigRpcPanel'
 import { isModernWallet } from '../../utils/contractVersions'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
@@ -83,6 +84,8 @@ const MultiSigSettings: React.FC<MultiSigSettingsProps> = ({ multiSigAddress }) 
       {walletType === 'extended' && <SpendingAllowancePanel multiSigAddress={multiSigAddress} />}
       {isModernWallet(multiSigDetails.version) && <MessageSigningPanel multiSigAddress={multiSigAddress} />}
       {walletType === 'extended' && <AccountAbstractionPanel multiSigAddress={multiSigAddress} />}
+
+      <MultiSigRpcPanel multiSigAddress={multiSigAddress} />
     </div>
   )
 }
