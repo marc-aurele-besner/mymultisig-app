@@ -5,6 +5,7 @@ import MyMultiSigExtended from 'mymultisig-contract/abi/MyMultiSigExtended.json'
 
 import type { IncomingTransfer } from '../lib/alchemy/transfers'
 import { isRateLimitError, pause, RATE_LIMIT_MESSAGE, withRateLimitRetry } from '../lib/rpc/rateLimit'
+import { isRpcError } from '../lib/rpc/rpcError'
 import { getIncomingTransfers } from '../utils/api'
 
 // The Extended ABI is a superset of the simple wallet's, so decoding against it
@@ -95,6 +96,7 @@ const useMultiSigActivity = (multiSigAddress: `0x${string}`, options?: ActivityO
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [rateLimited, setRateLimited] = useState(false)
+  const [rpcFailure, setRpcFailure] = useState(false)
   const [oldestScanned, setOldestScanned] = useState<bigint | null>(null)
   // Where the transfer scan continues: the block it pinned and the indexer page key.
   // `pageKey: null` means the scan reached block 0.
@@ -186,6 +188,7 @@ const useMultiSigActivity = (multiSigAddress: `0x${string}`, options?: ActivityO
     setIsLoading(true)
     setError(null)
     setRateLimited(false)
+    setRpcFailure(false)
     const startedFor = scanKeyRef.current
     const isCurrent = () => scanKeyRef.current === startedFor
     try {
@@ -234,6 +237,7 @@ const useMultiSigActivity = (multiSigAddress: `0x${string}`, options?: ActivityO
       }
     } catch (err) {
       if (scanKeyRef.current !== startedFor) return
+      setRpcFailure(isRpcError(err))
       if (isRateLimitError(err)) {
         startCooldown()
         setRateLimited(true)
@@ -303,6 +307,7 @@ const useMultiSigActivity = (multiSigAddress: `0x${string}`, options?: ActivityO
     cooldownUntilRef.current = 0
     setError(null)
     setRateLimited(false)
+    setRpcFailure(false)
   }, [multiSigAddress, chainKey])
 
   // Only the first load starts automatically. After a failure the user retries
@@ -336,6 +341,9 @@ const useMultiSigActivity = (multiSigAddress: `0x${string}`, options?: ActivityO
     error,
     // True when the last failure was the RPC rate limit; a retry resumes the scan.
     rateLimited,
+    // True when the last failure came from the RPC endpoint (down, slow, rate
+    // limited), so the feed can point at the custom RPC settings.
+    rpcFailure,
     // Blocks older than this have not been scanned yet.
     oldestScanned,
     hasOlder: oldestScanned == null || oldestScanned > 0n || !incomingDone,
