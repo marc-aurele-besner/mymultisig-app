@@ -153,8 +153,15 @@ const useExecTransaction = (
 
   const markExecuted = (isSuccessful: boolean, requestPatch?: Partial<MultiSigExecTransactionArgs>) => {
     if (!chain || !existingRequestId) return
+    // Always record the execution transaction hash so every viewer can open
+    // it on the explorer and confirm what actually happened on-chain.
+    const executionTxHash = dataFinal?.transactionHash
     const patch = {
-      ...(requestPatch ? { request: { ...existingRequest.request, ...requestPatch } } : {}),
+      request: {
+        ...existingRequest.request,
+        ...requestPatch,
+        ...(executionTxHash != null ? { executionTxHash } : {})
+      },
       dateExecuted: new Date().toISOString(),
       isExecuted: true,
       isSuccessful

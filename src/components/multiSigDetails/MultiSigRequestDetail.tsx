@@ -4,6 +4,9 @@ import { useAccount, useChainId, useChains } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { formatNativeAmount } from '../../utils/formatNativeAmount'
+import { formatRequestDate } from '../../utils/requestDate'
+import truncateAddress from '../../utils/truncateAddress'
+import { useAddressLabels } from '../../states/addressBook'
 import SignRequest from '../buttons/SignRequest'
 import ExecuteRequest from '../buttons/ExecuteRequest'
 import ApproveRequest from '../buttons/ApproveRequest'
@@ -12,6 +15,7 @@ import CancelRequestButton from './CancelRequestButton'
 import ScheduledExecutionPanel from './ScheduledExecutionPanel'
 import UserOpRequestCard from './UserOpRequestCard'
 import ShareRequestLink from './ShareRequestLink'
+import ExecutionOutcome, { ExecutionOutcomeKind } from './ExecutionOutcome'
 import { isModernWallet } from '../../utils/contractVersions'
 import useMultiSigRequestDetails from '../../hooks/useMultiSigRequestDetails'
 import useDeleteMultiSigRequest from '../../hooks/useDeleteMultiSigRequest'
@@ -70,6 +74,8 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
   const chainId = useChainId()
   const chain = useChains().find((c) => c.id === chainId)
   const nativeSymbol = chain?.nativeCurrency.symbol ?? 'ETH'
+  const explorerUrl = chain?.blockExplorers?.default.url
+  const { labelFor } = useAddressLabels(chain?.id)
   const requestDetails = useMultiSigRequestDetails(multiSigRequestId)
   const { multiSigDetails, onChainOwners } = useMultiSigDetails(
     requestDetails != null ? requestDetails.multiSigAddress : '0x',
@@ -154,8 +160,34 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
       }`
     : `${requestDetails.signatures.length} signature${requestDetails.signatures.length === 1 ? '' : 's'}`
 
+  // Address-book label for an address, or "This multisig" for self-calls.
+  const nameFor = (addr: string): string | undefined =>
+    labelFor(addr) ??
+    (addr.toLowerCase() === requestDetails.multiSigAddress.toLowerCase() ? 'This multisig' : undefined)
+  const targetName = nameFor(requestDetails.request.to)
+  const targetLabel =
+    targetName != null
+      ? `${targetName} (${truncateAddress(requestDetails.request.to)})`
+      : truncateAddress(requestDetails.request.to)
+
+  // Executed requests split three ways: the wallet's inner call reverted
+  // (TxFailure — nonce used, nothing sent), a best-effort batch with some
+  // failed steps, or a clean success.
+  const failedSteps = batchResults?.filter((r) => !r.success).length ?? 0
+  const executionOutcome: ExecutionOutcomeKind = !requestDetails.isSuccessful
+    ? 'failed'
+    : failedSteps > 0
+      ? 'partial'
+      : 'success'
+  const hasValue = requestDetails.request.value !== '' && requestDetails.request.value !== '0'
+  const submittedOn = formatRequestDate(requestDetails.dateSubmitted)
+
   const statusLabel = requestDetails.isExecuted
-    ? 'Executed'
+    ? executionOutcome === 'failed'
+      ? 'Failed'
+      : executionOutcome === 'partial'
+        ? 'Partially failed'
+        : 'Executed'
     : requestDetails.isCancelled
       ? 'Cancelled'
       : isExpired
@@ -164,11 +196,15 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
           ? 'Ready to execute'
           : 'Collecting signatures'
   const statusClass =
-    requestDetails.isExecuted || (thresholdReached && !isExpired && !requestDetails.isCancelled)
-      ? 'bg-primary text-primary-foreground'
-      : isExpired
-        ? 'bg-destructive/15 text-destructive'
-        : 'border border-border text-muted-foreground'
+    requestDetails.isExecuted && executionOutcome === 'failed'
+      ? 'bg-destructive/15 text-destructive'
+      : requestDetails.isExecuted && executionOutcome === 'partial'
+        ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+        : requestDetails.isExecuted || (thresholdReached && !isExpired && !requestDetails.isCancelled)
+          ? 'bg-primary text-primary-foreground'
+          : isExpired
+            ? 'bg-destructive/15 text-destructive'
+            : 'border border-border text-muted-foreground'
 
   return (
     <Fragment>
@@ -187,9 +223,9 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
       <section className='mt-4 w-full overflow-hidden rounded-xl border border-border bg-card'>
         <header className='flex flex-wrap items-start justify-between gap-4 p-5 md:p-6'>
           <div className='min-w-0'>
-            {requestDetails.dateSubmitted !== '' && (
+            {submittedOn != null && (
               <p className='font-mono text-xs uppercase tracking-wider text-muted-foreground'>
-                Submitted {new Date(Number(requestDetails.dateSubmitted)).toLocaleDateString()}
+                Submitted {submittedOn}
               </p>
             )}
             <h3 className='mt-1 break-words font-display text-2xl font-bold text-foreground'>
@@ -223,8 +259,11 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
         </div>
 
         <dl className='grid gap-x-8 gap-y-5 border-t border-border p-5 md:grid-cols-2 md:p-6'>
-          <Detail label='Target' mono>
-            {requestDetails.request.to}
+          <Detail label='Target'>
+            {targetName != null && <span className='block font-semibold'>{targetName}</span>}
+            <span className={cn('block font-mono', targetName != null && 'mt-0.5 text-xs text-muted-foreground')}>
+              {requestDetails.request.to}
+            </span>
           </Detail>
           <Detail label='Value' mono={showRawAmount}>
             <span className='block'>
@@ -288,6 +327,9 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
                     className='flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-border px-3 py-2 text-sm'
                   >
                     <span className='font-mono text-muted-foreground'>#{i + 1}</span>
+                    {nameFor(step.to) != null && (
+                      <span className='font-semibold text-foreground'>{nameFor(step.to)}</span>
+                    )}
                     <span className='break-all font-mono text-foreground'>{step.to}</span>
                     <span className='text-muted-foreground'>
                       value {showRawAmount ? `${step.value} wei` : formatNativeAmount(step.value, nativeSymbol)}
@@ -308,11 +350,17 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
 
         {requestDetails.isExecuted ? (
           <div className='border-t border-border p-5 md:p-6'>
-            <p className='text-lg font-semibold text-primary'>
-              This request has been executed
-              {requestDetails.dateExecuted != null &&
-                ` on ${new Date(Number(requestDetails.dateExecuted)).toLocaleDateString()}`}
-            </p>
+            <ExecutionOutcome
+              outcome={executionOutcome}
+              dateExecuted={requestDetails.dateExecuted}
+              valueLabel={hasValue ? formatNativeAmount(requestDetails.request.value, nativeSymbol) : undefined}
+              targetLabel={targetLabel}
+              multiSigAddress={requestDetails.multiSigAddress}
+              executionTxHash={requestDetails.request.executionTxHash}
+              explorerUrl={explorerUrl}
+              failedSteps={failedSteps}
+              totalSteps={batchSteps?.length}
+            />
           </div>
         ) : (
           <Fragment>
