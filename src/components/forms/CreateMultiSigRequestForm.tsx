@@ -1,6 +1,6 @@
 import React, { Fragment, useState } from 'react'
-import { useAccount, useChainId } from 'wagmi'
-import { encodeFunctionData, type Abi } from 'viem'
+import { useAccount, useBalance, useChainId, useChains } from 'wagmi'
+import { encodeFunctionData, formatUnits, type Abi } from 'viem'
 import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 import { JsonFragment } from '@ethersproject/abi'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch'
 
 import TextInput from '../inputs/TextInput'
 import AddressBookInput from '../inputs/AddressBookInput'
+import EthersInput from '../inputs/EthersInput'
 import SignRequest from '../buttons/SignRequest'
 import SignUserOp from '../buttons/SignUserOp'
 import NewContract from '../modals/NewContract'
@@ -102,6 +103,12 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
   const [showNewContract, setShowNewContract] = useState(false)
   const contracts = useContracts((state) => state.contracts)
   const { address } = useAccount()
+  const chainId = useChainId()
+  const chain = useChains().find((c) => c.id === chainId)
+  const nativeSymbol = chain?.nativeCurrency.symbol ?? 'ETH'
+  // Native value is sent from the multisig itself, so its balance caps what the
+  // request can move. Gas is paid by the submitter, so nothing is reserved for it.
+  const { data: walletBalance } = useBalance({ address: multiSigAddress, chainId })
   const { walletType, allowOnlyOwnerRequest } = useWalletType(multiSigAddress)
   const { data: detailsData } = useMultiSigDetails(multiSigAddress, address ?? '0x')
   const { supportsAdvanced, entryPoint } = useAdvancedFeatures(multiSigAddress)
@@ -149,10 +156,24 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
     updateStep(index, { contractKey: key, to, functionSig: '', args: {}, data: '0x' })
   }
 
+  // Native value this step can still send: the wallet balance minus what the
+  // other steps of the same request already send. undefined until loaded.
+  const remainingWei = (index: number): bigint | undefined => {
+    if (walletBalance == null) return undefined
+    const committed = steps.reduce((sum, s, i) => (i !== index && isUint(s.value) ? sum + BigInt(s.value) : sum), 0n)
+    const remaining = walletBalance.value - committed
+    return remaining > 0n ? remaining : 0n
+  }
+  const exceedsBalance = (step: RequestStep, index: number) => {
+    const available = remainingWei(index)
+    return available != null && isUint(step.value) && BigInt(step.value) > available
+  }
+
   // What is stopping this step from being valid, in words the user can act on.
-  const stepError = (step: RequestStep): string | null => {
+  const stepError = (step: RequestStep, index: number): string | null => {
     if (!isAddress(step.to)) return 'needs a valid target address'
     if (!isUint(step.value)) return 'needs a whole number for value'
+    if (exceedsBalance(step, index)) return 'exceeds the wallet balance'
     if (!isUint(step.txnGas)) return 'needs a whole number for gas'
     const fragment = fragmentFor(abiForStep(step), step.functionSig)
     if (fragment != null) {
@@ -173,7 +194,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
     </div>
   )
 
-  const firstInvalidIndex = steps.findIndex((s) => stepError(s) != null)
+  const firstInvalidIndex = steps.findIndex((s, i) => stepError(s, i) != null)
   const stepsValid = firstInvalidIndex === -1
   const expiryValid = expiry === '' || new Date(expiry).getTime() > Date.now()
   const isBatch = steps.length > 1
@@ -376,15 +397,17 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
 
               <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 {field(
-                  'Value (wei)',
-                  <TextInput
-                    className='md:w-full'
-                    placeholder='0'
+                  'Value',
+                  <EthersInput
+                    symbol={nativeSymbol}
                     value={step.value}
-                    isInvalid={step.value !== '' && !isUint(step.value)}
-                    onChange={(e) => updateStep(i, { value: e.target.value.trim() })}
+                    balanceHint={remainingWei(i)}
+                    isInvalid={step.value !== '' && (!isUint(step.value) || exceedsBalance(step, i))}
+                    onChange={(wei) => updateStep(i, { value: wei })}
                   />,
-                  'Native currency sent along with the call. Leave 0 for none.'
+                  walletBalance != null
+                    ? `Native ${nativeSymbol} sent along with the call. Wallet balance: ${Number(formatUnits(walletBalance.value, walletBalance.decimals)).toLocaleString(undefined, { maximumFractionDigits: 6 })} ${nativeSymbol}.`
+                    : 'Native currency sent along with the call. Leave 0 for none.'
                 )}
                 {field(
                   'Gas limit',
@@ -578,7 +601,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
                     : bundlerModeEffective && isBatch
                       ? 'Bundler mode is single-step only.'
                       : firstInvalidIndex !== -1
-                        ? `${isBatch ? `Step ${firstInvalidIndex + 1}` : 'The request'} ${stepError(steps[firstInvalidIndex])}.`
+                        ? `${isBatch ? `Step ${firstInvalidIndex + 1}` : 'The request'} ${stepError(steps[firstInvalidIndex], firstInvalidIndex)}.`
                         : 'Add a description so the other owners know what this request does.'}
                 </p>
               </div>
