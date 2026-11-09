@@ -6,7 +6,7 @@ import { multisigRequests, multisigWallets } from '../../../lib/db/schema'
 import { rowToMultiSigRequest } from '../../../lib/db/mappers'
 import { parseBody, parseQueryString, withSession, withVerifiedAs } from '../../../lib/api/middleware'
 import { explorerUrlForChain } from '../../../lib/notifications/chains'
-import { notifyNewRequest } from '../../../lib/notifications/dispatcher'
+import { notifyNewRequest, notifyReadyToExecute } from '../../../lib/notifications/dispatcher'
 import { notifyNeedsSignature, notifyThresholdReached } from '../../../lib/email/notifier'
 import { trackTransactionCreated } from '../../../lib/channlize/events'
 
@@ -139,15 +139,22 @@ const createHandler = withVerifiedAs(
         cancelledBy: '',
         createdAt: null
       } as any)
-      void notifyNewRequest({
+      const chatInput = {
         request: persistedRequest,
         chainId: walletRow.chainId,
         chainName: walletRow.chainName ?? null,
         threshold: walletRow.threshold,
         explorerUrl: explorerUrlForChain(walletRow.chainId)
-      }).catch((e) => {
-        console.error('notifyNewRequest failed', (e as Error).message)
-      })
+      }
+      // A request that is already at threshold on creation also gets the
+      // "ready to execute" notice, posted after the new-request one so the
+      // two land in order.
+      const readyOnCreate = persistedRequest.signatures.length >= walletRow.threshold
+      void notifyNewRequest(chatInput)
+        .then(() => (readyOnCreate ? notifyReadyToExecute(chatInput) : undefined))
+        .catch((e) => {
+          console.error('chat notification failed', (e as Error).message)
+        })
 
       // Email fan-out. A request that already meets the threshold on creation
       // (e.g. a 1-of-N wallet where the submitter signs) is ready to execute,

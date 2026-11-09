@@ -6,7 +6,7 @@ import { decryptToken as decryptSlackToken } from '../slack/crypto'
 import { decryptToken as decryptDiscordToken } from '../discord/crypto'
 import { decryptToken as decryptTelegramToken } from '../telegram/crypto'
 import { slackApi } from '../slack/slackApi'
-import { newRequestMessage } from '../slack/blockKit'
+import { newRequestMessage, readyToExecuteMessage } from '../slack/blockKit'
 import { discordApi } from '../discord/discordApi'
 import { newRequestEmbed } from '../discord/embeds'
 import { telegramApi } from '../telegram/telegramApi'
@@ -224,6 +224,24 @@ export const notifyNewRequest = async (input: NewRequestInput): Promise<void> =>
   })
 }
 
+// Fan a "ready to execute" notice out when a request reaches the wallet
+// threshold. Slack only for now: Discord and Telegram have no builder for
+// this message yet, so their bindings are skipped. Same failure isolation
+// as notifyNewRequest.
+export const notifyReadyToExecute = async (input: NewRequestInput): Promise<void> => {
+  if (input.chainId == null) {
+    console.warn('notifyReadyToExecute: chainId missing; skipping fan-out')
+    return
+  }
+  const channels = await findBoundChannels(input.request.multiSigAddress, input.chainId)
+  const results = await Promise.allSettled(channels.slack.map((s) => postToSlack(s, input, readyToExecuteMessage)))
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') {
+      console.error(`notifyReadyToExecute: slack channel ${channels.slack[i].label} failed`, r.reason)
+    }
+  })
+}
+
 // ─── Per-platform post helpers ──────────────────────────────────────────
 
 // Each helper decrypts its workspace token at the top so a corrupt key
@@ -231,14 +249,18 @@ export const notifyNewRequest = async (input: NewRequestInput): Promise<void> =>
 // in notifyNewRequest then swallows the rejection for that one channel
 // without affecting the sibling channels or the other two platforms.
 
-const postToSlack = async (channel: SlackBoundChannel, input: NewRequestInput): Promise<void> => {
+const postToSlack = async (
+  channel: SlackBoundChannel,
+  input: NewRequestInput,
+  build: (input: NewRequestInput) => { text: string; blocks: unknown[] } = newRequestMessage
+): Promise<void> => {
   let botToken: string
   try {
     botToken = decryptSlackToken(channel.botTokenEncrypted)
   } catch (e) {
     throw new Error(`slack ${channel.label}: decrypt failed (${(e as Error).message})`)
   }
-  const message = newRequestMessage(input)
+  const message = build(input)
   await slackApi('chat.postMessage', {
     token: botToken,
     json: {
