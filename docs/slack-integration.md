@@ -215,6 +215,11 @@ form if another app in your workspace already owns `/bind` or `/balance`.
 
 ### Managing it from the app
 
+Until a channel is bound, `/settings/slack` shows a step-by-step guide with
+an "Open in Slack" link per workspace and a ready-to-copy `/bind` command for
+each multisig the app knows about in this browser. The page re-checks for new
+bindings when you switch back to its tab.
+
 `/settings/slack` lists the workspaces you added while signed in with your
 wallet, and every channel binding in them (including ones teammates made
 with `/bind`). From there you can unbind a channel or uninstall the app
