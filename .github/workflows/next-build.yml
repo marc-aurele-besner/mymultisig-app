@@ -14,5 +14,11 @@ jobs:
           node-version: 26
       - name: Yarn Install
         run: yarn
+      # The app signs and executes through packages/sdk/src/protocol, so a
+      # protocol change must keep the SDK, MCP server and CLI green too.
+      - name: Build agent packages (sdk, mcp, cli)
+        run: yarn packages:build
+      - name: Test agent packages
+        run: yarn packages:test
       - name: Next Build
         run: yarn build
