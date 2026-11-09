@@ -21,6 +21,15 @@ const JSON_HEADERS = { 'Content-Type': 'application/json' }
 // in one place. `body` is serialised once; callers pass plain objects.
 const fetchJson = (url: string, init: RequestInit = {}) => fetch(url, init).then(handleContentResponse)
 
+// Writes that the user is waiting on must not look saved when the server
+// refused them (403 owner-only wallet, 500 from a failed INSERT, ...).
+const fetchWrite = async (url: string, init: RequestInit) => {
+  const response = await fetch(url, init)
+  const body = (await handleContentResponse(response)) as { message?: string }
+  if (!response.ok) throw new Error(body?.message ?? `Request failed with status ${response.status}`)
+  return body
+}
+
 const encode = (value: string) => encodeURIComponent(value)
 
 // --- Multisig transaction requests ---------------------------------------
@@ -32,14 +41,14 @@ export const getMultiSigRequestById = (id: string) =>
   fetchJson(`/api/multisig-requests/${encode(id)}`, { method: 'GET' })
 
 export const addMultiSigRequest = (body: MultiSigTransactionRequest) =>
-  fetchJson('/api/multisig-requests', {
+  fetchWrite('/api/multisig-requests', {
     method: 'POST',
     headers: JSON_HEADERS,
     body: JSON.stringify(body)
   })
 
 export const patchMultiSigRequest = (id: string, body: Record<string, unknown>) =>
-  fetchJson(`/api/multisig-requests/${encode(id)}`, {
+  fetchWrite(`/api/multisig-requests/${encode(id)}`, {
     method: 'PATCH',
     headers: JSON_HEADERS,
     body: JSON.stringify(body)

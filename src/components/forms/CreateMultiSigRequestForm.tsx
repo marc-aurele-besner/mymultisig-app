@@ -1,4 +1,5 @@
 import React, { Fragment, useState } from 'react'
+import Link from 'next/link'
 import { useAccount, useBalance, useChainId, useChains } from 'wagmi'
 import { encodeFunctionData, formatUnits, type Abi } from 'viem'
 import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 import { Switch } from '@/components/ui/switch'
+import { MultiSigTransactionRequest } from '../../models/MultiSigs'
 
 import TextInput from '../inputs/TextInput'
 import AddressBookInput from '../inputs/AddressBookInput'
@@ -91,8 +93,51 @@ const encodeStepData = (step: RequestStep, abi: JsonFragment[] | null): `0x${str
   return isHex(step.data) ? (step.data as `0x${string}`) : null
 }
 
+// Shown once a request is stored: where it stands now, and how to act on it.
+const SubmittedRequestStatus: React.FC<{
+  multiSigAddress: `0x${string}`
+  request: MultiSigTransactionRequest
+  threshold: number | null
+  onSendAnother: () => void
+}> = ({ multiSigAddress, request, threshold, onSendAnother }) => {
+  const collected = request.signatures.length
+  const remaining = threshold != null ? Math.max(threshold - collected, 0) : null
+  const status =
+    remaining == null
+      ? `${collected} signature${collected === 1 ? '' : 's'} collected so far.`
+      : remaining === 0
+        ? 'Ready to execute: the signature threshold is reached.'
+        : `${collected} of ${threshold} signatures collected. ${remaining} more owner signature${
+            remaining === 1 ? ' is' : 's are'
+          } needed.`
+
+  return (
+    <div className='flex w-full flex-col gap-4 rounded-xl border border-border p-4'>
+      <div className='flex flex-col gap-1'>
+        <span className='text-xs font-semibold uppercase tracking-wide text-primary'>Request sent</span>
+        <h3 className='text-base font-semibold text-foreground'>{request.description}</h3>
+        <p className='text-sm text-muted-foreground'>{status}</p>
+      </div>
+      <div className='flex flex-wrap items-center gap-2'>
+        <Button asChild variant='outline'>
+          <Link href={`/request/${request.id}`}>Open request</Link>
+        </Button>
+        <Button asChild variant='outline'>
+          <Link href={`/multisig/${multiSigAddress}/requests`}>All requests</Link>
+        </Button>
+        <Button className='sm:ml-auto' onClick={onSendAnother}>
+          Send another request
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ multiSigAddress }) => {
   const [steps, setSteps] = useState<RequestStep[]>([{ ...EMPTY_STEP }])
+  // The request stored by the last successful sign. While set, the form is
+  // replaced by its status so the user sees the outcome without reloading.
+  const [submitted, setSubmitted] = useState<MultiSigTransactionRequest | null>(null)
   const [description, setDescription] = useState('')
   const [pinnedNonce, setPinnedNonce] = useState('')
   const [expiry, setExpiry] = useState('')
@@ -141,6 +186,17 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
   }
   const addStep = () => setSteps([...steps, { ...EMPTY_STEP }])
   const removeStep = (index: number) => setSteps(steps.filter((_, i) => i !== index))
+
+  const resetForm = () => {
+    setSteps([{ ...EMPTY_STEP }])
+    setDescription('')
+    setPinnedNonce('')
+    setExpiry('')
+    setStrictBatch(false)
+    setDelegateCall(false)
+    setUseBundler(false)
+    setSubmitted(null)
+  }
 
   const handleContractChange = (index: number, key: string) => {
     if (key === 'newContract') {
@@ -270,6 +326,16 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
           This wallet only accepts transaction requests from its owners, and the connected account is not an owner.
         </p>
       </div>
+    )
+
+  if (submitted != null)
+    return (
+      <SubmittedRequestStatus
+        multiSigAddress={multiSigAddress}
+        request={submitted}
+        threshold={detailsData != null ? Number(detailsData[2]) : null}
+        onSendAnother={resetForm}
+      />
     )
 
   return (
@@ -576,6 +642,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
             <SignRequest
               multiSigAddress={multiSigAddress}
               description={description}
+              onSaved={setSubmitted}
               args={{
                 ...signArgs,
                 signatures: '',
