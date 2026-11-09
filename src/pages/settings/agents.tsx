@@ -1,9 +1,14 @@
 import React from 'react'
 
+import SettingsLayout from '../../components/settings/SettingsLayout'
 import AgentSettings from '../../components/views/AgentSettings'
 
 const Page: React.FC = () => {
-  return <AgentSettings />
+  return (
+    <SettingsLayout>
+      <AgentSettings />
+    </SettingsLayout>
+  )
 }
 
 export async function getStaticProps() {

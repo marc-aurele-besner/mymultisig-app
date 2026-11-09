@@ -1,9 +1,14 @@
 import React from 'react'
 
+import SettingsLayout from '../../components/settings/SettingsLayout'
 import TelegramSettings from '../../components/views/TelegramSettings'
 
 const Page: React.FC = () => {
-  return <TelegramSettings />
+  return (
+    <SettingsLayout>
+      <TelegramSettings />
+    </SettingsLayout>
+  )
 }
 
 export async function getStaticProps() {

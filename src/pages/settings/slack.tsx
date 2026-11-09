@@ -1,9 +1,14 @@
 import React from 'react'
 
+import SettingsLayout from '../../components/settings/SettingsLayout'
 import SlackSettings from '../../components/views/SlackSettings'
 
 const Page: React.FC = () => {
-  return <SlackSettings />
+  return (
+    <SettingsLayout>
+      <SlackSettings />
+    </SettingsLayout>
+  )
 }
 
 export async function getStaticProps() {

@@ -1,9 +1,14 @@
 import React from 'react'
 
+import SettingsLayout from '../../components/settings/SettingsLayout'
 import DiscordSettings from '../../components/views/DiscordSettings'
 
 const Page: React.FC = () => {
-  return <DiscordSettings />
+  return (
+    <SettingsLayout>
+      <DiscordSettings />
+    </SettingsLayout>
+  )
 }
 
 export async function getStaticProps() {

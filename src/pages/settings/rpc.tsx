@@ -1,9 +1,14 @@
 import React from 'react'
 
+import SettingsLayout from '../../components/settings/SettingsLayout'
 import RpcSettings from '../../components/views/RpcSettings'
 
 const Page: React.FC = () => {
-  return <RpcSettings />
+  return (
+    <SettingsLayout>
+      <RpcSettings />
+    </SettingsLayout>
+  )
 }
 
 export async function getStaticProps() {

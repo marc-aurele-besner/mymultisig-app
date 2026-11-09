@@ -1,9 +1,14 @@
 import React from 'react'
 
+import SettingsLayout from '../../components/settings/SettingsLayout'
 import EmailSettings from '../../components/views/EmailSettings'
 
 const Page: React.FC = () => {
-  return <EmailSettings />
+  return (
+    <SettingsLayout>
+      <EmailSettings />
+    </SettingsLayout>
+  )
 }
 
 export async function getStaticProps() {
