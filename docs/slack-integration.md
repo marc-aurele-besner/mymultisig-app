@@ -1,179 +1,335 @@
 # Slack integration
 
-Foundation for a real Slack app that can be installed into a workspace, answers
-slash commands (`/balance`, `/address-book`, `/propose`, `/sign`), and is wired
-to Slack's event subscription and interactivity endpoints. The
-"post a notification when a new request is created" loop is the next PR —
-this one only lands the install + command + event plumbing.
+MyMultiSig ships a Slack app that **any team can add to its own workspace**.
+Once it is added, a channel bound to a multisig gets a message:
 
-The app registers a bot user, listens for `app_uninstalled` to clean up
-local rows, and stores the bot token encrypted in Neon (`slack_workspaces`).
+- when a **new request** is proposed on that multisig, and
+- when a request **reaches the signing threshold** and is ready to execute.
 
-## Prerequisites
+Each message links to the request page, where owners sign or execute with
+their own wallet. The bot holds no keys and cannot sign or execute anything.
 
-- A Slack workspace you control (use a test workspace; installs are
-  workspace-wide).
-- A mymultisig-app deployment reachable from the public internet
-  (Slack's request URLs must be https).
-- Neon `DATABASE_URL` already set (the schema is in
-  `src/lib/db/schema.sql`; the new tables are additive).
-- `SESSION_SECRET` (or its `PRIVATE_KEY` fallback) already set for SIWE
-  cookies. The Slack OAuth state cookie uses the same secret.
+This page covers both sides:
 
-## 1. Create the Slack app
+1. [Operator setup](#operator-setup): one-time work by whoever runs the
+   deployment (create the Slack app, set env vars, turn on public
+   distribution).
+2. [Using it in a workspace](#using-it-in-a-workspace): what any team does
+   to start getting notifications.
 
-Two options:
+The app manifest is [`docs/slack-manifest.json`](./slack-manifest.json).
 
-**Option A — one-click from a manifest** (recommended):
+---
 
-1. Run a search-and-replace over `docs/slack-manifest.json` to swap
-   the four `__SLACK_*_URL__` placeholders for your public URLs.
-   For example, if your app is hosted at `https://mymultisig.app`:
+## Operator setup
 
-   ```bash
-   sed -e 's|__SLACK_COMMANDS_URL__|https://mymultisig.app/api/slack/commands|g' \
-       -e 's|__SLACK_OAUTH_REDIRECT_URL__|https://mymultisig.app/api/slack/oauth-callback|g' \
-       -e 's|__SLACK_EVENTS_URL__|https://mymultisig.app/api/slack/events|g' \
-       -e 's|__SLACK_INTERACTIVE_URL__|https://mymultisig.app/api/slack/interactive|g' \
-       docs/slack-manifest.json > /tmp/manifest.json
-   ```
+You do this once per deployment (for example once for `mymultisig.app`, and
+once more if you want a separate app for staging or local development).
 
-2. Go to <https://api.slack.com/apps>, click **Create New App**, choose
-   **From an app manifest**, pick your workspace, and paste the
-   substituted manifest. Slack will create the app, the bot user, the
-   five slash commands, and pre-fill the URLs.
+### 0. Prerequisites
 
-**Option B — by hand**: create the app, then in **OAuth & Permissions**
-add the redirect URL, in **Slash Commands** add the five commands
-(`/balance`, `/address-book`, `/propose`, `/sign`, `/help`) with
-Request URL `https://<host>/api/slack/commands`, in **Event
-Subscriptions** enable events with Request URL
-`https://<host>/api/slack/events` and subscribe to `app_uninstalled`
-+ `app_mention`, and in **Interactivity & Shortcuts** enable
-interactivity with Request URL
-`https://<host>/api/slack/interactive`.
+- The deployment is reachable over **HTTPS** (Slack rejects plain-HTTP
+  request URLs). For local work, use a tunnel such as `cloudflared` or
+  `ngrok` and a separate dev Slack app.
+- `DATABASE_URL` is set and the schema is applied (step 4).
+- `SESSION_SECRET` is set. The OAuth state cookie is signed with it.
+- Optional: `NEXT_PUBLIC_APP_URL` if the deployment is not
+  `https://mymultisig.app`. Links inside Slack messages use it.
 
-The bot scopes are: `commands`, `chat:write`, `chat:write.public`,
-`users:read`, `app_mentions:read`.
+### 1. Create the Slack app from the manifest
 
-## 2. Set the env vars
+Render the manifest with your public host. For `https://mymultisig.app`:
 
-In `.env.local` (and in your deployment platform's secrets), set:
+```bash
+HOST=https://mymultisig.app
+sed -e "s|__SLACK_COMMANDS_URL__|$HOST/api/slack/commands|g" \
+    -e "s|__SLACK_OAUTH_REDIRECT_URL__|$HOST/api/slack/oauth-callback|g" \
+    -e "s|__SLACK_EVENTS_URL__|$HOST/api/slack/events|g" \
+    -e "s|__SLACK_INTERACTIVE_URL__|$HOST/api/slack/interactive|g" \
+    docs/slack-manifest.json > slack-manifest.rendered.json
+```
 
-| Variable | Where to find it | Notes |
-| --- | --- | --- |
-| `SLACK_CLIENT_ID` | Slack app → **Basic Information** → **App Credentials** | public |
-| `SLACK_CLIENT_SECRET` | same | keep secret |
-| `SLACK_SIGNING_SECRET` | same | keep secret |
-| `SLACK_TOKEN_ENCRYPTION_KEY` | generate locally | see below |
-| `SLACK_REDIRECT_URI` (optional) | n/a | when unset, the install handler builds the URL from the request host |
+Then:
 
-Generate the encryption key (32 random bytes, base64):
+1. Open <https://api.slack.com/apps> and click **Create New App** →
+   **From a manifest**.
+2. Pick a workspace you administer. This is only the app's "home"
+   workspace; other workspaces can still install it after step 5.
+3. Paste the contents of `slack-manifest.rendered.json` (JSON tab), review,
+   and click **Create**.
+
+Slack may warn that the Event Subscriptions URL is not verified yet. That is
+expected: the endpoint needs the signing secret from the next step. You
+will verify it in step 6.
+
+The manifest creates:
+
+| What | Value |
+| --- | --- |
+| Bot user | `@MyMultiSig` |
+| Slash commands | `/multisig`, `/bind`, `/unbind`, `/balance`, `/address-book`, `/propose`, `/sign` |
+| Bot scopes | `commands`, `chat:write`, `chat:write.public`, `app_mentions:read` |
+| Bot events | `app_uninstalled`, `tokens_revoked`, `app_mention` |
+| Interactivity | on, pointed at `/api/slack/interactive` |
+
+The bot scopes in the manifest must match `SCOPES` in
+`src/pages/api/slack/install.ts`. If you change one, change the other.
+
+#### Optional: app icon
+
+Under **Basic Information** → **Display Information**, upload a square
+icon (512×512 to 2000×2000 px); `public/icons/android-icon-512x512 1.png`
+works.
+Slack requires an icon before you can submit to the Slack Marketplace, but
+not for public distribution.
+
+### 2. Copy the credentials
+
+From **Basic Information** → **App Credentials**, copy:
+
+| Env var | Slack field |
+| --- | --- |
+| `SLACK_CLIENT_ID` | Client ID |
+| `SLACK_CLIENT_SECRET` | Client Secret |
+| `SLACK_SIGNING_SECRET` | Signing Secret (not the deprecated Verification Token) |
+
+Generate the token encryption key locally:
 
 ```bash
 openssl rand -base64 32
 ```
 
-`SLACK_TOKEN_ENCRYPTION_KEY` must decode to exactly **32 bytes**; the
-config helper rejects any other length at module load (so a wrong key
-fails fast on the next request after restart, not on the first install).
+| Env var | Value |
+| --- | --- |
+| `SLACK_TOKEN_ENCRYPTION_KEY` | output of the command above (must decode to exactly 32 bytes) |
+| `SLACK_REDIRECT_URI` (optional) | `https://<host>/api/slack/oauth-callback`. Only needed when the `Host` header the app sees differs from the public host (proxies, custom domains). |
 
-## 3. Run the database migration
+Bot tokens are stored AES-256-GCM encrypted with this key. Rotating the key
+makes every stored token unreadable, and every workspace has to add the app
+again, so keep it stable.
 
-The new tables are additive and idempotent. Apply the schema:
+### 3. Set the env vars and redeploy
+
+On Netlify: **Site configuration** → **Environment variables**, add the
+four (or five) variables above, then trigger a new deploy. For local dev,
+put them in `.env.local`.
+
+Check the deployment picked them up:
+
+```bash
+# Before: 503 "Slack app is not configured on this deployment"
+# After:  401 "Invalid signature" (the endpoint is live and checking signatures)
+curl -i -X POST https://<host>/api/slack/events -d '{}'
+```
+
+### 4. Apply the database schema
+
+The Slack tables are additive and the script is idempotent:
 
 ```bash
 psql "$DATABASE_URL" -f src/lib/db/schema.sql
 ```
 
-Three new tables are created: `slack_workspaces`,
-`slack_user_links`, `slack_channel_configs`. Existing tables are
-untouched.
+This creates `slack_workspaces`, `slack_user_links` and
+`slack_channel_configs` if they don't exist.
 
-## 4. Install in a test workspace
+### 5. Turn on public distribution
 
-1. `yarn dev` (or deploy the branch).
-2. Sign in to the app with your wallet (the install flow records the
-   wallet that initiated it in `installed_by_wallet`).
-3. Visit `/settings/slack` and click **Install to a workspace**.
-4. Complete the Slack OAuth consent screen.
-5. You'll be redirected back to `/settings/slack?installed=1`. The
-   workspace appears in the list.
+Without this, only the home workspace can install the app; everyone else
+gets `invalid_team_for_non_distributed_app`.
 
-## 5. Verify
+1. In the app settings, open **Manage Distribution**.
+2. Work through **Share Your App with Other Workspaces**:
+   - **Remove Hard Coded Information**: tick the box (the app has none).
+   - **Use HTTPS For Your Features**: passes if your URLs are https.
+   - **Add OAuth Redirect URLs**: already set by the manifest.
+3. Click **Activate Public Distribution**.
 
-Smoke checks (no real Slack app required, just the env vars set):
+That is enough for **any workspace to install the app** through
+`/settings/slack`. Listing it in the Slack Marketplace is optional and goes
+through Slack's review; you don't need it for the install link to work.
 
-```bash
-# Should return 503 with a clear "not configured" message when env is unset.
-curl -i -X POST http://localhost:3000/api/slack/events
+### 6. Verify the event URL
 
-# Should return 401 (no signature) once env is set.
-curl -i -X POST http://localhost:3000/api/slack/events -d '{"type":"url_verification","challenge":"abc","token":"x"}'
+Open **Event Subscriptions**. If the Request URL shows as unverified, click
+**Retry** (or re-save the URL). It should turn to **Verified ✓**. If it
+doesn't, see [Troubleshooting](#troubleshooting).
+
+### 7. Smoke test
+
+1. Open `https://<host>/settings/slack`, connect your wallet and sign in.
+2. Click **Add to Slack**, choose a workspace, click **Allow**. You land
+   back on the settings page and the workspace is listed.
+3. In a public channel, run `/bind sepolia <a multisig address you own>`.
+   The bot posts a "connected this channel" message and you get an
+   ephemeral confirmation.
+4. Create a request on that multisig in the app. A **New request** message
+   appears in the channel within a second or two.
+5. Sign it until it reaches the threshold. A **Ready to execute** message
+   follows.
+6. Mention `@MyMultiSig` in the channel. It replies in a thread with the
+   command list.
+
+---
+
+## Using it in a workspace
+
+This is what any team does. It is also summarised on `/settings/slack`.
+
+1. **Add the app.** Go to `https://mymultisig.app/settings/slack`, connect
+   and sign in with your wallet, and click **Add to Slack**. You need
+   permission to install apps in the workspace; if your workspace requires
+   admin approval, Slack sends the request to your admins.
+2. **Bind a channel.** In the channel that should get notifications:
+
+   ```
+   /bind <chain> <multisig address>
+   /bind sepolia 0x1234…abcd
+   /bind 1 0x1234…abcd
+   ```
+
+   `<chain>` is a name or a chain id from the supported networks:
+   `mainnet`, `sepolia`, `goerli`, `polygon`, `mumbai`, `optimism`,
+   `optimism-goerli`, `arbitrum`, `arbitrum-goerli`, `avalanche`, `fuji`,
+   `bsc`, `bsc-testnet`, `gnosis`, `chiado` (see
+   `src/constants/networks.ts`). For a **private channel**, run
+   `/invite @MyMultiSig` first. Direct messages can't be bound.
+3. **Done.** New requests and ready-to-execute requests on that multisig
+   are posted in the channel. You can bind several multisigs to one
+   channel, and one multisig to several channels.
+
+### Commands
+
+Every command also works namespaced, as `/multisig <command> …`. Use that
+form if another app in your workspace already owns `/bind` or `/balance`.
+
+| Command | What it does |
+| --- | --- |
+| `/bind <chain> <multisig>` | Post this multisig's notifications in this channel |
+| `/unbind <chain> <multisig>` | Stop posting them here |
+| `/balance <chain> <address>` | Native balance of an address |
+| `/address-book <chain> <address>` | Public MyMultiSig labels for an address |
+| `/propose` | Link to the app to propose a request |
+| `/sign <request id>` | Link to a request in the app to sign it |
+| `/multisig help` | Command list (same as mentioning `@MyMultiSig`) |
+
+### Managing it from the app
+
+`/settings/slack` lists the workspaces you added while signed in with your
+wallet, and every channel binding in them (including ones teammates made
+with `/bind`). From there you can unbind a channel or uninstall the app
+from a workspace.
+
+Removing the app from Slack's side (workspace settings → **Manage apps**)
+also works: the `app_uninstalled` event deletes the workspace's bot token
+and bindings.
+
+### Who can bind?
+
+Anyone in a channel where the app is installed can `/bind` or `/unbind`
+it, matching "anyone in the room can configure the room". There is no
+wallet ownership check on `/bind` yet, because slash commands don't carry a
+wallet. Binding only controls where notifications go; it gives no access to
+the multisig.
+
+---
+
+## How it works
+
+```
+Slack workspace                        MyMultiSig (Next.js API routes)
+───────────────                        ──────────────────────────────
+"Add to Slack" ──────────────────────► GET  /api/slack/install        (signed state cookie)
+Slack consent screen ───────────────► GET  /api/slack/oauth-callback  → slack_workspaces (token encrypted)
+/bind, /multisig, … ─────────────────► POST /api/slack/commands       → slack_channel_configs
+@mention, uninstall, token revoked ─► POST /api/slack/events
+button clicks ──────────────────────► POST /api/slack/interactive     (acknowledged; buttons are links)
+
+POST  /api/multisig-requests      ──► notifyNewRequest       ──► chat.postMessage to every bound channel
+PATCH /api/multisig-requests/[id] ──► notifyReadyToExecute   ──► chat.postMessage (when threshold is crossed)
 ```
 
-End-to-end with a real Slack app (after install):
+- Every inbound Slack request is checked against `SLACK_SIGNING_SECRET`
+  (`src/lib/slack/verify.ts`), with a 5-minute replay window.
+- Notifications are fire-and-forget: a Slack failure is logged and never
+  changes the response of the request endpoints.
+- Request descriptions are escaped before they go into a message, so a
+  description can't `@channel` the room or inject links.
+- `/bind` posts its confirmation into the channel with the bot token. If
+  that fails (bot not in a private channel, archived channel, DM), the
+  binding is rolled back and the user is told how to fix it, so a binding
+  never silently delivers nothing.
 
-- The Slack **Event Subscriptions** page should show **Verified** ✅
-  next to the events URL after the first POST.
-- In any channel, type `/balance 1 0xd8da6bf26964af9d7eed9e03e53415d37aa96045`
-  — you should see a Block Kit message with the ETH balance of
-  vitalik.eth on mainnet (1 ETH-equivalent is enough to verify the
-  message shape).
-- Type `/address-book 1 0xd8da6bf26964af9d7eed9e03e53415d37aa96045`
-  — the public address book label(s) should be listed (vitalik.eth is
-  a known example; if it's not in the public book, the message
-  reports "No labels …").
-- Type `/propose` — an ephemeral "coming soon" message with a button
-  to the app should appear.
-- Type `/sign some-fake-id` — same ephemeral pattern.
+Cross-platform details (Discord, Telegram, shared dispatcher) are in
+[notifications.md](./notifications.md).
 
-Uninstalling from `/settings/slack` calls Slack's `apps.uninstall` and
-deletes the local rows. The next event from the workspace (or the
-explicit app_uninstalled event) cleans up `slack_user_links` and
-`slack_channel_configs` rows that the uninstall handler didn't
-touch.
+## Endpoints
+
+| Route | Auth | Purpose |
+| --- | --- | --- |
+| `GET /api/slack/install` | none | Start OAuth. Optional `return_to`, `team`. |
+| `GET /api/slack/oauth-callback` | state cookie | Finish OAuth; records the signed-in wallet as installer when there is one. |
+| `POST /api/slack/commands` | Slack signature | Slash commands. |
+| `POST /api/slack/events` | Slack signature | URL verification, `app_uninstalled`, `tokens_revoked`, `app_mention`. |
+| `POST /api/slack/interactive` | Slack signature | Acknowledges interactivity payloads. |
+| `GET /api/slack/workspaces` | SIWE session | Workspaces installed by the signed-in wallet. |
+| `DELETE /api/slack/workspaces/[teamId]` | SIWE session, installer only | Uninstall (calls `apps.uninstall`). |
+| `GET/POST /api/slack/channel-bindings` | SIWE session, installer only | List / create bindings. |
+| `DELETE /api/slack/channel-bindings/[bindingId]` | SIWE session, installer only | Remove a binding. |
 
 ## Known limits
 
-- **3-second response deadline on event subscriptions.** The
-  `app_uninstalled` handler returns 200 first, then fires the three
-  DB deletes asynchronously. Slack retries non-2xx up to 3 times, and
-  the deletes are idempotent, so this is safe.
-- **`installed_by_wallet` is nullable.** An install from a non-SIWE
-  browser still succeeds; the row just doesn't appear in any wallet's
-  `/api/slack/workspaces` list. A "claim this install" flow is the
-  next PR.
-- **Slash command responses are read-only.** `/propose` and `/sign`
-  return "coming soon" messages with a button to the app page. The
-  modals that actually propose and sign come next.
-- **No channel binding yet.** The `slack_channel_configs` table exists
-  so the next PR (new-request notifications) doesn't have to add a
-  column, but the settings page doesn't expose bindings yet.
+- **Only Slack gets the ready-to-execute message.** Discord and Telegram
+  still post new requests only.
+- **Workspaces added while signed out have no owner in the app.** The
+  install still works and `/bind` still delivers, but the workspace won't
+  appear on anyone's `/settings/slack`. Add the app again while signed in
+  to claim it; a re-install keeps the first wallet that claimed it.
+- **Notifications run after the API response.** They are started before
+  the response is sent and normally finish within a second, but a
+  serverless platform that freezes the function immediately could drop
+  one. Check the function logs for `notifyNewRequest` /
+  `notifyReadyToExecute` if a message is missing.
+- **`/propose` and `/sign` link to the app.** Proposing and signing need
+  the user's wallet, so they can't happen inside Slack.
 
 ## Troubleshooting
 
-**`401 Invalid signature` on every event.** Clock skew between your
-host and Slack's servers — `verify.ts` rejects anything more than
-5 minutes off. Check `date` on the box. Also: make sure
-`SLACK_SIGNING_SECRET` is the **Signing Secret** from the app's
-**Basic Information** page, not the **Verification Token** (which is
-deprecated).
+**`invalid_team_for_non_distributed_app` on the consent screen.** Public
+distribution isn't active. Do [step 5](#5-turn-on-public-distribution).
 
-**`400 Missing or invalid payload` on every interactive event.** The
-`payload` field is a URL-encoded JSON string. The handler already
-parses it; this error means the form body itself is malformed (rare;
-usually a proxy stripping the body).
+**`bad_redirect_uri` / `oauth_failed` after Allow.** The redirect URI the
+app sends must exactly match one in **OAuth & Permissions** → **Redirect
+URLs**. The install handler builds it from the request host; behind a proxy
+or on a custom domain, set `SLACK_REDIRECT_URI`.
 
-**`503 Slack app is not configured on this deployment`.** The
-`slackConfig()` helper threw at module load. The most common cause is
-`SLACK_TOKEN_ENCRYPTION_KEY` not being a 32-byte base64 string. Check
-`openssl rand -base64 32 | wc -c` (should print 45 including the
-trailing newline — the base64 itself is 44 chars).
+**`state_invalid` after Allow.** The state cookie expired (10 minutes) or
+was set on a different host (for example you started on `www.` and came
+back on the apex). Start again from `/settings/slack` on the same host as
+the redirect URL.
 
-**`oauth_failed` after the install redirect.** Most often a redirect
-URI mismatch. Slack rejects the install if the redirect URI doesn't
-exactly match one of the URLs in **OAuth & Permissions** →
-**Redirect URLs**. The install handler builds the URI from the live
-request host; if your deployment sits behind a proxy, set
-`SLACK_REDIRECT_URI` explicitly.
+**`503 Slack app is not configured on this deployment`.** One of the four
+required env vars is missing, or `SLACK_TOKEN_ENCRYPTION_KEY` doesn't
+decode to 32 bytes. Regenerate it with `openssl rand -base64 32` and
+redeploy.
+
+**`401 Invalid signature` on every request / event URL won't verify.**
+`SLACK_SIGNING_SECRET` is wrong (it is the **Signing Secret**, not the
+Verification Token), the deploy hasn't picked up the env var yet, or the
+server clock is more than 5 minutes off.
+
+**`/bind` says the workspace is not connected.** The app was installed with
+Slack's own **Install to Workspace** button on api.slack.com, which skips
+MyMultiSig's OAuth callback, so there is no stored bot token. Add it again
+from `/settings/slack`.
+
+**`/bind` says it can't post here (`not_in_channel`).** Private channel:
+`/invite @MyMultiSig`, then `/bind` again.
+
+**No message after creating a request.** Check that the binding's chain
+matches the multisig's chain (`/bind sepolia …` vs. `/bind mainnet …`),
+that the multisig is indexed in the app (the dispatcher needs its
+`multisig_wallets` row for chain and threshold), and look for
+`notifyNewRequest: slack channel … failed` in the function logs. A
+`token_revoked` / `account_inactive` error there means the app was removed
+from that workspace.

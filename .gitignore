@@ -44,3 +44,4 @@ storybook-static
 
 # macOS
 .DS_Store
+slack-manifest.rendered.json
