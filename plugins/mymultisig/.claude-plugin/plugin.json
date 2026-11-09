@@ -1,6 +1,7 @@
 {
   "name": "mymultisig",
-  "version": "0.1.0",
+  "displayName": "MyMultiSig",
+  "version": "0.1.1",
   "description": "Create, inspect, propose, review, sign and execute MyMultiSig multi-signature wallet transactions. Bundles the mymultisig-mcp server and workflow skills.",
   "author": {
     "name": "Marc-Aurele Besner",
@@ -9,5 +10,36 @@
   "homepage": "https://mymultisig.app/docs/ai-agents",
   "repository": "https://github.com/marc-aurele-besner/mymultisig-app",
   "license": "MIT",
-  "keywords": ["multisig", "ethereum", "wallet", "mcp", "web3"]
+  "keywords": ["multisig", "ethereum", "wallet", "mcp", "web3"],
+  "icon": "./.claude-plugin/icon.png",
+  "documentationUrl": "https://mymultisig.app/docs/ai-agents",
+  "supportUrl": "https://github.com/marc-aurele-besner/mymultisig-app/issues",
+  "privacyPolicyUrl": "https://mymultisig.app/privacy",
+  "termsOfServiceUrl": "https://mymultisig.app/terms",
+  "userConfig": {
+    "api_key": {
+      "type": "string",
+      "title": "MyMultiSig API key",
+      "description": "Optional mms_… key from https://mymultisig.app/settings/agents. Lets the agent list your wallets and queue requests as you.",
+      "sensitive": true
+    },
+    "private_key": {
+      "type": "string",
+      "title": "Agent owner private key",
+      "description": "Optional. The agent's own owner key (0x + 64 hex), used locally to sign approvals, execute and deploy. Never sent to any server. Use a dedicated key added as an owner, not your main wallet.",
+      "sensitive": true
+    },
+    "chains": {
+      "type": "string",
+      "title": "Allowed chain ids",
+      "description": "Optional comma-separated chain id allowlist, e.g. 11155111. Empty allows every supported chain.",
+      "default": ""
+    },
+    "read_only": {
+      "type": "boolean",
+      "title": "Read-only mode",
+      "description": "Expose read tools only, even when a private key is set.",
+      "default": false
+    }
+  }
 }
