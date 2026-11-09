@@ -1,17 +1,26 @@
 import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { GlobeIcon, KeyRoundIcon, MailIcon, MessageSquareIcon, PlugIcon, SendIcon, type LucideIcon } from 'lucide-react'
+import { GlobeIcon, KeyRoundIcon, PlugIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import BrandIcon from '../icons/BrandIcon'
 
-const SETTINGS_NAV: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: '/settings/rpc', label: 'RPC endpoints', icon: GlobeIcon },
-  { href: '/settings/email', label: 'Email', icon: MailIcon },
-  { href: '/settings/slack', label: 'Slack', icon: MessageSquareIcon },
-  { href: '/settings/discord', label: 'Discord', icon: MessageSquareIcon },
-  { href: '/settings/telegram', label: 'Telegram', icon: SendIcon },
-  { href: '/settings/agents', label: 'AI agents', icon: KeyRoundIcon }
+const SETTINGS_NAV: { href: string; label: string; icon: (active: boolean) => React.ReactNode }[] = [
+  {
+    href: '/settings/rpc',
+    label: 'RPC endpoints',
+    icon: (active) => <GlobeIcon className={cn('h-4 w-4 shrink-0', active && 'text-primary')} />
+  },
+  { href: '/settings/email', label: 'Email', icon: () => <BrandIcon brand='email' size={16} /> },
+  { href: '/settings/slack', label: 'Slack', icon: () => <BrandIcon brand='slack' size={16} /> },
+  { href: '/settings/discord', label: 'Discord', icon: () => <BrandIcon brand='discord' size={16} /> },
+  { href: '/settings/telegram', label: 'Telegram', icon: () => <BrandIcon brand='telegram' size={16} /> },
+  {
+    href: '/settings/agents',
+    label: 'AI agents',
+    icon: (active) => <KeyRoundIcon className={cn('h-4 w-4 shrink-0', active && 'text-primary')} />
+  }
 ]
 
 // One hub for every account-level settings page. The pages used to be
@@ -42,7 +51,7 @@ const SettingsLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =
                   : 'font-medium text-muted-foreground hover:bg-accent/60 hover:text-foreground'
               )}
             >
-              <item.icon className={cn('h-4 w-4 shrink-0', active && 'text-primary')} />
+              {item.icon(active)}
               {item.label}
             </Link>
           )

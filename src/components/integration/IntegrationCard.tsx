@@ -15,6 +15,8 @@ export interface IntegrationLink {
 
 export interface IntegrationInfo {
   keyword: string
+  // Brand mark shown beside the title.
+  icon?: React.ReactNode
   title: string
   status: IntegrationStatus
   description: string
@@ -66,8 +68,13 @@ const IntegrationCard: React.FC<{ integration: IntegrationInfo }> = ({ integrati
       </span>
     </div>
     <div>
-      <h2 className='text-lg font-semibold text-foreground'>{integration.title}</h2>
-      <p className='mt-1 text-sm leading-relaxed text-muted-foreground'>{integration.description}</p>
+      <h2 className='flex items-center gap-2.5 text-lg font-semibold text-foreground'>
+        {integration.icon != null && (
+          <span className='grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-muted'>{integration.icon}</span>
+        )}
+        {integration.title}
+      </h2>
+      <p className='mt-2 text-sm leading-relaxed text-muted-foreground'>{integration.description}</p>
     </div>
     <ul className='flex flex-col gap-1.5'>
       {integration.features.map((feature) => (

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
+import BrandIcon from '../icons/BrandIcon'
 import { Button } from '@/components/ui/button'
 import { TelegramChatConfig, TelegramInstallation } from '../../models/Telegram'
 import { CheckIcon, DeleteIcon, ExternalLinkIcon, WarningIcon } from '../icons/ChakraIcons'
@@ -150,7 +151,12 @@ const TelegramSettings: React.FC = () => {
         <div className='flex w-full flex-col gap-6'>
           <div>
             <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>SETTINGS</p>
-            <h1 className='font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>Telegram</h1>
+            <h1 className='flex items-center gap-3 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>
+              <span className='grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-muted'>
+                <BrandIcon brand='telegram' size={24} />
+              </span>
+              Telegram
+            </h1>
             <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground'>
               Bring slash commands to any Telegram chat where your bot is a member. Create a bot with{' '}
               <span className='font-mono'>@BotFather</span>, paste the token below, and the app registers the webhook

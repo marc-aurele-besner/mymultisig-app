@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { KeyRoundIcon, LockIcon, ShieldIcon, type LucideIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import AgentSession from '../agents/AgentSession'
 import { ExternalLinkIcon } from '../icons/ChakraIcons'
+import PageHero from '../layout/PageHero'
 import IntegrationCard, { IntegrationInfo } from '../integration/IntegrationCard'
 
 // Each agent flow is advertised on its own; they all reuse the scoped API keys
@@ -128,62 +130,17 @@ const setupSteps = [
   { title: 'Ask the agent', text: 'Check status, propose, review, sign and execute through natural language.' }
 ]
 
-// Example exchange. Illustrative only: the tool names are the MCP server's,
-// the conversation is not live data.
-const SessionExample: React.FC = () => (
-  <div className='flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-[0_0_80px_-24px] shadow-primary/25'>
-    <div className='flex items-center justify-between gap-2'>
-      <span className='font-mono text-[11px] uppercase tracking-wider text-muted-foreground'>
-        Agent session · example
-      </span>
-      <span className='rounded-full bg-muted px-2 py-0.5 font-mono text-[11px] text-muted-foreground'>
-        mymultisig-mcp
-      </span>
-    </div>
-    <p className='max-w-[92%] self-end rounded-2xl rounded-br-sm bg-primary px-3.5 py-2.5 text-sm text-primary-foreground'>
-      What’s waiting for signatures on my Sepolia treasury?
-    </p>
-    <div className='flex max-w-[92%] flex-col gap-2 self-start rounded-2xl rounded-bl-sm bg-muted px-3.5 py-2.5 text-sm'>
-      <span className='font-mono text-xs text-muted-foreground'>list_requests · get_request</span>
-      <span>
-        <span className='font-mono text-muted-foreground'>#12</span> Pay the Q4 audit deposit{' '}
-        <span className='text-muted-foreground'>· 1/2 · needs your signature</span>
-      </span>
-      <span>
-        <span className='font-mono text-muted-foreground'>#13</span> Add a fourth owner{' '}
-        <span className='text-muted-foreground'>· 2/2 · ready</span>
-      </span>
-    </div>
-    <p className='max-w-[92%] self-end rounded-2xl rounded-br-sm bg-primary px-3.5 py-2.5 text-sm text-primary-foreground'>
-      Review #12 and sign it if it matches the invoice.
-    </p>
-    <div className='flex max-w-[92%] flex-col gap-2 self-start rounded-2xl rounded-bl-sm bg-muted px-3.5 py-2.5 text-sm'>
-      <span className='font-mono text-xs text-muted-foreground'>get_request · approve_request</span>
-      <span>
-        Decoded: plain transfer, no delegatecall, no approvals. The target matches your address book. Signed with the
-        agent’s owner key: 2 of 2.
-      </span>
-    </div>
-  </div>
-)
-
 // Agents & API: the tools that let software work the request queue, the
 // safety model behind them, and where to get a key.
 const Agents: React.FC = () => {
   return (
     <div className='flex w-full flex-col gap-12'>
-      <div className='grid items-center gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]'>
-        <div className='flex flex-col gap-4'>
-          <p className='font-mono text-xs tracking-[0.2em] text-primary'>AGENTS &amp; API</p>
-          <h1 className='font-display text-3xl font-bold tracking-tight text-foreground md:text-5xl'>
-            A multisig your agents can work. You still hold the keys.
-          </h1>
-          <p className='max-w-xl text-base leading-relaxed text-muted-foreground'>
-            Give Claude, Cursor, a CI job or your own bot native access to the request queue. They read, propose,
-            review and co-sign. The contract still enforces the quorum, so the tools work the same for people and for
-            agents.
-          </p>
-          <div className='flex flex-wrap gap-2'>
+      <PageHero
+        eyebrow='AGENTS & API'
+        title='A multisig your agents can work. You still hold the keys.'
+        lead='Give Claude, Cursor, a CI job or your own bot native access to the request queue. They read, propose, review and co-sign. The contract still enforces the quorum, so the tools work the same for people and for agents.'
+        actions={
+          <>
             <Button asChild size='lg' className='gap-2'>
               <Link href='/settings/agents'>
                 <KeyRoundIcon className='h-4 w-4' />
@@ -193,10 +150,10 @@ const Agents: React.FC = () => {
             <Button asChild size='lg' variant='outline'>
               <Link href='/docs/ai-agents'>Read the setup guide</Link>
             </Button>
-          </div>
-        </div>
-        <SessionExample />
-      </div>
+          </>
+        }
+        visual={<AgentSession />}
+      />
 
       <section className='flex flex-col gap-4'>
         <h2 className='font-display text-xl font-bold tracking-tight text-foreground md:text-2xl'>The safety model</h2>

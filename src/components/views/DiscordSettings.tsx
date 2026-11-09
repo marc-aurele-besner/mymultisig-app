@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
+import BrandIcon from '../icons/BrandIcon'
 import { Button } from '@/components/ui/button'
 import { DiscordChannelConfig, DiscordWorkspace } from '../../models/Discord'
 import { CheckIcon, DeleteIcon, ExternalLinkIcon, WarningIcon } from '../icons/ChakraIcons'
@@ -126,7 +127,12 @@ const DiscordSettings: React.FC = () => {
         <div className='flex w-full flex-col gap-6'>
           <div>
             <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>SETTINGS</p>
-            <h1 className='font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>Discord</h1>
+            <h1 className='flex items-center gap-3 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>
+              <span className='grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-muted'>
+                <BrandIcon brand='discord' size={24} />
+              </span>
+              Discord
+            </h1>
             <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground'>
               Add the MyMultiSig bot to a Discord server, then bind a channel to a multisig. Slash commands work in any
               channel the bot can see

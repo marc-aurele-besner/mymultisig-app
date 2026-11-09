@@ -3,13 +3,17 @@ import Link from 'next/link'
 import { ArrowRightIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ExternalLinkIcon } from '../icons/ChakraIcons'
+import BrandIcon from '../icons/BrandIcon'
 import IntegrationCard, { IntegrationInfo } from '../integration/IntegrationCard'
+import NotificationFeed from '../integration/NotificationFeed'
+import PageHero from '../layout/PageHero'
 
 const lifecycleEvents = ['request proposed', 'awaiting signatures', 'ready to execute']
 
 const notificationIntegrations: IntegrationInfo[] = [
   {
     keyword: 'slack',
+    icon: <BrandIcon brand='slack' size={20} />,
     title: 'Slack',
     status: 'available',
     description: 'Bring requests to the channel where your team already talks.',
@@ -24,6 +28,7 @@ const notificationIntegrations: IntegrationInfo[] = [
   },
   {
     keyword: 'discord',
+    icon: <BrandIcon brand='discord' size={20} />,
     title: 'Discord',
     status: 'alpha',
     description: 'The same flow for DAOs and communities that live on Discord.',
@@ -38,6 +43,7 @@ const notificationIntegrations: IntegrationInfo[] = [
   },
   {
     keyword: 'telegram',
+    icon: <BrandIcon brand='telegram' size={20} />,
     title: 'Telegram',
     status: 'alpha',
     description: 'The same flow for teams that coordinate in Telegram DMs and groups.',
@@ -52,6 +58,7 @@ const notificationIntegrations: IntegrationInfo[] = [
   },
   {
     keyword: 'email',
+    icon: <BrandIcon brand='email' size={20} />,
     title: 'Email',
     status: 'available',
     description: 'No bot to install — notifications straight to each signer’s inbox.',
@@ -77,28 +84,25 @@ const requestIssueUrl =
 const Integration: React.FC = () => {
   return (
     <div className='flex w-full flex-col gap-8'>
-      <div>
-        <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>INTEGRATIONS</p>
-        <h1 className='font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>
-          Team chat &amp; notifications
-        </h1>
-        <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground'>
-          A multisig only moves when people show up to sign. These integrations bring the three moments that matter to
-          wherever your team already is.
-        </p>
-      </div>
-
-      {/* The lifecycle every integration hooks into */}
-      <div className='flex flex-wrap items-center gap-x-3 gap-y-2'>
-        {lifecycleEvents.map((event, index) => (
-          <React.Fragment key={event}>
-            {index > 0 && <span aria-hidden className='h-px w-6 bg-border' />}
-            <span className='rounded-full border border-border px-3 py-1 font-mono text-[11px] tracking-wider text-muted-foreground'>
-              {event}
-            </span>
-          </React.Fragment>
-        ))}
-      </div>
+      <PageHero
+        eyebrow='INTEGRATIONS'
+        title='Team chat & notifications'
+        lead='A multisig only moves when people show up to sign. These integrations bring the three moments that matter to wherever your team already is.'
+        actions={
+          <div className='flex flex-wrap items-center gap-x-3 gap-y-2'>
+            {/* The lifecycle every integration hooks into */}
+            {lifecycleEvents.map((event, index) => (
+              <React.Fragment key={event}>
+                {index > 0 && <span aria-hidden className='h-px w-6 bg-border' />}
+                <span className='rounded-full border border-border px-3 py-1 font-mono text-[11px] tracking-wider text-muted-foreground'>
+                  {event}
+                </span>
+              </React.Fragment>
+            ))}
+          </div>
+        }
+        visual={<NotificationFeed />}
+      />
 
       <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
         {notificationIntegrations.map((integration) => (

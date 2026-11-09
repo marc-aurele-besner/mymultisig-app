@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useAccount, useChainId, useSignMessage } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
+import BrandIcon from '../icons/BrandIcon'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -287,7 +288,12 @@ const EmailSettings: React.FC = () => {
         <div className='flex w-full flex-col gap-6'>
           <div>
             <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>SETTINGS</p>
-            <h1 className='font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>Email</h1>
+            <h1 className='flex items-center gap-3 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>
+              <span className='grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-muted'>
+                <BrandIcon brand='email' size={24} />
+              </span>
+              Email
+            </h1>
             <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground'>
               Get an email when a request on a multisig you own needs your signature, and again when it is ready to
               execute. No bot to install. Each email links straight to the request.

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAccount } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
+import BrandIcon from '../icons/BrandIcon'
 import { Button } from '@/components/ui/button'
 import networks from '../../constants/networks'
 import { SlackChannelConfig, SlackWorkspace } from '../../models/Slack'
@@ -180,7 +181,12 @@ const SlackSettings: React.FC = () => {
         <div className='flex w-full flex-col gap-6'>
           <div>
             <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>SETTINGS</p>
-            <h1 className='font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>Slack</h1>
+            <h1 className='flex items-center gap-3 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>
+              <span className='grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-muted'>
+                <BrandIcon brand='slack' size={24} />
+              </span>
+              Slack
+            </h1>
             <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground'>
               Get a message in Slack whenever a request is proposed on one of your multisigs, and again when it has
               enough signatures to execute. Each message links straight to the request so signers can act in one
