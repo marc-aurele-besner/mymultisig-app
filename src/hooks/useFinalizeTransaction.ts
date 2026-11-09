@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { JsonFragment } from '@ethersproject/abi'
 
 import decodeContractError from '../utils/decodeContractError'
+import { isUserRejection } from '../utils/walletError'
 
 const useFinalizeTransaction = <TFunctionName extends string>(
   config: {
@@ -32,6 +33,10 @@ const useFinalizeTransaction = <TFunctionName extends string>(
       return true
     } catch (switchError) {
       console.error('Chain switch rejected', switchError)
+      if (isUserRejection(switchError)) {
+        toast('Network switch cancelled', { description: 'Switch your wallet to the selected network to continue.' })
+        return false
+      }
       toast.error('Switch your wallet to the selected network to continue.')
       notificationError()
       return false
@@ -41,6 +46,11 @@ const useFinalizeTransaction = <TFunctionName extends string>(
   // Handle errors and success via useEffect or mutation callbacks
   React.useEffect(() => {
     if (error) {
+      // Dismissing the wallet prompt is a choice, not a failure: no red toast.
+      if (isUserRejection(error)) {
+        toast('Transaction cancelled', { description: 'You rejected the request in your wallet.' })
+        return
+      }
       console.error('Error', error)
       // Surface the wallet's decoded custom error (NotOwner, NonceAlreadyUsed,
       // ...) next to the generic failure toast when one is available.
