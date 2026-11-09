@@ -291,3 +291,27 @@ CREATE TABLE IF NOT EXISTS telegram_chat_configs (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_telegram_chat_configs_binding
   ON telegram_chat_configs (installation_id, chat_id, LOWER(multisig_address), chain_id);
+
+-- Email notification recipients. One row per owner wallet: the signer's
+-- address (lowercased) maps to the inbox that receives "request needs your
+-- signature" and "threshold reached" emails. A row starts unverified
+-- (verified_at NULL) and only receives mail after the confirm link is
+-- clicked (double opt-in). link_token is a random, per-row token embedded in
+-- the confirm and unsubscribe links. It is not a credential: it only gates
+-- confirming or removing this one inbox, and it must be readable so every
+-- notification can carry its own unsubscribe link.
+CREATE TABLE IF NOT EXISTS email_recipients (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  wallet_address TEXT NOT NULL,
+  email TEXT NOT NULL,
+  verified_at TIMESTAMPTZ,
+  link_token TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_email_recipients_wallet
+  ON email_recipients (LOWER(wallet_address));
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_email_recipients_link_token
+  ON email_recipients (link_token);
