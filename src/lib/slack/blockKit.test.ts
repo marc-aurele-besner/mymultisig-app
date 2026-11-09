@@ -1,5 +1,5 @@
 import type { MultiSigTransactionRequest } from '../../models/MultiSigs'
-import { newRequestMessage } from './blockKit'
+import { bindAnnouncementMessage, escapeMrkdwn, newRequestMessage, readyToExecuteMessage } from './blockKit'
 import type { NewRequestInput } from '../notifications/dispatcher'
 
 // Pure-shape tests for newRequestMessage. Mirrors the existing
@@ -80,5 +80,46 @@ describe('newRequestMessage', () => {
     const flat = JSON.stringify(msg)
     expect(flat).toContain('unknown chain')
     expect(flat).toContain('1/? signatures')
+  })
+
+  it('escapes mrkdwn control characters so a description cannot ping the channel', () => {
+    const msg = newRequestMessage({
+      ...baseInput,
+      request: { ...baseRequest, description: '<!channel> pay <https://evil.example|bank> & co' }
+    })
+    const flat = JSON.stringify(msg)
+    expect(flat).not.toContain('<!channel>')
+    expect(flat).toContain('&lt;!channel&gt; pay &lt;https://evil.example|bank&gt; &amp; co')
+  })
+})
+
+describe('escapeMrkdwn', () => {
+  it('escapes &, < and > and leaves other text alone', () => {
+    expect(escapeMrkdwn('a & b < c > d *bold*')).toBe('a &amp; b &lt; c &gt; d *bold*')
+  })
+})
+
+describe('readyToExecuteMessage', () => {
+  it('uses the ready heading, signature count, and an Execute request button', () => {
+    const msg = readyToExecuteMessage({
+      ...baseInput,
+      request: { ...baseRequest, signatures: ['0x1', '0x2', '0x3'] }
+    })
+    const flat = JSON.stringify(msg)
+    expect(flat).toContain('Ready to execute on Mainnet')
+    expect(flat).toContain('3/3')
+    const actions = msg.blocks.find((b: any) => b.type === 'actions')
+    const executeBtn = actions.elements.find((e: any) => e.text?.text === 'Execute request')
+    expect(executeBtn.url).toContain(`/request/${baseRequest.id}`)
+  })
+})
+
+describe('bindAnnouncementMessage', () => {
+  it('mentions the user who bound the channel and closes the app link', () => {
+    const msg = bindAnnouncementMessage('Sepolia', baseRequest.multiSigAddress, 'U123')
+    const flat = JSON.stringify(msg)
+    expect(flat).toContain('<@U123>')
+    expect(flat).toContain('Sepolia')
+    expect(flat).toMatch(/<https:\/\/[^|]+\/multisig\/0x[0-9a-f]+\|[^>]+>/)
   })
 })

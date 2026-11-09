@@ -5,17 +5,20 @@ import * as viemChains from 'viem/chains'
 import networks from '../../constants/networks'
 import { getDb } from '../db/neon'
 import { addressBook } from '../db/schema'
-import { slackChannelConfigs } from '../db/schema'
+import { slackChannelConfigs, slackWorkspaces } from '../db/schema'
 import {
   addressBookMessage,
   balanceMessage,
+  bindAnnouncementMessage,
   bindRemovedMessage,
   bindSuccessMessage,
-  comingSoonMessage,
   errorMessage,
-  helpMessage
+  helpMessage,
+  openInAppMessage
 } from './blockKit'
 import type { SlackSlashResponse } from './blockKit'
+import { decryptToken } from './crypto'
+import { slackApi, SlackApiError } from './slackApi'
 
 // Slash command dispatch. Each handler is async and returns a
 // SlackSlashResponse. The handler at src/pages/api/slack/commands.ts is
@@ -30,7 +33,7 @@ import type { SlackSlashResponse } from './blockKit'
 // already carries these fields, so the route just populates them. Older
 // handlers ignore the extra fields.
 
-const findChain = (raw: string): Chain | null => {
+export const findChain = (raw: string): Chain | null => {
   const trimmed = raw.trim()
   if (trimmed === '') return null
   // Numeric id
@@ -38,21 +41,45 @@ const findChain = (raw: string): Chain | null => {
     const id = Number(trimmed)
     return networks.find((c) => c.id === id) ?? null
   }
-  // Name (case-insensitive): "mainnet", "sepolia", "eth", "polygon", etc.
+  // Name (case-insensitive). Aliases map to chain ids rather than names
+  // because viem's display names don't match what people type
+  // (mainnet.name is "Ethereum", optimism.name is "OP Mainnet").
   const lower = trimmed.toLowerCase()
-  const alias: Record<string, string> = {
-    eth: 'mainnet',
-    ethereum: 'mainnet',
-    poly: 'polygon',
-    matic: 'polygon',
-    op: 'optimism',
-    arb: 'arbitrum',
-    avax: 'avalanche',
-    bnb: 'bsc',
-    gnosis: 'gnosis'
-  }
-  const name = alias[lower] ?? lower
+  const aliasId = CHAIN_ALIASES[lower]
+  if (aliasId != null) return networks.find((c) => c.id === aliasId) ?? null
+  // Fall back to the display name, with spaces typed as `-` or `_` since
+  // slash-command args are whitespace-separated ("polygon-mumbai").
+  const name = lower.replace(/[-_]/g, ' ')
   return networks.find((c) => c.name.toLowerCase() === name) ?? null
+}
+
+const CHAIN_ALIASES: Record<string, number> = {
+  mainnet: 1,
+  eth: 1,
+  ethereum: 1,
+  sepolia: 11155111,
+  goerli: 5,
+  polygon: 137,
+  poly: 137,
+  matic: 137,
+  mumbai: 80001,
+  optimism: 10,
+  op: 10,
+  'optimism-goerli': 420,
+  'op-goerli': 420,
+  arbitrum: 42161,
+  arb: 42161,
+  'arbitrum-goerli': 421613,
+  'arb-goerli': 421613,
+  avalanche: 43114,
+  avax: 43114,
+  fuji: 43113,
+  bsc: 56,
+  bnb: 56,
+  'bsc-testnet': 97,
+  'bnb-testnet': 97,
+  gnosis: 100,
+  chiado: 10200
 }
 
 const rpcFor = (chain: Chain): string | null => {
@@ -141,16 +168,30 @@ const handlerAddressBook = async (text: string): Promise<SlackSlashResponse> => 
   )
 }
 
+// Proposing and signing need the user's own wallet, so these two commands
+// hand back a deep link into the app rather than acting from Slack.
 const handlerPropose = (): SlackSlashResponse =>
-  comingSoonMessage('Propose a transaction from Slack', '/open-multisig', 'Open the app')
+  openInAppMessage(
+    'Proposals are signed with your own wallet, so they are created in the app. Open your multisig and choose *New request*.',
+    '/open-multisig',
+    'Open the app'
+  )
 
 const handlerSign = (text: string): SlackSlashResponse => {
   const requestId = text.trim().split(/\s+/)[0] ?? ''
   if (requestId === '' || !/^[0-9a-f-]{8,}$/i.test(requestId)) {
     return errorMessage('Usage: `/sign <request_id>` — e.g. `/sign 7f3c1b2e-...`')
   }
-  return comingSoonMessage('Sign a request from Slack', `/request/${requestId}`, 'Open the request')
+  return openInAppMessage(
+    'Signatures come from your own wallet. Open the request in the app to review and sign it.',
+    `/request/${requestId}`,
+    'Open the request'
+  )
 }
+
+// Slack errors that mean the bot cannot write to the channel the command
+// came from. /bind rolls back and tells the user how to fix it.
+const CHANNEL_ACCESS_ERRORS = new Set(['not_in_channel', 'channel_not_found', 'is_archived', 'restricted_action'])
 
 const handlerHelp = (): SlackSlashResponse => helpMessage()
 
@@ -169,6 +210,25 @@ const handlerBind = async (
   const address = parts[1]
   if (!isAddress(address)) return errorMessage(`Not a valid address: \`${address}\``)
   const db = getDb()
+
+  // The dispatcher joins bindings to slack_workspaces for the bot token, so a
+  // binding in a workspace without a row would never deliver. That happens
+  // when the app was installed from Slack's own "Install to Workspace" button
+  // instead of our OAuth flow.
+  const workspaces = await db
+    .select({ botTokenEncrypted: slackWorkspaces.botTokenEncrypted })
+    .from(slackWorkspaces)
+    .where(eq(slackWorkspaces.teamId, ctx.teamId))
+    .limit(1)
+  if (workspaces.length === 0) {
+    return openInAppMessage(
+      ':warning: This workspace is not connected to MyMultiSig yet, so notifications could not be delivered. Sign in with your wallet and add the app from the Slack settings page, then run `/bind` again.',
+      '/settings/slack',
+      'Open Slack settings'
+    )
+  }
+
+  let inserted = true
   try {
     await db.insert(slackChannelConfigs).values({
       teamId: ctx.teamId,
@@ -178,16 +238,45 @@ const handlerBind = async (
       chainId: chain.id,
       createdBy: `slack:${ctx.userId}`
     })
-    return bindSuccessMessage(chain.name, address)
   } catch (e) {
     // Unique-index conflict means the binding already exists — treat as a
     // success so the user gets a clear message either way.
     const msg = (e as Error).message
-    if (msg.includes('unique') || msg.includes('duplicate') || msg.includes('idx_slack_channel_configs_binding')) {
-      return bindSuccessMessage(chain.name, address)
+    if (!(msg.includes('unique') || msg.includes('duplicate') || msg.includes('idx_slack_channel_configs_binding'))) {
+      return errorMessage(`Bind failed: ${msg}`)
     }
-    return errorMessage(`Bind failed: ${msg}`)
+    inserted = false
   }
+  if (!inserted) return bindSuccessMessage(chain.name, address)
+
+  // Announce the binding in the channel. This is also the delivery check:
+  // if the bot cannot post here, notifications would silently go nowhere,
+  // so roll the binding back and say how to fix it.
+  try {
+    const announcement = bindAnnouncementMessage(chain.name, address, ctx.userId)
+    await slackApi('chat.postMessage', {
+      token: decryptToken(workspaces[0].botTokenEncrypted),
+      json: { channel: ctx.channelId, text: announcement.text, blocks: announcement.blocks }
+    })
+  } catch (e) {
+    await db
+      .delete(slackChannelConfigs)
+      .where(
+        and(
+          eq(slackChannelConfigs.teamId, ctx.teamId),
+          eq(slackChannelConfigs.channelId, ctx.channelId),
+          eq(slackChannelConfigs.chainId, chain.id),
+          sql`LOWER(${slackChannelConfigs.multisigAddress}) = LOWER(${address})`
+        )
+      )
+    if (e instanceof SlackApiError && e.errorCode != null && CHANNEL_ACCESS_ERRORS.has(e.errorCode)) {
+      return errorMessage(
+        `MyMultiSig can't post in this conversation (\`${e.errorCode}\`). For a private channel, run \`/invite @MyMultiSig\` and then \`/bind\` again. Direct messages and archived channels can't receive notifications.`
+      )
+    }
+    return errorMessage(`Bind failed: ${(e as Error).message}`)
+  }
+  return bindSuccessMessage(chain.name, address)
 }
 
 // /unbind <chain> <multisig> — remove the binding. Same auth model as
@@ -220,7 +309,7 @@ const handlerUnbind = async (
   }
 }
 
-interface CommandContext {
+export interface CommandContext {
   command: string
   text: string
   // Required for /bind and /unbind. The route at src/pages/api/slack/commands.ts
@@ -256,11 +345,23 @@ const ROUTES: Record<string, (ctx: CommandContext) => Promise<SlackSlashResponse
   }
 }
 
-export const routeCommand = async (ctx: CommandContext): Promise<SlackSlashResponse> => {
+// `/multisig <sub> <args…>` is the namespaced form of every command, for
+// workspaces where another app already owns `/bind` or `/balance`. It maps
+// to the same route as `/<sub>`. A bare `/multisig` shows help.
+export const resolveUmbrella = (ctx: CommandContext): CommandContext => {
+  if (ctx.command !== '/multisig') return ctx
+  const trimmed = ctx.text.trim()
+  if (trimmed === '') return { ...ctx, command: '/help', text: '' }
+  const [sub, ...rest] = trimmed.split(/\s+/)
+  return { ...ctx, command: `/${sub.toLowerCase().replace(/^\//, '')}`, text: rest.join(' ') }
+}
+
+export const routeCommand = async (incoming: CommandContext): Promise<SlackSlashResponse> => {
+  const ctx = resolveUmbrella(incoming)
   const handler = ROUTES[ctx.command]
   if (handler == null) {
     return errorMessage(
-      `Unknown command \`${ctx.command}\`. Try \`/balance\`, \`/address-book\`, \`/propose\`, \`/sign\`, \`/bind\`, \`/unbind\`, or \`/help\`.`
+      `Unknown command \`${ctx.command}\`. Try \`/multisig help\` for the list of commands.`
     )
   }
   try {
