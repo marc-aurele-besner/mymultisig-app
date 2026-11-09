@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { LoadingDots } from '@/components/ui/loading-dots'
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
 import useSignedMultiSigRequest from '../../hooks/useSignedMultiSigRequest'
+import WalletActionNotice from './WalletActionNotice'
 
 interface MultiSigListProps {
   multiSigAddress: `0x${string}`
@@ -24,7 +25,6 @@ const SignRequest: React.FC<MultiSigListProps> = ({
   const {
     isPrepareError,
     isError,
-    prepareError,
     error,
     isPending,
     isSuccess,
@@ -62,26 +62,21 @@ const SignRequest: React.FC<MultiSigListProps> = ({
   }
 
   return (
-    <div className='flex justify-center'>
-      {isPrepareError || isError ? (
-        <div className='flex flex-col items-center gap-2'>
-          <p className='pt-2 text-xl font-bold text-destructive'>Something went wrong</p>
-          {error != null && <p className='pt-2 text-lg text-destructive'>{JSON.stringify(error)}</p>}
-          {prepareError != null && <p className='pt-2 text-lg text-destructive'>{String(prepareError)}</p>}
-          <Button variant='default' className='mr-8 mt-4' onClick={() => reset()} disabled={isPending || isSuccess}>
-            Try again
-          </Button>
-        </div>
-      ) : (
-        <Button
-          variant='default'
-          className='mr-8 mt-4'
-          onClick={() => signTypedData()}
-          disabled={isPending || isSuccess}
-        >
-          Sign transaction request
-        </Button>
-      )}
+    <div className='flex flex-col items-center gap-2'>
+      <Button
+        variant='default'
+        className='mr-8 mt-4'
+        onClick={() => {
+          // Clear the previous attempt's notice before prompting the wallet again.
+          if (isError) reset()
+          signTypedData()
+        }}
+        disabled={isPrepareError || isPending || isSuccess}
+      >
+        {isPending ? 'Confirm in your wallet…' : isError ? 'Try again' : 'Sign transaction request'}
+      </Button>
+      {isPrepareError && <p className='text-xs text-muted-foreground'>Enter a valid value and gas to sign.</p>}
+      {isError && <WalletActionNotice error={error} action='signature' onDismiss={() => reset()} />}
     </div>
   )
 }
