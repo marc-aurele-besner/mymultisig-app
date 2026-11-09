@@ -66,13 +66,15 @@ const notificationIntegrations: NotificationIntegration[] = [
   {
     keyword: 'email',
     title: 'Email',
-    status: 'planned',
+    status: 'alpha',
     description: 'No bot to install — notifications straight to each signer’s inbox.',
     features: [
       '“Request needs your signature” when a request waits on you',
-      '“Threshold reached, ready to execute” when quorum is met'
+      '“Ready to execute” when the signing threshold is met',
+      'Confirm your address first; every email has an unsubscribe link'
     ],
-    note: 'Built on Resend, which already powers the contact form.'
+    note: 'Built on Resend, which already powers the contact form. Set up your inbox per owner wallet in /settings/email.',
+    cta: { label: 'Set up email', href: '/settings/email' }
   }
 ]
 
