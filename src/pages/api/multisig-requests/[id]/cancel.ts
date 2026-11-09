@@ -6,6 +6,7 @@ import { multisigRequests, multisigWallets } from '../../../../lib/db/schema'
 import { rowToMultiSigRequest } from '../../../../lib/db/mappers'
 import { cascadeInvalidate } from '../../../../lib/api/cascade'
 import { parseBody, parseIdParam, withVerifiedAsOwner } from '../../../../lib/api/middleware'
+import { trackTransactionCancelled } from '../../../../lib/channlize/events'
 
 // POST /api/multisig-requests/[id]/cancel
 // Owner-initiated cancel. Distinct from reset (which only wipes signatures)
@@ -74,6 +75,12 @@ const cancelHandler = withVerifiedAsOwner(parseIdParam, async (req, res, _addres
     'cancelled',
     rows[0].nonce
   )
+
+  await trackTransactionCancelled({
+    requestId: id,
+    multiSigAddress: existing.multiSigAddress,
+    cancelledBy
+  })
 
   const updated = await db.select().from(multisigRequests).where(eq(multisigRequests.id, id)).limit(1)
   return res.status(200).json({
