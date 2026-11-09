@@ -34,7 +34,10 @@ const ConfirmationWithEventDetailCard: React.FC<ConfirmationDetailProps> = ({
   const chainId = useChainId()
   const chains = useChains()
   const chain = chains.find((c) => c.id === chainId)
-  const { multiSigAddress: addressFromWatcher } = useMyMultiSigCreated(multiSigFactoryAddress)
+  const { multiSigAddress: addressFromWatcher } = useMyMultiSigCreated(
+    multiSigFactoryAddress,
+    addressFromReceipt == null
+  )
   const multiSigAddress = addressFromReceipt ?? addressFromWatcher
 
   useEffect(() => {

@@ -1,11 +1,15 @@
+import { useCallback } from 'react'
 import { toast } from 'sonner'
 
-const useNotificationWarning = (title?: string, description?: string) => {
-  return (overrideDescription?: string) => {
-    toast.warning(title ?? 'Warning', {
-      description: overrideDescription ?? description ?? ''
-    })
-  }
-}
+// Stable across renders so it is safe as a useEffect dependency.
+const useNotificationWarning = (title?: string, description?: string) =>
+  useCallback(
+    (overrideDescription?: string) => {
+      toast.warning(title ?? 'Warning', {
+        description: overrideDescription ?? description ?? ''
+      })
+    },
+    [title, description]
+  )
 
 export default useNotificationWarning

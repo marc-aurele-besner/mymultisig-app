@@ -1,4 +1,6 @@
-import { useChainId, useChains, useReadContract, useWatchContractEvent } from 'wagmi'
+import { useEffect, useRef } from 'react'
+import { parseEventLogs, type Abi } from 'viem'
+import { useChainId, useChains, useReadContract } from 'wagmi'
 import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 import MyMultiSigExtended from 'mymultisig-contract/abi/MyMultiSigExtended.json'
 import { JsonFragment } from '@ethersproject/abi'
@@ -29,6 +31,15 @@ const withExactExecOverload = (abi: JsonFragment[], inputTypes: string): JsonFra
   ),
   ...(LegacyWalletErrors as unknown as JsonFragment[])
 ]
+
+// Every outcome event any wallet generation can emit: the Extended ABI is a
+// superset of the base one for 0.5.0, MyMultiSig carries the pre-0.5.0 shapes,
+// and the legacy fragment covers the original TransactionFailed.
+const outcomeEventsAbi = [
+  ...(MyMultiSigExtended as Abi),
+  ...(MyMultiSig as Abi),
+  ...(LegacyTransactionFailedEvent as unknown as Abi)
+].filter((item) => item.type === 'event')
 
 const useExecTransaction = (
   args: MultiSigExecTransactionArgs,
@@ -72,7 +83,16 @@ const useExecTransaction = (
             'address,uint256,bytes,uint256,uint256,uint256,uint8,bytes'
           ),
           functionName: 'execTransaction',
-          args: [args.to, args.value, args.data, args.txnGas, args.txnNonce, validUntil, operation, args.signatures] as const
+          args: [
+            args.to,
+            args.value,
+            args.data,
+            args.txnGas,
+            args.txnNonce,
+            validUntil,
+            operation,
+            args.signatures
+          ] as const
         }
       : modern && isExtended
         ? {
@@ -188,103 +208,56 @@ const useExecTransaction = (
     markExecuted(true)
   }
 
-  useWatchContractEvent({
-    address: multiSigAddress,
-    abi: MyMultiSig,
-    eventName: 'TransactionExecuted',
-    onLogs: (logs) => {
-      logs.forEach((log: any) => {
-        const eventArgs = log.args || (log as any)
-        console.log('TransactionExecuted', eventArgs.sender, eventArgs.to, eventArgs.value, eventArgs.txnNonce)
-        handleExecutedEvent()
-      })
-    }
-  })
-  // 0.5.0 Extended wallets emit the operation-suffixed variants from the
-  // operation-byte execTransaction path.
-  useWatchContractEvent({
-    address: multiSigAddress,
-    abi: MyMultiSigExtended,
-    eventName: 'TransactionExecutedOp',
-    onLogs: (logs) => {
-      logs.forEach((log: any) => {
-        const eventArgs = log.args || (log as any)
-        console.log('TransactionExecutedOp', eventArgs.sender, eventArgs.to, eventArgs.value, eventArgs.txnNonce, eventArgs.operation)
-        handleExecutedEvent()
-      })
-    }
-  })
-  // MyMultiSig >= 0.1.x emits TxFailure (with the raw revert payload); older
-  // deployments emit TransactionFailed. Watch both shapes.
-  useWatchContractEvent({
-    address: multiSigAddress,
-    abi: MyMultiSig,
-    eventName: 'TxFailure',
-    onLogs: (logs) => {
-      logs.forEach((log: any) => {
-        const eventArgs = log.args || (log as any)
-        console.log('TxFailure', eventArgs.sender, eventArgs.to, eventArgs.value, eventArgs.txnNonce, eventArgs.reason)
-        markExecuted(false)
-      })
-    }
-  })
-  useWatchContractEvent({
-    address: multiSigAddress,
-    abi: MyMultiSigExtended,
-    eventName: 'TxFailureOp',
-    onLogs: (logs) => {
-      logs.forEach((log: any) => {
-        const eventArgs = log.args || (log as any)
-        console.log('TxFailureOp', eventArgs.sender, eventArgs.to, eventArgs.value, eventArgs.txnNonce, eventArgs.reason)
-        markExecuted(false)
-      })
-    }
-  })
-  useWatchContractEvent({
-    address: multiSigAddress,
-    abi: LegacyTransactionFailedEvent,
-    eventName: 'TransactionFailed',
-    onLogs: (logs) => {
-      logs.forEach((log: any) => {
-        const eventArgs = log.args || (log as any)
-        console.log('TransactionFailed', eventArgs.sender, eventArgs.to, eventArgs.value, eventArgs.txnNonce)
-        markExecuted(false)
-      })
-    }
-  })
-  // Batch requests: capture the per-call outcome arrays emitted alongside the
-  // outer transaction so the request detail view can show which legs failed.
-  useWatchContractEvent({
-    address: multiSigAddress,
-    abi: MyMultiSig,
-    eventName: 'MultiRequestExecuted',
-    onLogs: (logs) => {
-      logs.forEach((log: any) => {
-        const eventArgs = log.args || (log as any)
-        if (!existingRequest.request.batchSteps) return
-        const successes: boolean[] = eventArgs.successes ?? []
-        const returnData: string[] = eventArgs.returnData ?? []
-        console.log('MultiRequestExecuted', eventArgs.txNonce, successes)
-        markExecuted(true, {
-          batchResults: successes.map((success, i) => ({ success, returnData: returnData[i] ?? '0x' }))
-        })
-      })
-    }
-  })
-  useWatchContractEvent({
-    address: multiSigAddress,
-    abi: MyMultiSig,
-    eventName: 'ContractEndOfLife',
-    onLogs: (logs) => {
-      logs.forEach((log: any) => {
-        const eventArgs = log.args || (log as any)
-        console.log('ContractEndOfLife', eventArgs.txNonceLefts)
-        notificationEndOfLife(
-          `Only ${String(eventArgs.txNonceLefts ?? 'a few')} transaction nonces remain on this wallet. Plan a migration to a new wallet.`
-        )
-      })
-    }
-  })
+  // Outcome events come from this transaction's own receipt. Polling seven
+  // event watchers per mounted button hammered the RPC, and the watchers also
+  // picked up events from other transactions on the same wallet.
+  const processedReceipt = useRef<string | null>(null)
+  useEffect(() => {
+    if (!isFinal || dataFinal == null || processedReceipt.current === dataFinal.transactionHash) return
+    processedReceipt.current = dataFinal.transactionHash
+    const walletLogs = dataFinal.logs.filter((log) => log.address.toLowerCase() === multiSigAddress.toLowerCase())
+    const events = parseEventLogs({ abi: outcomeEventsAbi, logs: walletLogs }) as unknown as {
+      eventName: string
+      args: Record<string, any>
+    }[]
+    events.forEach(({ eventName, args: eventArgs }) => {
+      switch (eventName) {
+        case 'TransactionExecuted':
+        case 'TransactionExecutedOp':
+          console.log(eventName, eventArgs.sender, eventArgs.to, eventArgs.value, eventArgs.txnNonce)
+          handleExecutedEvent()
+          break
+        // MyMultiSig >= 0.1.x emits TxFailure (with the raw revert payload);
+        // older deployments emit TransactionFailed.
+        case 'TxFailure':
+        case 'TxFailureOp':
+        case 'TransactionFailed':
+          console.log(eventName, eventArgs.sender, eventArgs.to, eventArgs.value, eventArgs.txnNonce, eventArgs.reason)
+          markExecuted(false)
+          break
+        // Batch requests: capture the per-call outcome arrays so the request
+        // detail view can show which legs failed.
+        case 'MultiRequestExecuted': {
+          if (!existingRequest.request.batchSteps) break
+          const successes: boolean[] = eventArgs.successes ?? []
+          const returnData: string[] = eventArgs.returnData ?? []
+          console.log('MultiRequestExecuted', eventArgs.txNonce, successes)
+          markExecuted(true, {
+            batchResults: successes.map((success, i) => ({ success, returnData: returnData[i] ?? '0x' }))
+          })
+          break
+        }
+        case 'ContractEndOfLife':
+          console.log('ContractEndOfLife', eventArgs.txNonceLefts)
+          notificationEndOfLife(
+            `Only ${String(eventArgs.txNonceLefts ?? 'a few')} transaction nonces remain on this wallet. Plan a migration to a new wallet.`
+          )
+          break
+      }
+    })
+    // markExecuted/handleExecutedEvent are recreated per render; the receipt is the real dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFinal, dataFinal])
   return {
     data,
     preparationError,
