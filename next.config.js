@@ -1,6 +1,14 @@
+const { randomUUID } = require('crypto')
+
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true'
 })
+
+// One identity per build. DEPLOY_ID is set by Netlify, so the build id can be
+// traced back to a deploy; the UUID covers local builds. builtAt orders builds
+// so a tab can tell "newer" from "older" (see src/lib/app-version/policy.ts).
+const buildId = process.env.NEXT_DEPLOYMENT_ID || process.env.DEPLOY_ID || randomUUID()
+const builtAt = Date.now()
 
 // Temporarily disabled due to lru-cache compatibility issue with Next.js 16
 // TODO: Re-enable once next-pwa is updated or alternative solution is found
@@ -14,6 +22,12 @@ const nextConfig = {
   experimental: {},
   images: {},
   reactStrictMode: true,
+  generateBuildId: () => buildId,
+  // Baked into the client and server bundles at build time (see /api/build-id)
+  env: {
+    NEXT_PUBLIC_BUILD_ID: buildId,
+    NEXT_PUBLIC_BUILT_AT: String(builtAt)
+  },
   // Old camelCase routes — permanent redirects preserve inbound links and SEO equity
   redirects: async () => [
     { source: '/createMultiSig', destination: '/create-multisig', permanent: true },
