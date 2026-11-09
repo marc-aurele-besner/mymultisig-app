@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import {
   Dialog,
   DialogContent,
@@ -11,22 +11,43 @@ import { WarningTwoIcon } from '../icons/ChakraIcons'
 
 const DISCLAIMER_ACCEPTED_KEY = 'mymultisig.disclaimer.accepted'
 
-const Disclaimer: React.FC = () => {
-  const [open, setOpen] = useState(false)
+export const hasAcceptedDisclaimer = (): boolean => {
+  try {
+    return window.localStorage.getItem(DISCLAIMER_ACCEPTED_KEY) != null
+  } catch {
+    return false
+  }
+}
 
-  useEffect(() => {
-    if (!window.localStorage.getItem(DISCLAIMER_ACCEPTED_KEY)) setOpen(true)
-  }, [])
-
-  const accept = () => {
+const rememberAcceptance = () => {
+  try {
     window.localStorage.setItem(DISCLAIMER_ACCEPTED_KEY, 'true')
-    setOpen(false)
+  } catch {
+    // Storage blocked: the acknowledgement holds for this page view only.
+  }
+}
+
+export interface DisclaimerProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  // Called after the user accepts, once the acknowledgement is stored.
+  onAccept: () => void
+}
+
+// Risk acknowledgement. Shown the first time someone connects a wallet (see
+// ConnectWallet), not on the first page view: visitors can read the site
+// before being asked to accept anything.
+const Disclaimer: React.FC<DisclaimerProps> = ({ open, onOpenChange, onAccept }) => {
+  const accept = () => {
+    rememberAcceptance()
+    onAccept()
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showClose={true}
+        aria-describedby={undefined}
         className="max-w-[600px] border-border bg-card/98 shadow-2xl backdrop-blur-xl"
       >
         <DialogHeader className="pb-2 pt-6">

@@ -2,8 +2,10 @@ import React from 'react'
 import { useConnect } from 'wagmi'
 import { motion } from 'framer-motion'
 import { WalletCoinbase, WalletMetamask, WalletWalletConnect } from '@web3icons/react'
+import { cn } from '@/lib/utils'
 import ErrorCard from '../cards/ErrorCard'
 import { WalletIcon } from '../icons/wallet'
+import Disclaimer, { hasAcceptedDisclaimer } from '../modals/Disclaimer'
 
 type WalletMark = React.FC<{ size: number }>
 
@@ -46,26 +48,54 @@ const configForConnector = (connector: { id: string; name: string }) =>
     description: `Connect with ${connector.name}`
   }
 
-const ConnectWallet: React.FC = () => {
+export interface ConnectWalletProps {
+  // Two columns and no heading, for narrow containers that bring their own
+  // title (the connect modal, the home hero card).
+  compact?: boolean
+}
+
+const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false }) => {
   const { connect, connectors, error, isPending } = useConnect()
   const [connectingId, setConnectingId] = React.useState<string | null>(null)
+  // Connector the user picked before accepting the disclaimer; connecting
+  // resumes with it once they accept.
+  const [awaitingDisclaimer, setAwaitingDisclaimer] = React.useState<(typeof connectors)[0] | null>(null)
 
-  const handleConnect = (connector: (typeof connectors)[0]) => {
+  const startConnect = (connector: (typeof connectors)[0]) => {
     setConnectingId(connector.id)
     connect({ connector })
   }
 
+  // The risk disclaimer is asked for here, the first time someone connects,
+  // rather than on the first page view.
+  const handleConnect = (connector: (typeof connectors)[0]) => {
+    if (!hasAcceptedDisclaimer()) {
+      setAwaitingDisclaimer(connector)
+      return
+    }
+    startConnect(connector)
+  }
+
   return (
     <>
-      <div className="flex w-full flex-col items-center gap-4">
-        <h2 className="text-center text-xl font-semibold text-foreground md:text-2xl">
-          Connect your wallet
-        </h2>
-        <p className="max-w-[400px] text-center text-sm text-muted-foreground">
-          Choose your preferred wallet to get started with MyMultiSig
-        </p>
+      <div className={cn('flex w-full flex-col gap-4', !compact && 'items-center')}>
+        {!compact && (
+          <>
+            <h2 className="text-center text-xl font-semibold text-foreground md:text-2xl">
+              Connect your wallet
+            </h2>
+            <p className="max-w-[400px] text-center text-sm text-muted-foreground">
+              Choose your preferred wallet to get started with MyMultiSig
+            </p>
+          </>
+        )}
 
-        <div className="grid w-full max-w-[700px] grid-cols-2 gap-4 pt-4 md:grid-cols-4">
+        <div
+          className={cn(
+            'grid w-full grid-cols-2 gap-3',
+            compact ? '' : 'max-w-[700px] gap-4 pt-4 md:grid-cols-4'
+          )}
+        >
           {connectors.map((connector, index) => {
             const config = configForConnector(connector)
             const isConnecting = isPending && connectingId === connector.id
@@ -81,7 +111,7 @@ const ConnectWallet: React.FC = () => {
                 onClick={() => handleConnect(connector)}
                 disabled={isDisabled}
                 aria-disabled={isDisabled}
-                className="relative w-full overflow-hidden rounded-xl border border-border bg-muted/50 p-4 opacity-100 transition-transform active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                className="relative w-full overflow-hidden rounded-xl border border-border bg-muted/50 p-4 opacity-100 transition-[transform,border-color] hover:border-primary/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                 style={{
                   borderColor: isConnecting ? 'var(--primary)' : undefined
                 }}
@@ -94,10 +124,10 @@ const ConnectWallet: React.FC = () => {
                 )}
                 <div className="flex flex-col items-center gap-3">
                   <div className="rounded-xl bg-muted p-3" aria-hidden>
-                    <config.Mark size={36} />
+                    <config.Mark size={compact ? 28 : 36} />
                   </div>
                   <span className="text-center text-sm font-semibold text-foreground">
-                    {config.name}
+                    {isConnecting ? 'Connecting…' : config.name}
                   </span>
                 </div>
               </motion.button>
@@ -107,6 +137,18 @@ const ConnectWallet: React.FC = () => {
       </div>
 
       {error != null && <ErrorCard>{error.message}</ErrorCard>}
+
+      <Disclaimer
+        open={awaitingDisclaimer != null}
+        onOpenChange={(open) => {
+          if (!open) setAwaitingDisclaimer(null)
+        }}
+        onAccept={() => {
+          const connector = awaitingDisclaimer
+          setAwaitingDisclaimer(null)
+          if (connector != null) startConnect(connector)
+        }}
+      />
     </>
   )
 }

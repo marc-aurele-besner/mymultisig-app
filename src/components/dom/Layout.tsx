@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import FooterBox from '../footer/FooterBox'
+import ConnectModal from '../modals/ConnectModal'
 import CommandPalette from '../shell/CommandPalette'
 import MobileTabBar from '../shell/MobileTabBar'
 import SidebarNav from '../shell/SidebarNav'
@@ -92,6 +93,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </Sheet>
 
         <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+        <ConnectModal />
       </div>
     </InboxProvider>
   )
