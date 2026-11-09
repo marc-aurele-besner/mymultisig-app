@@ -1,0 +1,18 @@
+{
+  "name": "mymultisig",
+  "owner": {
+    "name": "Marc-Aurele Besner",
+    "url": "https://github.com/marc-aurele-besner"
+  },
+  "metadata": {
+    "description": "Claude Code plugins for mymultisig.app multi-signature wallets"
+  },
+  "plugins": [
+    {
+      "name": "mymultisig",
+      "source": "./plugins/mymultisig",
+      "description": "Create, inspect, propose, review, sign and execute MyMultiSig wallet transactions from Claude Code (MCP server + skills)",
+      "category": "web3"
+    }
+  ]
+}

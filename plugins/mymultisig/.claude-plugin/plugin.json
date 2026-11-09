@@ -1,0 +1,13 @@
+{
+  "name": "mymultisig",
+  "version": "0.1.0",
+  "description": "Create, inspect, propose, review, sign and execute MyMultiSig multi-signature wallet transactions. Bundles the mymultisig-mcp server and workflow skills.",
+  "author": {
+    "name": "Marc-Aurele Besner",
+    "url": "https://github.com/marc-aurele-besner"
+  },
+  "homepage": "https://mymultisig.app/docs/ai-agents",
+  "repository": "https://github.com/marc-aurele-besner/mymultisig-app",
+  "license": "MIT",
+  "keywords": ["multisig", "ethereum", "wallet", "mcp", "web3"]
+}
