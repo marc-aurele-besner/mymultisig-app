@@ -158,6 +158,45 @@ export const addFactory = (factory: Record<string, unknown>) =>
 export const listFactories = (ownerAddress: string) =>
   fetchJson(`/api/factories?ownerAddress=${encode(ownerAddress)}`, { method: 'GET' })
 
+// --- Agent API keys (SIWE session only) ----------------------------------
+
+export type AgentApiKeyScope = 'read' | 'propose' | 'sign' | 'manage'
+
+export type AgentApiKey = {
+  id: string
+  name: string
+  keyPrefix: string
+  scopes: AgentApiKeyScope[]
+  walletAddresses: string[]
+  createdAt: string | null
+  lastUsedAt: string | null
+  expiresAt: string | null
+  revokedAt: string | null
+}
+
+export const listAgentApiKeys = async (): Promise<AgentApiKey[]> => {
+  const body = (await fetchJson('/api/agent-keys', { method: 'GET' })) as { content?: AgentApiKey[] }
+  return body.content ?? []
+}
+
+// Resolves with the full key — shown to the user exactly once.
+export const createAgentApiKey = async (input: {
+  name: string
+  scopes: AgentApiKeyScope[]
+  walletAddresses?: string[]
+  expiresInDays?: number | null
+}): Promise<{ key: string; info: AgentApiKey }> => {
+  const body = (await fetchWrite('/api/agent-keys', {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify(input)
+  })) as { content: { key: string; info: AgentApiKey } }
+  return body.content
+}
+
+export const revokeAgentApiKey = (id: string) =>
+  fetchWrite(`/api/agent-keys/${encode(id)}`, { method: 'DELETE', headers: JSON_HEADERS })
+
 // --- Admin ----------------------------------------------------------------
 
 export const listPublicAddressBook = () => fetchJson('/api/admin/public-address-book', { method: 'GET' })

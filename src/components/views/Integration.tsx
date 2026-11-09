@@ -75,6 +75,20 @@ const notificationIntegrations: NotificationIntegration[] = [
     ],
     note: 'Built on Resend, which already powers the contact form. Set up your inbox per owner wallet in /settings/email.',
     cta: { label: 'Set up email', href: '/settings/email' }
+  },
+  {
+    keyword: 'agents',
+    title: 'AI agents (MCP)',
+    status: 'alpha',
+    description: 'Let Claude, Cursor or any MCP client create, propose, sign and execute.',
+    features: [
+      'mymultisig-mcp server: wallets, queue, decode, propose, approve, execute',
+      'Scoped API keys (read / propose / sign / manage), optionally per wallet',
+      'The agent signs with its own owner key, locally — never on our servers',
+      'Claude Code plugin with ready-made skills, plus a CLI and TypeScript SDK'
+    ],
+    note: 'Create a key in /settings/agents, then follow the AI agents guide in the docs.',
+    cta: { label: 'Connect an agent', href: '/settings/agents' }
   }
 ]
 
@@ -96,6 +110,18 @@ const buildYourOwn = [
     title: 'Open API routes',
     description: 'The app’s request storage and signing routes are open source.',
     href: 'https://github.com/marc-aurele-besner/mymultisig-app/tree/main/src/pages/api'
+  },
+  {
+    keyword: 'openapi',
+    title: 'OpenAPI spec',
+    description: 'Machine-readable description of the REST API, with API key and SIWE auth.',
+    href: '/openapi.json'
+  },
+  {
+    keyword: 'sdk',
+    title: 'SDK, MCP server & CLI',
+    description: 'mymultisig-sdk, mymultisig-mcp and mymultisig-cli share one protocol core with this app.',
+    href: 'https://github.com/marc-aurele-besner/mymultisig-app/tree/main/packages'
   }
 ]
 
@@ -126,11 +152,11 @@ const Integration: React.FC = () => {
           <div>
             <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>INTEGRATIONS</p>
             <h1 className='font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>
-              Team chat &amp; notifications
+              Team chat, notifications &amp; AI agents
             </h1>
             <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground'>
               A multisig only moves when people show up to sign. These integrations bring the three moments that matter
-              to wherever your team already is.
+              to wherever your team already is — including the AI agents that work alongside it.
             </p>
           </div>
 
