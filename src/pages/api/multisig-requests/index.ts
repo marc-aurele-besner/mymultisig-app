@@ -184,7 +184,8 @@ const createHandler = withVerifiedAs(
 
     console.log('Add request done')
     return res.status(200).json({ message: 'Add request done', content: { id: insertedId ?? null } })
-  }
+  },
+  { apiKeyScope: 'propose', wallet: (req) => (parseBody(req) as { multiSigAddress?: string }).multiSigAddress }
 )
 
 const listHandler = async (req: NextApiRequest, res: NextApiResponse) => {

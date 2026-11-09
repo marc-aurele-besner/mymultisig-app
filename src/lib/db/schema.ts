@@ -216,6 +216,23 @@ export const telegramChatConfigs = pgTable('telegram_chat_configs', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 })
 
+// Scoped API keys for AI agents (MCP server, CLI, SDK). See
+// src/lib/db/schema.sql for the column-level rationale. Only the SHA-256 of
+// the token is stored; the mapper never exposes key_hash.
+export const agentApiKeys = pgTable('agent_api_keys', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  ownerAddress: text('owner_address').notNull(),
+  name: text('name').notNull(),
+  keyPrefix: text('key_prefix').notNull(),
+  keyHash: text('key_hash').notNull(),
+  scopes: text('scopes').array().notNull().default([]),
+  walletAddresses: jsonb('wallet_addresses').$type<string[]>().notNull().default([]),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+  revokedAt: timestamp('revoked_at', { withTimezone: true })
+})
+
 export type MultisigRequestRow = typeof multisigRequests.$inferSelect
 export type MultisigRequestInsert = typeof multisigRequests.$inferInsert
 export type MultisigWalletRow = typeof multisigWallets.$inferSelect
@@ -246,3 +263,5 @@ export type TelegramChatConfigRow = typeof telegramChatConfigs.$inferSelect
 export type TelegramChatConfigInsert = typeof telegramChatConfigs.$inferInsert
 export type EmailRecipientRow = typeof emailRecipients.$inferSelect
 export type EmailRecipientInsert = typeof emailRecipients.$inferInsert
+export type AgentApiKeyRow = typeof agentApiKeys.$inferSelect
+export type AgentApiKeyInsert = typeof agentApiKeys.$inferInsert

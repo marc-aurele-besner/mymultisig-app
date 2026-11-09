@@ -39,7 +39,8 @@ const addHandler = withVerifiedAs(
     }
     console.log('Factory upsert done')
     return res.status(200).json({ message: 'Factory upsert done' })
-  }
+  },
+  { apiKeyScope: 'manage' }
 )
 
 const listHandler = withVerifiedAs(
@@ -68,7 +69,8 @@ const listHandler = withVerifiedAs(
         multiSigCount: 0
       }))
     })
-  }
+  },
+  { apiKeyScope: 'read' }
 )
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
