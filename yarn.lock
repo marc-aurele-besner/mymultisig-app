@@ -14897,10 +14897,10 @@ ox@0.14.54:
     abitype "^1.2.3"
     eventemitter3 "5.0.1"
 
-ox@0.14.59:
-  version "0.14.59"
-  resolved "https://registry.yarnpkg.com/ox/-/ox-0.14.59.tgz#815d60b1f89afc306623536794a8a9ef3170c53d"
-  integrity sha512-Y+DPEQScTEGKteQATjtytE1JRQ5cg1R2+DvYQ/lbhUCm/xS9n0Jnkkf2AqQyIntefQxs8xY6dZ+kyNZ7zf2FzA==
+ox@0.14.63:
+  version "0.14.63"
+  resolved "https://registry.yarnpkg.com/ox/-/ox-0.14.63.tgz#5d8136d832d885c53cc16814899af1c8ab465cb7"
+  integrity sha512-TSKYN151boL1Aq/vsFrd8Buvd7v+oTQr8V7z4f4QQTSMB+ohD8cbNbHCtKRLI0Gs8LuYKirf5qvElTKVIFe2jw==
   dependencies:
     "@adraffy/ens-normalize" "^1.11.0"
     "@noble/ciphers" "^1.3.0"
@@ -18280,9 +18280,9 @@ viem@>=2.45.0, viem@^2.1.1, viem@^2.27.2, viem@^2.31.7, viem@^2.47.0:
     ws "8.21.0"
 
 viem@^2.43.3:
-  version "2.57.16"
-  resolved "https://registry.yarnpkg.com/viem/-/viem-2.57.16.tgz#487349adb52405ffd9103e3969ade6a0b5040355"
-  integrity sha512-+4uaUw3NfkqjaqsZp8Zci94K33oc9rv7mIUgvPduJxsY/tI0ASi2YkaXoUVSBGfdIw/QPWuVnIf9LTFf35IoMg==
+  version "2.57.17"
+  resolved "https://registry.yarnpkg.com/viem/-/viem-2.57.17.tgz#9fd4060ade0f09cdc8a9d73910867f0929efe7ed"
+  integrity sha512-yIMqNoKoVAMwX+zVbqkxfqq7qbGHmKXZidh/xfVpiPTJlAbbDDdDIMH5dDQWxhZcj56L8tPOwsIIxF618P+TOg==
   dependencies:
     "@noble/curves" "1.9.1"
     "@noble/hashes" "1.8.0"
@@ -18290,7 +18290,7 @@ viem@^2.43.3:
     "@scure/bip39" "1.6.0"
     abitype "1.2.3"
     isows "1.0.7"
-    ox "0.14.59"
+    ox "0.14.63"
     ws "8.21.0"
 
 vm-browserify@^1.1.2:
