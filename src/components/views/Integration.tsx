@@ -6,7 +6,7 @@ import BigCard from '../cards/BigCard'
 import { CheckIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
 import { cn } from '@/lib/utils'
 
-type IntegrationStatus = 'in development' | 'alpha' | 'planned'
+type IntegrationStatus = 'available' | 'in development' | 'alpha' | 'planned'
 
 interface NotificationIntegration {
   keyword: string
@@ -24,16 +24,16 @@ const notificationIntegrations: NotificationIntegration[] = [
   {
     keyword: 'slack',
     title: 'Slack',
-    status: 'alpha',
+    status: 'available',
     description: 'Bring requests to the channel where your team already talks.',
     features: [
       'Post each new request to a channel of your choice',
+      'A second message when a request is ready to execute',
       'One-click link to the request page to sign',
-      'Slash commands: /balance, /address-book, /bind, /unbind, /propose, /sign',
       'Bind a channel with /bind <chain> <multisig>'
     ],
-    note: 'The bot install, slash commands, and channel binding (/bind) are live. New-request notifications post into bound channels. See /settings/slack to try it in your workspace.',
-    cta: { label: 'Try the alpha', href: '/settings/slack' }
+    note: 'Add the app to your workspace from /settings/slack, then run /bind in the channel that should get notifications.',
+    cta: { label: 'Add to Slack', href: '/settings/slack' }
   },
   {
     keyword: 'discord',
@@ -107,6 +107,7 @@ const requestIssueUrl =
   )}`
 
 const statusBadgeClassName: Record<IntegrationStatus, string> = {
+  available: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
   'in development': 'border-primary/40 bg-primary/15 text-primary',
   alpha: 'border-amber-500/40 bg-amber-500/15 text-amber-700 dark:text-amber-300',
   planned: 'border-border bg-muted text-muted-foreground'

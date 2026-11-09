@@ -128,14 +128,51 @@ const SlackSettings: React.FC = () => {
             <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>SETTINGS</p>
             <h1 className='font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>Slack</h1>
             <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground'>
-              Install the MyMultiSig Slack app into a workspace, then bind a channel to a multisig. The bot posts
-              new-request notifications into bound channels and answers slash commands
-              <span className='font-mono'>{' /balance'}</span>,<span className='font-mono'>{' /address-book'}</span>,
-              <span className='font-mono'>{' /bind'}</span>,<span className='font-mono'>{' /unbind'}</span>,
-              <span className='font-mono'>{' /propose'}</span>, and
-              <span className='font-mono'>{' /sign'}</span>.
+              Get a message in Slack whenever a request is proposed on one of your multisigs, and again when it has
+              enough signatures to execute. Each message links straight to the request so signers can act in one
+              click.
             </p>
           </div>
+
+          <ol className='grid gap-3 md:grid-cols-3'>
+            {[
+              {
+                title: 'Add the app',
+                body: (
+                  <>
+                    Sign in with your wallet and click <span className='font-semibold'>Add to Slack</span> below.
+                    Approve the install for your workspace.
+                  </>
+                )
+              },
+              {
+                title: 'Bind a channel',
+                body: (
+                  <>
+                    In the channel that should get notifications, run{' '}
+                    <span className='font-mono'>/bind &lt;chain&gt; &lt;multisig&gt;</span>. For a private channel,{' '}
+                    <span className='font-mono'>/invite @MyMultiSig</span> first.
+                  </>
+                )
+              },
+              {
+                title: 'Get notified',
+                body: (
+                  <>
+                    New requests and ready-to-execute requests are posted there.{' '}
+                    <span className='font-mono'>/unbind</span> stops them; <span className='font-mono'>/multisig help</span>{' '}
+                    lists every command.
+                  </>
+                )
+              }
+            ].map((step, i) => (
+              <li key={step.title} className='flex flex-col gap-1 rounded-lg border border-border p-4'>
+                <span className='font-mono text-xs text-primary'>STEP {i + 1}</span>
+                <span className='text-sm font-semibold text-foreground'>{step.title}</span>
+                <span className='text-xs leading-relaxed text-muted-foreground'>{step.body}</span>
+              </li>
+            ))}
+          </ol>
 
           {status.kind === 'loading' && <p className='text-sm text-muted-foreground'>Loading installed workspaces…</p>}
 
@@ -173,7 +210,7 @@ const SlackSettings: React.FC = () => {
                   className='gap-2'
                 >
                   <ExternalLinkIcon className='h-4 w-4' />
-                  Install to a workspace
+                  Add to Slack
                 </Button>
               </div>
 
@@ -255,9 +292,10 @@ const SlackSettings: React.FC = () => {
 
           <div className='rounded-lg border border-dashed border-border p-4 text-xs leading-relaxed text-muted-foreground'>
             <p>
-              Type <span className='font-mono'>/bind &lt;chain&gt; &lt;multisig&gt;</span> in any channel where the bot
-              is present to receive new-request notifications there. <span className='font-mono'>/unbind</span> removes
-              the binding.
+              The bot never holds keys: it only posts notifications and links. Proposing and signing always happen in
+              your own wallet in the app. This page lists the workspaces you added while signed in with this wallet,
+              and every channel bound in them, including bindings teammates made with{' '}
+              <span className='font-mono'>/bind</span>.
             </p>
           </div>
         </div>
