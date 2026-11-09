@@ -5,6 +5,7 @@ import { getDb } from '../../../lib/db/neon'
 import { multisigRequests, multisigWallets } from '../../../lib/db/schema'
 import { rowToMultiSigRequest } from '../../../lib/db/mappers'
 import { cascadeInvalidate } from '../../../lib/api/cascade'
+import { trackTransactionExecuted, trackTransactionReset, trackTransactionSigned } from '../../../lib/channlize/events'
 import { parseBody, parseIdParam, withSession, withVerifiedAsOwner } from '../../../lib/api/middleware'
 
 // Per-request endpoints under /api/multisig-requests/[id]:
@@ -108,6 +109,27 @@ const patchHandler = withVerifiedAsOwner(parseIdParam, async (req, res, _address
       execFlipped ? (nextSuccessful ? 'executed' : 'failed') : 'reset',
       walletRows[0]?.nonce ?? null
     )
+  }
+
+  const newSignatureCount = Array.isArray(patch.signatures) ? (patch.signatures as unknown[]).length : null
+  if (execFlipped) {
+    await trackTransactionExecuted({
+      requestId: id,
+      multiSigAddress: existing.multiSigAddress,
+      isSuccessful: Boolean(nextSuccessful)
+    })
+  } else if (signaturesReset) {
+    await trackTransactionReset({
+      requestId: id,
+      multiSigAddress: existing.multiSigAddress,
+      previousSignatureCount: existing.signatures.length
+    })
+  } else if (newSignatureCount != null && newSignatureCount > existing.signatures.length) {
+    await trackTransactionSigned({
+      requestId: id,
+      multiSigAddress: existing.multiSigAddress,
+      signatureCount: newSignatureCount
+    })
   }
 
   const updated = await db.select().from(multisigRequests).where(eq(multisigRequests.id, id)).limit(1)

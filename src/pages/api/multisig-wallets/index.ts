@@ -4,6 +4,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { getDb } from '../../../lib/db/neon'
 import { multisigWallets } from '../../../lib/db/schema'
 import { rowToMultiSig } from '../../../lib/db/mappers'
+import { trackMultisigCreated } from '../../../lib/channlize/events'
 import { parseBody, parseQueryString, withSession, withVerifiedAs } from '../../../lib/api/middleware'
 
 // /api/multisig-wallets hosts three actions on one path:
@@ -46,6 +47,14 @@ const upsertHandler = withSession(async (req, res) => {
     address: String(doc.address),
     ...walletPatch,
     isDeployed: Boolean(doc.isDeployed ?? true)
+  })
+  await trackMultisigCreated({
+    address: String(doc.address),
+    chainId: Number(doc.chainId),
+    chainName: String(doc.chainName),
+    name: String(doc.name),
+    threshold: walletPatch.threshold,
+    ownerCount: walletPatch.ownerCount
   })
   console.log('Add content done')
   return res.status(200).json({ message: 'Add content done' })

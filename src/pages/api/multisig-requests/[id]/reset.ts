@@ -6,6 +6,7 @@ import { multisigRequests, multisigWallets } from '../../../../lib/db/schema'
 import { rowToMultiSigRequest } from '../../../../lib/db/mappers'
 import { cascadeInvalidate } from '../../../../lib/api/cascade'
 import { parseIdParam, withVerifiedAsOwner } from '../../../../lib/api/middleware'
+import { trackTransactionReset } from '../../../../lib/channlize/events'
 
 // POST /api/multisig-requests/[id]/reset
 // Wipe the signature arrays on a stored request so it can be re-signed from
@@ -49,6 +50,14 @@ const resetHandler = withVerifiedAsOwner(parseIdParam, async (_req, res, _addres
     'reset',
     rows[0].nonce
   )
+
+  if (existing.signatures.length > 0) {
+    await trackTransactionReset({
+      requestId: id,
+      multiSigAddress: existing.multiSigAddress,
+      previousSignatureCount: existing.signatures.length
+    })
+  }
 
   const updated = await db.select().from(multisigRequests).where(eq(multisigRequests.id, id)).limit(1)
   return res.status(200).json({

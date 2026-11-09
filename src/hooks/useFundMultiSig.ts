@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import decodeContractError from '../utils/decodeContractError'
+import { reportMultiSigFunded } from '../utils/api'
 import { useNotification } from './notifications'
 
 // Direct deposit into the multisig from the connected wallet: a plain native
@@ -16,6 +17,10 @@ const useFundMultiSig = (multiSigAddress: `0x${string}`) => {
   const { notificationInfo, notificationError, notificationSuccess } = useNotification()
   const native = useSendTransaction()
   const token = useWriteContract()
+  // What the in-flight deposit was, so the confirmed receipt can be reported
+  // to analytics with the right asset and amount.
+  const pendingDeposit = React.useRef<{ asset: 'native' | 'erc20'; tokenAddress?: string; amount: string } | null>(null)
+  const reportedHash = React.useRef<string | null>(null)
 
   const hash = native.data ?? token.data
   const error = native.error ?? token.error
@@ -46,6 +51,16 @@ const useFundMultiSig = (multiSigAddress: `0x${string}`) => {
 
   React.useEffect(() => {
     if (isFinal && receipt) {
+      const deposit = pendingDeposit.current
+      if (deposit && receipt.status === 'success' && reportedHash.current !== receipt.transactionHash) {
+        reportedHash.current = receipt.transactionHash
+        reportMultiSigFunded({
+          multiSigAddress,
+          chainId,
+          txHash: receipt.transactionHash,
+          ...deposit
+        })
+      }
       notificationSuccess()
       // The pages under the modal read balances through cached wagmi queries
       // (the multisig's native balance tile, ERC-20 reads); invalidate them so
@@ -58,16 +73,21 @@ const useFundMultiSig = (multiSigAddress: `0x${string}`) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFinal, receipt, notificationSuccess])
 
-  const fundNative = (amount: bigint) => native.sendTransaction({ chainId, to: multiSigAddress, value: amount })
+  const fundNative = (amount: bigint) => {
+    pendingDeposit.current = { asset: 'native', amount: amount.toString() }
+    return native.sendTransaction({ chainId, to: multiSigAddress, value: amount })
+  }
 
-  const fundToken = (tokenAddress: `0x${string}`, amount: bigint) =>
-    token.writeContract({
+  const fundToken = (tokenAddress: `0x${string}`, amount: bigint) => {
+    pendingDeposit.current = { asset: 'erc20', tokenAddress, amount: amount.toString() }
+    return token.writeContract({
       chainId,
       address: tokenAddress,
       abi: erc20Abi,
       functionName: 'transfer',
       args: [multiSigAddress, amount]
     })
+  }
 
   const reset = () => {
     native.reset()

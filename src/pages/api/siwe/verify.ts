@@ -3,6 +3,7 @@ import { recoverMessageAddress } from 'viem'
 import { parseSiweMessage, validateSiweMessage } from 'viem/siwe'
 
 import { readNonce, setSession } from '../../../lib/auth/siwe'
+import { trackWalletConnected } from '../../../lib/channlize/events'
 
 // Verifies an EIP-4361 (SIWE) message signed by the connected wallet and
 // grants an HttpOnly session cookie. EOA signatures only, matching the
@@ -34,6 +35,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     setSession(res, parsed.address)
+    await trackWalletConnected({ address: parsed.address })
     return res.status(200).json({ address: parsed.address.toLowerCase() })
   } catch {
     return res.status(400).json({ message: 'Verification failed' })
