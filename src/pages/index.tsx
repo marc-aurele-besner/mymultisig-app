@@ -1,7 +1,11 @@
 import React from 'react'
 import Head from 'next/head'
 
+import { useAccount } from 'wagmi'
+
+import Inbox from '../components/views/Inbox'
 import Welcome, { faqItems } from '../components/views/Welcome'
+import useHasMounted from '../hooks/useHasMounted'
 
 const siteUrl = 'https://mymultisig.app'
 
@@ -51,12 +55,16 @@ const structuredData = {
 }
 
 const Page: React.FC = () => {
+  // The static HTML is always the marketing page (it is what crawlers and
+  // first-time visitors get). A connected wallet swaps it for the inbox.
+  const hasMounted = useHasMounted()
+  const { isConnected } = useAccount()
   return (
     <>
       <Head>
         <script type='application/ld+json' dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       </Head>
-      <Welcome />
+      {hasMounted && isConnected ? <Inbox /> : <Welcome />}
     </>
   )
 }
