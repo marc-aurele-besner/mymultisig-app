@@ -17,6 +17,7 @@ import {
   openInAppMessage
 } from './blockKit'
 import type { SlackSlashResponse } from './blockKit'
+import { CHAIN_ALIASES } from './chainAliases'
 import { decryptToken } from './crypto'
 import { slackApi, SlackApiError } from './slackApi'
 
@@ -51,35 +52,6 @@ export const findChain = (raw: string): Chain | null => {
   // slash-command args are whitespace-separated ("polygon-mumbai").
   const name = lower.replace(/[-_]/g, ' ')
   return networks.find((c) => c.name.toLowerCase() === name) ?? null
-}
-
-const CHAIN_ALIASES: Record<string, number> = {
-  mainnet: 1,
-  eth: 1,
-  ethereum: 1,
-  sepolia: 11155111,
-  goerli: 5,
-  polygon: 137,
-  poly: 137,
-  matic: 137,
-  mumbai: 80001,
-  optimism: 10,
-  op: 10,
-  'optimism-goerli': 420,
-  'op-goerli': 420,
-  arbitrum: 42161,
-  arb: 42161,
-  'arbitrum-goerli': 421613,
-  'arb-goerli': 421613,
-  avalanche: 43114,
-  avax: 43114,
-  fuji: 43113,
-  bsc: 56,
-  bnb: 56,
-  'bsc-testnet': 97,
-  'bnb-testnet': 97,
-  gnosis: 100,
-  chiado: 10200
 }
 
 const rpcFor = (chain: Chain): string | null => {
