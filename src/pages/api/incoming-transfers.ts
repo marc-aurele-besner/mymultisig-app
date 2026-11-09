@@ -59,7 +59,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'alchemy_getAssetTransfers', params: [params] })
   })
   if (!response.ok) {
-    return res.status(502).json({ message: `Transfer lookup failed (${response.status})` })
+    // Pass rate limits through as 429 so the client backs off instead of failing.
+    const status = response.status === 429 ? 429 : 502
+    return res.status(status).json({ message: `Transfer lookup failed (${response.status})` })
   }
   const json = await response.json()
   if (json.error != null) {

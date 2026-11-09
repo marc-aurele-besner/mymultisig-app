@@ -177,13 +177,18 @@ const MultiSigActivityFeed: React.FC<MultiSigActivityFeedProps> = ({ multiSigAdd
   const chain = chains.find((c) => c.id === chainId)
   const explorerUrl = chain?.blockExplorers?.default?.url
   const { labelFor } = useAddressLabels(chain?.id)
-  const { entries, isLoading, error, hasOlder, loadOlder } = useMultiSigActivity(multiSigAddress)
+  const { entries, isLoading, error, rateLimited, hasOlder, loadOlder } = useMultiSigActivity(multiSigAddress)
 
   return (
     <div className='flex w-full flex-col gap-4'>
       {error != null && (
-        <div className='rounded-xl border border-destructive bg-destructive/10 p-4 text-sm text-destructive'>
-          Could not load activity: {error}
+        <div className='flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive bg-destructive/10 p-4 text-sm text-destructive'>
+          <span>Could not load activity: {error}</span>
+          {rateLimited && !isLoading && (
+            <Button variant='outline' size='sm' onClick={() => loadOlder()}>
+              Try again
+            </Button>
+          )}
         </div>
       )}
 
