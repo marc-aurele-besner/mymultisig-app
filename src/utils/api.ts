@@ -66,6 +66,22 @@ export const cancelMultiSigRequest = (id: string) =>
     body: JSON.stringify({})
   })
 
+// Analytics report for a confirmed deposit. Fire-and-forget: a failure must
+// not surface a toast, so this skips fetchJson's 401 handler on purpose.
+export const reportMultiSigFunded = (body: {
+  multiSigAddress: string
+  chainId: number
+  txHash: string
+  asset: 'native' | 'erc20'
+  tokenAddress?: string
+  amount?: string
+}) =>
+  fetch('/api/events/multisig-funded', {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify(body)
+  }).catch(() => undefined)
+
 // --- Multisig wallets ----------------------------------------------------
 //
 // POST is an idempotent upsert on (chainId, address); PATCH is a partial
