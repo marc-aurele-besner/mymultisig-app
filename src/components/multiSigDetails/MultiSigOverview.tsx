@@ -210,7 +210,7 @@ const MultiSigOverview: React.FC<MultiSigOverviewProps> = ({ multiSigAddress }) 
             </div>
           ) : (
             <p className='text-sm text-muted-foreground'>
-              No recent on-chain activity found. Executions and owner changes will show up here.
+              No recent on-chain activity found. Executions, funds received, and owner changes will show up here.
             </p>
           )}
         </div>

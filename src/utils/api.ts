@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 
 import { MultiSig, MultiSigTransactionRequest } from '../models/MultiSigs'
+import type { IncomingTransfersPage } from '../lib/alchemy/transfers'
 
 // Content routes reject callers without a SIWE session (401). Surface that
 // once instead of letting fire-and-forget writes fail silently — every new
@@ -18,8 +19,7 @@ const JSON_HEADERS = { 'Content-Type': 'application/json' }
 
 // Single fetch path for every new helper so the 401 toast handler stays
 // in one place. `body` is serialised once; callers pass plain objects.
-const fetchJson = (url: string, init: RequestInit = {}) =>
-  fetch(url, init).then(handleContentResponse)
+const fetchJson = (url: string, init: RequestInit = {}) => fetch(url, init).then(handleContentResponse)
 
 const encode = (value: string) => encodeURIComponent(value)
 
@@ -151,8 +151,7 @@ export const listFactories = (ownerAddress: string) =>
 
 // --- Admin ----------------------------------------------------------------
 
-export const listPublicAddressBook = () =>
-  fetchJson('/api/admin/public-address-book', { method: 'GET' })
+export const listPublicAddressBook = () => fetchJson('/api/admin/public-address-book', { method: 'GET' })
 
 // --- Legacy callers --------------------------------------------------------
 // Pre-existing single-purpose endpoints that pre-date the dedicated-API
@@ -186,8 +185,22 @@ const getAssets = (data: { address: string; chainId: number }) => {
   })
 }
 
-export {
-  verifyContract,
-  getABI,
-  getAssets
+// Resolves with the page of incoming transfers; rejects when the indexer call
+// fails so the activity feed can surface the error.
+const getIncomingTransfers = async (data: {
+  address: string
+  chainId: number
+  fromBlock?: string
+  toBlock?: string
+  pageKey?: string
+}): Promise<IncomingTransfersPage> => {
+  const response = await fetch('/api/incoming-transfers', {
+    body: JSON.stringify(data),
+    method: 'POST'
+  })
+  const json = await response.json()
+  if (!response.ok) throw new Error(String(json.message ?? 'Failed to load incoming transfers'))
+  return json.content as IncomingTransfersPage
 }
+
+export { verifyContract, getABI, getAssets, getIncomingTransfers }
