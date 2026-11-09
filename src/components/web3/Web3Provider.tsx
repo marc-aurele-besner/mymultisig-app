@@ -8,6 +8,7 @@ import type { Chain } from 'viem/chains'
 
 import networks from '../../constants/networks'
 import { pollingIntervalFor, transportFor } from '../../constants/rpcTransports'
+import RpcContextSync from './RpcContextSync'
 
 interface Web3ProviderProps {
   children: React.ReactNode
@@ -63,7 +64,10 @@ const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
 
   return (
     <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <RpcContextSync />
+        {children}
+      </QueryClientProvider>
     </WagmiProvider>
   )
 }
