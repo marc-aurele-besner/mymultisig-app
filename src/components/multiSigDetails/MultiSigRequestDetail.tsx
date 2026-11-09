@@ -1,8 +1,9 @@
 import React, { Fragment, useState } from 'react'
 import Link from 'next/link'
-import { useAccount } from 'wagmi'
+import { useAccount, useChainId, useChains } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { formatNativeAmount } from '../../utils/formatNativeAmount'
 import SignRequest from '../buttons/SignRequest'
 import ExecuteRequest from '../buttons/ExecuteRequest'
 import ApproveRequest from '../buttons/ApproveRequest'
@@ -64,6 +65,11 @@ const Callout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, multiSigRequestId }) => {
   const [isDeleted, setIsDeleted] = useState(false)
   const [isReset, setIsReset] = useState(false)
+  // Amounts are shown in friendly native units by default; this flips them to raw wei.
+  const [showRawAmount, setShowRawAmount] = useState(false)
+  const chainId = useChainId()
+  const chain = useChains().find((c) => c.id === chainId)
+  const nativeSymbol = chain?.nativeCurrency.symbol ?? 'ETH'
   const requestDetails = useMultiSigRequestDetails(multiSigRequestId)
   const { multiSigDetails, onChainOwners } = useMultiSigDetails(
     requestDetails != null ? requestDetails.multiSigAddress : '0x',
@@ -220,8 +226,19 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
           <Detail label='Target' mono>
             {requestDetails.request.to}
           </Detail>
-          <Detail label='Value (wei)' mono>
-            {requestDetails.request.value}
+          <Detail label='Value' mono={showRawAmount}>
+            <span className='block'>
+              {showRawAmount
+                ? `${requestDetails.request.value} wei`
+                : formatNativeAmount(requestDetails.request.value, nativeSymbol)}
+            </span>
+            <button
+              type='button'
+              className='mt-1 text-xs font-medium text-primary hover:underline'
+              onClick={() => setShowRawAmount((raw) => !raw)}
+            >
+              {showRawAmount ? 'Back to friendly view' : 'Show raw amount (wei)'}
+            </button>
           </Detail>
           <Detail label='Tx. gas' mono>
             {requestDetails.request.txnGas}
@@ -272,7 +289,9 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
                   >
                     <span className='font-mono text-muted-foreground'>#{i + 1}</span>
                     <span className='break-all font-mono text-foreground'>{step.to}</span>
-                    <span className='text-muted-foreground'>value {step.value}</span>
+                    <span className='text-muted-foreground'>
+                      value {showRawAmount ? `${step.value} wei` : formatNativeAmount(step.value, nativeSymbol)}
+                    </span>
                     {result != null && (
                       <span className={cn('font-semibold', result.success ? 'text-primary' : 'text-destructive')}>
                         {result.success
