@@ -54,6 +54,19 @@ export const multisigWallets = pgTable('multisig_wallets', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 })
 
+// Email notification recipient for one owner wallet. See schema.sql for the
+// double opt-in + token_hash rationale. wallet_address is matched
+// case-insensitively (LOWER) by every reader.
+export const emailRecipients = pgTable('email_recipients', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  walletAddress: text('wallet_address').notNull(),
+  email: text('email').notNull(),
+  verifiedAt: timestamp('verified_at', { withTimezone: true }),
+  linkToken: text('link_token').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+})
+
 export const addressBook = pgTable('address_book', {
   id: uuid('id').primaryKey().defaultRandom(),
   ownerAddress: text('owner_address').notNull(),
@@ -231,3 +244,5 @@ export type TelegramUserLinkRow = typeof telegramUserLinks.$inferSelect
 export type TelegramUserLinkInsert = typeof telegramUserLinks.$inferInsert
 export type TelegramChatConfigRow = typeof telegramChatConfigs.$inferSelect
 export type TelegramChatConfigInsert = typeof telegramChatConfigs.$inferInsert
+export type EmailRecipientRow = typeof emailRecipients.$inferSelect
+export type EmailRecipientInsert = typeof emailRecipients.$inferInsert

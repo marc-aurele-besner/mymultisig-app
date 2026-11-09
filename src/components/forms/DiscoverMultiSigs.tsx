@@ -1,4 +1,5 @@
 import React, { Fragment, useState } from 'react'
+import Link from 'next/link'
 import { useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { LoadingDots } from '@/components/ui/loading-dots'
@@ -50,13 +51,18 @@ const DiscoverMultiSigs: React.FC<DiscoverMultiSigsProps> = ({ factory }) => {
               </span>
               <span className='break-all font-mono text-xs text-muted-foreground'>{wallet.address}</span>
             </div>
-            {wallet.alreadyImported ? (
-              <span className='font-mono text-xs text-primary'>Imported</span>
-            ) : (
-              <Button variant='outline' onClick={() => setImporting(wallet.address)}>
-                Import
+            <div className='flex items-center gap-2'>
+              {wallet.alreadyImported ? (
+                <span className='font-mono text-xs text-primary'>Imported</span>
+              ) : (
+                <Button variant='outline' onClick={() => setImporting(wallet.address)}>
+                  Import
+                </Button>
+              )}
+              <Button variant='default' asChild>
+                <Link href={`/multisig/${wallet.address}`}>Open</Link>
               </Button>
-            )}
+            </div>
           </div>
           {importing === wallet.address && (
             <ImportConfirmationCard

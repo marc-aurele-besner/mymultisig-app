@@ -7,6 +7,7 @@ import { rowToMultiSigRequest } from '../../../lib/db/mappers'
 import { parseBody, parseQueryString, withSession, withVerifiedAs } from '../../../lib/api/middleware'
 import { explorerUrlForChain } from '../../../lib/notifications/chains'
 import { notifyNewRequest } from '../../../lib/notifications/dispatcher'
+import { notifyNeedsSignature, notifyThresholdReached } from '../../../lib/email/notifier'
 import { trackTransactionCreated } from '../../../lib/channlize/events'
 
 // Dedicated endpoints for multisig transaction requests:
@@ -37,8 +38,7 @@ const createHandler = withVerifiedAs(
     // The column would 500 on a non-UUID insert otherwise.
     if (
       doc.id != null &&
-      (typeof doc.id !== 'string' ||
-        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(doc.id))
+      (typeof doc.id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(doc.id))
     ) {
       return res.status(400).json({ message: 'id must be a UUID' })
     }
@@ -49,6 +49,7 @@ const createHandler = withVerifiedAs(
         owners: multisigWallets.owners,
         chainId: multisigWallets.chainId,
         chainName: multisigWallets.chainName,
+        name: multisigWallets.name,
         threshold: multisigWallets.threshold
       })
       .from(multisigWallets)
@@ -147,6 +148,31 @@ const createHandler = withVerifiedAs(
       }).catch((e) => {
         console.error('notifyNewRequest failed', (e as Error).message)
       })
+
+      // Email fan-out. A request that already meets the threshold on creation
+      // (e.g. a 1-of-N wallet where the submitter signs) is ready to execute,
+      // so owners get the ready email instead of a signature request.
+      const emailWallet = {
+        multiSigAddress: String(doc.multiSigAddress),
+        multiSigName: walletRow.name ?? null,
+        chainName: walletRow.chainName ?? null,
+        owners: (walletRow.owners ?? []) as string[],
+        threshold: walletRow.threshold
+      }
+      const emailRequest = {
+        requestId: insertedId,
+        description: String(doc.description),
+        submitter: String(doc.submitter),
+        signatureCount: ((doc.signatures as string[]) ?? []).length,
+        ownerSigners: (doc.ownerSigners as string[]) ?? []
+      }
+      const thresholdMet = emailRequest.signatureCount >= walletRow.threshold
+      const emailFanOut = thresholdMet
+        ? notifyThresholdReached(emailWallet, emailRequest)
+        : notifyNeedsSignature(emailWallet, emailRequest)
+      void emailFanOut.catch((e) => {
+        console.error('email notification failed', (e as Error).message)
+      })
     }
 
     console.log('Add request done')
@@ -169,10 +195,7 @@ const listHandler = async (req: NextApiRequest, res: NextApiResponse) => {
       walletNonce: multisigWallets.nonce
     })
     .from(multisigRequests)
-    .leftJoin(
-      multisigWallets,
-      sql`LOWER(${multisigWallets.address}) = LOWER(${multisigRequests.multiSigAddress})`
-    )
+    .leftJoin(multisigWallets, sql`LOWER(${multisigWallets.address}) = LOWER(${multisigRequests.multiSigAddress})`)
     .where(and(eq(multisigRequests.multiSigAddress, multiSigAddress), eq(multisigRequests.isActive, true)))
     // Queue ordering. UserOp requests (request.mode='userop') use the
     // EntryPoint nonce, not the wallet's transaction nonce — push them

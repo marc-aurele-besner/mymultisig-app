@@ -1,7 +1,8 @@
-import { ChannlizeEvent, ChannlizeFieldValue, sendChannlizeEvent } from './client'
+import { sendChannlizeEvent } from './client'
 
-// Typed catalog of the events the app emits. Each builder fixes the event key,
-// type and idempotency key in one place so call sites only pass facts.
+// Typed catalog of the events the app emits. Each builder fixes the event key and
+// the idempotency key in one place. The data object fills the {{field}} placeholders
+// of the Slack template configured for that key in the Channlize dashboard.
 //
 // Every builder is awaited by its caller. sendChannlizeEvent never throws, so
 // awaiting cannot fail the request, and awaiting keeps the send from being cut
@@ -13,13 +14,11 @@ const clip = (text: string, max = 300) => (text.length > max ? `${text.slice(0, 
 
 // Wallet signed in (SIWE). Keyed per day so repeated sign-ins do not flood.
 export const trackWalletConnected = (params: { address: string }) =>
-  sendChannlizeEvent({
-    type: 'log',
-    event: 'wallet.connected',
-    message: `Wallet ${shortAddress(params.address)} connected`,
-    fields: { address: params.address },
-    idempotencyKey: `wallet.connected:${params.address.toLowerCase()}:${DAY()}`
-  })
+  sendChannlizeEvent(
+    'wallet.connected',
+    { address: params.address, shortAddress: shortAddress(params.address) },
+    `wallet.connected:${params.address.toLowerCase()}:${DAY()}`
+  )
 
 // Multisig wallet first saved to the database (created or imported).
 export const trackMultisigCreated = (params: {
@@ -30,20 +29,19 @@ export const trackMultisigCreated = (params: {
   threshold: number
   ownerCount: number
 }) =>
-  sendChannlizeEvent({
-    type: 'log',
-    event: 'multisig.created',
-    title: `Multisig ${params.name} added`,
-    message: `${params.name} (${shortAddress(params.address)}) on ${params.chainName}: ${params.threshold}/${params.ownerCount} signers`,
-    fields: {
+  sendChannlizeEvent(
+    'multisig.created',
+    {
       address: params.address,
+      name: params.name,
       chainId: params.chainId,
       chainName: params.chainName,
       threshold: params.threshold,
-      ownerCount: params.ownerCount
+      ownerCount: params.ownerCount,
+      summary: `${params.name} (${shortAddress(params.address)}) on ${params.chainName}: ${params.threshold}/${params.ownerCount} signers`
     },
-    idempotencyKey: `multisig.created:${params.chainId}:${params.address.toLowerCase()}`
-  })
+    `multisig.created:${params.chainId}:${params.address.toLowerCase()}`
+  )
 
 // Native or ERC-20 deposit into a multisig, reported by the browser after the
 // transaction is confirmed.
@@ -55,24 +53,21 @@ export const trackMultisigFunded = (params: {
   tokenAddress?: string
   amount?: string
   funder: string
-}) => {
-  const fields: Record<string, ChannlizeFieldValue> = {
-    multiSigAddress: params.multiSigAddress,
-    chainId: params.chainId,
-    txHash: params.txHash,
-    asset: params.asset,
-    funder: params.funder
-  }
-  if (params.tokenAddress) fields.tokenAddress = params.tokenAddress
-  if (params.amount) fields.amount = params.amount
-  return sendChannlizeEvent({
-    type: 'log',
-    event: 'multisig.funded',
-    message: `${shortAddress(params.funder)} funded ${shortAddress(params.multiSigAddress)} (${params.asset}, tx ${shortAddress(params.txHash)})`,
-    fields,
-    idempotencyKey: `multisig.funded:${params.chainId}:${params.txHash.toLowerCase()}`
-  })
-}
+}) =>
+  sendChannlizeEvent(
+    'multisig.funded',
+    {
+      multiSigAddress: params.multiSigAddress,
+      chainId: params.chainId,
+      txHash: params.txHash,
+      asset: params.asset,
+      funder: params.funder,
+      tokenAddress: params.tokenAddress ?? null,
+      amount: params.amount ?? null,
+      summary: `${shortAddress(params.funder)} funded ${shortAddress(params.multiSigAddress)} (${params.asset}, tx ${shortAddress(params.txHash)})`
+    },
+    `multisig.funded:${params.chainId}:${params.txHash.toLowerCase()}`
+  )
 
 // New transaction request queued on a multisig.
 export const trackTransactionCreated = (params: {
@@ -82,21 +77,20 @@ export const trackTransactionCreated = (params: {
   submitter: string
   description: string
 }) =>
-  sendChannlizeEvent({
-    type: 'log',
-    event: 'transaction.created',
-    title: 'New transaction request',
-    message: clip(
-      `${shortAddress(params.submitter)} queued "${params.description}" on ${shortAddress(params.multiSigAddress)}`
-    ),
-    fields: {
+  sendChannlizeEvent(
+    'transaction.created',
+    {
       requestId: params.requestId,
       multiSigAddress: params.multiSigAddress,
+      chainId: params.chainId,
       submitter: params.submitter,
-      chainId: params.chainId
+      description: clip(params.description),
+      summary: clip(
+        `${shortAddress(params.submitter)} queued "${params.description}" on ${shortAddress(params.multiSigAddress)}`
+      )
     },
-    idempotencyKey: `transaction.created:${params.requestId}`
-  })
+    `transaction.created:${params.requestId}`
+  )
 
 // A signer added a signature. Keyed by the resulting count, so each new
 // signature is its own event and a retry is dropped.
@@ -105,53 +99,50 @@ export const trackTransactionSigned = (params: {
   multiSigAddress: string
   signatureCount: number
 }) =>
-  sendChannlizeEvent({
-    type: 'log',
-    event: 'transaction.signed',
-    message: `Transaction on ${shortAddress(params.multiSigAddress)} now has ${params.signatureCount} signature(s)`,
-    fields: {
+  sendChannlizeEvent(
+    'transaction.signed',
+    {
       requestId: params.requestId,
       multiSigAddress: params.multiSigAddress,
-      signatureCount: params.signatureCount
+      signatureCount: params.signatureCount,
+      summary: `Transaction on ${shortAddress(params.multiSigAddress)} now has ${params.signatureCount} signature(s)`
     },
-    idempotencyKey: `transaction.signed:${params.requestId}:${params.signatureCount}`
-  })
+    `transaction.signed:${params.requestId}:${params.signatureCount}`
+  )
 
-// Transaction executed on chain. A failed execution goes out as an alert.
+// Transaction executed on chain. Success and failure are separate event keys, so
+// each can get its own Slack template and severity in the dashboard.
 export const trackTransactionExecuted = (params: {
   requestId: string
   multiSigAddress: string
   isSuccessful: boolean
 }) =>
-  sendChannlizeEvent({
-    type: params.isSuccessful ? 'log' : 'alert',
-    event: 'transaction.executed',
-    title: params.isSuccessful ? 'Transaction executed' : 'Transaction execution failed',
-    message: `Transaction on ${shortAddress(params.multiSigAddress)} ${params.isSuccessful ? 'executed successfully' : 'failed to execute'}`,
-    fields: {
+  sendChannlizeEvent(
+    params.isSuccessful ? 'transaction.executed' : 'transaction.execution_failed',
+    {
       requestId: params.requestId,
       multiSigAddress: params.multiSigAddress,
-      isSuccessful: params.isSuccessful
+      isSuccessful: params.isSuccessful,
+      summary: `Transaction on ${shortAddress(params.multiSigAddress)} ${params.isSuccessful ? 'executed successfully' : 'failed to execute'}`
     },
-    idempotencyKey: `transaction.executed:${params.requestId}`
-  })
+    `transaction.executed:${params.requestId}`
+  )
 
 export const trackTransactionCancelled = (params: {
   requestId: string
   multiSigAddress: string
   cancelledBy: string
 }) =>
-  sendChannlizeEvent({
-    type: 'log',
-    event: 'transaction.cancelled',
-    message: `Transaction on ${shortAddress(params.multiSigAddress)} cancelled by ${params.cancelledBy}`,
-    fields: {
+  sendChannlizeEvent(
+    'transaction.cancelled',
+    {
       requestId: params.requestId,
       multiSigAddress: params.multiSigAddress,
-      cancelledBy: params.cancelledBy
+      cancelledBy: params.cancelledBy,
+      summary: `Transaction on ${shortAddress(params.multiSigAddress)} cancelled by ${params.cancelledBy}`
     },
-    idempotencyKey: `transaction.cancelled:${params.requestId}`
-  })
+    `transaction.cancelled:${params.requestId}`
+  )
 
 // Signatures wiped so a transaction can be re-signed.
 export const trackTransactionReset = (params: {
@@ -159,14 +150,13 @@ export const trackTransactionReset = (params: {
   multiSigAddress: string
   previousSignatureCount: number
 }) =>
-  sendChannlizeEvent({
-    type: 'log',
-    event: 'transaction.reset',
-    message: `Transaction on ${shortAddress(params.multiSigAddress)} reset (${params.previousSignatureCount} signature(s) cleared)`,
-    fields: {
+  sendChannlizeEvent(
+    'transaction.reset',
+    {
       requestId: params.requestId,
       multiSigAddress: params.multiSigAddress,
-      previousSignatureCount: params.previousSignatureCount
+      previousSignatureCount: params.previousSignatureCount,
+      summary: `Transaction on ${shortAddress(params.multiSigAddress)} reset (${params.previousSignatureCount} signature(s) cleared)`
     },
-    idempotencyKey: `transaction.reset:${params.requestId}:${params.previousSignatureCount}`
-  })
+    `transaction.reset:${params.requestId}:${params.previousSignatureCount}`
+  )
