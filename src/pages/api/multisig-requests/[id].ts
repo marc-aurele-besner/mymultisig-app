@@ -1,10 +1,11 @@
-import { eq, sql } from 'drizzle-orm'
+import { desc, eq, sql } from 'drizzle-orm'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { getDb } from '../../../lib/db/neon'
 import { multisigRequests, multisigWallets } from '../../../lib/db/schema'
 import { rowToMultiSigRequest } from '../../../lib/db/mappers'
 import { cascadeInvalidate } from '../../../lib/api/cascade'
+import { notifyThresholdReached } from '../../../lib/email/notifier'
 import { trackTransactionExecuted, trackTransactionReset, trackTransactionSigned } from '../../../lib/channlize/events'
 import { parseBody, parseIdParam, withSession, withVerifiedAsOwner } from '../../../lib/api/middleware'
 
@@ -45,8 +46,7 @@ const patchHandler = withVerifiedAsOwner(parseIdParam, async (req, res, _address
   // closed. 409 matches the convention used by /cancel on executed rows.
   const nextExecuted = (patch.isExecuted as boolean) ?? existing.isExecuted
   const nextCancelled = (patch.isCancelled as boolean) ?? existing.isCancelled
-  const nextSuccessful =
-    (patch.isSuccessful as boolean) ?? (patch.isSuccess as boolean) ?? existing.isSuccessful
+  const nextSuccessful = (patch.isSuccessful as boolean) ?? (patch.isSuccess as boolean) ?? existing.isSuccessful
   if (existing.isCancelled && patch.isCancelled === false) {
     return res.status(409).json({ message: 'Cannot un-cancel a cancelled request' })
   }
@@ -87,17 +87,12 @@ const patchHandler = withVerifiedAsOwner(parseIdParam, async (req, res, _address
   let cascade: { cancelledIds: string[] } = { cancelledIds: [] }
   const execFlipped = nextExecuted && !existing.isExecuted
   const signaturesReset =
-    Array.isArray(patch.signatures) &&
-    (patch.signatures as unknown[]).length === 0 &&
-    existing.signatures.length > 0
+    Array.isArray(patch.signatures) && (patch.signatures as unknown[]).length === 0 && existing.signatures.length > 0
   if (execFlipped || signaturesReset) {
     const walletRows = await db
       .select({ nonce: multisigWallets.nonce })
       .from(multisigWallets)
-      .leftJoin(
-        multisigRequests,
-        sql`LOWER(${multisigWallets.address}) = LOWER(${multisigRequests.multiSigAddress})`
-      )
+      .leftJoin(multisigRequests, sql`LOWER(${multisigWallets.address}) = LOWER(${multisigRequests.multiSigAddress})`)
       .where(eq(multisigRequests.id, id))
       .limit(1)
     cascade = await cascadeInvalidate(
@@ -130,6 +125,44 @@ const patchHandler = withVerifiedAsOwner(parseIdParam, async (req, res, _address
       multiSigAddress: existing.multiSigAddress,
       signatureCount: newSignatureCount
     })
+  }
+
+  // "Ready to execute" email: only on the signature update that crosses the
+  // wallet threshold, so later signatures don't re-send it. Best-effort; the
+  // wallet lookup is one indexed read and the sends run detached.
+  if (!execFlipped && !signaturesReset && newSignatureCount != null && newSignatureCount > existing.signatures.length) {
+    const walletRows = await db
+      .select({
+        name: multisigWallets.name,
+        chainName: multisigWallets.chainName,
+        owners: multisigWallets.owners,
+        threshold: multisigWallets.threshold
+      })
+      .from(multisigWallets)
+      .where(sql`LOWER(${multisigWallets.address}) = LOWER(${existing.multiSigAddress})`)
+      .orderBy(desc(multisigWallets.id))
+      .limit(1)
+    const wallet = walletRows[0]
+    if (wallet != null && existing.signatures.length < wallet.threshold && newSignatureCount >= wallet.threshold) {
+      void notifyThresholdReached(
+        {
+          multiSigAddress: existing.multiSigAddress,
+          multiSigName: wallet.name ?? null,
+          chainName: wallet.chainName ?? null,
+          owners: (wallet.owners ?? []) as string[],
+          threshold: wallet.threshold
+        },
+        {
+          requestId: id,
+          description: existing.description,
+          submitter: existing.submitter,
+          signatureCount: newSignatureCount,
+          ownerSigners: []
+        }
+      ).catch((e) => {
+        console.error('email notification failed', (e as Error).message)
+      })
+    }
   }
 
   const updated = await db.select().from(multisigRequests).where(eq(multisigRequests.id, id)).limit(1)

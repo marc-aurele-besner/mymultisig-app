@@ -80,7 +80,7 @@ All contract writes follow the same flow:
 - `ETHERSCAN_API_KEY` — ABI fetching via `/api/getABI`
 - `ALCHEMY_API_KEY` — token/NFT balances via `/api/get-assets` (falls back to `NEXT_PUBLIC_ALCHEMY_API_KEY`)
 - `ADMIN_ADDRESSES` — comma-separated wallets allowed to view publicly shared address book entries on `/admin`
-- `RESEND_API_KEY` / `RESEND_CONTACT_TO` — contact form via `/api/contact` (`RESEND_FROM` optional, defaults to Resend's onboarding sender)
+- `RESEND_API_KEY` / `RESEND_CONTACT_TO` — contact form via `/api/contact` (`RESEND_FROM` optional, defaults to Resend's onboarding sender); also powers owner email notifications (`src/lib/email/`, see `docs/email-notifications.md`)
 - `CHANNLIZE_CONNECTION_URL` / `CHANNLIZE_CONNECTION_SECRET` — Channlize event tracking via the Zapier/Make/n8n connection (`src/lib/channlize/`); both optional, events are skipped when unset
 
 ## Known Issues
