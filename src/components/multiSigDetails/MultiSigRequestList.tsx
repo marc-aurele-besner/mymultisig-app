@@ -1,7 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
+import { useAccount } from 'wagmi'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { LoadingDots } from '@/components/ui/loading-dots'
 import { AddIcon } from '../icons/ChakraIcons'
 import CascadeBanner from './CascadeBanner'
@@ -26,8 +28,9 @@ const RequestRow: React.FC<{
   threshold: number
   requests: MultiSigTransactionRequest[]
   walletNonce: number | null
+  needsMe: boolean
   onSelect: (id: string) => void
-}> = ({ request, index, threshold, requests, walletNonce, onSelect }) => {
+}> = ({ request, index, threshold, requests, walletNonce, needsMe, onSelect }) => {
   const queue = useRequestQueue(requests, request.id, walletNonce)
   const signaturesShown = Math.min(request.signatures.length, threshold)
   return (
@@ -43,6 +46,11 @@ const RequestRow: React.FC<{
           {queue.isNext && (
             <span className='rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground'>
               Next
+            </span>
+          )}
+          {needsMe && (
+            <span className='rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary'>
+              Your signature
             </span>
           )}
           {queue.position > 0 && queue.total > 0 && !request.isExecuted && !request.isCancelled && (
@@ -76,18 +84,31 @@ const RequestRow: React.FC<{
           </div>
         )}
       </div>
-      <Button asChild variant='outline' size='sm'>
+      <Button asChild variant={needsMe ? 'default' : 'outline'} size='sm'>
         <Link href={`/request/${request.id}`} onClick={() => onSelect(request.id)}>
-          Open
+          {needsMe ? 'Review & sign' : 'Open'}
         </Link>
       </Button>
     </motion.div>
   )
 }
 
+type QueueFilter = 'all' | 'open' | 'history'
+
+const FILTERS: { key: QueueFilter; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'open', label: 'Open' },
+  { key: 'history', label: 'History' }
+]
+
+const isLive = (request: MultiSigTransactionRequest) =>
+  request.isActive && !request.isExecuted && !request.isCancelled
+
 const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({ multiSigAddress, multiSigDetails }) => {
   const { requests, walletNonce, isLoading, isError, refetch } = useMultiSigRequests(multiSigAddress)
   const { setSelectedMultiSigTransactionRequest } = useMultiSigs()
+  const { address } = useAccount()
+  const [filter, setFilter] = useState<QueueFilter>('all')
 
   if (multiSigDetails == null) return null
 
@@ -131,20 +152,72 @@ const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({ multiSigAddre
     )
   }
 
+  const me = address?.toLowerCase()
+  const isOwner = me != null && multiSigDetails.owners.some((owner) => owner.toLowerCase() === me)
+  // Off-chain signatures only; an on-chain approval shows on the request page.
+  const needsMe = (request: MultiSigTransactionRequest) =>
+    isOwner &&
+    isLive(request) &&
+    request.signatures.length < multiSigDetails.threshold &&
+    !(request.ownerSigners ?? []).some((signer) => signer.toLowerCase() === me)
+
+  const counts: Record<QueueFilter, number> = {
+    all: requests.length,
+    open: requests.filter(isLive).length,
+    history: requests.filter((request) => !isLive(request)).length
+  }
+  const visible = requests.filter(
+    (request) => filter === 'all' || (filter === 'open' ? isLive(request) : !isLive(request))
+  )
+
   return (
-    <div className='flex w-full flex-col gap-2'>
+    <div className='flex w-full flex-col gap-3'>
       <CascadeBanner />
-      {requests.map((request, index) => (
-        <RequestRow
-          key={request.id}
-          request={request}
-          index={index}
-          threshold={multiSigDetails.threshold}
-          requests={requests}
-          walletNonce={walletNonce}
-          onSelect={setSelectedMultiSigTransactionRequest}
-        />
-      ))}
+      <div className='flex flex-wrap items-center justify-between gap-3'>
+        <div role='tablist' aria-label='Filter requests' className='flex gap-0.5 rounded-lg bg-muted p-0.5'>
+          {FILTERS.map((item) => (
+            <button
+              key={item.key}
+              type='button'
+              role='tab'
+              aria-selected={filter === item.key}
+              onClick={() => setFilter(item.key)}
+              className={cn(
+                'flex min-h-8 items-center gap-1.5 rounded-md px-3 text-sm font-semibold transition-colors',
+                filter === item.key
+                  ? 'bg-card text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {item.label}
+              <span className='font-mono text-xs font-normal'>{counts[item.key]}</span>
+            </button>
+          ))}
+        </div>
+        <span className='text-xs text-muted-foreground'>
+          Requests execute in nonce order.
+          {walletNonce != null && <span className='font-mono'> Wallet nonce {walletNonce}</span>}
+        </span>
+      </div>
+      {visible.length === 0 && (
+        <p className='rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground'>
+          No requests in this view.
+        </p>
+      )}
+      <div className='flex flex-col gap-2'>
+        {visible.map((request, index) => (
+          <RequestRow
+            key={request.id}
+            request={request}
+            index={index}
+            threshold={multiSigDetails.threshold}
+            requests={requests}
+            walletNonce={walletNonce}
+            needsMe={needsMe(request)}
+            onSelect={setSelectedMultiSigTransactionRequest}
+          />
+        ))}
+      </div>
     </div>
   )
 }

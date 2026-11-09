@@ -2,6 +2,7 @@ import React from 'react'
 import { useRouter } from 'next/router'
 import { useAccount } from 'wagmi'
 
+import ConnectPrompt from '../../../components/multiSigDetails/ConnectPrompt'
 import MultiSigPageLayout from '../../../components/multiSigDetails/MultiSigPageLayout'
 import MultiSigSettings from '../../../components/views/MultiSigSettings'
 
@@ -10,8 +11,8 @@ const Page: React.FC = () => {
   const { multisigAddress } = router.query
   const { address } = useAccount()
 
-  if (address == null || multisigAddress == null || Array.isArray(multisigAddress) || !multisigAddress.startsWith('0x'))
-    return null
+  if (multisigAddress == null || Array.isArray(multisigAddress) || !multisigAddress.startsWith('0x')) return null
+  if (address == null) return <ConnectPrompt />
 
   return (
     <MultiSigPageLayout multiSigAddress={multisigAddress as `0x${string}`}>

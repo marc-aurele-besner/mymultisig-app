@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { useAccount } from 'wagmi'
 
 import { LoadingDots } from '@/components/ui/loading-dots'
+import ConnectPrompt from '../../../components/multiSigDetails/ConnectPrompt'
 import MultiSigPageLayout from '../../../components/multiSigDetails/MultiSigPageLayout'
 import MultiSigRequestList from '../../../components/multiSigDetails/MultiSigRequestList'
 import useMultiSigDetails from '../../../hooks/useMultiSigDetails'
@@ -16,8 +17,8 @@ const Page: React.FC = () => {
     address != null ? (address as `0x${string}`) : '0x'
   )
 
-  if (address == null || multisigAddress == null || Array.isArray(multisigAddress) || !multisigAddress.startsWith('0x'))
-    return null
+  if (multisigAddress == null || Array.isArray(multisigAddress) || !multisigAddress.startsWith('0x')) return null
+  if (address == null) return <ConnectPrompt />
 
   return (
     <MultiSigPageLayout multiSigAddress={multisigAddress as `0x${string}`}>

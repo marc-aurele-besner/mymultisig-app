@@ -1,52 +1,50 @@
 import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
+
+import useInbox from '../../hooks/useInbox'
+import { WALLET_SECTIONS, walletHref } from '../shell/navigation'
 
 interface MultiSigNavProps {
   multiSigAddress: `0x${string}`
 }
 
-const TABS = [
-  { slug: '', label: 'Overview' },
-  { slug: 'assets', label: 'Assets' },
-  { slug: 'buildRequest', label: 'Build a request' },
-  { slug: 'requests', label: 'Requests' },
-  { slug: 'activity', label: 'Activity' },
-  { slug: 'addressBook', label: 'Address book' },
-  { slug: 'settings', label: 'Owners & settings' }
-] as const
-
-// Shared navigation for every /multisig/[address] subpage so the same tabs
-// appear everywhere. The active pill slides between tabs via a shared layoutId.
+// Wallet sections as a scrollable tab strip. On `lg` and up the same
+// sections are in the app sidebar, so this strip is hidden there.
 const MultiSigNav: React.FC<MultiSigNavProps> = ({ multiSigAddress }) => {
   const router = useRouter()
-  const activeSlug = router.pathname.split('/multisig/[multisigAddress]')[1]?.replace('/', '') ?? ''
+  const { pendingByWallet } = useInbox()
+  const onRequestPage = router.pathname.startsWith('/request/')
+  const activeSlug = onRequestPage
+    ? 'requests'
+    : (router.pathname.split('/multisig/[multisigAddress]')[1]?.replace('/', '') ?? '')
+  const pending = pendingByWallet[multiSigAddress.toLowerCase()] ?? 0
 
   return (
-    <nav className='w-full overflow-x-auto pb-1'>
-      <div className='flex w-max gap-1 rounded-lg border border-border bg-muted/30 p-1'>
-        {TABS.map((tab) => {
-          const isActive = activeSlug === tab.slug
+    <nav aria-label='Wallet sections' className='-mx-4 overflow-x-auto border-b border-border px-4 lg:hidden'>
+      <div className='flex w-max gap-1'>
+        {WALLET_SECTIONS.map((section) => {
+          const isActive = activeSlug === section.slug
           return (
             <Link
-              key={tab.label}
-              href={`/multisig/${multiSigAddress}${tab.slug === '' ? '' : `/${tab.slug}`}`}
+              key={section.slug}
+              href={walletHref(multiSigAddress, section.slug)}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'relative whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors',
-                isActive ? 'text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                '-mb-px flex min-h-10 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 text-sm font-semibold transition-colors',
+                isActive
+                  ? 'border-primary text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               )}
             >
-              {isActive && (
-                <motion.span
-                  layoutId='multisig-nav-pill'
-                  className='absolute inset-0 rounded-md bg-primary shadow-sm'
-                  transition={{ type: 'spring', stiffness: 500, damping: 40 }}
-                />
+              <section.icon className='h-4 w-4' />
+              {section.label}
+              {section.slug === 'requests' && pending > 0 && (
+                <span className='rounded-full bg-primary px-1.5 font-mono text-[10px] leading-[18px] text-primary-foreground'>
+                  {pending}
+                </span>
               )}
-              <span className='relative'>{tab.label}</span>
             </Link>
           )
         })}
