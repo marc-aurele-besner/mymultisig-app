@@ -6,7 +6,9 @@ import { LegacyMyMultiSigCreatedEvent } from '../constants/abi/legacy'
 // Tracks the address of the multisig created by the connected account.
 // Persistence (Neon + Zustand) is owned by useCreateMultiSig; this hook only
 // surfaces the deployed address for confirmation/verification UIs.
-const useMyMultiSigCreated = (multiSigFactoryAddress: `0x${string}`) => {
+// `enabled` lets callers skip polling once the address is already known (e.g.
+// parsed from the creation receipt).
+const useMyMultiSigCreated = (multiSigFactoryAddress: `0x${string}`, enabled = true) => {
   const { address: account } = useAccount()
   const [multiSigAddress, setMultiSigAddress] = useState<string | undefined>(undefined)
 
@@ -23,12 +25,14 @@ const useMyMultiSigCreated = (multiSigFactoryAddress: `0x${string}`) => {
     address: multiSigFactoryAddress,
     abi: MyMultiSigFactory,
     eventName: 'MyMultiSigCreated',
+    enabled,
     onLogs: (logs) => logs.forEach(captureAddress)
   })
   useWatchContractEvent({
     address: multiSigFactoryAddress,
     abi: LegacyMyMultiSigCreatedEvent,
     eventName: 'MyMultiSigCreated',
+    enabled,
     onLogs: (logs) => logs.forEach(captureAddress)
   })
 
