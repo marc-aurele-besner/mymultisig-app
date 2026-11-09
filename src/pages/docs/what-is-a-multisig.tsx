@@ -27,6 +27,12 @@ const Page: React.FC = () => {
         kicker='CONCEPTS'
         title='What is a multisig?'
         lead='A multisig (multi-signature) wallet is a shared wallet that requires multiple people to approve a transaction before it can be executed. No single person can move funds alone.'
+        cta={{
+          title: 'Ready to set one up?',
+          text: 'Create a multisig in one transaction, or follow the guided setup step by step.',
+          primary: { label: 'Create a multisig', href: '/create-multisig' },
+          secondary: { label: 'Follow the guided setup', href: '/get-started' }
+        }}
         related={[
           { title: 'Create a multisig', href: '/docs/create-a-multisig' },
           { title: 'Propose, sign, and execute transactions', href: '/docs/propose-sign-execute' }

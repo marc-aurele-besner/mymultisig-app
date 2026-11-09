@@ -37,6 +37,12 @@ const Page: React.FC = () => {
         kicker='HOW-TO'
         title='Import an existing multisig'
         lead='A multisig lives onchain, not in the app. If a wallet was already deployed — by a co-owner, or by you on another device — import it by address to see and manage it here.'
+        cta={{
+          title: 'Have the address ready?',
+          text: 'Paste it in and this browser will find the wallet on the network you pick.',
+          primary: { label: 'Import a multisig', href: '/import-multisig' },
+          secondary: { label: 'Open my multisigs', href: '/open-multisig' }
+        }}
         related={[
           { title: 'Propose, sign, and execute transactions', href: '/docs/propose-sign-execute' },
           { title: 'Create a multisig', href: '/docs/create-a-multisig' }

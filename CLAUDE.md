@@ -37,6 +37,8 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 - `InboxProvider` / `useInbox` (`src/hooks/useInbox.tsx`) loads the request queue of every saved multisig once and feeds the sidebar badges, the tab bar, the palette and the connected home (`views/Inbox.tsx`). It classifies from stored wallet data and off-chain signatures only; on-chain approvals are resolved on the request page.
 - `/` renders `Welcome` in the static HTML and swaps to `Inbox` once a wallet is connected. Wallet and request pages render `ConnectPrompt` instead of nothing when disconnected.
 - `useOnboarding` derives the getting-started checklist (`/get-started`, sidebar chip, inbox card) from real state; `src/states/onboarding.ts` only stores "hidden" and "visited notifications".
+- Connecting goes through one dialog, `modals/ConnectModal.tsx`, opened via the `states/connectModal.ts` store. The risk disclaimer is asked for inside `views/ConnectWallet.tsx` the first time a wallet is picked, not on page load.
+- Top-level pages open with `components/layout/PageHero.tsx` (typed eyebrow, word-reveal title, optional animated visual). Third-party marks (Slack, Discord, Telegram, email) come from `icons/BrandIcon.tsx`.
 - Account settings pages share `components/settings/SettingsLayout.tsx`. Notifications live on `/integration`; agent and developer tooling on `/agents`.
 
 ### Web3

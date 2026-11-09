@@ -37,6 +37,12 @@ const Page: React.FC = () => {
         kicker='HOW-TO'
         title='Propose, sign, and execute transactions'
         lead='A multisig transaction has three stages: one owner proposes it, enough owners sign it, and anyone with a signature set that meets the threshold executes it onchain.'
+        cta={{
+          title: 'Put it into practice',
+          text: 'Open one of your multisigs and propose a request. Your signature is the first approval.',
+          primary: { label: 'Open my multisigs', href: '/open-multisig' },
+          secondary: { label: 'Set up notifications', href: '/integration' }
+        }}
         related={[
           { title: 'Create a multisig', href: '/docs/create-a-multisig' },
           { title: 'What is a multisig?', href: '/docs/what-is-a-multisig' }

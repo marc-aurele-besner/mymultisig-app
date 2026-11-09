@@ -47,6 +47,12 @@ const Page: React.FC = () => {
         kicker='HOW-TO'
         title='Manage a multisig with AI agents'
         lead='Connect Claude, Cursor or any MCP-capable agent to MyMultiSig. The agent can check balances and the request queue, decode and review requests, propose transactions, sign them with its own owner key, and execute once the threshold is met. You keep the final say on every step.'
+        cta={{
+          title: 'Connect your first agent',
+          text: 'Create a scoped API key, then add the MCP server to your client.',
+          primary: { label: 'Create an API key', href: '/settings/agents' },
+          secondary: { label: 'Explore Agents & API', href: '/agents' }
+        }}
         related={[
           { title: 'Propose, sign, and execute transactions', href: '/docs/propose-sign-execute' },
           { title: 'Create a multisig', href: '/docs/create-a-multisig' }

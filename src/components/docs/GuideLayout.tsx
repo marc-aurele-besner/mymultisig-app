@@ -1,16 +1,35 @@
 import React from 'react'
 import Link from 'next/link'
-import { ArrowBackIcon } from '../icons/ChakraIcons'
+import { Button } from '@/components/ui/button'
+import { ArrowBackIcon, ArrowForwardIcon } from '../icons/ChakraIcons'
 
 export interface RelatedGuide {
   title: string
   href: string
 }
 
+export interface GuideCta {
+  // One line on what the reader can do now that they have read the guide.
+  title: string
+  text: string
+  primary: { label: string; href: string }
+  secondary?: { label: string; href: string }
+}
+
+// Used when a guide does not name its own next step.
+const DEFAULT_CTA: GuideCta = {
+  title: 'Ready to try it?',
+  text: 'Create a multisig in one transaction, or follow the guided setup step by step.',
+  primary: { label: 'Create a multisig', href: '/create-multisig' },
+  secondary: { label: 'Follow the guided setup', href: '/get-started' }
+}
+
 interface GuideLayoutProps {
   kicker: string
   title: string
   lead: string
+  // Closing call to action: the thing the guide just explained how to do.
+  cta?: GuideCta
   related?: RelatedGuide[]
   children: React.ReactNode
 }
@@ -48,7 +67,7 @@ export const GuideNote: React.FC<{ children: React.ReactNode }> = ({ children })
   </div>
 )
 
-const GuideLayout: React.FC<GuideLayoutProps> = ({ kicker, title, lead, related, children }) => {
+const GuideLayout: React.FC<GuideLayoutProps> = ({ kicker, title, lead, cta = DEFAULT_CTA, related, children }) => {
   return (
     <div className="flex justify-center">
       <article className="flex w-full max-w-[760px] flex-col gap-8 py-4 md:py-8">
@@ -68,6 +87,26 @@ const GuideLayout: React.FC<GuideLayoutProps> = ({ kicker, title, lead, related,
         </div>
 
         {children}
+
+        <aside className="flex flex-wrap items-center justify-between gap-5 rounded-xl border border-primary/40 bg-primary/5 p-5 md:p-6">
+          <div className="min-w-0 flex-1 basis-64">
+            <h2 className="font-display text-xl font-bold tracking-tight text-foreground">{cta.title}</h2>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{cta.text}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild className="gap-2">
+              <Link href={cta.primary.href}>
+                {cta.primary.label}
+                <ArrowForwardIcon className="h-4 w-4" />
+              </Link>
+            </Button>
+            {cta.secondary != null && (
+              <Button asChild variant="outline">
+                <Link href={cta.secondary.href}>{cta.secondary.label}</Link>
+              </Button>
+            )}
+          </div>
+        </aside>
 
         {related && related.length > 0 && (
           <nav aria-label="Related guides" className="flex flex-col gap-3 border-t border-border pt-6">
