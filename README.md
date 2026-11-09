@@ -32,6 +32,21 @@ Build, sign, and execute multi-signature transactions across popular EVM network
 - Wallets: MetaMask, WalletConnect v2, Coinbase Wallet, Injected, Ledger
 - Progressive Web App (PWA) with offline support
 - Optional analytics via Google Analytics
+- AI agents and automation: MCP server, Claude Code skills, scoped API keys, CLI and TypeScript SDK ([below](#ai-agents--automation))
+
+## AI agents & automation
+
+Agents and scripts can create wallets, read the queue, propose requests, sign them and execute them. Every flow uses the same scoped API keys, which you create at [Settings → AI agents](https://mymultisig.app/settings/agents). On-chain approvals are always signed **locally** with the agent's own owner key (`MYMULTISIG_PRIVATE_KEY`); keys never reach the server.
+
+| Flow | Get started | Package |
+|---|---|---|
+| **MCP server**: tools for Claude, Cursor or any MCP client | `claude mcp add mymultisig -e MYMULTISIG_API_KEY=mms_… -- npx -y mymultisig-mcp` | [`mymultisig-mcp`](https://www.npmjs.com/package/mymultisig-mcp) |
+| **Claude Code skills**: status, create, propose, review-and-sign and execute workflows, with the MCP server included | `/plugin marketplace add marc-aurele-besner/mymultisig-app` then `/plugin install mymultisig@mymultisig` | [`plugins/mymultisig`](plugins/mymultisig) |
+| **REST API**: Bearer keys with `read`, `propose`, `sign` and `manage` scopes, optionally per wallet | `curl -H "Authorization: Bearer mms_…" https://mymultisig.app/api/agent-keys/whoami` | [OpenAPI 3.1](https://mymultisig.app/openapi.json), [llms.txt](https://mymultisig.app/llms.txt) |
+| **CLI**: human-readable or `--json` output | `npx mymultisig-cli --help` | [`mymultisig-cli`](https://www.npmjs.com/package/mymultisig-cli) |
+| **TypeScript SDK**: the same protocol code this app runs | `npm i mymultisig-sdk viem` | [`mymultisig-sdk`](https://www.npmjs.com/package/mymultisig-sdk) |
+
+The safest setup is a threshold the agent can't reach alone. For example, in a 2-of-3 with two humans plus the agent, the agent can prepare and co-sign, but nothing moves without a human signature. The user guide is at [mymultisig.app/docs/ai-agents](https://mymultisig.app/docs/ai-agents), and the operator notes (scopes, storage, publishing) are in [`docs/ai-agents.md`](docs/ai-agents.md).
 
 ## Supported Networks
 
@@ -140,7 +155,9 @@ Auth (optional; used by `/api/auth/[...nextauth]`):
 - `src/hooks` — wagmi hooks and domain hooks
 - `src/models` — TypeScript models
 - `src/states` — Zustand stores (persisted in LocalStorage)
-- `public` — PWA manifest and icons
+- `public` — PWA manifest and icons, `llms.txt`, `openapi.json`
+- `packages/sdk`, `packages/mcp`, `packages/cli` — npm packages for agents (`mymultisig-sdk`, `mymultisig-mcp`, `mymultisig-cli`); the app imports the SDK's protocol core
+- `plugins/mymultisig` — Claude Code plugin (skills + MCP config)
 
 ## Scripts
 
@@ -149,10 +166,11 @@ Auth (optional; used by `/api/auth/[...nextauth]`):
 - `yarn build` — production build
 - `yarn analyze` — bundle analyzer
 - `yarn storybook` / `yarn build-storybook`
+- `yarn packages:build` / `yarn packages:test` — build and test the agent packages
 
 ## CI
 
-- Next build check and Storybook build run on PRs via GitHub Actions.
+- Next build check (including the agent package build and tests) and Storybook build run on PRs via GitHub Actions.
 
 ## Security & Disclaimer
 
