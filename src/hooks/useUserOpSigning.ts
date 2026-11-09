@@ -8,6 +8,7 @@ import { useNotificationError, useNotificationSuccess } from './notifications'
 import useMultiSigDetails from './useMultiSigDetails'
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../models/MultiSigs'
 import useMultiSigs from '../states/multiSigs'
+import { isUserRejection } from '../utils/walletError'
 import { addMultiSigRequest, patchMultiSigRequest } from '../utils'
 import {
   DEFAULT_USEROP_GAS,
@@ -123,7 +124,8 @@ const useUserOpSigning = ({
   const { data, isError, isPending, isSuccess, error, signMessage, reset } = useSignMessage()
 
   useEffect(() => {
-    if (error) notificationError()
+    // The inline notice already says the prompt was dismissed; no red toast.
+    if (error && !isUserRejection(error)) notificationError()
   }, [error, notificationError])
 
   useEffect(() => {
