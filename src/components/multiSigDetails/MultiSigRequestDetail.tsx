@@ -2,7 +2,7 @@ import React, { Fragment, useState } from 'react'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 import SignRequest from '../buttons/SignRequest'
 import ExecuteRequest from '../buttons/ExecuteRequest'
 import ApproveRequest from '../buttons/ApproveRequest'
@@ -23,6 +23,43 @@ interface MultiSigRequestDetailProps {
   address: `0x${string}`
   multiSigRequestId: string
 }
+
+// Label above a value in the details grid. Hoisted so it is not re-created on
+// every render of the parent.
+const Detail: React.FC<{ label: string; mono?: boolean; wide?: boolean; children: React.ReactNode }> = ({
+  label,
+  mono = false,
+  wide = false,
+  children
+}) => (
+  <div className={cn('min-w-0', wide && 'md:col-span-2')}>
+    <dt className='text-xs font-medium uppercase tracking-wider text-muted-foreground'>{label}</dt>
+    <dd className={cn('mt-1 break-all text-sm text-foreground', mono && 'font-mono')}>{children}</dd>
+  </div>
+)
+
+// One action: title and hint on the left, the control on the right. The
+// shared buttons carry legacy `mr-8 mt-4` offsets for the old stacked layout;
+// the wrapper zeroes them so the controls line up.
+const ActionRow: React.FC<{ title: string; hint?: string; children: React.ReactNode }> = ({
+  title,
+  hint,
+  children
+}) => (
+  <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6'>
+    <div className='min-w-0'>
+      <p className='font-semibold text-foreground'>{title}</p>
+      {hint != null && <p className='mt-0.5 text-sm text-muted-foreground'>{hint}</p>}
+    </div>
+    <div className='flex flex-wrap items-center gap-2 [&_button]:m-0'>{children}</div>
+  </div>
+)
+
+const Callout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className='rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm font-medium text-destructive'>
+    {children}
+  </div>
+)
 
 const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, multiSigRequestId }) => {
   const [isDeleted, setIsDeleted] = useState(false)
@@ -78,13 +115,6 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
     )
   }
 
-  const row = (label: string, value: React.ReactNode) => (
-    <div key={label} className='flex flex-wrap items-center gap-2'>
-      <span className='px-2 pt-2 text-xl font-bold text-foreground'>{label}</span>
-      <span className='px-2 pt-2 text-lg font-bold text-foreground'>{value}</span>
-    </div>
-  )
-
   // Off-chain ECDSA signers and on-chain approvers both count toward the
   // threshold (the contract counts approvals first, then signatures, and
   // refuses double votes).
@@ -106,6 +136,33 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
   const hasExpiry = validUntil != null && validUntil !== '' && validUntil !== '0'
   const isExpired = hasExpiry && Number(validUntil) * 1000 < Date.now()
   const isDelegateCall = requestDetails.request.operation === '1'
+  const txnNonce = requestDetails.request.txnNonce
+  const hasPinnedNonce = txnNonce != null && txnNonce !== ''
+
+  const approvalCount = supportsHybrid ? combined.size : requestDetails.signatures.length
+  const approvalsNeeded = multiSigDetails.threshold
+  const approvalsFilled = Math.min(approvalCount, approvalsNeeded)
+  const breakdown = supportsHybrid
+    ? `${signerSet.size} off-chain signature${signerSet.size === 1 ? '' : 's'} · ${approverSet.size} on-chain approval${
+        approverSet.size === 1 ? '' : 's'
+      }`
+    : `${requestDetails.signatures.length} signature${requestDetails.signatures.length === 1 ? '' : 's'}`
+
+  const statusLabel = requestDetails.isExecuted
+    ? 'Executed'
+    : requestDetails.isCancelled
+      ? 'Cancelled'
+      : isExpired
+        ? 'Expired'
+        : thresholdReached
+          ? 'Ready to execute'
+          : 'Collecting signatures'
+  const statusClass =
+    requestDetails.isExecuted || (thresholdReached && !isExpired && !requestDetails.isCancelled)
+      ? 'bg-primary text-primary-foreground'
+      : isExpired
+        ? 'bg-destructive/15 text-destructive'
+        : 'border border-border text-muted-foreground'
 
   return (
     <Fragment>
@@ -120,175 +177,234 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
       <div className='mt-4'>
         <ShareRequestLink requestId={multiSigRequestId} />
       </div>
-      <div className='mt-4 rounded-lg border border-border p-4'>
-        {row('Description', requestDetails.description)}
-        {row('Submitted date', new Date(Number(requestDetails.dateSubmitted)).toLocaleDateString())}
-        {row('Target', requestDetails.request.to)}
-        <div className='flex flex-wrap items-start gap-2'>
-          <span className='px-2 pt-2 text-xl font-bold text-foreground'>Data</span>
-          <Textarea readOnly defaultValue={requestDetails.request.data} className='min-h-[80px] flex-1' />
+
+      <section className='mt-4 w-full overflow-hidden rounded-xl border border-border bg-card'>
+        <header className='flex flex-wrap items-start justify-between gap-4 p-5 md:p-6'>
+          <div className='min-w-0'>
+            {requestDetails.dateSubmitted !== '' && (
+              <p className='font-mono text-xs uppercase tracking-wider text-muted-foreground'>
+                Submitted {new Date(Number(requestDetails.dateSubmitted)).toLocaleDateString()}
+              </p>
+            )}
+            <h3 className='mt-1 break-words font-display text-2xl font-bold text-foreground'>
+              {requestDetails.description}
+            </h3>
+          </div>
+          <span className={cn('shrink-0 rounded-full px-3 py-1 text-xs font-semibold', statusClass)}>
+            {statusLabel}
+          </span>
+        </header>
+
+        <div className='border-t border-border p-5 md:p-6'>
+          <div className='flex flex-wrap items-baseline justify-between gap-2'>
+            <p className='text-sm font-semibold text-foreground'>Approvals</p>
+            <p className='font-mono text-sm text-foreground'>
+              {approvalCount} / {approvalsNeeded}
+            </p>
+          </div>
+          <div className='mt-3 flex gap-1.5' aria-hidden>
+            {Array.from({ length: Math.max(approvalsNeeded, 1) }, (_, i) => (
+              <span
+                key={i}
+                className={cn(
+                  'h-2 flex-1 rounded-full transition-colors duration-500',
+                  i < approvalsFilled ? 'bg-primary' : 'bg-muted'
+                )}
+              />
+            ))}
+          </div>
+          <p className='mt-2 text-sm text-muted-foreground'>{breakdown}</p>
         </div>
-        {row('Value', requestDetails.request.value)}
-        {row('Tx. Gas', requestDetails.request.txnGas)}
-        {requestDetails.request.txnNonce != null &&
-          requestDetails.request.txnNonce !== '' &&
-          row('Pinned nonce', requestDetails.request.txnNonce)}
-        {hasExpiry &&
-          row(
-            'Signatures expire',
-            <span className={isExpired ? 'text-destructive' : undefined}>
-              {new Date(Number(validUntil) * 1000).toLocaleString()}
-              {isExpired ? ' — expired' : ''}
-            </span>
+
+        <dl className='grid gap-x-8 gap-y-5 border-t border-border p-5 md:grid-cols-2 md:p-6'>
+          <Detail label='Target' mono>
+            {requestDetails.request.to}
+          </Detail>
+          <Detail label='Value (wei)' mono>
+            {requestDetails.request.value}
+          </Detail>
+          <Detail label='Tx. gas' mono>
+            {requestDetails.request.txnGas}
+          </Detail>
+          {hasPinnedNonce && (
+            <Detail label='Pinned nonce' mono>
+              {txnNonce}
+            </Detail>
           )}
-        {isDelegateCall && row('Operation', 'DELEGATECALL (runs in the wallet’s own storage context)')}
-        {batchSteps != null &&
-          batchSteps.length > 0 &&
-          requestDetails.request.strictBatch === true &&
-          row('Batch mode', 'Atomic — the first failing step reverts every step')}
-        {row(
-          'Approvals / Threshold',
-          supportsHybrid
-            ? `${combined.size} / ${multiSigDetails.threshold} (${signerSet.size} signature${
-                signerSet.size === 1 ? '' : 's'
-              }, ${approverSet.size} on-chain)`
-            : `${requestDetails.signatures.length} / ${multiSigDetails.threshold}`
-        )}
+          {hasExpiry && (
+            <Detail label='Signatures expire'>
+              <span className={cn(isExpired && 'font-semibold text-destructive')}>
+                {new Date(Number(validUntil) * 1000).toLocaleString()}
+                {isExpired ? ' — expired' : ''}
+              </span>
+            </Detail>
+          )}
+          {isDelegateCall && (
+            <Detail label='Operation' wide>
+              DELEGATECALL (runs in the wallet’s own storage context)
+            </Detail>
+          )}
+          {batchSteps != null && batchSteps.length > 0 && requestDetails.request.strictBatch === true && (
+            <Detail label='Batch mode' wide>
+              Atomic — the first failing step reverts every step
+            </Detail>
+          )}
+          <Detail label='Data' mono wide>
+            <span className='block max-h-40 overflow-auto whitespace-pre-wrap rounded-md bg-muted/40 p-3'>
+              {requestDetails.request.data}
+            </span>
+          </Detail>
+        </dl>
 
         {batchSteps != null && batchSteps.length > 0 && (
-          <div className='mt-2 flex flex-col gap-2 px-2'>
-            <span className='text-xl font-bold text-foreground'>Batch steps</span>
-            <p className='text-sm text-muted-foreground'>
+          <div className='border-t border-border p-5 md:p-6'>
+            <p className='text-sm font-semibold text-foreground'>Batch steps</p>
+            <p className='mt-0.5 text-sm text-muted-foreground'>
               Steps run in order; a failed step does not revert the others.
             </p>
-            {batchSteps.map((step, i) => {
-              const result = batchResults?.[i]
-              return (
-                <div key={i} className='flex flex-wrap items-center gap-2 rounded border border-border p-2 text-sm'>
-                  <span className='font-semibold text-foreground'>#{i + 1}</span>
-                  <span className='font-mono text-foreground'>{step.to}</span>
-                  <span className='text-muted-foreground'>value {step.value}</span>
-                  {result != null && (
-                    <span className={`font-semibold ${result.success ? 'text-primary' : 'text-destructive'}`}>
-                      {result.success
-                        ? 'succeeded'
-                        : `failed${result.returnData !== '0x' ? ` (${result.returnData})` : ''}`}
-                    </span>
-                  )}
-                </div>
-              )
-            })}
+            <ol className='mt-3 flex flex-col gap-2'>
+              {batchSteps.map((step, i) => {
+                const result = batchResults?.[i]
+                return (
+                  <li
+                    key={i}
+                    className='flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-border px-3 py-2 text-sm'
+                  >
+                    <span className='font-mono text-muted-foreground'>#{i + 1}</span>
+                    <span className='break-all font-mono text-foreground'>{step.to}</span>
+                    <span className='text-muted-foreground'>value {step.value}</span>
+                    {result != null && (
+                      <span className={cn('font-semibold', result.success ? 'text-primary' : 'text-destructive')}>
+                        {result.success
+                          ? 'succeeded'
+                          : `failed${result.returnData !== '0x' ? ` (${result.returnData})` : ''}`}
+                      </span>
+                    )}
+                  </li>
+                )
+              })}
+            </ol>
           </div>
         )}
 
         {requestDetails.isExecuted ? (
-          <div className='px-2 pt-2 text-xl font-bold text-primary'>
-            This request has been executed
-            {requestDetails.dateExecuted != null &&
-              ` on the ${new Date(Number(requestDetails.dateExecuted)).toLocaleDateString()}`}
+          <div className='border-t border-border p-5 md:p-6'>
+            <p className='text-lg font-semibold text-primary'>
+              This request has been executed
+              {requestDetails.dateExecuted != null &&
+                ` on ${new Date(Number(requestDetails.dateExecuted)).toLocaleDateString()}`}
+            </p>
           </div>
         ) : (
           <Fragment>
-            {isExpired && (
-              <div className='px-2 pt-2 text-lg font-bold text-destructive'>
-                This request&apos;s signatures expired on {new Date(Number(validUntil) * 1000).toLocaleString()}. The
-                wallet refuses them (SignatureExpired). Reset the signatures and collect them again with a new deadline.
-              </div>
-            )}
-            {thresholdReached && !isExpired && (
-              <div className='flex flex-wrap items-center gap-2'>
-                <span className='px-2 pt-2 text-xl font-bold text-foreground'>Execute this request</span>
-                {preflightBlocked ? (
-                  <span className='px-2 pt-2 text-lg font-bold text-destructive'>
-                    The wallet rejects the collected approvals (owners may have changed or the nonce moved). Reset the
-                    signatures and collect them again.
+            <div className='flex flex-col gap-6 border-t border-border p-5 md:p-6'>
+              {isExpired && (
+                <Callout>
+                  This request&apos;s signatures expired on {new Date(Number(validUntil) * 1000).toLocaleString()}. The
+                  wallet refuses them (SignatureExpired). Reset the signatures and collect them again with a new
+                  deadline.
+                </Callout>
+              )}
+              {thresholdReached && !isExpired && (
+                <ActionRow
+                  title='Execute this request'
+                  hint={preflightBlocked ? undefined : 'Enough approvals are collected.'}
+                >
+                  {preflightBlocked ? (
+                    <Callout>
+                      The wallet rejects the collected approvals (owners may have changed or the nonce moved). Reset the
+                      signatures and collect them again.
+                    </Callout>
+                  ) : (
+                    <ExecuteRequest
+                      multiSigAddress={requestDetails.multiSigAddress}
+                      args={requestDetails.request}
+                      requestDetails={requestDetails}
+                      existingRequestId={requestDetails.id}
+                    />
+                  )}
+                </ActionRow>
+              )}
+              {modern && !isExpired && txHash != null && (
+                <ScheduledExecutionPanel
+                  multiSigAddress={requestDetails.multiSigAddress}
+                  request={requestDetails}
+                  txHash={txHash}
+                  thresholdReached={thresholdReached}
+                />
+              )}
+              <ActionRow
+                title='Sign this request'
+                hint={hasSigned || hasApproved ? undefined : 'Off-chain signature, no gas. Saved for the other owners.'}
+              >
+                {hasSigned ? (
+                  <span className='text-sm font-semibold text-primary'>You already signed this request</span>
+                ) : hasApproved ? (
+                  <span className='text-sm text-muted-foreground'>
+                    You approved on-chain; a signature would be a duplicate vote
                   </span>
                 ) : (
-                  <ExecuteRequest
+                  <SignRequest
                     multiSigAddress={requestDetails.multiSigAddress}
                     args={requestDetails.request}
+                    description={requestDetails.description}
                     requestDetails={requestDetails}
                     existingRequestId={requestDetails.id}
                   />
                 )}
-              </div>
-            )}
-            {modern && !isExpired && txHash != null && (
-              <ScheduledExecutionPanel
-                multiSigAddress={requestDetails.multiSigAddress}
-                request={requestDetails}
-                txHash={txHash}
-                thresholdReached={thresholdReached}
-              />
-            )}
-            <div className='flex flex-wrap items-center gap-2'>
-              <span className='px-2 pt-2 text-xl font-bold text-foreground'>Sign this request</span>
-              {hasSigned ? (
-                <span className='px-2 pt-2 text-xl font-bold text-primary'>You already signed this request</span>
-              ) : hasApproved ? (
-                <span className='px-2 pt-2 text-lg font-bold text-muted-foreground'>
-                  You approved on-chain; a signature would be a duplicate vote
-                </span>
-              ) : (
-                <SignRequest
-                  multiSigAddress={requestDetails.multiSigAddress}
-                  args={requestDetails.request}
-                  description={requestDetails.description}
-                  requestDetails={requestDetails}
-                  existingRequestId={requestDetails.id}
-                />
+              </ActionRow>
+              {supportsHybrid && txHash != null && !hasApproved && !hasSigned && (
+                <ActionRow title='Or approve on-chain' hint='Sends a transaction from your wallet, so it costs gas.'>
+                  <ApproveRequest
+                    multiSigAddress={requestDetails.multiSigAddress}
+                    txHash={txHash}
+                    onApproved={() => refetchApprovals()}
+                  />
+                </ActionRow>
+              )}
+              {modern && txHash != null && hasApproved && (
+                <ActionRow title='Withdraw your approval'>
+                  <RevokeApproval
+                    multiSigAddress={requestDetails.multiSigAddress}
+                    txHash={txHash}
+                    onRevoked={() => refetchApprovals()}
+                  />
+                </ActionRow>
               )}
             </div>
-            {supportsHybrid && txHash != null && !hasApproved && !hasSigned && (
-              <div className='flex flex-wrap items-center gap-2'>
-                <span className='px-2 pt-2 text-xl font-bold text-foreground'>Or approve on-chain</span>
-                <ApproveRequest
-                  multiSigAddress={requestDetails.multiSigAddress}
-                  txHash={txHash}
-                  onApproved={() => refetchApprovals()}
-                />
-              </div>
-            )}
-            {modern && txHash != null && hasApproved && (
-              <div className='flex flex-wrap items-center gap-2'>
-                <span className='px-2 pt-2 text-xl font-bold text-foreground'>Withdraw your approval</span>
-                <RevokeApproval
-                  multiSigAddress={requestDetails.multiSigAddress}
-                  txHash={txHash}
-                  onRevoked={() => refetchApprovals()}
-                />
-              </div>
-            )}
-            <div className='flex flex-wrap items-center gap-2'>
-              <span className='px-2 pt-2 text-xl font-bold text-foreground'>Clear signatures</span>
-              <Button variant='outline' className='mx-2 mt-2' onClick={() => setIsReset(true)}>
-                Reset signatures
-              </Button>
-            </div>
-            {isOwner && !requestDetails.isCancelled && (
-              <div className='flex flex-wrap items-center gap-2'>
-                <span className='px-2 pt-2 text-xl font-bold text-foreground'>Cancel this request</span>
-                <CancelRequestButton
-                  multiSigRequestId={multiSigRequestId}
-                  existingRequestId={multiSigRequestId}
-                  description={requestDetails.description}
-                />
-              </div>
-            )}
-            {!isOwner && (
-              <div className='px-2 pt-2 text-xs text-muted-foreground'>
-                You must be an owner of this wallet to cancel the request.
-              </div>
-            )}
-            <div className='flex flex-wrap items-center gap-2'>
-              <span className='px-2 pt-2 text-xl font-bold text-foreground'>Delete this request</span>
-              <Button variant='destructive' className='mx-2 mt-2' onClick={() => setIsDeleted(true)}>
-                Delete
-              </Button>
+
+            <div className='flex flex-col gap-6 border-t border-border bg-muted/20 p-5 md:p-6'>
+              <p className='text-xs font-medium uppercase tracking-wider text-muted-foreground'>Manage</p>
+              <ActionRow title='Clear signatures' hint='Removes every collected signature so owners sign again.'>
+                <Button variant='outline' onClick={() => setIsReset(true)}>
+                  Reset signatures
+                </Button>
+              </ActionRow>
+              {isOwner && !requestDetails.isCancelled && (
+                <ActionRow
+                  title='Cancel this request'
+                  hint='Marks it inactive and wipes signatures on later-nonce requests in the queue.'
+                >
+                  <CancelRequestButton
+                    multiSigRequestId={multiSigRequestId}
+                    existingRequestId={multiSigRequestId}
+                    description={requestDetails.description}
+                  />
+                </ActionRow>
+              )}
+              {!isOwner && (
+                <p className='text-sm text-muted-foreground'>Only owners of this wallet can cancel this request.</p>
+              )}
+              <ActionRow title='Delete this request' hint='Removes it from the queue for every owner.'>
+                <Button variant='destructive' onClick={() => setIsDeleted(true)}>
+                  Delete
+                </Button>
+              </ActionRow>
             </div>
           </Fragment>
         )}
-      </div>
+      </section>
+
       <div className='flex justify-center'>
         <Button asChild className='m-4'>
           <Link
