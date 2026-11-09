@@ -18,13 +18,26 @@ interface EthersInputProps {
   symbol?: string
   isInvalid?: boolean
   helperText?: string
-  // Upper bound shown next to the field as a friendly hint (e.g. the rolling
-  // daily allowance cap). Wired but optional.
+  // Upper bound (wei) for the Max button, e.g. the wallet's native balance or
+  // the rolling daily allowance cap. The Max button is hidden when unset.
   balanceHint?: bigint
   disabled?: boolean
 }
 
 const isUint = (value: string) => /^\d+$/.test(value)
+
+// Decimal native-currency text to wei, or null when it is not a valid amount.
+// viem silently truncates digits past 18 decimals, so those are rejected here
+// rather than turning a typed amount into a smaller (or zero) one.
+const parseDecimal = (text: string): bigint | null => {
+  const fraction = text.split('.')[1] ?? ''
+  if (fraction.length > 18) return null
+  try {
+    return parseEther(text)
+  } catch {
+    return null
+  }
+}
 
 // Amount entry that defaults to a decimal native-currency field and keeps a
 // "Wei (raw units)" toggle for power users or amounts below the smallest
@@ -64,9 +77,12 @@ const EthersInput: React.FC<EthersInputProps> = ({
   }
 
   // When the upstream value changes (e.g. action re-selection), reflect the
-  // new decimal value in the input.
+  // new decimal value in the input. A draft that is not a valid amount is kept
+  // as the user typed it: the upstream value is already cleared for it.
   useEffect(() => {
-    if (mode === 'eth') setDecimal(wei == null ? '' : formatDecimal(wei))
+    if (mode !== 'eth') return
+    if (wei == null && decimal.trim() !== '' && parseDecimal(decimal) == null) return
+    setDecimal(wei == null ? '' : formatDecimal(wei))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
@@ -76,12 +92,10 @@ const EthersInput: React.FC<EthersInputProps> = ({
       onChange('')
       return
     }
-    try {
-      const parsed = parseEther(next)
-      onChange(parsed.toString())
-    } catch {
-      // Invalid decimal — let validation in the parent surface the error.
-    }
+    // Invalid decimal: clear the upstream value so a stale amount can never be
+    // signed while the field shows something else.
+    const parsed = parseDecimal(next)
+    onChange(parsed == null ? '' : parsed.toString())
   }
 
   // Friendly preview of an integer wei value, useful for non-18-decimal tokens.
@@ -109,7 +123,8 @@ const EthersInput: React.FC<EthersInputProps> = ({
               onChange={(e) => commitDecimal(e.target.value.trim())}
               className={cn(
                 'h-auto w-full px-4 py-3 text-base md:w-full md:text-sm',
-                isInvalid && 'border-destructive focus-visible:ring-destructive'
+                (isInvalid || (decimal.trim() !== '' && parseDecimal(decimal) == null)) &&
+                  'border-destructive focus-visible:ring-destructive'
               )}
             />
             {balanceHint != null && (
