@@ -1,0 +1,58 @@
+# MyMultiSig
+
+> MyMultiSig (https://mymultisig.app) is an open-source multi-signature smart-contract wallet for EVM chains (Ethereum, Sepolia, Polygon, Optimism, Arbitrum, Avalanche, BNB Chain, Gnosis). A wallet has a set of owners and a threshold: a transaction executes on-chain only once `threshold` owners have signed it. Owners sign off-chain (EIP-712); the app stores the queue of pending requests and any owner can execute once enough signatures are collected.
+
+Key facts for agents:
+
+- **Lifecycle:** propose a request, then owners sign it (EIP-712, off-chain), then anyone executes it on-chain with `execTransaction` once the signatures meet the threshold.
+- **Nonces:** each wallet has a nonce. Unpinned requests bind the current nonce, so the queue executes in order.
+  - Executing, cancelling or resetting a request invalidates every later request ("cascade"). Their signatures are wiped and must be collected again.
+- **Wallet versions:** wallets report `version()`.
+  - `0.5.0` and later sign `Transaction(to, value, data, gas, nonce, validUntil)`. Extended wallets add `operation`.
+  - Older wallets sign `Transaction(to, value, data, gas, nonce)`.
+  - The EIP-712 domain is `{ name: wallet.name(), version: wallet.version(), chainId, verifyingContract: wallet }`.
+- **Wallet types:** `simple` (MyMultiSig) and `extended`/`advanced` (MyMultiSigExtended). Extended wallets add owner-only requests, ERC-4337, spending limits, allowlists and DELEGATECALL.
+- **Auth:** the server never holds keys. There are two ways to authenticate:
+  - a SIWE session (EOA);
+  - a scoped API key, sent as `Authorization: Bearer mms_…` and minted at https://mymultisig.app/settings/agents.
+
+  Scopes are `read`, `propose`, `sign` and `manage`. A key acts as the wallet that minted it.
+
+## Agent tooling
+
+- [AI agents guide](https://mymultisig.app/docs/ai-agents): API keys, owner keys, MCP setup and a safety checklist.
+- MCP server: `npx -y mymultisig-mcp`. Configure it with env vars:
+  - `MYMULTISIG_API_KEY`;
+  - `MYMULTISIG_PRIVATE_KEY` (the agent's own owner key, used locally only);
+  - `MYMULTISIG_CHAINS`;
+  - `MYMULTISIG_READ_ONLY`;
+  - `MYMULTISIG_RPC_URL_<chainId>`.
+
+  Tools:
+  - read: `get_multisig`, `list_requests`, `get_request` (decoded call, risk warnings, verified signatures), `get_balances`, `list_my_multisigs`, `list_networks`, `predict_multisig_address`, `encode_function_call`;
+  - write: `create_multisig`, `propose_transaction`, `approve_request`, `execute_request`, `cancel_request`, `reset_request`.
+- Claude Code plugin with the MCP server and skills (multisig-status, create-multisig, propose-transaction, review-and-sign, execute-queue):
+  - `/plugin marketplace add marc-aurele-besner/mymultisig-app`
+  - `/plugin install mymultisig@mymultisig`
+- CLI: `npx mymultisig-cli --help`. Every command supports `--json`.
+- TypeScript SDK: the `mymultisig-sdk` npm package (`MyMultiSigClient`, plus the protocol helpers: typed data, signature blobs, `execTransaction` overloads).
+
+## API
+
+- [OpenAPI 3.1 spec](https://mymultisig.app/openapi.json): request queue, wallet registry, address book, assets, SIWE and API keys.
+- Public reads, no auth:
+  - `GET /api/multisig-requests?multiSigAddress=0x…`
+  - `GET /api/multisig-requests/{id}`
+
+## Docs
+
+- [What is a multisig?](https://mymultisig.app/docs/what-is-a-multisig)
+- [Create a multisig](https://mymultisig.app/docs/create-a-multisig)
+- [Propose, sign, and execute transactions](https://mymultisig.app/docs/propose-sign-execute)
+- [Import an existing multisig](https://mymultisig.app/docs/import-a-multisig)
+- [Supported networks](https://mymultisig.app/networks)
+
+## Source
+
+- [Web app, API, SDK, MCP server, CLI](https://github.com/marc-aurele-besner/mymultisig-app)
+- [Smart contracts](https://github.com/marc-aurele-besner/mymultisig-contract), with ABIs on npm as `mymultisig-contract`
