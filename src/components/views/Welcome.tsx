@@ -7,6 +7,7 @@ import { TypedEyebrow, WordReveal } from '@/components/ui/reveal'
 import ConnectWallet from './ConnectWallet'
 import ConnectedWallet from './ConnectedWallet'
 import HeroQuorum from './HeroQuorum'
+import useConnectModal from '../../states/connectModal'
 import { AddIcon, ArrowForwardIcon, CheckIcon, WalletIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
 
 const GITHUB_APP_URL = 'https://github.com/marc-aurele-besner/mymultisig-app'
@@ -101,6 +102,7 @@ export const faqItems = [
 const Welcome: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
   const { isConnected } = useAccount()
+  const openConnectModal = useConnectModal((state) => state.setOpen)
 
   useEffect(() => {
     setHasMounted(true)
@@ -178,23 +180,25 @@ const Welcome: React.FC = () => {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
-          className="flex min-h-[300px] flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-[0_0_80px_-24px] shadow-primary/25"
+          className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-[0_0_80px_-24px] shadow-primary/25"
         >
           {hasMounted && isConnected ? (
             <ConnectedWallet />
           ) : (
             <>
               <div>
-                <h2 className="font-display text-xl font-bold tracking-tight text-foreground">Connect your wallet</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Choose your preferred wallet to get started with MyMultiSig.
-                </p>
+                <h2 className="font-display text-lg font-bold tracking-tight text-foreground">Connect your wallet</h2>
+                <p className="mt-0.5 text-xs text-muted-foreground">Free, and it creates nothing yet.</p>
               </div>
-              {hasMounted && <ConnectWallet compact />}
-              <p className="mt-auto text-xs leading-relaxed text-muted-foreground">
-                Connecting creates nothing and costs nothing. One free signature then syncs your multisigs across
-                devices.
-              </p>
+              {/* Two most common options here; the dialog has them all */}
+              <div className="min-h-[104px]">{hasMounted && <ConnectWallet compact list limit={2} />}</div>
+              <button
+                type="button"
+                onClick={() => openConnectModal(true)}
+                className="self-start text-xs font-medium text-primary underline-offset-4 hover:underline"
+              >
+                More wallets →
+              </button>
             </>
           )}
         </motion.div>

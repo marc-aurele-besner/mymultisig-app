@@ -52,10 +52,16 @@ export interface ConnectWalletProps {
   // Two columns and no heading, for narrow containers that bring their own
   // title (the connect modal, the home hero card).
   compact?: boolean
+  // One slim row per wallet instead of tiles, for tight spaces.
+  list?: boolean
+  // Show only the first N wallets. The caller offers the rest elsewhere
+  // (see the "More wallets" button on the home hero).
+  limit?: number
 }
 
-const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false }) => {
-  const { connect, connectors, error, isPending } = useConnect()
+const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = false, limit }) => {
+  const { connect, connectors: allConnectors, error, isPending } = useConnect()
+  const connectors = limit != null ? allConnectors.slice(0, limit) : allConnectors
   const [connectingId, setConnectingId] = React.useState<string | null>(null)
   // Connector the user picked before accepting the disclaimer; connecting
   // resumes with it once they accept.
@@ -92,8 +98,9 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false }) => {
 
         <div
           className={cn(
-            'grid w-full grid-cols-2 gap-3',
-            compact ? '' : 'max-w-[700px] gap-4 pt-4 md:grid-cols-4'
+            'grid w-full gap-3',
+            list ? 'grid-cols-1 gap-2' : 'grid-cols-2',
+            !compact && !list && 'max-w-[700px] gap-4 pt-4 md:grid-cols-4'
           )}
         >
           {connectors.map((connector, index) => {
@@ -111,7 +118,10 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false }) => {
                 onClick={() => handleConnect(connector)}
                 disabled={isDisabled}
                 aria-disabled={isDisabled}
-                className="relative w-full overflow-hidden rounded-xl border border-border bg-muted/50 p-4 opacity-100 transition-[transform,border-color] hover:border-primary/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                className={cn(
+                  'relative w-full overflow-hidden rounded-xl border border-border bg-muted/50 opacity-100 transition-[transform,border-color] hover:border-primary/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50',
+                  list ? 'px-3 py-2' : 'p-4'
+                )}
                 style={{
                   borderColor: isConnecting ? 'var(--primary)' : undefined
                 }}
@@ -122,11 +132,11 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false }) => {
                     style={{ animation: 'shimmer 1.5s infinite' }}
                   />
                 )}
-                <div className="flex flex-col items-center gap-3">
-                  <div className="rounded-xl bg-muted p-3" aria-hidden>
-                    <config.Mark size={compact ? 28 : 36} />
+                <div className={cn('flex items-center gap-3', !list && 'flex-col')}>
+                  <div className={cn('bg-muted', list ? 'rounded-lg p-1.5' : 'rounded-xl p-3')} aria-hidden>
+                    <config.Mark size={list ? 22 : compact ? 28 : 36} />
                   </div>
-                  <span className="text-center text-sm font-semibold text-foreground">
+                  <span className={cn('text-sm font-semibold text-foreground', !list && 'text-center')}>
                     {isConnecting ? 'Connecting…' : config.name}
                   </span>
                 </div>

@@ -34,26 +34,56 @@ const requestNetworkUrl =
     'Which network should MyMultiSig support (name and chain id)?\n\nIs it a mainnet or a testnet?\n\nHow would your team use it?\n'
   )}`
 
-// Hero visual: every supported network's mark, popping in one after another.
-const NetworkCloud: React.FC = () => (
-  <div
-    className='grid grid-cols-5 gap-3 rounded-xl border border-border bg-card p-5 shadow-[0_0_80px_-24px] shadow-primary/25'
-    role='img'
-    aria-label={`${networks.length} supported networks`}
+// Testnets grouped under the mainnet they belong to. A testnet shares its
+// mainnet's mark, so the hero shows each mark once and names the testnets.
+const TESTNETS_OF: Record<number, number[]> = {
+  1: [11155111, 5],
+  137: [80001],
+  10: [420],
+  42161: [421613],
+  43114: [43113],
+  56: [97],
+  100: [10200]
+}
+
+const families = mainnets.map((chain) => ({
+  chain,
+  testnets: (TESTNETS_OF[chain.id] ?? [])
+    .map((id) => testnets.find((testnet) => testnet.id === id))
+    .filter((testnet): testnet is (typeof networks)[number] => testnet != null)
+}))
+
+// Hero visual: one row per network family, each mark shown once.
+const NetworkFamilies: React.FC = () => (
+  <ul
+    className='flex flex-col rounded-xl border border-border bg-card p-2 shadow-[0_0_80px_-24px] shadow-primary/25'
+    aria-label='Supported networks and their testnets'
   >
-    {networks.map((chain, index) => (
-      <motion.span
+    {families.map(({ chain, testnets: family }, index) => (
+      <motion.li
         key={chain.id}
-        title={chain.name}
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.35, delay: 0.5 + index * 0.05, ease: [0.25, 1, 0.5, 1] }}
-        className='grid aspect-square place-items-center rounded-xl bg-muted'
+        initial={{ opacity: 0, x: 16 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.35, delay: 0.5 + index * 0.07, ease: [0.25, 1, 0.5, 1] }}
+        className='flex items-center gap-3 border-t border-border px-3 py-2.5 first:border-t-0'
       >
-        <NetworkIcon chainId={chain.id} name={chain.name} size={26} />
-      </motion.span>
+        <span className='grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-muted'>
+          <NetworkIcon chainId={chain.id} name={chain.name} size={20} />
+        </span>
+        <span className='min-w-0 flex-1 truncate text-sm font-semibold text-foreground'>{chain.name}</span>
+        <span className='flex flex-wrap justify-end gap-1'>
+          {family.map((testnet) => (
+            <span
+              key={testnet.id}
+              className='rounded-full border border-border px-2 py-0.5 font-mono text-[10px] text-muted-foreground'
+            >
+              {testnet.name.replace(chain.name, '').trim() || testnet.name}
+            </span>
+          ))}
+        </span>
+      </motion.li>
     ))}
-  </div>
+  </ul>
 )
 
 const NetworkGrid: React.FC<{ chains: typeof networks }> = ({ chains }) => (
@@ -116,7 +146,7 @@ const Networks: React.FC = () => {
             </Button>
           </>
         }
-        visual={<NetworkCloud />}
+        visual={<NetworkFamilies />}
       />
 
       <motion.div
