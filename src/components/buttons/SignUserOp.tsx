@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
 import useUserOpSigning from '../../hooks/useUserOpSigning'
+import WalletActionNotice from './WalletActionNotice'
 
 interface SignUserOpProps {
   wallet: `0x${string}`
@@ -44,21 +45,27 @@ const SignUserOp: React.FC<SignUserOpProps> = ({
   })
 
   return (
-    <div className='flex justify-center'>
-      {isPrepareError || isError ? (
-        <div className='flex flex-col items-center gap-2'>
-          <p className='pt-2 text-xl font-bold text-destructive'>Something went wrong</p>
-          {error != null && <p className='pt-2 text-lg text-destructive'>{JSON.stringify(error)}</p>}
-          {prepareError != null && <p className='pt-2 text-lg text-destructive'>{String(prepareError)}</p>}
-          <Button variant='default' className='mr-8 mt-4' onClick={() => reset()} disabled={isPending || isSuccess}>
-            Try again
-          </Button>
-        </div>
-      ) : (
-        <Button variant='default' className='mr-8 mt-4' onClick={() => signMessage()} disabled={isPending || isSuccess}>
-          {isSuccess ? 'Signed UserOp' : 'Sign UserOp'}
-        </Button>
-      )}
+    <div className='flex flex-col items-center gap-2'>
+      <Button
+        variant='default'
+        className='mr-8 mt-4'
+        onClick={() => {
+          // Clear the previous attempt's notice before prompting the wallet again.
+          if (isError) reset()
+          signMessage()
+        }}
+        disabled={isPrepareError || isPending || isSuccess}
+      >
+        {isSuccess
+          ? 'Signed UserOp'
+          : isPending
+            ? 'Confirm in your wallet…'
+            : isError
+              ? 'Try again'
+              : 'Sign UserOp'}
+      </Button>
+      {isPrepareError && prepareError != null && <p className='text-xs text-muted-foreground'>{prepareError}</p>}
+      {isError && <WalletActionNotice error={error} action='signature' onDismiss={() => reset()} />}
     </div>
   )
 }

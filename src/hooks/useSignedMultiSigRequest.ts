@@ -10,6 +10,7 @@ import useMultiSigs from '../states/multiSigs'
 import { addMultiSigRequest, patchMultiSigRequest } from '../utils'
 import { buildTransactionTypedData } from '../utils/transactionTypedData'
 import { combineSignatures } from '../utils/signatureBlob'
+import { isUserRejection } from '../utils/walletError'
 
 export type RequestSaveState = 'idle' | 'saving' | 'saved' | 'failed'
 
@@ -78,6 +79,8 @@ const useSignedMultiSigRequest = (
 
   useEffect(() => {
     if (error) {
+      // The inline notice already says the prompt was dismissed; no red toast.
+      if (isUserRejection(error)) return
       notificationError()
     }
   }, [error, notificationError])

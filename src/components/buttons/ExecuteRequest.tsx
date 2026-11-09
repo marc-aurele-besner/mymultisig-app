@@ -1,8 +1,9 @@
-import React, { Fragment } from 'react'
+import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../../models/MultiSigs'
 import useExecTransaction from '../../hooks/useExecTransaction'
+import WalletActionNotice from './WalletActionNotice'
 
 interface ExecuteRequestProps {
   multiSigAddress: `0x${string}`
@@ -20,6 +21,7 @@ const ExecuteRequest: React.FC<ExecuteRequestProps> = ({
   const {
     preparationError,
     preparationIsError,
+    error,
     isError,
     isPending,
     isSuccess,
@@ -37,35 +39,32 @@ const ExecuteRequest: React.FC<ExecuteRequestProps> = ({
       ? String((preparationError as { reason?: string }).reason)
       : String(preparationError)
 
-  return (
-    <div className="flex justify-center">
-      {isError && (
-        <p className="pt-2 text-xl font-bold text-destructive">Something went wrong</p>
-      )}
-      {!preparationIsError ? (
-        <Button
-          variant="default"
-          className="mr-8 mt-4"
-          onClick={() => writeContract()}
-          disabled={isPending || isSuccess}
-        >
-          Execute transaction request
+  if (preparationIsError) {
+    return (
+      <div className="flex w-full flex-col gap-2">
+        <p className="pt-2 text-lg font-bold text-foreground">There was an error preparing the transaction.</p>
+        <Textarea readOnly value={errorReason} className="w-full text-destructive" />
+        <Button variant="default" className="mr-8 mt-4" onClick={() => reset()}>
+          Reset
         </Button>
-      ) : (
-        <div className="flex w-full flex-col gap-2">
-          <p className="pt-2 text-lg font-bold text-foreground">
-            There was an error preparing the transaction.
-          </p>
-          <Textarea
-            readOnly
-            value={errorReason}
-            className="w-full text-destructive"
-          />
-          <Button variant="default" className="mr-8 mt-4" onClick={() => reset()}>
-            Reset
-          </Button>
-        </div>
-      )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col items-stretch gap-2 sm:items-end">
+      <Button
+        variant="default"
+        onClick={() => {
+          // Clear the previous attempt's notice before prompting the wallet again.
+          if (isError) reset()
+          writeContract()
+        }}
+        disabled={isPending || isSuccess}
+      >
+        {isPending ? 'Confirm in your wallet…' : isError ? 'Try again' : 'Execute transaction request'}
+      </Button>
+      {isError && <WalletActionNotice error={error} action="execution" onDismiss={() => reset()} />}
     </div>
   )
 }
