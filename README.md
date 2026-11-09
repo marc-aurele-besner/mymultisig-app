@@ -114,7 +114,6 @@ Server-only variables:
 - `ETHERSCAN_API_KEY` — required for ABI fetch in `/api/getABI`
 - `DATABASE_URL` — Neon PostgreSQL connection string (required for storing/retrieving requests)
 - `PRIVATE_KEY` — backend signer used to sign messages; do NOT use a key with funds
-- `RPC_ETHEREUM` — RPC URL used by the backend signer
 - `SLACK_TOKEN` and `SLACK_CONVERSATION_ID` — optional notifications
 
 Auth (optional; used by `/api/auth/[...nextauth]`):
