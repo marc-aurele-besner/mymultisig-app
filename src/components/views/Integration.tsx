@@ -8,6 +8,13 @@ import { cn } from '@/lib/utils'
 
 type IntegrationStatus = 'available' | 'in development' | 'alpha' | 'planned'
 
+interface IntegrationLink {
+  label: string
+  href: string
+  // Opens in a new tab with an external-link icon (npm, GitHub, raw specs).
+  external?: boolean
+}
+
 interface NotificationIntegration {
   keyword: string
   title: string
@@ -15,7 +22,8 @@ interface NotificationIntegration {
   description: string
   features: string[]
   note?: string
-  cta?: { label: string; href: string }
+  cta?: IntegrationLink
+  secondaryCta?: IntegrationLink
 }
 
 const lifecycleEvents = ['request proposed', 'awaiting signatures', 'ready to execute']
@@ -75,22 +83,136 @@ const notificationIntegrations: NotificationIntegration[] = [
     ],
     note: 'Sign in with an owner wallet on /settings/email, enter your address, and click the confirmation link.',
     cta: { label: 'Set up email', href: '/settings/email' }
-  },
-  {
-    keyword: 'agents',
-    title: 'AI agents (MCP)',
-    status: 'alpha',
-    description: 'Let Claude, Cursor or any MCP client create, propose, sign and execute.',
-    features: [
-      'mymultisig-mcp server: wallets, queue, decode, propose, approve, execute',
-      'Scoped API keys (read / propose / sign / manage), optionally per wallet',
-      'The agent signs with its own owner key, locally — never on our servers',
-      'Claude Code plugin with ready-made skills, plus a CLI and TypeScript SDK'
-    ],
-    note: 'Create a key in /settings/agents, then follow the AI agents guide in the docs.',
-    cta: { label: 'Connect an agent', href: '/settings/agents' }
   }
 ]
+
+// Each agent flow is advertised on its own; they all reuse the scoped API keys
+// from /settings/agents, and on-chain signing always stays on the agent's
+// machine with its own owner key.
+const agentIntegrations: NotificationIntegration[] = [
+  {
+    keyword: 'mcp',
+    title: 'MCP server',
+    status: 'alpha',
+    description: 'Give Claude, Cursor or any MCP client native multisig tools.',
+    features: [
+      'Read wallets, balances and the request queue',
+      'Decode requests with risk warnings and locally verified signatures',
+      'Propose, approve and execute (simulated first) with the agent’s owner key',
+      'Read-only mode and a chain allowlist for safe rollouts'
+    ],
+    note: 'npx -y mymultisig-mcp — add it to any MCP client config with your API key.',
+    cta: { label: 'Setup guide', href: '/docs/ai-agents' },
+    secondaryCta: { label: 'npm', href: 'https://www.npmjs.com/package/mymultisig-mcp', external: true }
+  },
+  {
+    keyword: 'skills',
+    title: 'Claude Code skills',
+    status: 'alpha',
+    description: 'Ready-made multisig workflows for Claude Code, MCP server included.',
+    features: [
+      'multisig-status: owners, balances and what the queue needs next',
+      'create-multisig and propose-transaction with sanity checks',
+      'review-and-sign: decode, flag risks, sign only after you confirm',
+      'execute-queue: run ready requests in nonce order'
+    ],
+    note: '/plugin marketplace add marc-aurele-besner/mymultisig-app, then /plugin install mymultisig@mymultisig.',
+    cta: { label: 'Setup guide', href: '/docs/ai-agents' },
+    secondaryCta: {
+      label: 'Source',
+      href: 'https://github.com/marc-aurele-besner/mymultisig-app/tree/main/plugins/mymultisig',
+      external: true
+    }
+  },
+  {
+    keyword: 'api',
+    title: 'REST API & API keys',
+    status: 'alpha',
+    description: 'Call the request queue and wallet registry from any backend or bot.',
+    features: [
+      'Scoped Bearer keys: read, propose, sign, manage',
+      'Restrict a key to specific wallets and give it an expiry',
+      'Revoke instantly; keys can never sign transactions or mint keys',
+      'OpenAPI 3.1 spec and llms.txt for code generators and LLMs'
+    ],
+    note: 'Keys act as the wallet that created them — the same key works for the MCP server and the CLI.',
+    cta: { label: 'Create an API key', href: '/settings/agents' },
+    secondaryCta: { label: 'OpenAPI spec', href: '/openapi.json', external: true }
+  },
+  {
+    keyword: 'cli',
+    title: 'Command line',
+    status: 'alpha',
+    description: 'Script your multisig from a terminal, CI job or agent shell.',
+    features: [
+      'Create wallets, propose, approve and execute requests',
+      'Human-readable output, or --json for scripts and agents',
+      'Irreversible actions ask first, or need --yes when unattended',
+      'Mint and revoke API keys by signing in with your key'
+    ],
+    note: 'npx mymultisig-cli --help',
+    cta: { label: 'Setup guide', href: '/docs/ai-agents' },
+    secondaryCta: { label: 'npm', href: 'https://www.npmjs.com/package/mymultisig-cli', external: true }
+  }
+]
+
+const CtaButton: React.FC<{ link: IntegrationLink; variant?: 'outline' | 'ghost' }> = ({
+  link,
+  variant = 'outline'
+}) => (
+  <Button asChild variant={variant} className='w-fit'>
+    {link.external ? (
+      <a href={link.href} target='_blank' rel='noopener noreferrer' className='gap-2'>
+        {link.label}
+        <ExternalLinkIcon className='h-3.5 w-3.5' />
+      </a>
+    ) : (
+      <Link href={link.href} className='gap-2'>
+        {link.label}
+        <ExternalLinkIcon className='h-3.5 w-3.5' />
+      </Link>
+    )}
+  </Button>
+)
+
+const IntegrationCard: React.FC<{ integration: NotificationIntegration }> = ({ integration }) => (
+  <div className='flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-5'>
+    <div className='flex items-center justify-between gap-2'>
+      <span className='font-mono text-xs text-primary'>{integration.keyword}</span>
+      <span
+        className={cn(
+          'rounded-full border px-2 py-0.5 font-mono text-[10px] tracking-wider',
+          statusBadgeClassName[integration.status]
+        )}
+      >
+        {integration.status}
+      </span>
+    </div>
+    <div>
+      <h2 className='text-lg font-semibold text-foreground'>{integration.title}</h2>
+      <p className='mt-1 text-sm leading-relaxed text-muted-foreground'>{integration.description}</p>
+    </div>
+    <ul className='flex flex-col gap-1.5'>
+      {integration.features.map((feature) => (
+        <li key={feature} className='flex items-start gap-2 text-xs leading-relaxed text-muted-foreground'>
+          <CheckIcon className='mt-0.5 h-3 w-3 shrink-0 text-primary/70' />
+          {feature}
+        </li>
+      ))}
+    </ul>
+    {integration.note && (
+      <p className='mt-auto border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground/80'>
+        {integration.note}
+      </p>
+    )}
+    {(integration.cta || integration.secondaryCta) && (
+      <div className='mt-2 flex flex-wrap gap-2'>
+        {integration.cta && <CtaButton link={integration.cta} />}
+        {integration.secondaryCta && <CtaButton link={integration.secondaryCta} variant='ghost' />}
+      </div>
+    )}
+  </div>
+)
 
 const buildYourOwn = [
   {
@@ -112,16 +234,10 @@ const buildYourOwn = [
     href: 'https://github.com/marc-aurele-besner/mymultisig-app/tree/main/src/pages/api'
   },
   {
-    keyword: 'openapi',
-    title: 'OpenAPI spec',
-    description: 'Machine-readable description of the REST API, with API key and SIWE auth.',
-    href: '/openapi.json'
-  },
-  {
     keyword: 'sdk',
-    title: 'SDK, MCP server & CLI',
-    description: 'mymultisig-sdk, mymultisig-mcp and mymultisig-cli share one protocol core with this app.',
-    href: 'https://github.com/marc-aurele-besner/mymultisig-app/tree/main/packages'
+    title: 'TypeScript SDK',
+    description: 'mymultisig-sdk: the same EIP-712, signature and execution code this app runs, on viem.',
+    href: 'https://www.npmjs.com/package/mymultisig-sdk'
   }
 ]
 
@@ -152,11 +268,11 @@ const Integration: React.FC = () => {
           <div>
             <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>INTEGRATIONS</p>
             <h1 className='font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>
-              Team chat, notifications &amp; AI agents
+              Team chat &amp; notifications
             </h1>
             <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground'>
               A multisig only moves when people show up to sign. These integrations bring the three moments that matter
-              to wherever your team already is — including the AI agents that work alongside it.
+              to wherever your team already is.
             </p>
           </div>
 
@@ -174,47 +290,7 @@ const Integration: React.FC = () => {
 
           <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
             {notificationIntegrations.map((integration) => (
-              <div
-                key={integration.keyword}
-                className='flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-5'
-              >
-                <div className='flex items-center justify-between gap-2'>
-                  <span className='font-mono text-xs text-primary'>{integration.keyword}</span>
-                  <span
-                    className={cn(
-                      'rounded-full border px-2 py-0.5 font-mono text-[10px] tracking-wider',
-                      statusBadgeClassName[integration.status]
-                    )}
-                  >
-                    {integration.status}
-                  </span>
-                </div>
-                <div>
-                  <h2 className='text-lg font-semibold text-foreground'>{integration.title}</h2>
-                  <p className='mt-1 text-sm leading-relaxed text-muted-foreground'>{integration.description}</p>
-                </div>
-                <ul className='flex flex-col gap-1.5'>
-                  {integration.features.map((feature) => (
-                    <li key={feature} className='flex items-start gap-2 text-xs leading-relaxed text-muted-foreground'>
-                      <CheckIcon className='mt-0.5 h-3 w-3 shrink-0 text-primary/70' />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                {integration.note && (
-                  <p className='mt-auto border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground/80'>
-                    {integration.note}
-                  </p>
-                )}
-                {integration.cta && (
-                  <Button asChild variant='outline' className='mt-2 w-fit'>
-                    <Link href={integration.cta.href} className='gap-2'>
-                      {integration.cta.label}
-                      <ExternalLinkIcon className='h-3.5 w-3.5' />
-                    </Link>
-                  </Button>
-                )}
-              </div>
+              <IntegrationCard key={integration.keyword} integration={integration} />
             ))}
           </div>
 
@@ -228,6 +304,25 @@ const Integration: React.FC = () => {
                 <ExternalLinkIcon className='h-3.5 w-3.5' />
               </a>
             </Button>
+          </div>
+
+          <div className='border-t border-border pt-8'>
+            <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>AI AGENTS &amp; DEVELOPER TOOLS</p>
+            <h2 className='font-display text-xl font-bold tracking-tight text-foreground md:text-2xl'>
+              Let agents and scripts work the queue
+            </h2>
+            <p className='mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground'>
+              Four ways in, one set of credentials: every flow below uses the scoped API keys you create in{' '}
+              <Link href='/settings/agents' className='text-primary underline-offset-4 hover:underline'>
+                Settings → AI agents
+              </Link>
+              . Approvals and executions are signed locally with the agent&apos;s own owner key — never on our servers.
+            </p>
+            <div className='mt-5 grid grid-cols-1 gap-6 md:grid-cols-2'>
+              {agentIntegrations.map((integration) => (
+                <IntegrationCard key={integration.keyword} integration={integration} />
+              ))}
+            </div>
           </div>
 
           <div className='border-t border-border pt-8'>

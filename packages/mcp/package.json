@@ -1,10 +1,11 @@
 {
   "name": "mymultisig-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "mcpName": "io.github.marc-aurele-besner/mymultisig-mcp",
   "description": "Model Context Protocol server for mymultisig.app: lets AI agents create, inspect, propose, sign and execute MyMultiSig wallet transactions",
   "type": "module",
   "bin": {
-    "mymultisig-mcp": "./dist/index.js"
+    "mymultisig-mcp": "dist/index.js"
   },
   "main": "./dist/index.js",
   "files": [

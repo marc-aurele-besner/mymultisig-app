@@ -98,6 +98,19 @@ describe('mymultisig-mcp', () => {
   })
 })
 
+describe('MCP Registry manifest', () => {
+  it('server.json matches package.json (name, mcpName, versions)', async () => {
+    const { readFileSync } = await import('node:fs')
+    const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
+    const manifest = JSON.parse(readFileSync(new URL('../server.json', import.meta.url), 'utf8'))
+    expect(manifest.name).toBe(pkg.mcpName)
+    expect(manifest.version).toBe(pkg.version)
+    expect(manifest.packages[0].identifier).toBe(pkg.name)
+    expect(manifest.packages[0].version).toBe(pkg.version)
+    expect(manifest.description.length).toBeLessThanOrEqual(100)
+  })
+})
+
 describe('loadConfig', () => {
   it('reads keys, RPC URLs and the chain allowlist from the environment', () => {
     const config = loadConfig({

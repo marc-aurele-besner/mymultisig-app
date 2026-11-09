@@ -82,6 +82,31 @@ yarn packages:build && yarn packages:test
 
 The plugin's `.mcp.json` pins `mymultisig-mcp@0.1`. Bump it when you ship a breaking change.
 
+npm 10.8.x has a web-login bug: it polls once, gets `202`, and exits ("Exit handler never called"). Use npm 11 for login and publish:
+- `npx -y npm@11 login`
+- `npx -y npm@11 publish --otp <code>`
+
+### MCP Registry
+
+`mymultisig-mcp` is listed in the [official MCP Registry](https://registry.modelcontextprotocol.io) as `io.github.marc-aurele-besner/mymultisig-mcp`.
+
+- `packages/mcp/server.json` is the registry manifest.
+- The registry verifies npm ownership through the `mcpName` field in `packages/mcp/package.json`. That means a version has to be on npm *before* it can be listed.
+- A test keeps `server.json` in sync with `package.json`.
+
+For every MCP release:
+
+1. Bump the version in `package.json` and in both `version` fields of `server.json`.
+2. Publish the package to npm.
+3. Then publish to the registry:
+
+```bash
+brew install mcp-publisher        # once
+cd packages/mcp
+mcp-publisher login github        # device-code login; the io.github.marc-aurele-besner/ namespace needs this account
+mcp-publisher publish
+```
+
 ## Known gaps and follow-ups
 
 - **Signatures aren't recovered server-side.** The server still doesn't recover signatures on `POST`/`PATCH /api/multisig-requests`. The SDK verifies them locally (`verifyRequestSignatures`) before it signs on top of them or executes. Server-side recovery would protect every client.
