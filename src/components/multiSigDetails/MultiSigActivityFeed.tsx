@@ -1,4 +1,5 @@
 import React from 'react'
+import Link from 'next/link'
 import { useChainId, useChains } from 'wagmi'
 import { formatEther } from 'viem'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,7 @@ import { cn } from '@/lib/utils'
 import useMultiSigActivity, { ActivityEntry, INCOMING_TRANSFER_EVENT } from '../../hooks/useMultiSigActivity'
 import { useAddressLabels } from '../../states/addressBook'
 import { ADMIN_ACTIONS, decodeSelfCall } from '../../utils/adminActions'
+import { rpcSettingsHref } from '../../lib/rpc/rpcError'
 
 interface MultiSigActivityFeedProps {
   multiSigAddress: `0x${string}`
@@ -177,13 +179,25 @@ const MultiSigActivityFeed: React.FC<MultiSigActivityFeedProps> = ({ multiSigAdd
   const chain = chains.find((c) => c.id === chainId)
   const explorerUrl = chain?.blockExplorers?.default?.url
   const { labelFor } = useAddressLabels(chain?.id)
-  const { entries, isLoading, error, rateLimited, hasOlder, loadOlder } = useMultiSigActivity(multiSigAddress)
+  const { entries, isLoading, error, rateLimited, rpcFailure, hasOlder, loadOlder } =
+    useMultiSigActivity(multiSigAddress)
 
   return (
     <div className='flex w-full flex-col gap-4'>
       {error != null && (
         <div className='flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive bg-destructive/10 p-4 text-sm text-destructive'>
-          <span>Could not load activity: {error}</span>
+          <span>
+            Could not load activity: {error}
+            {rpcFailure && (
+              <>
+                {' '}
+                <Link href={rpcSettingsHref(multiSigAddress)} className='font-medium underline underline-offset-4'>
+                  Use your own RPC
+                </Link>
+                .
+              </>
+            )}
+          </span>
           {rateLimited && !isLoading && (
             <Button variant='outline' size='sm' onClick={() => loadOlder()}>
               Try again
