@@ -30,6 +30,13 @@ export const guides = [
     kicker: 'HOW-TO',
     title: 'Import an existing multisig',
     description: 'Already deployed a MyMultiSig contract? Add it by address to track and manage it from any device.'
+  },
+  {
+    href: '/docs/ai-agents',
+    kicker: 'HOW-TO',
+    title: 'Manage a multisig with AI agents',
+    description:
+      'Connect Claude or any MCP client: scoped API keys, the MCP server, CLI and SDK to propose, sign and execute.'
   }
 ]
 

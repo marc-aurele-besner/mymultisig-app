@@ -65,7 +65,7 @@ const resetHandler = withVerifiedAsOwner(parseIdParam, async (_req, res, _addres
     content: rowToMultiSigRequest(updated[0]),
     cascade
   })
-})
+}, { apiKeyScope: 'manage' })
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {

@@ -1,0 +1,50 @@
+{
+  "name": "mymultisig-cli",
+  "version": "0.1.0",
+  "description": "Command-line interface for mymultisig.app: create, inspect, propose, sign and execute MyMultiSig wallet transactions (human or --json output for agents)",
+  "type": "module",
+  "bin": {
+    "mymultisig": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "yarn build && yarn test"
+  },
+  "dependencies": {
+    "commander": "^14.0.0",
+    "mymultisig-sdk": "0.1.0",
+    "viem": "^2.43.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "tsup": "^8.5.0",
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marc-aurele-besner/mymultisig-app.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://mymultisig.app/docs/ai-agents",
+  "keywords": [
+    "cli",
+    "multisig",
+    "ethereum",
+    "ai-agents",
+    "mymultisig"
+  ],
+  "author": "Marc-Aurele Besner <82244926+marc-aurele-besner@users.noreply.github.com>",
+  "license": "MIT"
+}

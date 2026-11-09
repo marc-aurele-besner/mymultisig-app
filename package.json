@@ -7,7 +7,8 @@
     "node": ">=20"
   },
   "workspaces": [
-    "src/*"
+    "src/*",
+    "packages/*"
   ],
   "main": "index.js",
   "repository": {
@@ -40,7 +41,9 @@
     "analyze": "ANALYZE=true turbo build",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "test-storybook": "lerna run test-storybook"
+    "test-storybook": "lerna run test-storybook",
+    "packages:build": "yarn workspace mymultisig-sdk build && yarn workspace mymultisig-mcp build && yarn workspace mymultisig-cli build",
+    "packages:test": "yarn workspace mymultisig-sdk test && yarn workspace mymultisig-mcp test && yarn workspace mymultisig-cli test"
   },
   "husky": {
     "hooks": {

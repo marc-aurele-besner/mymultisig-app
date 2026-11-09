@@ -1,0 +1,54 @@
+{
+  "name": "mymultisig-mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for mymultisig.app: lets AI agents create, inspect, propose, sign and execute MyMultiSig wallet transactions",
+  "type": "module",
+  "bin": {
+    "mymultisig-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "start": "node dist/index.js",
+    "prepublishOnly": "yarn build && yarn test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.0",
+    "mymultisig-sdk": "0.1.0",
+    "viem": "^2.43.3",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "tsup": "^8.5.0",
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marc-aurele-besner/mymultisig-app.git",
+    "directory": "packages/mcp"
+  },
+  "homepage": "https://mymultisig.app/docs/ai-agents",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "multisig",
+    "ethereum",
+    "ai-agents",
+    "claude",
+    "mymultisig"
+  ],
+  "author": "Marc-Aurele Besner <82244926+marc-aurele-besner@users.noreply.github.com>",
+  "license": "MIT"
+}

@@ -4,7 +4,8 @@ import { useChainId, useChains, useReadContract } from 'wagmi'
 import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 import MyMultiSigExtended from 'mymultisig-contract/abi/MyMultiSigExtended.json'
 import { JsonFragment } from '@ethersproject/abi'
-import { LegacyTransactionFailedEvent, LegacyWalletErrors } from '../constants/abi/legacy'
+import { buildExecTransactionCall } from '@mymultisig/protocol'
+import { LegacyTransactionFailedEvent } from '../constants/abi/legacy'
 
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../models/MultiSigs'
 import { useNotification, useNotificationWarning } from './notifications'
@@ -14,23 +15,7 @@ import useMultiSigs from '../states/multiSigs'
 import { patchMultiSigRequest } from '../utils'
 import { applyAdminActionToMultiSig } from '../utils/adminActions'
 import { isModernWallet } from '../utils/contractVersions'
-import { transactionOperation, transactionValidUntil } from '../utils/transactionTypedData'
 import persistMultiSigWalletPatch from '../utils/persistWallet'
-
-// Keeps only the execTransaction overload whose input types match exactly.
-// viem resolves overloads by name and argument count, which cannot separate
-// the 0.5.0 Extended ABI's two 7-arg overloads ((..., nonce, validUntil, sigs)
-// vs (..., validUntil, operation, sigs)) — and the first of those reverts with
-// RequiresOperationByte on 0.5.0 wallets. Legacy custom errors ride along so
-// pre-0.5.0 reverts still decode to their names.
-const withExactExecOverload = (abi: JsonFragment[], inputTypes: string): JsonFragment[] => [
-  ...abi.filter(
-    (fragment) =>
-      !(fragment.type === 'function' && fragment.name === 'execTransaction') ||
-      (fragment.inputs ?? []).map((input) => input.type).join(',') === inputTypes
-  ),
-  ...(LegacyWalletErrors as unknown as JsonFragment[])
-]
 
 // Every outcome event any wallet generation can emit: the Extended ABI is a
 // superset of the base one for 0.5.0, MyMultiSig carries the pre-0.5.0 shapes,
@@ -64,73 +49,16 @@ const useExecTransaction = (
   const walletVersion = versionData != null ? String(versionData) : undefined
   const modern = isModernWallet(walletVersion)
   const isExtended = walletType === 'extended'
-  const useExplicitNonce = args.txnNonce != null && args.txnNonce !== ''
-  const validUntil = transactionValidUntil(args)
-  const operation = transactionOperation(args)
-  // Overload per wallet generation:
-  // - 0.5.0 Extended: operation byte required (the pre-operation overloads
-  //   revert with RequiresOperationByte) — 8-arg with a pinned nonce, 7-arg
-  //   (validUntil, operation) against the current nonce otherwise.
-  // - 0.5.0 base: 6-arg with validUntil.
-  // - pre-0.5.0: the original 6-arg pinned-nonce / 5-arg overloads.
-  const config =
-    modern && isExtended && useExplicitNonce
-      ? {
-          chainId: chain?.id,
-          address: multiSigAddress,
-          abi: withExactExecOverload(
-            MyMultiSigExtended as JsonFragment[],
-            'address,uint256,bytes,uint256,uint256,uint256,uint8,bytes'
-          ),
-          functionName: 'execTransaction',
-          args: [
-            args.to,
-            args.value,
-            args.data,
-            args.txnGas,
-            args.txnNonce,
-            validUntil,
-            operation,
-            args.signatures
-          ] as const
-        }
-      : modern && isExtended
-        ? {
-            chainId: chain?.id,
-            address: multiSigAddress,
-            abi: withExactExecOverload(
-              MyMultiSigExtended as JsonFragment[],
-              'address,uint256,bytes,uint256,uint256,uint8,bytes'
-            ),
-            functionName: 'execTransaction',
-            args: [args.to, args.value, args.data, args.txnGas, validUntil, operation, args.signatures] as const
-          }
-        : modern
-          ? {
-              chainId: chain?.id,
-              address: multiSigAddress,
-              abi: withExactExecOverload(MyMultiSig as JsonFragment[], 'address,uint256,bytes,uint256,uint256,bytes'),
-              functionName: 'execTransaction',
-              args: [args.to, args.value, args.data, args.txnGas, validUntil, args.signatures] as const
-            }
-          : useExplicitNonce
-            ? {
-                chainId: chain?.id,
-                address: multiSigAddress,
-                abi: withExactExecOverload(
-                  MyMultiSigExtended as JsonFragment[],
-                  'address,uint256,bytes,uint256,uint256,bytes'
-                ),
-                functionName: 'execTransaction',
-                args: [args.to, args.value, args.data, args.txnGas, args.txnNonce, args.signatures] as const
-              }
-            : {
-                chainId: chain?.id,
-                address: multiSigAddress,
-                abi: withExactExecOverload(MyMultiSig as JsonFragment[], 'address,uint256,bytes,uint256,bytes'),
-                functionName: 'execTransaction',
-                args: [args.to, args.value, args.data, args.txnGas, args.signatures] as const
-              }
+  // The overload per wallet generation lives in the shared protocol module so
+  // agent tooling (SDK, MCP server, CLI) executes the exact same call.
+  const execCall = buildExecTransactionCall({ args, walletVersion, isExtended })
+  const config = {
+    chainId: chain?.id,
+    address: multiSigAddress,
+    abi: execCall.abi as unknown as JsonFragment[],
+    functionName: execCall.functionName,
+    args: execCall.args
+  }
   // The right overload is only known once the wallet's version and type have
   // been read; block execution until then rather than sending a call the
   // wallet would reject.

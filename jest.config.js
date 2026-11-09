@@ -8,7 +8,7 @@
 // sibling lru-cache breakage that disabled next-pwa.
 module.exports = {
   preset: 'ts-jest',
-  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/.storybook/'],
+  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/.storybook/', '/packages/'],
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.js'],
   // Default transformIgnorePatterns skips node_modules, which is what we
   // want: nothing in this project ships ESM that needs transpiling.

@@ -1,12 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { useAccount, useChainId, useChains } from 'wagmi'
-import MyMultiSigFactory from 'mymultisig-contract/abi/MyMultiSigFactory.json'
-import contractConstants from 'mymultisig-contract/constants'
 import { JsonFragment } from '@ethersproject/abi'
-import { LegacyCreateExtendedFragment } from '../constants/abi/legacy'
+import { buildCreateMultiSigCall } from '@mymultisig/protocol'
 
 import { MultiSigConstructorArgs, MultiSig, isExtendedWallet } from '../models/MultiSigs'
-import { isModernFactory } from '../utils/contractVersions'
 import useMultiSigs from '../states/multiSigs'
 import { useNotification } from './notifications'
 import useFinalizeTransaction from './useFinalizeTransaction'
@@ -27,46 +24,16 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
   const factoryVersion = multiSigFactory.find(
     (f) => f.chainId === chain?.id && f.address.toLowerCase() === multiSigFactoryAddress.toLowerCase()
   )?.version
-  const modernFactory = isModernFactory(factoryVersion)
-  // 0.5.0 factories also expose the CREATE2 path: same creator + salt + args
-  // -> same wallet address on every chain the factory set is deployed at.
-  const deterministic = modernFactory && constructorArgs.salt != null
+  // 0.5.0 factories also expose the CREATE2 path (same creator + salt + args
+  // -> same wallet address on every chain). The function/args choice lives in
+  // the shared protocol module so agent tooling creates wallets identically.
+  const createCall = buildCreateMultiSigCall({ ...constructorArgs, factoryVersion })
   const config = {
     chainId: chain?.id,
     address: multiSigFactoryAddress,
-    abi:
-      isExtended && !modernFactory
-        ? ([
-            ...(MyMultiSigFactory as JsonFragment[]).filter((f) => f.name !== 'createMyMultiSigExtended'),
-            ...(LegacyCreateExtendedFragment as unknown as JsonFragment[])
-          ] as JsonFragment[])
-        : (MyMultiSigFactory as JsonFragment[]),
-    functionName: (isExtended
-      ? modernFactory && constructorArgs.walletType === 'advanced'
-        ? deterministic
-          ? 'createDeterministicMyMultiSigAdvanced'
-          : 'createMyMultiSigAdvanced'
-        : deterministic
-          ? 'createDeterministicMyMultiSigExtended'
-          : 'createMyMultiSigExtended'
-      : deterministic
-        ? 'createDeterministicMultiSig'
-        : 'createMultiSig') as string,
-    args: isExtended
-      ? ([
-          constructorArgs.contractName,
-          constructorArgs.owners,
-          constructorArgs.threshold,
-          constructorArgs.isOnlyOwnerRequest ?? false,
-          ...(modernFactory ? [contractConstants.ENTRY_POINT_V07_ADDRESS] : []),
-          ...(deterministic ? [constructorArgs.salt] : [])
-        ] as const)
-      : ([
-          constructorArgs.contractName,
-          constructorArgs.owners,
-          constructorArgs.threshold,
-          ...(deterministic ? [constructorArgs.salt] : [])
-        ] as const)
+    abi: createCall.abi as unknown as JsonFragment[],
+    functionName: createCall.functionName,
+    args: createCall.args
   }
   const {
     data,

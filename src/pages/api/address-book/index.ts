@@ -54,7 +54,8 @@ const addHandler = withVerifiedAs(
     }
     console.log('Address book upsert done')
     return res.status(200).json({ message: 'Address book upsert done' })
-  }
+  },
+  { apiKeyScope: 'manage' }
 )
 
 const removeHandler = withVerifiedAs(
@@ -76,7 +77,8 @@ const removeHandler = withVerifiedAs(
       )
     console.log('Address book removal done')
     return res.status(200).json({ message: 'Address book removal done' })
-  }
+  },
+  { apiKeyScope: 'manage' }
 )
 
 const listHandler = withVerifiedAs(
@@ -106,7 +108,8 @@ const listHandler = withVerifiedAs(
         isPublic: Boolean(row.isPublic)
       }))
     })
-  }
+  },
+  { apiKeyScope: 'read' }
 )
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {

@@ -183,7 +183,7 @@ const patchHandler = withVerifiedAsOwner(parseIdParam, async (req, res, _address
     content: rowToMultiSigRequest(updated[0]),
     cascade
   })
-})
+}, { apiKeyScope: 'sign' })
 
 const deleteHandler = withVerifiedAsOwner(parseIdParam, async (_req, res, _address, id) => {
   // Delete does NOT cascade — it is the explicit "gone" verb and wipes the
@@ -194,7 +194,7 @@ const deleteHandler = withVerifiedAsOwner(parseIdParam, async (_req, res, _addre
     message: 'Data deleted',
     content: 'Ref deleted'
   })
-})
+}, { apiKeyScope: 'manage' })
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'GET') return getHandler(req, res)

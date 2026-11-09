@@ -58,7 +58,7 @@ const upsertHandler = withSession(async (req, res) => {
   })
   console.log('Add content done')
   return res.status(200).json({ message: 'Add content done' })
-})
+}, { apiKeyScope: 'manage', wallet: (req) => (parseBody(req) as { address?: string }).address })
 
 const patchHandler = withSession(async (req, res) => {
   const db = getDb()
@@ -89,7 +89,7 @@ const patchHandler = withSession(async (req, res) => {
     .where(eq(multisigWallets.id, existing.id))
   console.log('Update wallet done')
   return res.status(200).json({ message: 'Update wallet done' })
-})
+}, { apiKeyScope: 'manage', wallet: (req) => (parseBody(req) as { address?: string }).address })
 
 const listHandler = withVerifiedAs(
   (req) => parseQueryString(req).ownerAddress,
@@ -107,7 +107,8 @@ const listHandler = withVerifiedAs(
       message: 'Data retrieved',
       content: rows.map(rowToMultiSig)
     })
-  }
+  },
+  { apiKeyScope: 'read' }
 )
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {

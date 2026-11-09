@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildTransactionTypedData > produces stable digests (regression vectors) 1`] = `
+[
+  "0x64f30923e2adff316b418b5e81f24750ee4a4749dd4c54e7cebc45c22571fcaf",
+  "0xaedeeeae1e11a0229b678f1ceb4b3fda5e8d313fa38e870c3aafc678c99a6aa9",
+  "0x513bd71dad48c89d6e88cf7500a6c09090a88bcb926588f5c062d6fcfce355d3",
+]
+`;

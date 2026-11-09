@@ -1,0 +1,59 @@
+{
+  "name": "mymultisig-sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for mymultisig.app: create, propose, sign and execute MyMultiSig wallet transactions from scripts and AI agents",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./protocol": {
+      "types": "./dist/protocol/index.d.ts",
+      "import": "./dist/protocol/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "yarn build && yarn test"
+  },
+  "dependencies": {
+    "viem": "^2.43.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "mymultisig-contract": "0.5.1",
+    "tsup": "^8.5.0",
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marc-aurele-besner/mymultisig-app.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://mymultisig.app/docs/ai-agents",
+  "keywords": [
+    "multisig",
+    "ethereum",
+    "viem",
+    "sdk",
+    "ai-agents",
+    "mymultisig"
+  ],
+  "author": "Marc-Aurele Besner <82244926+marc-aurele-besner@users.noreply.github.com>",
+  "license": "MIT"
+}

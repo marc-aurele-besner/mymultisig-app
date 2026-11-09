@@ -44,7 +44,8 @@ const addHandler = withVerifiedAs(
     }
     console.log('Saved contract upsert done')
     return res.status(200).json({ message: 'Saved contract upsert done' })
-  }
+  },
+  { apiKeyScope: 'manage' }
 )
 
 const listHandler = withVerifiedAs(
@@ -74,7 +75,8 @@ const listHandler = withVerifiedAs(
         abi: row.abi ?? []
       }))
     })
-  }
+  },
+  { apiKeyScope: 'read' }
 )
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {

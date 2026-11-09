@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { recoverMessageAddress } from 'viem'
 import { parseSiweMessage, validateSiweMessage } from 'viem/siwe'
 
+import { parseBody } from '../../../lib/api/middleware'
 import { readNonce, setSession } from '../../../lib/auth/siwe'
 import { trackWalletConnected } from '../../../lib/channlize/events'
 
@@ -11,7 +12,8 @@ import { trackWalletConnected } from '../../../lib/channlize/events'
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' })
   try {
-    const { message, signature } = JSON.parse(req.body)
+    // Browsers post a raw JSON string; SDK/CLI clients may send application/json.
+    const { message, signature } = parseBody<{ message?: unknown; signature?: unknown }>(req)
     if (typeof message !== 'string' || typeof signature !== 'string') {
       return res.status(400).json({ message: 'Missing message or signature' })
     }

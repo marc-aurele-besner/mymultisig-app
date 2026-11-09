@@ -1,0 +1,1379 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MyMultiSig API",
+    "version": "1.0.0",
+    "description": "REST API behind https://mymultisig.app: the off-chain queue of multisig transaction requests, wallet registry and address book. On-chain state (owners, threshold, nonce) is read directly from the wallet contracts. Signatures are EIP-712 over the wallet's Transaction struct and are produced client-side; the server never holds keys.\n\nAuth: a SIWE session cookie (`siwe-session`, from /api/siwe/verify) or a scoped API key (`Authorization: Bearer mms_\u2026`, minted at /settings/agents). Each operation lists the API key scope it needs in `x-required-scope`; operations without one are SIWE-only. A key acts as the wallet that minted it.\n\nClients: npm `mymultisig-sdk` (TypeScript), `mymultisig-mcp` (MCP server), `mymultisig-cli`.",
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://mymultisig.app"
+    }
+  ],
+  "tags": [
+    {
+      "name": "auth"
+    },
+    {
+      "name": "agent-keys"
+    },
+    {
+      "name": "requests"
+    },
+    {
+      "name": "wallets"
+    },
+    {
+      "name": "address-book"
+    },
+    {
+      "name": "assets"
+    }
+  ],
+  "paths": {
+    "/api/siwe/nonce": {
+      "get": {
+        "summary": "Get a SIWE nonce (sets the siwe-nonce cookie)",
+        "tags": ["auth"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "nonce": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/siwe/verify": {
+      "post": {
+        "summary": "Verify a signed EIP-4361 message and start a 7-day session",
+        "tags": ["auth"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "address": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["message", "signature"],
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "description": "EIP-4361 message; domain must equal the API host"
+                  },
+                  "signature": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/siwe/session": {
+      "get": {
+        "summary": "Current SIWE session address (null when signed out)",
+        "tags": ["auth"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "address": {
+                      "type": ["string", "null"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/siwe/logout": {
+      "post": {
+        "summary": "End the SIWE session",
+        "tags": ["auth"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agent-keys": {
+      "get": {
+        "summary": "List the session wallet's API keys",
+        "tags": ["agent-keys"],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ApiKeyInfo"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create an API key (the full key is returned once)",
+        "tags": ["agent-keys"],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string",
+                          "description": "mms_ + 32 base62 chars. Store it now."
+                        },
+                        "info": {
+                          "$ref": "#/components/schemas/ApiKeyInfo"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "scopes"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "scopes": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "$ref": "#/components/schemas/ApiKeyScope"
+                    }
+                  },
+                  "walletAddresses": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^0x[0-9a-fA-F]{40}$"
+                    },
+                    "description": "Restrict mutating calls to these multisigs"
+                  },
+                  "expiresInDays": {
+                    "type": ["integer", "null"],
+                    "minimum": 1,
+                    "maximum": 365
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agent-keys/{id}": {
+      "delete": {
+        "summary": "Revoke an API key",
+        "tags": ["agent-keys"],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "$ref": "#/components/schemas/ApiKeyInfo"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/agent-keys/whoami": {
+      "get": {
+        "summary": "Identity and scopes of the current credentials (any valid key or session)",
+        "tags": ["agent-keys"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          },
+          {}
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "address": {
+                      "type": ["string", "null"]
+                    },
+                    "via": {
+                      "enum": ["apikey", "siwe", null]
+                    },
+                    "scopes": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ApiKeyScope"
+                      }
+                    },
+                    "walletAddresses": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/multisig-requests": {
+      "get": {
+        "summary": "Active requests for a wallet, in execution order",
+        "tags": ["requests"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MultiSigRequest"
+                      }
+                    },
+                    "walletNonce": {
+                      "type": ["integer", "null"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "parameters": [
+          {
+            "name": "multiSigAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{40}$"
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "Queue a new request (submitter must be the caller)",
+        "tags": ["requests"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-required-scope": "propose",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MultiSigRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/multisig-requests/{id}": {
+      "get": {
+        "summary": "Get one request",
+        "tags": ["requests"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "array",
+                      "maxItems": 1,
+                      "items": {
+                        "$ref": "#/components/schemas/MultiSigRequest"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update signatures or record execution (owner-only). Executing cascades later requests.",
+        "tags": ["requests"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-required-scope": "sign",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Partial MultiSigRequest",
+                "properties": {
+                  "request": {
+                    "$ref": "#/components/schemas/RequestPayload"
+                  },
+                  "signatures": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "ownerSigners": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^0x[0-9a-fA-F]{40}$"
+                    }
+                  },
+                  "isExecuted": {
+                    "type": "boolean"
+                  },
+                  "isSuccessful": {
+                    "type": "boolean"
+                  },
+                  "dateExecuted": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a request (owner-only)",
+        "tags": ["requests"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-required-scope": "manage",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/multisig-requests/{id}/cancel": {
+      "post": {
+        "summary": "Cancel a request (owner-only); cascades later requests",
+        "tags": ["requests"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-required-scope": "manage",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/multisig-requests/{id}/reset": {
+      "post": {
+        "summary": "Wipe a request's signatures (owner-only); cascades later requests",
+        "tags": ["requests"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-required-scope": "manage",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/multisig-wallets": {
+      "get": {
+        "summary": "Wallets registered for an owner (must be the caller)",
+        "tags": ["wallets"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-required-scope": "read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MultiSigWallet"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "parameters": [
+          {
+            "name": "ownerAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{40}$"
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "Register (upsert) a wallet",
+        "tags": ["wallets"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-required-scope": "manage",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MultiSigWallet"
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Partially update a registered wallet",
+        "tags": ["wallets"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-required-scope": "manage",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "type": "object",
+                    "required": ["chainId", "address"]
+                  },
+                  {
+                    "$ref": "#/components/schemas/MultiSigWallet"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/address-book": {
+      "get": {
+        "summary": "List address book entries",
+        "tags": ["address-book"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-required-scope": "read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "parameters": [
+          {
+            "name": "ownerAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{40}$"
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "Upsert an address book entry",
+        "tags": ["address-book"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-required-scope": "manage",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ownerAddress", "chainId", "address", "label"],
+                "properties": {
+                  "ownerAddress": {
+                    "type": "string",
+                    "pattern": "^0x[0-9a-fA-F]{40}$"
+                  },
+                  "chainId": {
+                    "type": "integer"
+                  },
+                  "address": {
+                    "type": "string",
+                    "pattern": "^0x[0-9a-fA-F]{40}$"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "isPublic": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove an address book entry",
+        "tags": ["address-book"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-required-scope": "manage",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ownerAddress", "chainId", "address"],
+                "properties": {
+                  "ownerAddress": {
+                    "type": "string",
+                    "pattern": "^0x[0-9a-fA-F]{40}$"
+                  },
+                  "chainId": {
+                    "type": "integer"
+                  },
+                  "address": {
+                    "type": "string",
+                    "pattern": "^0x[0-9a-fA-F]{40}$"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/get-assets": {
+      "post": {
+        "summary": "ERC-20 and NFT holdings of an address (via the app's indexer)",
+        "tags": ["assets"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["address", "chainId"],
+                "properties": {
+                  "address": {
+                    "type": "string",
+                    "pattern": "^0x[0-9a-fA-F]{40}$"
+                  },
+                  "chainId": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "mms_ API key",
+        "description": "Scoped API key from /settings/agents"
+      },
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "siwe-session",
+        "description": "SIWE session from POST /api/siwe/verify"
+      }
+    },
+    "responses": {
+      "Error": {
+        "description": "Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ApiKeyScope": {
+        "type": "string",
+        "enum": ["read", "propose", "sign", "manage"]
+      },
+      "ApiKeyInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "keyPrefix": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiKeyScope"
+            }
+          },
+          "walletAddresses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "lastUsedAt": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "revokedAt": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          }
+        }
+      },
+      "RequestPayload": {
+        "type": "object",
+        "required": ["to", "value", "data", "txnGas", "signatures"],
+        "description": "Arguments of the wallet's execTransaction. Signers sign the EIP-712 struct Transaction(to, value, data, gas, nonce[, validUntil][, operation]) with domain {name: wallet.name(), version: wallet.version(), chainId, verifyingContract: wallet}.",
+        "properties": {
+          "to": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "value": {
+            "type": "string",
+            "description": "wei, decimal"
+          },
+          "data": {
+            "type": "string"
+          },
+          "txnGas": {
+            "type": "string",
+            "description": "gas forwarded to the inner call"
+          },
+          "signatures": {
+            "type": "string",
+            "description": "Combined blob: concatenated 65-byte sigs (< 0.5.0) or abi.encode((address owner, bytes sig)[]) (>= 0.5.0)"
+          },
+          "txnNonce": {
+            "type": "string",
+            "description": "Extended wallets: pinned nonce"
+          },
+          "validUntil": {
+            "type": "string",
+            "description": "0.5.0: unix seconds, 0 = no expiry"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["0", "1"],
+            "description": "0.5.0 Extended: 1 = DELEGATECALL"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["standard", "userop"]
+          },
+          "executionTxHash": {
+            "type": "string"
+          }
+        }
+      },
+      "MultiSigRequest": {
+        "type": "object",
+        "required": ["id", "multiSigAddress", "request", "description", "submitter", "signatures", "ownerSigners"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "multiSigAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "request": {
+            "$ref": "#/components/schemas/RequestPayload"
+          },
+          "description": {
+            "type": "string"
+          },
+          "submitter": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "signatures": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Individual signatures, parallel to ownerSigners"
+          },
+          "ownerSigners": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{40}$"
+            }
+          },
+          "dateSubmitted": {
+            "type": "string"
+          },
+          "dateExecuted": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isExecuted": {
+            "type": "boolean"
+          },
+          "isCancelled": {
+            "type": "boolean"
+          },
+          "isConfirmed": {
+            "type": "boolean"
+          },
+          "isSuccessful": {
+            "type": "boolean"
+          },
+          "txnNonce": {
+            "type": ["string", "null"]
+          },
+          "dateCancelled": {
+            "type": "string"
+          },
+          "cancelledBy": {
+            "type": "string"
+          }
+        }
+      },
+      "MultiSigWallet": {
+        "type": "object",
+        "properties": {
+          "chainId": {
+            "type": "integer"
+          },
+          "chainName": {
+            "type": "string"
+          },
+          "factoryAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "threshold": {
+            "type": "integer"
+          },
+          "ownerCount": {
+            "type": "integer"
+          },
+          "nonce": {
+            "type": "integer"
+          },
+          "owners": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{40}$"
+            }
+          },
+          "isDeployed": {
+            "type": "boolean"
+          },
+          "walletType": {
+            "type": "string",
+            "enum": ["simple", "extended", "advanced"]
+          },
+          "allowOnlyOwnerRequest": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

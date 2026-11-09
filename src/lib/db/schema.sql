@@ -315,3 +315,31 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_email_recipients_wallet
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_email_recipients_link_token
   ON email_recipients (link_token);
+
+-- Scoped API keys for AI agents and scripts (MCP server, CLI, SDK). A key
+-- acts as the wallet that minted it (owner_address) but only for the scopes
+-- listed: read, propose, sign, manage. Keys are minted from a SIWE session
+-- at /settings/agents and can never mint other keys. Only the SHA-256 of the
+-- full token is stored; key_prefix (first 12 chars, e.g. "mms_AbC123xy")
+-- lets the owner recognise a key in the list. wallet_addresses, when
+-- non-empty, restricts mutating calls to those multisig addresses
+-- (lowercased).
+CREATE TABLE IF NOT EXISTS agent_api_keys (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_address TEXT NOT NULL,
+  name TEXT NOT NULL,
+  key_prefix TEXT NOT NULL,
+  key_hash TEXT NOT NULL,
+  scopes TEXT[] NOT NULL DEFAULT '{}',
+  wallet_addresses JSONB NOT NULL DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  last_used_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ,
+  revoked_at TIMESTAMPTZ
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_api_keys_hash
+  ON agent_api_keys (key_hash);
+
+CREATE INDEX IF NOT EXISTS idx_agent_api_keys_owner
+  ON agent_api_keys (LOWER(owner_address));

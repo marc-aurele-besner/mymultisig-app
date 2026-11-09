@@ -14,6 +14,8 @@ yarn storybook        # Component explorer on port 6006
 yarn build-storybook  # Static Storybook build
 yarn test-storybook   # Run Storybook tests
 npx jest              # Run Jest tests (no yarn script wired)
+yarn packages:build   # Build packages/sdk -> mcp -> cli (tsup)
+yarn packages:test    # Vitest in each workspace package
 yarn analyze          # Bundle analysis
 ```
 
@@ -35,6 +37,11 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 - Factory addresses and ABIs from the `mymultisig-contract` npm package
 - `@ethersproject/abi` provides the `JsonFragment` ABI types (no ethers runtime dependency)
 
+### Agent integrations (`packages/`, `plugins/`)
+- `packages/sdk` (`mymultisig-sdk`): shared protocol core + `MyMultiSigClient`. The app imports the protocol helpers (EIP-712 typed data, signature blobs, `execTransaction`/create call builders, legacy ABI fragments) via the `@mymultisig/protocol` tsconfig alias; `src/utils/{contractVersions,transactionTypedData,signatureBlob}.ts` and `src/constants/abi/legacy.ts` are re-export shims. Change protocol code in the package, not the shims.
+- `packages/mcp` (`mymultisig-mcp`, stdio MCP server) and `packages/cli` (`mymultisig-cli`) wrap the SDK; `plugins/mymultisig` is the Claude Code plugin (skills + `.mcp.json`), listed by `.claude-plugin/marketplace.json`.
+- Packages are excluded from the root tsconfig and use vitest (not jest). See `docs/ai-agents.md`.
+
 ### State Management
 - **Zustand v5** with `persist` middleware (localStorage)
 - `src/states/contracts.ts` — user-added contracts store
@@ -44,6 +51,7 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 - **Neon PostgreSQL** via `@neondatabase/serverless` for storing multisig wallets and transaction requests
 - Schema in `src/lib/db/schema.sql`; client in `src/lib/db/neon.ts`
 - Auth via SIWE session cookies (`src/lib/auth/siwe.ts`): writes require a valid session, and identity-claiming actions must match the session wallet (`isVerifiedAs`)
+- Scoped agent API keys (`Authorization: Bearer mms_…`, `src/lib/auth/apiKey.ts`, table `agent_api_keys`) are accepted only by routes that opt in with `{ apiKeyScope: 'read' | 'propose' | 'sign' | 'manage' }` on the middleware wrappers; everything else stays SIWE-only. Keys are managed at `/settings/agents` via `/api/agent-keys` (SIWE-only).
 - API routes in `src/pages/api/` handle CRUD with one dedicated endpoint per action (e.g. `POST /api/multisig-requests`, `PATCH /api/multisig-requests/[id]`); per-endpoint auth is wrapped in `withSession` / `withVerifiedAs` from `src/lib/api/middleware.ts`. Public reads (`GET /api/multisig-requests`, `GET /api/multisig-requests/[id]`) skip the session guard so the detail view can render before sign-in.
 
 ## Key Patterns

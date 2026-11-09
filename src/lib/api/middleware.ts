@@ -4,6 +4,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { getDb } from '../db/neon'
 import { multisigRequests, multisigWallets } from '../db/schema'
 import { getVerifiedAddress } from '../auth/siwe'
+import { ApiKeyScope, readBearerToken, resolveApiKey } from '../auth/apiKey'
 
 type Handler<T extends unknown[] = []> = (req: NextApiRequest, res: NextApiResponse, ...rest: T) => Promise<unknown> | unknown
 type SessionHandler<T extends unknown[] = []> = (
@@ -13,21 +14,77 @@ type SessionHandler<T extends unknown[] = []> = (
   ...rest: T
 ) => Promise<unknown> | unknown
 
+// Per-endpoint auth options.
+//
+// apiKeyScope: opt this endpoint in to `Authorization: Bearer mms_…` API
+//   keys (AI agents, CLI, SDK) and name the scope a key needs. Endpoints that
+//   don't set it stay SIWE-only — a Bearer token there is a 401, so a leaked
+//   key can't reach integrations, email, admin or key management.
+// wallet: the multisig address the call acts on, for keys restricted to a
+//   wallet allowlist. withVerifiedAsOwner derives it from the request row.
+export type AuthOptions = {
+  apiKeyScope?: ApiKeyScope
+  wallet?: (req: NextApiRequest) => string | null | undefined
+}
+
+export type Caller = {
+  address: string
+  via: 'siwe' | 'apikey'
+  // SIWE sessions carry every scope.
+  scopes: ApiKeyScope[] | 'all'
+  walletAllowlist: string[]
+}
+
+type CallerResult = { ok: true; caller: Caller } | { ok: false; status: number; message: string }
+
+const NOT_VERIFIED = 'Wallet not verified: sign in with your wallet first'
+
+// Who is calling: a Bearer API key (when present it always wins, and an
+// invalid one is a hard 401 rather than a fall-back to the cookie), else the
+// SIWE session cookie.
+export const resolveCaller = async (req: NextApiRequest, options: AuthOptions = {}): Promise<CallerResult> => {
+  const token = readBearerToken(req)
+  if (token != null) {
+    if (options.apiKeyScope == null)
+      return { ok: false, status: 401, message: 'API keys are not accepted on this endpoint; sign in with your wallet' }
+    const key = await resolveApiKey(token)
+    if (key == null) return { ok: false, status: 401, message: 'Invalid, expired or revoked API key' }
+    if (!key.scopes.includes(options.apiKeyScope))
+      return { ok: false, status: 403, message: `API key is missing the '${options.apiKeyScope}' scope` }
+    return {
+      ok: true,
+      caller: { address: key.address, via: 'apikey', scopes: key.scopes, walletAllowlist: key.walletAllowlist }
+    }
+  }
+  const address = getVerifiedAddress(req)
+  if (address == null) return { ok: false, status: 401, message: NOT_VERIFIED }
+  return { ok: true, caller: { address, via: 'siwe', scopes: 'all', walletAllowlist: [] } }
+}
+
+// True when an allowlisted API key may act on `wallet`. SIWE callers and
+// keys without an allowlist are unrestricted; a restricted key acting on an
+// unknown wallet is refused.
+export const callerMayActOn = (caller: Caller, wallet: string | null | undefined): boolean => {
+  if (caller.via !== 'apikey' || caller.walletAllowlist.length === 0) return true
+  return wallet != null && caller.walletAllowlist.includes(String(wallet).toLowerCase())
+}
+
+const WALLET_NOT_ALLOWED = 'This API key is not allowed to act on this wallet'
+
 // Reject the request when the caller has no SIWE session cookie, then hand
 // the verified address to the handler. Every dedicated write endpoint rides
 // on this so the 401 message + status stay consistent. Extra trailing args
 // are forwarded unchanged so routes like /api/.../[id] can keep carrying the
 // captured id through the wrapper.
-export const withSession = <T extends unknown[] = []>(handler: SessionHandler<T>): Handler<T> => async (
-  req,
-  res,
-  ...rest
-) => {
-  const address = getVerifiedAddress(req)
-  if (address == null) {
-    return res.status(401).json({ message: 'Wallet not verified: sign in with your wallet first' })
-  }
-  return handler(req, res, address, ...rest)
+export const withSession = <T extends unknown[] = []>(
+  handler: SessionHandler<T>,
+  options: AuthOptions = {}
+): Handler<T> => async (req, res, ...rest) => {
+  const result = await resolveCaller(req, options)
+  if (!result.ok) return res.status(result.status).json({ message: result.message })
+  if (options.wallet && !callerMayActOn(result.caller, options.wallet(req)))
+    return res.status(403).json({ message: WALLET_NOT_ALLOWED })
+  return handler(req, res, result.caller.address, ...rest)
 }
 
 // Session + identity match: extract the address a payload claims to act as
@@ -40,16 +97,17 @@ export const withVerifiedAs = <T extends unknown[] = []>(
     res: NextApiResponse,
     claimed: string,
     ...rest: T
-  ) => Promise<unknown> | unknown
+  ) => Promise<unknown> | unknown,
+  options: AuthOptions = {}
 ): Handler<T> => async (req, res, ...rest) => {
-  const verified = getVerifiedAddress(req)
-  if (verified == null) {
-    return res.status(401).json({ message: 'Wallet not verified: sign in with your wallet first' })
-  }
+  const result = await resolveCaller(req, options)
+  if (!result.ok) return res.status(result.status).json({ message: result.message })
   const claimed = extractClaimed(req)
-  if (claimed == null || verified !== String(claimed).toLowerCase()) {
+  if (claimed == null || result.caller.address !== String(claimed).toLowerCase()) {
     return res.status(401).json({ message: 'Identity does not match the verified wallet' })
   }
+  if (options.wallet && !callerMayActOn(result.caller, options.wallet(req)))
+    return res.status(403).json({ message: WALLET_NOT_ALLOWED })
   return handler(req, res, claimed, ...rest)
 }
 
@@ -79,17 +137,17 @@ export const withVerifiedAsOwner = <T extends unknown[] = []>(
     address: string,
     requestId: string,
     ...rest: T
-  ) => Promise<unknown> | unknown
+  ) => Promise<unknown> | unknown,
+  options: Omit<AuthOptions, 'wallet'> = {}
 ): Handler<T> => async (req, res, ...rest) => {
-  const verified = getVerifiedAddress(req)
-  if (verified == null) {
-    return res.status(401).json({ message: 'Wallet not verified: sign in with your wallet first' })
-  }
+  const result = await resolveCaller(req, options)
+  if (!result.ok) return res.status(result.status).json({ message: result.message })
+  const verified = result.caller.address
   const id = extractId(req)
   if (id == null) return res.status(400).json({ message: 'Missing request id' })
   const db = getDb()
   const rows = await db
-    .select({ owners: multisigWallets.owners })
+    .select({ owners: multisigWallets.owners, multiSigAddress: multisigRequests.multiSigAddress })
     .from(multisigRequests)
     .leftJoin(
       multisigWallets,
@@ -98,6 +156,8 @@ export const withVerifiedAsOwner = <T extends unknown[] = []>(
     .where(eq(multisigRequests.id, id))
     .limit(1)
   if (rows.length === 0) return res.status(404).json({ message: 'Data not found' })
+  if (!callerMayActOn(result.caller, rows[0].multiSigAddress))
+    return res.status(403).json({ message: WALLET_NOT_ALLOWED })
   const owners = ((rows[0].owners ?? []) as string[]).map((o) => o.toLowerCase())
   if (owners.length > 0 && !owners.includes(verified)) {
     return res.status(403).json({ message: 'Only an owner of this wallet can modify this request' })
