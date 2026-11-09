@@ -1,10 +1,13 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAccount } from 'wagmi'
 
 import BigCard from '../cards/BigCard'
 import { Button } from '@/components/ui/button'
+import networks from '../../constants/networks'
 import { SlackChannelConfig, SlackWorkspace } from '../../models/Slack'
-import { CheckIcon, DeleteIcon, ExternalLinkIcon, WarningIcon } from '../icons/ChakraIcons'
+import useMultiSigs from '../../states/multiSigs'
+import SlackBindGuide, { BindableMultiSig, slackWorkspaceUrl } from '../slack/SlackBindGuide'
+import { CheckCircleIcon, CheckIcon, DeleteIcon, ExternalLinkIcon, WarningIcon } from '../icons/ChakraIcons'
 
 type Status =
   | { kind: 'loading' }
@@ -28,34 +31,84 @@ const SlackSettings: React.FC = () => {
   const [status, setStatus] = useState<Status>({ kind: 'loading' })
   const [uninstalling, setUninstalling] = useState<string | null>(null)
   const [unbinding, setUnbinding] = useState<string | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const [justInstalled, setJustInstalled] = useState(false)
+  const { multiSigs } = useMultiSigs()
 
-  const load = useCallback(async () => {
-    if (!isConnected) {
-      setStatus({ kind: 'signedOut' })
-      return
-    }
-    setStatus({ kind: 'loading' })
-    try {
-      const [wsRes, bindRes] = await Promise.all([
-        fetch('/api/slack/workspaces', { credentials: 'include' }),
-        fetch('/api/slack/channel-bindings', { credentials: 'include' })
-      ])
-      if (!wsRes.ok) {
-        const text = await wsRes.text()
-        setStatus({ kind: 'error', message: `Failed to load workspaces (${wsRes.status}): ${text}` })
+  // The wallet's multisigs, deduplicated, for the prefilled /bind commands.
+  const bindable = useMemo<BindableMultiSig[]>(() => {
+    const seen = new Set<string>()
+    return multiSigs
+      .filter((m) => {
+        const key = `${m.chainId}:${m.address.toLowerCase()}`
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      .map((m) => ({ address: m.address, chainId: m.chainId, chainName: m.chainName, name: m.name }))
+  }, [multiSigs])
+
+  const chainLabel = (chainId: number): string => networks.find((c) => c.id === chainId)?.name ?? `chain ${chainId}`
+  const multiSigLabel = (address: string, chainId: number): string => {
+    const known = bindable.find((m) => m.chainId === chainId && m.address.toLowerCase() === address.toLowerCase())
+    return known?.name ? `${known.name} (${shortenAddress(address)})` : shortenAddress(address)
+  }
+  const teamName = (teamId: string): string =>
+    (status.kind === 'ready' ? status.workspaces.find((w) => w.teamId === teamId)?.teamName : undefined) ?? teamId
+
+  // `silent` refreshes in place (no loading flash, keeps the current view on
+  // a failed fetch). Used by the refresh button and when the tab regains
+  // focus after the user ran /bind in Slack.
+  const load = useCallback(
+    async ({ silent = false }: { silent?: boolean } = {}) => {
+      if (!isConnected) {
+        setStatus({ kind: 'signedOut' })
         return
       }
-      const wsBody = (await wsRes.json()) as { workspaces: SlackWorkspace[] }
-      const bindings = bindRes.ok ? ((await bindRes.json()) as { bindings: SlackChannelConfig[] }).bindings : []
-      setStatus({ kind: 'ready', workspaces: wsBody.workspaces, bindings })
-    } catch (e) {
-      setStatus({ kind: 'error', message: (e as Error).message })
+      if (!silent) setStatus({ kind: 'loading' })
+      try {
+        const [wsRes, bindRes] = await Promise.all([
+          fetch('/api/slack/workspaces', { credentials: 'include' }),
+          fetch('/api/slack/channel-bindings', { credentials: 'include' })
+        ])
+        if (!wsRes.ok) {
+          if (silent) return
+          const text = await wsRes.text()
+          setStatus({ kind: 'error', message: `Failed to load workspaces (${wsRes.status}): ${text}` })
+          return
+        }
+        const wsBody = (await wsRes.json()) as { workspaces: SlackWorkspace[] }
+        const bindings = bindRes.ok ? ((await bindRes.json()) as { bindings: SlackChannelConfig[] }).bindings : []
+        setStatus({ kind: 'ready', workspaces: wsBody.workspaces, bindings })
+      } catch (e) {
+        if (!silent) setStatus({ kind: 'error', message: (e as Error).message })
+      }
+    },
+    [isConnected]
+  )
+
+  const refresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      await load({ silent: true })
+    } finally {
+      setRefreshing(false)
     }
-  }, [isConnected])
+  }, [load])
 
   useEffect(() => {
     void load()
   }, [load])
+
+  // Binding happens in Slack, so pick up new bindings when the user comes
+  // back to this tab.
+  const hasWorkspaces = status.kind === 'ready' && status.workspaces.length > 0
+  useEffect(() => {
+    if (!hasWorkspaces) return
+    const onFocus = () => void load({ silent: true })
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [hasWorkspaces, load])
 
   // Re-load on ?installed=1 (returned from the OAuth callback) and on
   // ?installed=0 (and show the error inline).
@@ -63,6 +116,7 @@ const SlackSettings: React.FC = () => {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
     if (params.get('installed') === '1') {
+      setJustInstalled(true)
       void load()
     } else if (params.get('installed') === '0') {
       const err = params.get('error') ?? 'unknown'
@@ -134,6 +188,9 @@ const SlackSettings: React.FC = () => {
             </p>
           </div>
 
+          {/* Overview for first-time visitors. Once a workspace is installed,
+              the bind guide below takes over, so this would only repeat it. */}
+          {!hasWorkspaces && (
           <ol className='grid gap-3 md:grid-cols-3'>
             {[
               {
@@ -173,6 +230,7 @@ const SlackSettings: React.FC = () => {
               </li>
             ))}
           </ol>
+          )}
 
           {status.kind === 'loading' && <p className='text-sm text-muted-foreground'>Loading installed workspaces…</p>}
 
@@ -187,6 +245,25 @@ const SlackSettings: React.FC = () => {
             <div className='flex items-start gap-2 rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive'>
               <WarningIcon className='mt-0.5 h-4 w-4 shrink-0' />
               <span>{status.message}</span>
+            </div>
+          )}
+
+          {justInstalled && status.kind === 'ready' && status.workspaces.length > 0 && (
+            <div className='flex items-start gap-2 rounded-lg border border-primary/40 bg-primary/10 p-4 text-sm text-foreground'>
+              <CheckCircleIcon className='mt-0.5 h-4 w-4 shrink-0 text-primary' />
+              <span>
+                {status.bindings.length === 0 ? (
+                  <>
+                    MyMultiSig is in your Slack workspace. One more step: bind a channel so notifications have somewhere
+                    to go.{' '}
+                    <a href='#bind-a-channel' className='font-semibold text-primary underline-offset-4 hover:underline'>
+                      Show me how
+                    </a>
+                  </>
+                ) : (
+                  'MyMultiSig is in your Slack workspace and your channels are bound.'
+                )}
+              </span>
             </div>
           )}
 
@@ -229,64 +306,100 @@ const SlackSettings: React.FC = () => {
                       )}
                     </div>
                     <span className='font-mono text-xs text-muted-foreground'>{w.teamId}</span>
-                    <span className='text-xs text-muted-foreground'>
+                    <span className='break-all text-xs text-muted-foreground'>
                       Installed {formatDate(w.installedAt)} · scope: <span className='font-mono'>{w.scope}</span>
                     </span>
                   </div>
-                  <Button
-                    variant='outline'
-                    onClick={() => void onUninstall(w.teamId)}
-                    disabled={uninstalling === w.teamId}
-                    className='gap-2'
-                  >
-                    <DeleteIcon className='h-4 w-4' />
-                    {uninstalling === w.teamId ? 'Uninstalling…' : 'Uninstall'}
-                  </Button>
-                </div>
-              ))}
-
-              <div className='mt-2 flex flex-col gap-2'>
-                <div className='flex items-center justify-between gap-3 rounded-lg border border-border p-4'>
-                  <div className='flex flex-col gap-1'>
-                    <span className='text-sm font-semibold text-foreground'>Channel bindings</span>
-                    <span className='text-xs text-muted-foreground'>
-                      Channels that will receive new-request notifications for the multisigs they&apos;re bound to.
-                    </span>
-                  </div>
-                  <span className='font-mono text-xs text-muted-foreground'>
-                    {status.bindings.length === 0
-                      ? 'No bindings'
-                      : `${status.bindings.length} binding${status.bindings.length === 1 ? '' : 's'}`}
-                  </span>
-                </div>
-                {status.bindings.map((b) => (
-                  <div
-                    key={b.id}
-                    className='flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4'
-                  >
-                    <div className='flex flex-col gap-1'>
-                      <span className='text-sm font-semibold text-foreground'>
-                        {b.channelName != null ? `#${b.channelName}` : 'channel'}
-                      </span>
-                      <span className='font-mono text-xs text-muted-foreground'>{b.channelId}</span>
-                      <span className='text-xs text-muted-foreground'>
-                        Bound to <span className='font-mono'>{shortenAddress(b.multisigAddress)}</span> on chain{' '}
-                        <span className='font-mono'>{b.chainId}</span> · created by{' '}
-                        <span className='font-mono'>{b.createdBy}</span>
-                      </span>
-                    </div>
+                  <div className='flex flex-wrap gap-2'>
+                    <Button variant='outline' asChild className='gap-2'>
+                      <a href={slackWorkspaceUrl(w.teamId)} target='_blank' rel='noreferrer'>
+                        <ExternalLinkIcon className='h-4 w-4' />
+                        Open in Slack
+                      </a>
+                    </Button>
                     <Button
                       variant='outline'
-                      onClick={() => void onUnbind(b.id)}
-                      disabled={unbinding === b.id}
+                      onClick={() => void onUninstall(w.teamId)}
+                      disabled={uninstalling === w.teamId}
                       className='gap-2'
                     >
                       <DeleteIcon className='h-4 w-4' />
-                      {unbinding === b.id ? 'Unbinding…' : 'Unbind'}
+                      {uninstalling === w.teamId ? 'Uninstalling…' : 'Uninstall'}
                     </Button>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
+
+              {status.workspaces.length > 0 && (
+                <div id='bind-a-channel' className='mt-2 flex flex-col gap-2'>
+                  <div className='flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4'>
+                    <div className='flex flex-col gap-1'>
+                      <span className='text-sm font-semibold text-foreground'>Channel bindings</span>
+                      <span className='text-xs text-muted-foreground'>
+                        {status.bindings.length === 0
+                          ? 'No channel is bound yet, so notifications have nowhere to go. Follow the steps below.'
+                          : 'Channels that receive notifications for the multisigs bound to them.'}
+                      </span>
+                    </div>
+                    <span className='font-mono text-xs text-muted-foreground'>
+                      {status.bindings.length === 0
+                        ? 'No bindings'
+                        : `${status.bindings.length} binding${status.bindings.length === 1 ? '' : 's'}`}
+                    </span>
+                  </div>
+
+                  {status.bindings.map((b) => (
+                    <div
+                      key={b.id}
+                      className='flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4'
+                    >
+                      <div className='flex flex-col gap-1'>
+                        <span className='text-sm font-semibold text-foreground'>
+                          {b.channelName != null ? `#${b.channelName}` : b.channelId}
+                        </span>
+                        <span className='text-xs text-muted-foreground'>
+                          {multiSigLabel(b.multisigAddress, b.chainId)} on {chainLabel(b.chainId)}
+                          {status.workspaces.length > 1 && ` · ${teamName(b.teamId)}`}
+                        </span>
+                      </div>
+                      <Button
+                        variant='outline'
+                        onClick={() => void onUnbind(b.id)}
+                        disabled={unbinding === b.id}
+                        className='gap-2'
+                      >
+                        <DeleteIcon className='h-4 w-4' />
+                        {unbinding === b.id ? 'Unbinding…' : 'Unbind'}
+                      </Button>
+                    </div>
+                  ))}
+
+                  {status.bindings.length === 0 ? (
+                    <div className='rounded-lg border border-primary/40 p-4'>
+                      <SlackBindGuide
+                        workspaces={status.workspaces}
+                        multiSigs={bindable}
+                        onRefresh={() => void refresh()}
+                        refreshing={refreshing}
+                      />
+                    </div>
+                  ) : (
+                    <details className='group rounded-lg border border-border p-4'>
+                      <summary className='cursor-pointer text-sm font-semibold text-foreground'>
+                        Bind another channel or multisig
+                      </summary>
+                      <div className='mt-4'>
+                        <SlackBindGuide
+                          workspaces={status.workspaces}
+                          multiSigs={bindable}
+                          onRefresh={() => void refresh()}
+                          refreshing={refreshing}
+                        />
+                      </div>
+                    </details>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
