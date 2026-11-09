@@ -11,12 +11,15 @@ import { addMultiSigRequest, patchMultiSigRequest } from '../utils'
 import { buildTransactionTypedData } from '../utils/transactionTypedData'
 import { combineSignatures } from '../utils/signatureBlob'
 
+export type RequestSaveState = 'idle' | 'saving' | 'saved' | 'failed'
+
 const useSignedMultiSigRequest = (
   multiSigAddress: `0x${string}`,
   args: MultiSigExecTransactionArgs,
   description: string,
   existingRequest?: MultiSigTransactionRequest,
-  existingRequestId?: string
+  existingRequestId?: string,
+  options?: { onSaved?: (request: MultiSigTransactionRequest) => void }
 ) => {
   const chainId = useChainId()
   const chains = useChains()
@@ -25,6 +28,11 @@ const useSignedMultiSigRequest = (
   const { addMultiSigTransactionRequest, updateMultiSigTransactionRequest } = useMultiSigs()
   const { data: multiSigDetails } = useMultiSigDetails(multiSigAddress, address || '0x')
   const [dataAdded, setDataAdded] = useState(false)
+  // A wallet signature is not a shared request until the API stores it. The
+  // signed record is kept so a failed save can be retried without signing again.
+  const [saveState, setSaveState] = useState<RequestSaveState>('idle')
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [pendingRecord, setPendingRecord] = useState<MultiSigTransactionRequest | null>(null)
   const notificationError = useNotificationError(
     'Error Signing MultiSig Request',
     'There was an error signing MultiSig request.'
@@ -80,6 +88,25 @@ const useSignedMultiSigRequest = (
     }
   }, [isSuccess, data, notificationSuccess])
 
+  const persist = async (record: MultiSigTransactionRequest) => {
+    setSaveState('saving')
+    setSaveError(null)
+    try {
+      if (existingRequest && existingRequestId) {
+        await patchMultiSigRequest(existingRequestId, record)
+        updateMultiSigTransactionRequest(existingRequest.id, record)
+      } else {
+        await addMultiSigRequest(record)
+        addMultiSigTransactionRequest(record)
+      }
+      setSaveState('saved')
+      options?.onSaved?.(record)
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : String(e))
+      setSaveState('failed')
+    }
+  }
+
   useEffect(() => {
     if (isSuccess && data && chain && !dataAdded) {
       setDataAdded(true)
@@ -124,14 +151,8 @@ const useSignedMultiSigRequest = (
             dateCancelled: '',
             cancelledBy: ''
           }
-      if (existingRequest && existingRequestId)
-        patchMultiSigRequest(existingRequestId, dataToAdd).then(() => {
-          updateMultiSigTransactionRequest(existingRequest.id, dataToAdd)
-        })
-      else
-        addMultiSigRequest(dataToAdd).then(() => {
-          addMultiSigTransactionRequest(dataToAdd)
-        })
+      setPendingRecord(dataToAdd)
+      void persist(dataToAdd)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -159,6 +180,12 @@ const useSignedMultiSigRequest = (
     // struct shape would produce a signature the wallet rejects.
     signTypedData: () => {
       if (typedDataReady) signTypedData(typedData)
+    },
+    saveState,
+    saveError,
+    // Re-sends the already-signed record; no second wallet signature needed.
+    retrySave: () => {
+      if (pendingRecord != null) void persist(pendingRecord)
     },
     reset
   }
