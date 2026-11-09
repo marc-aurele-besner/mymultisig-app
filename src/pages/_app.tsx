@@ -11,6 +11,7 @@ import '../styles/globals.css'
 import Header from '../config'
 import Web3Provider from '../components/web3/Web3Provider'
 import Layout from '../components/dom/Layout'
+import AppUpdate from '../components/app-version/AppUpdate'
 
 const displayFont = Bricolage_Grotesque({ subsets: ['latin'], display: 'swap' })
 const bodyFont = Instrument_Sans({ subsets: ['latin'], display: 'swap' })
@@ -60,6 +61,7 @@ const App: React.FC<AppProps> = ({ Component, pageProps = { title: 'MyMultiSig' 
           </Web3Provider>
         </MotionConfig>
         <Toaster position="top-right" richColors closeButton />
+        <AppUpdate />
       </ThemeProvider>
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_APP_GTAG}`}
