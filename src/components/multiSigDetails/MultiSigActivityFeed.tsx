@@ -6,7 +6,7 @@ import { LoadingDots } from '@/components/ui/loading-dots'
 import { ExternalLinkIcon } from '../icons/ChakraIcons'
 import { cn } from '@/lib/utils'
 
-import useMultiSigActivity, { ActivityEntry } from '../../hooks/useMultiSigActivity'
+import useMultiSigActivity, { ActivityEntry, INCOMING_TRANSFER_EVENT } from '../../hooks/useMultiSigActivity'
 import { useAddressLabels } from '../../states/addressBook'
 import { ADMIN_ACTIONS, decodeSelfCall } from '../../utils/adminActions'
 
@@ -102,6 +102,16 @@ const describeEntry = (
         detail: `Only ${args.txNonceLefts} transaction nonces left`,
         tone: 'destructive'
       }
+    case INCOMING_TRANSFER_EVENT: {
+      // Value and asset are null when the indexer could not price the transfer.
+      const amount = [args.value, args.asset].filter((part) => part != null && part !== '').join(' ')
+      const from = named(String(args.from ?? ''))
+      return {
+        title: 'Funds received',
+        detail: amount !== '' ? `${amount} from ${from}` : `From ${from}`,
+        tone: 'success'
+      }
+    }
     default:
       return { title: entry.eventName, detail: '', tone: 'neutral' }
   }
@@ -179,8 +189,8 @@ const MultiSigActivityFeed: React.FC<MultiSigActivityFeedProps> = ({ multiSigAdd
 
       {entries.length === 0 && !isLoading && error == null && (
         <div className='rounded-xl border border-border bg-muted/30 p-6 text-center text-sm text-muted-foreground'>
-          No on-chain activity found in the scanned blocks yet. Executed transactions, owner changes, and on-chain
-          approvals will show up here.
+          No on-chain activity found in the scanned blocks yet. Executed transactions, funds received, owner changes,
+          and on-chain approvals will show up here.
         </div>
       )}
 
