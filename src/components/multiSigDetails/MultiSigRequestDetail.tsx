@@ -10,6 +10,7 @@ import RevokeApproval from '../buttons/RevokeApproval'
 import CancelRequestButton from './CancelRequestButton'
 import ScheduledExecutionPanel from './ScheduledExecutionPanel'
 import UserOpRequestCard from './UserOpRequestCard'
+import ShareRequestLink from './ShareRequestLink'
 import { isModernWallet } from '../../utils/contractVersions'
 import useMultiSigRequestDetails from '../../hooks/useMultiSigRequestDetails'
 import useDeleteMultiSigRequest from '../../hooks/useDeleteMultiSigRequest'
@@ -66,6 +67,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
             <Link href={`/multisig/${requestDetails.multiSigAddress}/requests`}>Consult requests</Link>
           </Button>
         </div>
+        <ShareRequestLink requestId={multiSigRequestId} />
         <UserOpRequestCard
           request={requestDetails}
           threshold={multiSigDetails.threshold}
@@ -114,6 +116,9 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
         <Button asChild variant='outline'>
           <Link href={`/multisig/${requestDetails.multiSigAddress}/requests`}>Consult requests</Link>
         </Button>
+      </div>
+      <div className='mt-4'>
+        <ShareRequestLink requestId={multiSigRequestId} />
       </div>
       <div className='mt-4 rounded-lg border border-border p-4'>
         {row('Description', requestDetails.description)}
