@@ -7,6 +7,7 @@ import { rowToMultiSigRequest } from '../../../lib/db/mappers'
 import { parseBody, parseQueryString, withSession, withVerifiedAs } from '../../../lib/api/middleware'
 import { explorerUrlForChain } from '../../../lib/notifications/chains'
 import { notifyNewRequest } from '../../../lib/notifications/dispatcher'
+import { trackTransactionCreated } from '../../../lib/channlize/events'
 
 // Dedicated endpoints for multisig transaction requests:
 //   POST /api/multisig-requests         addMultiSigRequest
@@ -100,6 +101,16 @@ const createHandler = withVerifiedAs(
       })
       .returning({ id: multisigRequests.id })
     const insertedId = inserted[0]?.id
+
+    if (insertedId != null) {
+      await trackTransactionCreated({
+        requestId: insertedId,
+        multiSigAddress: String(doc.multiSigAddress),
+        chainId: walletRow?.chainId ?? null,
+        submitter: String(doc.submitter),
+        description: String(doc.description)
+      })
+    }
 
     // Fire the cross-cutting notifier. Best-effort — never blocks or
     // 5xx's the POST endpoint. Errors are caught and logged inside
