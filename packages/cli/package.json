@@ -4,7 +4,7 @@
   "description": "Command-line interface for mymultisig.app: create, inspect, propose, sign and execute MyMultiSig wallet transactions (human or --json output for agents)",
   "type": "module",
   "bin": {
-    "mymultisig": "./dist/index.js"
+    "mymultisig": "dist/index.js"
   },
   "main": "./dist/index.js",
   "files": [

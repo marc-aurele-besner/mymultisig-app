@@ -1,0 +1,58 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.marc-aurele-besner/mymultisig-mcp",
+  "title": "MyMultiSig",
+  "description": "Create, review, sign and execute MyMultiSig multisig wallet transactions from AI agents.",
+  "websiteUrl": "https://mymultisig.app/docs/ai-agents",
+  "repository": {
+    "url": "https://github.com/marc-aurele-besner/mymultisig-app",
+    "source": "github",
+    "subfolder": "packages/mcp"
+  },
+  "version": "0.1.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "mymultisig-mcp",
+      "version": "0.1.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "MYMULTISIG_API_KEY",
+          "description": "Scoped API key (mms_…) from https://mymultisig.app/settings/agents; acts as your wallet on the API",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "MYMULTISIG_PRIVATE_KEY",
+          "description": "The agent's own owner key (0x + 64 hex). Enables signing, executing and deploying; used locally only",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "MYMULTISIG_CHAINS",
+          "description": "Comma-separated chain id allowlist, e.g. 11155111",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "MYMULTISIG_READ_ONLY",
+          "description": "Set to 1 to register read-only tools",
+          "isRequired": false,
+          "format": "boolean"
+        },
+        {
+          "name": "MYMULTISIG_API_URL",
+          "description": "API base URL",
+          "isRequired": false,
+          "format": "string",
+          "default": "https://mymultisig.app"
+        }
+      ]
+    }
+  ]
+}
