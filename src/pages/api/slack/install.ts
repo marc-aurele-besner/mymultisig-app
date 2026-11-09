@@ -17,7 +17,8 @@ import { issueState } from '../../../lib/slack/state'
 // Returns 503 when the app is not configured (missing env vars). The
 // settings page can detect this and show a clear "set env vars" message.
 
-const SCOPES = ['commands', 'chat:write', 'chat:write.public', 'users:read', 'app_mentions:read']
+// Keep in sync with oauth_config.scopes.bot in docs/slack-manifest.json.
+const SCOPES = ['commands', 'chat:write', 'chat:write.public', 'app_mentions:read']
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'GET') {
