@@ -80,7 +80,22 @@ yarn packages:build && yarn packages:test
 (cd packages/cli && npm publish --otp <code>)
 ```
 
-The plugin's `.mcp.json` pins `mymultisig-mcp@0.1`. Bump it when you ship a breaking change.
+The plugin's `.mcp.json` pins an exact version (`mymultisig-mcp@0.1.1`). The Claude plugin directory blocks ranges, so after each MCP release:
+- bump that pin;
+- bump `version` in `plugins/mymultisig/.claude-plugin/plugin.json`, so the directory and installed users pick up the change.
+
+The plugin takes its keys through `userConfig`. They are masked prompts stored in the OS credential store, then passed to the server as `${user_config.*}`. That's because the directory holds plugins that read credentials from the user's shell environment for manual review.
+
+### Claude plugin directory
+
+The plugin is submitted at https://claude.ai/directory/manage as a **Plugin bundle**:
+- repository `marc-aurele-besner/mymultisig-app`
+- path `plugins/mymultisig`
+- branch `main`
+
+The portal's validator refuses the whole repository when a root `.gitattributes` rewrites file contents (`text=auto`, `filter`, LFS), so keep that file out of the repo. Run `claude plugin validate plugins/mymultisig` before pushing plugin changes.
+
+Inside this repo, `npx mymultisig-mcp` resolves the local workspace package and fails with "command not found". Test the plugin's server from another directory.
 
 npm 10.8.x has a web-login bug: it polls once, gets `202`, and exits ("Exit handler never called"). Use npm 11 for login and publish:
 - `npx -y npm@11 login`

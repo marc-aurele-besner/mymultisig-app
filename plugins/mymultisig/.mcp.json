@@ -2,13 +2,12 @@
   "mcpServers": {
     "mymultisig": {
       "command": "npx",
-      "args": ["-y", "mymultisig-mcp@0.1"],
+      "args": ["-y", "mymultisig-mcp@0.1.1"],
       "env": {
-        "MYMULTISIG_API_KEY": "${MYMULTISIG_API_KEY:-}",
-        "MYMULTISIG_PRIVATE_KEY": "${MYMULTISIG_PRIVATE_KEY:-}",
-        "MYMULTISIG_API_URL": "${MYMULTISIG_API_URL:-https://mymultisig.app}",
-        "MYMULTISIG_CHAINS": "${MYMULTISIG_CHAINS:-}",
-        "MYMULTISIG_READ_ONLY": "${MYMULTISIG_READ_ONLY:-}"
+        "MYMULTISIG_API_KEY": "${user_config.api_key}",
+        "MYMULTISIG_PRIVATE_KEY": "${user_config.private_key}",
+        "MYMULTISIG_CHAINS": "${user_config.chains}",
+        "MYMULTISIG_READ_ONLY": "${user_config.read_only}"
       }
     }
   }
