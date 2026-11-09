@@ -22,6 +22,7 @@ const footerColumns: FooterColumn[] = [
       { name: 'Import a multisig', href: '/import-multisig' },
       { name: 'Open existing multisig', href: '/open-multisig' },
       { name: 'Integration', href: '/integration' },
+      { name: 'Agents & API', href: '/agents' },
       { name: 'About', href: '/about' }
     ]
   },

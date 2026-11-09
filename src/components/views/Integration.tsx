@@ -1,34 +1,13 @@
 import React from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { ArrowRightIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import BigCard from '../cards/BigCard'
-import { CheckIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
-import { cn } from '@/lib/utils'
-
-type IntegrationStatus = 'available' | 'in development' | 'alpha' | 'planned'
-
-interface IntegrationLink {
-  label: string
-  href: string
-  // Opens in a new tab with an external-link icon (npm, GitHub, raw specs).
-  external?: boolean
-}
-
-interface NotificationIntegration {
-  keyword: string
-  title: string
-  status: IntegrationStatus
-  description: string
-  features: string[]
-  note?: string
-  cta?: IntegrationLink
-  secondaryCta?: IntegrationLink
-}
+import { ExternalLinkIcon } from '../icons/ChakraIcons'
+import IntegrationCard, { IntegrationInfo } from '../integration/IntegrationCard'
 
 const lifecycleEvents = ['request proposed', 'awaiting signatures', 'ready to execute']
 
-const notificationIntegrations: NotificationIntegration[] = [
+const notificationIntegrations: IntegrationInfo[] = [
   {
     keyword: 'slack',
     title: 'Slack',
@@ -86,161 +65,6 @@ const notificationIntegrations: NotificationIntegration[] = [
   }
 ]
 
-// Each agent flow is advertised on its own; they all reuse the scoped API keys
-// from /settings/agents, and on-chain signing always stays on the agent's
-// machine with its own owner key.
-const agentIntegrations: NotificationIntegration[] = [
-  {
-    keyword: 'mcp',
-    title: 'MCP server',
-    status: 'alpha',
-    description: 'Give Claude, Cursor or any MCP client native multisig tools.',
-    features: [
-      'Read wallets, balances and the request queue',
-      'Decode requests with risk warnings and locally verified signatures',
-      'Propose, approve and execute (simulated first) with the agent’s owner key',
-      'Read-only mode and a chain allowlist for safe rollouts'
-    ],
-    note: 'npx -y mymultisig-mcp — add it to any MCP client config with your API key.',
-    cta: { label: 'Setup guide', href: '/docs/ai-agents' },
-    secondaryCta: { label: 'npm', href: 'https://www.npmjs.com/package/mymultisig-mcp', external: true }
-  },
-  {
-    keyword: 'skills',
-    title: 'Claude Code skills',
-    status: 'alpha',
-    description: 'Ready-made multisig workflows for Claude Code, MCP server included.',
-    features: [
-      'multisig-status: owners, balances and what the queue needs next',
-      'create-multisig and propose-transaction with sanity checks',
-      'review-and-sign: decode, flag risks, sign only after you confirm',
-      'execute-queue: run ready requests in nonce order'
-    ],
-    note: '/plugin marketplace add marc-aurele-besner/mymultisig-app, then /plugin install mymultisig@mymultisig.',
-    cta: { label: 'Setup guide', href: '/docs/ai-agents' },
-    secondaryCta: {
-      label: 'Source',
-      href: 'https://github.com/marc-aurele-besner/mymultisig-app/tree/main/plugins/mymultisig',
-      external: true
-    }
-  },
-  {
-    keyword: 'api',
-    title: 'REST API & API keys',
-    status: 'alpha',
-    description: 'Call the request queue and wallet registry from any backend or bot.',
-    features: [
-      'Scoped Bearer keys: read, propose, sign, manage',
-      'Restrict a key to specific wallets and give it an expiry',
-      'Revoke instantly; keys can never sign transactions or mint keys',
-      'OpenAPI 3.1 spec and llms.txt for code generators and LLMs'
-    ],
-    note: 'Keys act as the wallet that created them — the same key works for the MCP server and the CLI.',
-    cta: { label: 'Create an API key', href: '/settings/agents' },
-    secondaryCta: { label: 'OpenAPI spec', href: '/openapi.json', external: true }
-  },
-  {
-    keyword: 'cli',
-    title: 'Command line',
-    status: 'alpha',
-    description: 'Script your multisig from a terminal, CI job or agent shell.',
-    features: [
-      'Create wallets, propose, approve and execute requests',
-      'Human-readable output, or --json for scripts and agents',
-      'Irreversible actions ask first, or need --yes when unattended',
-      'Mint and revoke API keys by signing in with your key'
-    ],
-    note: 'npx mymultisig-cli --help',
-    cta: { label: 'Setup guide', href: '/docs/ai-agents' },
-    secondaryCta: { label: 'npm', href: 'https://www.npmjs.com/package/mymultisig-cli', external: true }
-  }
-]
-
-const CtaButton: React.FC<{ link: IntegrationLink; variant?: 'outline' | 'ghost' }> = ({
-  link,
-  variant = 'outline'
-}) => (
-  <Button asChild variant={variant} className='w-fit'>
-    {link.external ? (
-      <a href={link.href} target='_blank' rel='noopener noreferrer' className='gap-2'>
-        {link.label}
-        <ExternalLinkIcon className='h-3.5 w-3.5' />
-      </a>
-    ) : (
-      <Link href={link.href} className='gap-2'>
-        {link.label}
-        <ExternalLinkIcon className='h-3.5 w-3.5' />
-      </Link>
-    )}
-  </Button>
-)
-
-const IntegrationCard: React.FC<{ integration: NotificationIntegration }> = ({ integration }) => (
-  <div className='flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-5'>
-    <div className='flex items-center justify-between gap-2'>
-      <span className='font-mono text-xs text-primary'>{integration.keyword}</span>
-      <span
-        className={cn(
-          'rounded-full border px-2 py-0.5 font-mono text-[10px] tracking-wider',
-          statusBadgeClassName[integration.status]
-        )}
-      >
-        {integration.status}
-      </span>
-    </div>
-    <div>
-      <h2 className='text-lg font-semibold text-foreground'>{integration.title}</h2>
-      <p className='mt-1 text-sm leading-relaxed text-muted-foreground'>{integration.description}</p>
-    </div>
-    <ul className='flex flex-col gap-1.5'>
-      {integration.features.map((feature) => (
-        <li key={feature} className='flex items-start gap-2 text-xs leading-relaxed text-muted-foreground'>
-          <CheckIcon className='mt-0.5 h-3 w-3 shrink-0 text-primary/70' />
-          {feature}
-        </li>
-      ))}
-    </ul>
-    {integration.note && (
-      <p className='mt-auto border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground/80'>
-        {integration.note}
-      </p>
-    )}
-    {(integration.cta || integration.secondaryCta) && (
-      <div className='mt-2 flex flex-wrap gap-2'>
-        {integration.cta && <CtaButton link={integration.cta} />}
-        {integration.secondaryCta && <CtaButton link={integration.secondaryCta} variant='ghost' />}
-      </div>
-    )}
-  </div>
-)
-
-const buildYourOwn = [
-  {
-    keyword: 'contracts',
-    title: 'ABIs on npm',
-    description: 'Factory and wallet ABIs ship in the mymultisig-contract package.',
-    href: 'https://www.npmjs.com/package/mymultisig-contract'
-  },
-  {
-    keyword: 'onchain',
-    title: 'Standard EVM calls',
-    description: 'Every read and write is a plain contract call — wagmi, viem, ethers all work.',
-    href: 'https://github.com/marc-aurele-besner/mymultisig-contract'
-  },
-  {
-    keyword: 'app',
-    title: 'Open API routes',
-    description: 'The app’s request storage and signing routes are open source.',
-    href: 'https://github.com/marc-aurele-besner/mymultisig-app/tree/main/src/pages/api'
-  },
-  {
-    keyword: 'sdk',
-    title: 'TypeScript SDK',
-    description: 'mymultisig-sdk: the same EIP-712, signature and execution code this app runs, on viem.',
-    href: 'https://www.npmjs.com/package/mymultisig-sdk'
-  }
-]
-
 const requestIssueUrl =
   'https://github.com/marc-aurele-besner/mymultisig-app/issues/new' +
   `?title=${encodeURIComponent('Integration request: ')}` +
@@ -248,112 +72,70 @@ const requestIssueUrl =
     'Which integration do you need (Slack / Discord / Telegram / Email / other)?\n\nHow does your team use MyMultiSig?\n'
   )}`
 
-const statusBadgeClassName: Record<IntegrationStatus, string> = {
-  available: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-  'in development': 'border-primary/40 bg-primary/15 text-primary',
-  alpha: 'border-amber-500/40 bg-amber-500/15 text-amber-700 dark:text-amber-300',
-  planned: 'border-border bg-muted text-muted-foreground'
-}
-
+// Team chat and notification channels. Agent and developer tooling (MCP,
+// skills, API keys, CLI, SDK) has its own page at /agents.
 const Integration: React.FC = () => {
   return (
-    <div className='flex justify-center'>
-      <BigCard className='max-w-[1000px]'>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-          className='flex w-full flex-col gap-10'
-        >
-          <div>
-            <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>INTEGRATIONS</p>
-            <h1 className='font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>
-              Team chat &amp; notifications
-            </h1>
-            <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground'>
-              A multisig only moves when people show up to sign. These integrations bring the three moments that matter
-              to wherever your team already is.
-            </p>
-          </div>
+    <div className='flex w-full flex-col gap-8'>
+      <div>
+        <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>INTEGRATIONS</p>
+        <h1 className='font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl'>
+          Team chat &amp; notifications
+        </h1>
+        <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground'>
+          A multisig only moves when people show up to sign. These integrations bring the three moments that matter to
+          wherever your team already is.
+        </p>
+      </div>
 
-          {/* The lifecycle every integration hooks into */}
-          <div className='flex flex-wrap items-center gap-x-3 gap-y-2'>
-            {lifecycleEvents.map((event, index) => (
-              <React.Fragment key={event}>
-                {index > 0 && <span aria-hidden className='h-px w-6 bg-border' />}
-                <span className='rounded-full border border-border px-3 py-1 font-mono text-[11px] tracking-wider text-muted-foreground'>
-                  {event}
-                </span>
-              </React.Fragment>
-            ))}
-          </div>
+      {/* The lifecycle every integration hooks into */}
+      <div className='flex flex-wrap items-center gap-x-3 gap-y-2'>
+        {lifecycleEvents.map((event, index) => (
+          <React.Fragment key={event}>
+            {index > 0 && <span aria-hidden className='h-px w-6 bg-border' />}
+            <span className='rounded-full border border-border px-3 py-1 font-mono text-[11px] tracking-wider text-muted-foreground'>
+              {event}
+            </span>
+          </React.Fragment>
+        ))}
+      </div>
 
-          <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
-            {notificationIntegrations.map((integration) => (
-              <IntegrationCard key={integration.keyword} integration={integration} />
-            ))}
-          </div>
+      <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+        {notificationIntegrations.map((integration) => (
+          <IntegrationCard key={integration.keyword} integration={integration} />
+        ))}
+      </div>
 
-          <div className='flex flex-wrap items-center justify-between gap-4 rounded-xl border border-dashed border-border p-5'>
-            <p className='text-sm leading-relaxed text-muted-foreground'>
-              Which one should ship first? Tell us how your team would use it.
-            </p>
-            <Button variant='outline' asChild>
-              <a href={requestIssueUrl} target='_blank' rel='noopener noreferrer' className='gap-2'>
-                Request an integration
-                <ExternalLinkIcon className='h-3.5 w-3.5' />
-              </a>
-            </Button>
-          </div>
+      <div className='flex flex-wrap items-center justify-between gap-4 rounded-xl border border-dashed border-border p-5'>
+        <p className='text-sm leading-relaxed text-muted-foreground'>
+          Which one should ship first? Tell us how your team would use it.
+        </p>
+        <Button variant='outline' asChild>
+          <a href={requestIssueUrl} target='_blank' rel='noopener noreferrer' className='gap-2'>
+            Request an integration
+            <ExternalLinkIcon className='h-3.5 w-3.5' />
+          </a>
+        </Button>
+      </div>
 
-          <div className='border-t border-border pt-8'>
-            <p className='mb-3 font-mono text-xs tracking-[0.2em] text-primary'>AI AGENTS &amp; DEVELOPER TOOLS</p>
-            <h2 className='font-display text-xl font-bold tracking-tight text-foreground md:text-2xl'>
-              Let agents and scripts work the queue
-            </h2>
-            <p className='mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground'>
-              Four ways in, one set of credentials: every flow below uses the scoped API keys you create in{' '}
-              <Link href='/settings/agents' className='text-primary underline-offset-4 hover:underline'>
-                Settings → AI agents
-              </Link>
-              . Approvals and executions are signed locally with the agent&apos;s own owner key — never on our servers.
-            </p>
-            <div className='mt-5 grid grid-cols-1 gap-6 md:grid-cols-2'>
-              {agentIntegrations.map((integration) => (
-                <IntegrationCard key={integration.keyword} integration={integration} />
-              ))}
-            </div>
-          </div>
-
-          <div className='border-t border-border pt-8'>
-            <h2 className='font-display text-xl font-bold tracking-tight text-foreground md:text-2xl'>
-              Build your own
-            </h2>
-            <p className='mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground'>
-              Everything the app does is public. If you need an integration we don&apos;t have, the pieces are already
-              on the table.
-            </p>
-            <div className='mt-5 grid grid-cols-1 gap-4 md:grid-cols-3'>
-              {buildYourOwn.map((item) => (
-                <a
-                  key={item.keyword}
-                  href={item.href}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='group rounded-lg border border-border p-4 transition-colors hover:border-primary/40 hover:bg-accent/40'
-                >
-                  <span className='font-mono text-xs text-primary'>{item.keyword}</span>
-                  <span className='mt-1 flex items-center gap-1.5 text-sm font-semibold text-foreground'>
-                    {item.title}
-                    <ExternalLinkIcon className='h-3 w-3 text-muted-foreground transition-colors group-hover:text-primary' />
-                  </span>
-                  <p className='mt-1 text-xs leading-relaxed text-muted-foreground'>{item.description}</p>
-                </a>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      </BigCard>
+      <Link
+        href='/agents'
+        className='flex flex-wrap items-center justify-between gap-4 rounded-xl border border-primary/40 bg-primary/5 p-5 transition-colors hover:border-primary/70'
+      >
+        <div className='min-w-0 flex-1 basis-64'>
+          <p className='font-mono text-xs tracking-[0.2em] text-primary'>AGENTS &amp; API</p>
+          <h2 className='mt-1 font-display text-xl font-bold tracking-tight text-foreground'>
+            Looking for MCP, the CLI or the API?
+          </h2>
+          <p className='mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground'>
+            Claude, Cursor or your own scripts can read the queue, propose and co-sign with scoped API keys.
+          </p>
+        </div>
+        <span className='inline-flex items-center gap-2 text-sm font-semibold text-primary'>
+          Explore agents
+          <ArrowRightIcon className='h-4 w-4' />
+        </span>
+      </Link>
     </div>
   )
 }
