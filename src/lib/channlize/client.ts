@@ -1,99 +1,67 @@
-// Channlize "Zapier, Make & n8n" connection client. Server-only: the connection
-// URL and secret come from env at call time and must never reach the browser.
+import { createNotifier, isValidEventKey } from '@channlize/core'
+
+// Channlize Events, sent from the server through the @channlize/core SDK
+// (POST /v1/notify). Server-only: the server key must never reach the browser.
 //
-// Delivery is best-effort. sendChannlizeEvent never throws and never rejects,
-// so a Channlize outage or a misconfigured connection cannot fail the API
-// request that triggered the event. Calls are bounded by a short timeout so a
-// slow Channlize cannot hold a response open for long.
+// Reads CHANNLIZE_SERVER_API_KEY (or CHANNLIZE_API_KEY) and CHANNLIZE_PROJECT_ID.
+// The event key picks the Slack channel and message template configured under
+// Events in the Channlize dashboard, and `data` fills its {{field}} placeholders.
+//
+// Delivery is best-effort. sendChannlizeEvent never throws, so a Channlize outage
+// or a missing configuration cannot fail the API request that triggered it.
 
-export type ChannlizeEventType = 'alert' | 'conversation' | 'log'
-export type ChannlizePriority = 'low' | 'normal' | 'high' | 'urgent'
 export type ChannlizeFieldValue = string | number | boolean | null
-
-export interface ChannlizeCustomer {
-  email: string
-  name?: string
-  phone?: string
-}
-
-export interface ChannlizeEvent {
-  type: ChannlizeEventType
-  // Event key, e.g. "transaction.created". Each key is switched on separately
-  // in the Channlize dashboard.
-  event: string
-  message: string
-  title?: string
-  fields?: Record<string, ChannlizeFieldValue>
-  url?: string
-  customer?: ChannlizeCustomer
-  priority?: ChannlizePriority
-  tags?: string[]
-  channel?: string
-  // Stable per logical event (for example, derived from the request id and the
-  // state transition), so a retried send is acknowledged and dropped.
-  idempotencyKey: string
-}
+export type ChannlizeData = Record<string, ChannlizeFieldValue>
 
 export type ChannlizeSendResult =
-  | { status: 'sent'; body: unknown }
-  // Channlize accepted the payload but the event key is off. Switch it on in
-  // the dashboard.
-  | { status: 'ignored'; body: unknown }
-  // 400 INVALID_PAYLOAD. The issues are logged and returned.
-  | { status: 'invalid'; issues: unknown }
+  | { status: 'queued'; duplicate: boolean }
+  | { status: 'skipped'; reason: string }
   | { status: 'failed'; reason: string }
-  | { status: 'skipped'; reason: 'not-configured' }
 
 const SEND_TIMEOUT_MS = 3000
 
-const readJson = async (response: Response): Promise<unknown> => {
-  try {
-    return await response.json()
-  } catch {
-    return null
+const notify = createNotifier({ timeout: SEND_TIMEOUT_MS })
+
+const isConfigured = (): boolean =>
+  Boolean((process.env.CHANNLIZE_SERVER_API_KEY ?? process.env.CHANNLIZE_API_KEY)?.trim()) &&
+  Boolean(process.env.CHANNLIZE_PROJECT_ID?.trim())
+
+let warnedNotConfigured = false
+
+export const sendChannlizeEvent = async (
+  event: string,
+  data: ChannlizeData,
+  idempotencyKey: string
+): Promise<ChannlizeSendResult> => {
+  if (!isValidEventKey(event)) {
+    console.error('[channlize] invalid event key', { event })
+    return { status: 'failed', reason: 'invalid event key' }
   }
-}
-
-const isIgnored = (body: unknown): boolean =>
-  typeof body === 'object' && body !== null && (body as { status?: unknown }).status === 'ignored'
-
-export const sendChannlizeEvent = async (event: ChannlizeEvent): Promise<ChannlizeSendResult> => {
-  const url = process.env.CHANNLIZE_CONNECTION_URL?.trim()
-  const secret = process.env.CHANNLIZE_CONNECTION_SECRET?.trim()
-  if (!url || !secret) {
+  if (!isConfigured()) {
+    if (!warnedNotConfigured) {
+      warnedNotConfigured = true
+      console.warn(
+        '[channlize] not configured: set CHANNLIZE_SERVER_API_KEY and CHANNLIZE_PROJECT_ID. Events are skipped.'
+      )
+    }
     return { status: 'skipped', reason: 'not-configured' }
   }
 
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${secret}`,
-        'Idempotency-Key': event.idempotencyKey
-      },
-      body: JSON.stringify(event),
-      signal: AbortSignal.timeout(SEND_TIMEOUT_MS)
-    })
-    const body = await readJson(response)
-
-    if (response.status === 400) {
-      const issues = (body as { issues?: unknown } | null)?.issues ?? body
-      console.error('[channlize] INVALID_PAYLOAD', { event: event.event, issues })
-      return { status: 'invalid', issues }
+    const res = await notify(event, data, { idempotencyKey })
+    if (res.status === 'skipped') {
+      // Usually an event key that is not enabled yet in the dashboard, or no Slack channel bound.
+      console.warn('[channlize] event skipped', { event, reason: res.reason })
+      return { status: 'skipped', reason: res.reason ?? 'unknown' }
     }
-    if (!response.ok) {
-      console.error('[channlize] send failed', { event: event.event, status: response.status })
-      return { status: 'failed', reason: `HTTP ${response.status}` }
+    if (res.status === 'failed') {
+      console.error('[channlize] delivery failed', { event, reason: res.reason })
+      return { status: 'failed', reason: res.reason ?? 'unknown' }
     }
-    if (isIgnored(body)) {
-      console.warn(`[channlize] event "${event.event}" is ignored: switch it on in the Channlize dashboard`)
-      return { status: 'ignored', body }
-    }
-    return { status: 'sent', body }
+    return { status: 'queued', duplicate: res.duplicate === true }
   } catch (error) {
     const reason = (error as Error).message
-    console.error('[channlize] send failed', { event: event.event, reason })
+    console.error('[channlize] send failed', { event, reason })
     return { status: 'failed', reason }
   }
 }

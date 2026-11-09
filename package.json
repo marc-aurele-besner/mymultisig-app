@@ -57,6 +57,7 @@
     ]
   },
   "dependencies": {
+    "@channlize/core": "0.10.0",
     "@coinbase/wallet-sdk": "^4.3.6",
     "@ethersproject/abi": "^5.8.0",
     "@metamask/connect-evm": "^2.1.1",
