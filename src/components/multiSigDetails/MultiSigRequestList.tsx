@@ -9,6 +9,7 @@ import { MultiSigOnChainData, MultiSigTransactionRequest } from '../../models/Mu
 import useMultiSigRequests from '../../hooks/useMultiSigRequests'
 import useRequestQueue from '../../hooks/useRequestQueue'
 import useMultiSigs from '../../states/multiSigs'
+import { formatRequestDate } from '../../utils/requestDate'
 
 interface MultiSigRequestListProps {
   multiSigAddress: `0x${string}`
@@ -52,15 +53,15 @@ const RequestRow: React.FC<{
         </div>
         <span className='text-xs text-muted-foreground'>
           {request.isExecuted
-            ? 'Executed'
+            ? request.isSuccessful
+              ? 'Executed'
+              : 'Executed — call failed, nothing sent'
             : request.isCancelled
-              ? `Cancelled${request.dateCancelled !== '' ? ` on ${new Date(request.dateCancelled).toLocaleDateString()}` : ''}`
-              : `${request.signatures.length} of ${threshold} signature${
-                  threshold === 1 ? '' : 's'
-                } collected`}
+              ? `Cancelled${formatRequestDate(request.dateCancelled) != null ? ` on ${formatRequestDate(request.dateCancelled)}` : ''}`
+              : `${request.signatures.length} of ${threshold} signature${threshold === 1 ? '' : 's'} collected`}
           {!request.isCancelled &&
-            request.dateSubmitted !== '' &&
-            ` — submitted ${new Date(Number(request.dateSubmitted)).toLocaleDateString()}`}
+            formatRequestDate(request.dateSubmitted) != null &&
+            ` — submitted ${formatRequestDate(request.dateSubmitted)}`}
         </span>
         {!request.isExecuted && !request.isCancelled && (
           <div className='flex max-w-40 gap-1' aria-hidden>

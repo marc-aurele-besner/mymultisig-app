@@ -132,6 +132,10 @@ export type MultiSigExecTransactionArgs = {
   paymasterUrl?: string
   // Final receipt after a successful send-to-bundler.
   userOpReceipt?: UserOpReceipt
+  // Hash of the execTransaction transaction, recorded when the request is
+  // marked executed so the detail view can link to it on the explorer.
+  // Absent on requests executed before this was tracked.
+  executionTxHash?: `0x${string}`
 }
 
 export type MultiSigTransactionRequest = {

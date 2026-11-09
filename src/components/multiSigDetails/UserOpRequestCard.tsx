@@ -15,6 +15,8 @@ import useEntryPointNonce from '../../hooks/useEntryPointNonce'
 import useUserOpApprovalState from '../../hooks/useUserOpApprovalState'
 import useBundlerConfig from '../../states/bundlerConfig'
 import { MultiSigTransactionRequest } from '../../models/MultiSigs'
+import { formatRequestDate } from '../../utils/requestDate'
+import { useAddressLabels } from '../../states/addressBook'
 
 interface UserOpRequestCardProps {
   request: MultiSigTransactionRequest
@@ -33,6 +35,8 @@ const UserOpRequestCard: React.FC<UserOpRequestCardProps> = ({ request, threshol
   const chains = useChains()
   const chain = chains.find((c) => c.id === chainId)
   const explorerUrl = chain?.blockExplorers?.default?.url
+  const { labelFor } = useAddressLabels(chain?.id)
+  const targetName = labelFor(request.request.to)
   const { multiSigDetails } = useMultiSigDetails(request.multiSigAddress, address || '0x')
   const { supportsAdvanced, entryPoint } = useAdvancedFeatures(request.multiSigAddress)
   const { nonce: entryPointNonce } = useEntryPointNonce(entryPoint, request.multiSigAddress)
@@ -66,8 +70,18 @@ const UserOpRequestCard: React.FC<UserOpRequestCardProps> = ({ request, threshol
     <Fragment>
       <div className='mt-4 rounded-lg border border-border p-4'>
         {row('Description', request.description)}
-        {row('Submitted date', new Date(Number(request.dateSubmitted)).toLocaleDateString())}
-        {row('Target', request.request.to)}
+        {row('Submitted date', formatRequestDate(request.dateSubmitted) ?? '—')}
+        {row(
+          'Target',
+          targetName != null ? (
+            <span>
+              <span className='font-semibold'>{targetName}</span>{' '}
+              <span className='break-all font-mono text-muted-foreground'>{request.request.to}</span>
+            </span>
+          ) : (
+            request.request.to
+          )
+        )}
         <div className='flex flex-wrap items-start gap-2'>
           <span className='px-2 pt-2 text-xl font-bold text-foreground'>Data</span>
           <Textarea readOnly defaultValue={request.request.data} className='min-h-[80px] flex-1' />
@@ -124,7 +138,7 @@ const UserOpRequestCard: React.FC<UserOpRequestCardProps> = ({ request, threshol
         {request.isExecuted ? (
           <div className='px-2 pt-2 text-xl font-bold text-primary'>
             This UserOp request has been executed
-            {request.dateExecuted != null && ` on ${new Date(request.dateExecuted).toLocaleDateString()}`}.
+            {formatRequestDate(request.dateExecuted) != null && ` on ${formatRequestDate(request.dateExecuted)}`}.
           </div>
         ) : (
           <Fragment>
