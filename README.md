@@ -36,7 +36,7 @@ Build, sign, and execute multi-signature transactions across popular EVM network
 
 ## AI agents & automation
 
-Agents and scripts can create wallets, read the queue, propose requests, sign them and execute them. Every flow uses the same scoped API keys, which you create at [Settings → AI agents](https://mymultisig.app/settings/agents). On-chain approvals are always signed **locally** with the agent's own owner key (`MYMULTISIG_PRIVATE_KEY`); keys never reach the server.
+Agents and scripts can create wallets, read the queue, propose requests, sign them and execute them. Every flow uses the same scoped API keys, which you create at [Settings → API keys](https://mymultisig.app/settings/api-keys). On-chain approvals are always signed **locally** with the agent's own owner key (`MYMULTISIG_PRIVATE_KEY`); keys never reach the server.
 
 | Flow | Get started | Package |
 |---|---|---|

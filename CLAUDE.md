@@ -30,6 +30,21 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 - UI primitives in `src/components/ui/` (button, input, label, card, dialog, dropdown-menu, select, switch, textarea, sheet); `src/lib/utils.ts` provides `cn()` for class merging.
 - **Icons**: `src/components/icons/ChakraIcons.tsx` re-exports lucide-react with a small wrapper (same API: `boxSize`, `className`).
 
+### App shell (`src/components/shell/`)
+- `src/components/dom/Layout.tsx` is a sidebar app shell: `SidebarNav` (wallet switcher + navigation) beside a column with `TopBar`, the page and the footer. Below `lg` the sidebar moves into a sheet and `MobileTabBar` takes over; `CommandPalette` opens with Cmd/Ctrl+K.
+- Navigation is defined once in `shell/navigation.ts` (`WALLET_SECTIONS`, `WORKSPACE_NAV`, `EXPLORE_NAV`) and reused by the sidebar, the wallet tab strip (`MultiSigNav`, small screens only) and the palette. Add a destination there, not in the components.
+- `useActiveWallet` picks the wallet the navigation points at (URL, then last opened, then first on the current chain). Wallet and request pages read the chain the app is on, so links to a wallet on another network go through `useNavigateOnChain`, which switches chain first.
+- `InboxProvider` / `useInbox` (`src/hooks/useInbox.tsx`) loads the request queue of every saved multisig once and feeds the sidebar badges, the tab bar, the palette and the connected home (`views/Inbox.tsx`). It classifies from stored wallet data and off-chain signatures only; on-chain approvals are resolved on the request page.
+- `/` renders `Welcome` in the static HTML and swaps to `Inbox` once a wallet is connected. Wallet and request pages render `ConnectPrompt` instead of nothing when disconnected.
+- `useOnboarding` derives the getting-started checklist (`/get-started`, sidebar chip, inbox card) from real state; `src/states/onboarding.ts` only stores "hidden" and "visited notifications".
+- Connecting goes through one dialog, `modals/ConnectModal.tsx`, opened via the `states/connectModal.ts` store. The risk disclaimer is asked for inside `views/ConnectWallet.tsx` the first time a wallet is picked, not on page load.
+- Top-level pages open with `components/layout/PageHero.tsx` (typed eyebrow, word-reveal title, optional animated visual). Third-party marks (Slack, Discord, Telegram, email) come from `icons/BrandIcon.tsx`.
+- Wallet pages are built from `components/common/` (`SectionCard`, `AddressRow`, `Identicon`). Show addresses with `AddressRow`, not raw hex.
+- The request builder (`forms/CreateMultiSigRequestForm.tsx`) has templates (send funds, send a token, call, batch, raw) over one generic step model, plus a live preview that holds the sign button. A template only presets and hides fields; "Send a token" is a `transfer(to, amount)` step with `contractKey: 'erc20'`.
+- Wallet settings (`views/MultiSigSettings.tsx`) are split into sections by `?section=`; the legacy `#rpc` anchor maps to the Connection section. Panels a wallet cannot use render a `Locked` explainer instead of disappearing.
+- Code snippets use `components/ui/code-block.tsx` (JSON and shell colouring). Its colours are the `--code-*` tokens in `globals.css`, defined for both themes.
+- Account settings pages share `components/settings/SettingsLayout.tsx`. Notifications live on `/integration`; agent and developer tooling on `/agents`.
+
 ### Web3
 - **wagmi v3 + viem v2** for all on-chain reads/writes
 - Wallet connectors configured in `src/components/web3/Web3Provider.tsx` (MetaMask, Coinbase, WalletConnect v2, Injected)
@@ -51,7 +66,7 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 - **Neon PostgreSQL** via `@neondatabase/serverless` for storing multisig wallets and transaction requests
 - Schema in `src/lib/db/schema.sql`; client in `src/lib/db/neon.ts`
 - Auth via SIWE session cookies (`src/lib/auth/siwe.ts`): writes require a valid session, and identity-claiming actions must match the session wallet (`isVerifiedAs`)
-- Scoped agent API keys (`Authorization: Bearer mms_…`, `src/lib/auth/apiKey.ts`, table `agent_api_keys`) are accepted only by routes that opt in with `{ apiKeyScope: 'read' | 'propose' | 'sign' | 'manage' }` on the middleware wrappers; everything else stays SIWE-only. Keys are managed at `/settings/agents` via `/api/agent-keys` (SIWE-only).
+- Scoped agent API keys (`Authorization: Bearer mms_…`, `src/lib/auth/apiKey.ts`, table `agent_api_keys`) are accepted only by routes that opt in with `{ apiKeyScope: 'read' | 'propose' | 'sign' | 'manage' }` on the middleware wrappers; everything else stays SIWE-only. Keys are managed at `/settings/api-keys` (client setup snippets live on `/settings/agents`) via `/api/agent-keys` (SIWE-only).
 - API routes in `src/pages/api/` handle CRUD with one dedicated endpoint per action (e.g. `POST /api/multisig-requests`, `PATCH /api/multisig-requests/[id]`); per-endpoint auth is wrapped in `withSession` / `withVerifiedAs` from `src/lib/api/middleware.ts`. Public reads (`GET /api/multisig-requests`, `GET /api/multisig-requests/[id]`) skip the session guard so the detail view can render before sign-in.
 
 ## Key Patterns

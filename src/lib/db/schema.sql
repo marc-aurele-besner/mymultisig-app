@@ -319,7 +319,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_email_recipients_link_token
 -- Scoped API keys for AI agents and scripts (MCP server, CLI, SDK). A key
 -- acts as the wallet that minted it (owner_address) but only for the scopes
 -- listed: read, propose, sign, manage. Keys are minted from a SIWE session
--- at /settings/agents and can never mint other keys. Only the SHA-256 of the
+-- at /settings/api-keys and can never mint other keys. Only the SHA-256 of the
 -- full token is stored; key_prefix (first 12 chars, e.g. "mms_AbC123xy")
 -- lets the owner recognise a key in the list. wallet_addresses, when
 -- non-empty, restricts mutating calls to those multisig addresses

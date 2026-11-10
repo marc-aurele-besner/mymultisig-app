@@ -39,6 +39,12 @@ const Page: React.FC = () => {
         kicker='HOW-TO'
         title='Create a multisig'
         lead='Deploying a multisig with MyMultiSig takes one transaction. You choose the owners and the approval threshold; the factory contract does the rest.'
+        cta={{
+          title: 'Create yours now',
+          text: 'Pick the owners and the threshold. Deploying takes one transaction.',
+          primary: { label: 'Create a multisig', href: '/create-multisig' },
+          secondary: { label: 'See supported networks', href: '/networks' }
+        }}
         related={[
           { title: 'Propose, sign, and execute transactions', href: '/docs/propose-sign-execute' },
           { title: 'What is a multisig?', href: '/docs/what-is-a-multisig' }

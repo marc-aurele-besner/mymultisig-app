@@ -1,15 +1,19 @@
 import React, { useState } from 'react'
 import { useAccount, useChainId, useChains } from 'wagmi'
+import { SearchIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { AddIcon, DeleteIcon, CheckIcon, ExternalLinkIcon, LockIcon, ViewIcon } from '../icons/ChakraIcons'
 
+import Identicon from '../common/Identicon'
+import SectionCard from '../common/SectionCard'
 import TextInput from '../inputs/TextInput'
 import useAddressBook, { AddressBookEntry, AddressBookEntryKind } from '../../states/addressBook'
 import useContracts from '../../states/contracts'
 import useMultiSigs from '../../states/multiSigs'
 import { persistAddressBookUpsert, persistAddressBookRemoval } from '../../utils/addressBookSync'
+import truncateAddress from '../../utils/truncateAddress'
 
 interface AddressBookProps {
   multiSigAddress: `0x${string}`
@@ -57,8 +61,9 @@ const EntryRow: React.FC<{ entry: AddressBookEntry; explorerUrl?: string; ownerA
   }
 
   return (
-    <div className='flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3'>
-      <div className='flex min-w-0 flex-col gap-0.5'>
+    <div className='flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-3'>
+      <Identicon value={entry.address} size={28} />
+      <div className='flex min-w-0 flex-1 basis-40 flex-col gap-0.5'>
         {editing ? (
           <div className='flex items-center gap-2'>
             <TextInput
@@ -83,7 +88,9 @@ const EntryRow: React.FC<{ entry: AddressBookEntry; explorerUrl?: string; ownerA
             {entry.label}
           </button>
         )}
-        <span className='break-all font-mono text-xs text-muted-foreground'>{entry.address}</span>
+        <span className='font-mono text-xs text-muted-foreground' title={entry.address}>
+          {truncateAddress(entry.address)}
+        </span>
       </div>
       <div className='flex shrink-0 items-center gap-2'>
         <span className={`rounded px-2 py-0.5 text-xs font-semibold ${KIND_BADGE[entry.kind]}`}>
@@ -146,6 +153,7 @@ const AddressBook: React.FC<AddressBookProps> = ({ multiSigAddress }) => {
   const [newLabel, setNewLabel] = useState('')
   const [newKind, setNewKind] = useState<AddressBookEntryKind>('wallet')
   const [newIsPublic, setNewIsPublic] = useState(false)
+  const [search, setSearch] = useState('')
 
   const chainEntries = chain != null ? entries.filter((e) => e.chainId === chain.id) : []
   const known = (address: string) => chainEntries.some((e) => e.address.toLowerCase() === address.toLowerCase())
@@ -192,104 +200,130 @@ const AddressBook: React.FC<AddressBookProps> = ({ multiSigAddress }) => {
     setNewIsPublic(false)
   }
 
+  const needle = search.trim().toLowerCase()
+  const visibleEntries = chainEntries.filter(
+    (e) => needle === '' || `${e.label} ${e.address}`.toLowerCase().includes(needle)
+  )
+
   return (
-    <div className='flex w-full flex-col gap-6'>
-      <div className='flex flex-col gap-4 rounded-xl border border-border p-4'>
-        <div>
-          <h3 className='text-base font-semibold text-foreground'>Add an address</h3>
-          <p className='text-sm text-muted-foreground'>
-            Labels are stored in this browser and shown wherever this address appears — in the request builder, the
-            activity feed, and owner lists.
-          </p>
-        </div>
-        <div className='grid grid-cols-1 gap-3 md:grid-cols-[2fr_1fr_auto_auto]'>
-          <TextInput
-            className='md:w-full'
-            placeholder='Address (0x...)'
-            value={newAddress}
-            isInvalid={newAddress !== '' && !isAddress(newAddress)}
-            onChange={(e) => setNewAddress(e.target.value.trim())}
-          />
-          <TextInput
-            className='md:w-full'
-            placeholder='Label (e.g. Treasury, USDC)'
-            value={newLabel}
-            onChange={(e) => setNewLabel(e.target.value)}
-          />
-          <Select value={newKind} onValueChange={(v) => setNewKind(v as AddressBookEntryKind)}>
-            <SelectTrigger className='w-full md:w-32'>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='wallet'>Wallet</SelectItem>
-              <SelectItem value='contract'>Contract</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button className='gap-2' onClick={handleAdd} disabled={!canAdd}>
-            <AddIcon className='h-4 w-4' />
-            Add
-          </Button>
-        </div>
-        {duplicate && <p className='text-xs text-destructive'>This address is already in the book for this network.</p>}
-        <label className='flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3'>
-          <span className='flex flex-col gap-0.5'>
-            <span className='text-sm font-medium text-foreground'>Share publicly</span>
-            <span className='text-xs text-muted-foreground'>
-              Public entries can be seen by the MyMultiSig team, helping widely used contracts get official support.
-              Private entries stay visible to you alone.
-            </span>
-          </span>
-          <Switch checked={newIsPublic} onCheckedChange={setNewIsPublic} />
-        </label>
-      </div>
-
-      {suggestions.length > 0 && (
-        <div className='flex flex-col gap-2 rounded-xl border border-border p-4'>
-          <h3 className='text-base font-semibold text-foreground'>Known addresses you could label</h3>
-          {suggestions.map((s) => (
-            <div
-              key={s.address}
-              className='flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed border-border p-3'
-            >
-              <div className='flex min-w-0 flex-col gap-0.5'>
-                <span className='text-sm font-semibold text-foreground'>{s.label}</span>
-                <span className='break-all font-mono text-xs text-muted-foreground'>{s.address}</span>
-              </div>
-              <Button
-                size='sm'
-                variant='outline'
-                className='gap-1'
-                onClick={() => {
-                  if (chain == null) return
-                  addEntry({ chainId: chain.id, ...s })
-                  persistAddressBookUpsert({ chainId: chain.id, ...s }, connectedAddress)
-                }}
-              >
-                <AddIcon className='h-3.5 w-3.5' />
-                Add to book
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className='flex flex-col gap-2'>
-        <h3 className='text-base font-semibold text-foreground'>
-          Saved addresses{chain != null ? ` on ${chain.name}` : ''}
-        </h3>
+    <div className='grid w-full items-start gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]'>
+      {/* The book itself comes first: it is what people come here to read */}
+      <SectionCard
+        title={`Saved addresses${chain != null ? ` on ${chain.name}` : ''}`}
+        flush
+        action={
+          chainEntries.length > 0 ? (
+            <label className='flex h-8 w-44 items-center gap-2 rounded-md border border-border bg-background px-2.5 text-sm'>
+              <SearchIcon className='h-3.5 w-3.5 shrink-0 text-muted-foreground' />
+              <span className='sr-only'>Search saved addresses</span>
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder='Search'
+                className='w-full bg-transparent outline-none placeholder:text-muted-foreground'
+              />
+            </label>
+          ) : undefined
+        }
+      >
         {chainEntries.length === 0 ? (
-          <p className='text-sm text-muted-foreground'>
-            Nothing saved yet for this network. Add an address above or label one of the known addresses.
+          <p className='p-5 text-sm text-muted-foreground'>
+            Nothing saved yet for this network. Add an address, or label one of the known addresses.
           </p>
+        ) : visibleEntries.length === 0 ? (
+          <p className='p-5 text-sm text-muted-foreground'>No saved address matches this search.</p>
         ) : (
-          chainEntries.map((entry) => (
-            <EntryRow
-              key={entry.id}
-              entry={entry}
-              explorerUrl={chain?.blockExplorers?.default?.url}
-              ownerAddress={connectedAddress}
+          <div className='divide-y divide-border'>
+            {visibleEntries.map((entry) => (
+              <EntryRow
+                key={entry.id}
+                entry={entry}
+                explorerUrl={chain?.blockExplorers?.default?.url}
+                ownerAddress={connectedAddress}
+              />
+            ))}
+          </div>
+        )}
+      </SectionCard>
+
+      <div className='flex min-w-0 flex-col gap-4'>
+        <SectionCard title='Add an address'>
+          <div className='flex flex-col gap-3'>
+            <p className='text-xs leading-relaxed text-muted-foreground'>
+              Labels are stored in this browser and shown wherever this address appears — in the request builder, the
+              activity feed, and owner lists.
+            </p>
+            <TextInput
+              className='font-mono md:w-full'
+              placeholder='Address (0x...)'
+              value={newAddress}
+              isInvalid={newAddress !== '' && !isAddress(newAddress)}
+              onChange={(e) => setNewAddress(e.target.value.trim())}
             />
-          ))
+            <div className='grid grid-cols-[minmax(0,1fr)_auto] gap-3'>
+              <TextInput
+                className='md:w-full'
+                placeholder='Label (e.g. Treasury, USDC)'
+                value={newLabel}
+                onChange={(e) => setNewLabel(e.target.value)}
+              />
+              <Select value={newKind} onValueChange={(v) => setNewKind(v as AddressBookEntryKind)}>
+                <SelectTrigger className='w-28'>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='wallet'>Wallet</SelectItem>
+                  <SelectItem value='contract'>Contract</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {duplicate && (
+              <p className='text-xs text-destructive'>This address is already in the book for this network.</p>
+            )}
+            <label className='flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3'>
+              <span className='flex flex-col gap-0.5'>
+                <span className='text-sm font-medium text-foreground'>Share publicly</span>
+                <span className='text-xs text-muted-foreground'>
+                  Public entries can be seen by the MyMultiSig team, helping widely used contracts get official
+                  support. Private entries stay visible to you alone.
+                </span>
+              </span>
+              <Switch checked={newIsPublic} onCheckedChange={setNewIsPublic} />
+            </label>
+            <Button className='gap-2 self-start' onClick={handleAdd} disabled={!canAdd}>
+              <AddIcon className='h-4 w-4' />
+              Add to book
+            </Button>
+          </div>
+        </SectionCard>
+
+        {suggestions.length > 0 && (
+          <SectionCard title='Known addresses you could label' flush>
+            <ul className='divide-y divide-border'>
+              {suggestions.map((s) => (
+                <li key={s.address} className='flex items-center gap-3 px-5 py-3'>
+                  <Identicon value={s.address} size={28} />
+                  <div className='flex min-w-0 flex-1 flex-col'>
+                    <span className='truncate text-sm font-semibold text-foreground'>{s.label}</span>
+                    <span className='font-mono text-xs text-muted-foreground'>{truncateAddress(s.address)}</span>
+                  </div>
+                  <Button
+                    size='sm'
+                    variant='outline'
+                    className='shrink-0 gap-1'
+                    onClick={() => {
+                      if (chain == null) return
+                      addEntry({ chainId: chain.id, ...s })
+                      persistAddressBookUpsert({ chainId: chain.id, ...s }, connectedAddress)
+                    }}
+                  >
+                    <AddIcon className='h-3.5 w-3.5' />
+                    Add
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </SectionCard>
         )}
       </div>
     </div>

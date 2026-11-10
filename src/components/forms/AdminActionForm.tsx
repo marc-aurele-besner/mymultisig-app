@@ -93,9 +93,9 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
   }
 
   return (
-    <div className='flex w-full flex-col gap-4 rounded-lg border border-border p-4'>
-      <div>
-        <h3 className='text-xl font-bold text-foreground'>Owner & wallet administration</h3>
+    <div className='flex w-full flex-col gap-1 rounded-xl border border-border bg-card p-5'>
+      <div className='pb-2'>
+        <h3 className='text-base font-semibold text-foreground'>Owner & wallet administration</h3>
         <p className='text-sm text-muted-foreground'>
           These operations are multisig transactions: they still need {details.threshold} owner signature
           {details.threshold > 1 ? 's' : ''} before they execute.
@@ -107,14 +107,14 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
         if (groupActions.length === 0) return null
         const context = groupContext(group.id)
         return (
-          <div key={group.id} className='flex flex-col gap-2 rounded-lg border border-border p-3'>
+          <div key={group.id} className='flex flex-col gap-2.5 border-t border-border py-4 last:pb-0'>
             <div className='flex flex-wrap items-baseline justify-between gap-2'>
               <div className='flex flex-col'>
                 <span className='text-sm font-semibold text-foreground'>{group.label}</span>
                 <span className='text-xs text-muted-foreground'>{group.hint}</span>
               </div>
               {context != null && (
-                <span className='rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground'>{context}</span>
+                <span className='rounded-full bg-muted px-2 py-0.5 font-mono text-[11px] text-muted-foreground'>{context}</span>
               )}
             </div>
             <div className='flex flex-wrap gap-2'>
@@ -123,7 +123,7 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
                   key={a.id}
                   size='sm'
                   variant={actionId === a.id ? 'default' : 'outline'}
-                  className={cn(a.danger && actionId !== a.id && 'border-destructive/50 text-destructive')}
+                  className={cn('rounded-full', a.danger && actionId !== a.id && 'border-destructive/50 text-destructive')}
                   onClick={() => handleSelect(a.id)}
                 >
                   {a.danger ? '⚠ ' : ''}

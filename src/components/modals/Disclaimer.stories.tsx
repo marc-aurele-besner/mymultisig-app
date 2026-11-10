@@ -9,8 +9,7 @@ const meta: Meta<typeof Disclaimer> = {
   parameters: {
     docs: {
       description: {
-        component:
-          'Auto-opens on mount to show the application disclaimer. Uses Chakra UI modal primitives. '
+        component: 'Risk acknowledgement shown the first time someone connects a wallet.'
       }
     }
   }
@@ -18,6 +17,13 @@ const meta: Meta<typeof Disclaimer> = {
 
 export default meta
 
-const Template: StoryFn<typeof Disclaimer> = () => <Disclaimer />
+const Template: StoryFn<typeof Disclaimer> = (args: React.ComponentProps<typeof Disclaimer>) => (
+  <Disclaimer {...args} />
+)
 
 export const Basic = Template.bind({})
+Basic.args = {
+  open: true,
+  onOpenChange: () => {},
+  onAccept: () => {}
+}

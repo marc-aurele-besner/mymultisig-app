@@ -3,7 +3,7 @@ import { useAccount, useChainId, useChains } from 'wagmi'
 import { motion } from 'framer-motion'
 
 import { TypedEyebrow, WordReveal } from '@/components/ui/reveal'
-import BigCard from '../cards/BigCard'
+import NetworkIcon from '../icons/NetworkIcon'
 import ErrorCard from '../cards/ErrorCard'
 import ConnectWallet from './ConnectWallet'
 import CreateMultiSigForm from '../forms/CreateMultiSigForm'
@@ -41,53 +41,41 @@ const CreateMultiSig: React.FC = () => {
   if (!hasMounted) return null
 
   return (
-    <div className="flex justify-center">
-      <BigCard className="min-h-[60vh] max-w-[900px]">
-        <div className="flex w-full justify-center py-4 md:py-6">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="flex w-full flex-col gap-6"
-          >
-            <motion.div variants={itemVariants} className="w-full">
-              <TypedEyebrow text="NEW SHARED WALLET" className="mb-3" />
-              <WordReveal
-                text="Create your multisig"
-                delay={0.2}
-                className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl"
-              />
-              <p className="mt-2 text-sm text-muted-foreground">
-                Set up a new multi-signature wallet in just a few steps
-              </p>
-            </motion.div>
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="flex w-full flex-col gap-6">
+      <motion.div variants={itemVariants} className="w-full">
+        <TypedEyebrow text="NEW SHARED WALLET" className="mb-3" />
+        <WordReveal
+          text="Create your multisig"
+          delay={0.2}
+          className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl"
+        />
+        <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+          {chain && (
+            <span className="flex items-center gap-1.5 font-medium text-foreground">
+              <NetworkIcon chainId={chain.id} name={chain.name} size={16} />
+              {chain.name}
+            </span>
+          )}
+          <span>Pick the owners and how many must approve. Deploying is one transaction.</span>
+        </p>
+      </motion.div>
 
-            {!isConnected || address === undefined || multiSigFactory === undefined ? (
-              <motion.div variants={itemVariants} className="w-full">
-                <div className="flex flex-col gap-4">
-                  {(!isConnected || address === undefined) && (
-                    <ErrorCard>Please connect your wallet first</ErrorCard>
-                  )}
-                  {multiSigFactory === undefined && isConnected && (
-                    <ErrorCard>No MultiSig Factory contract detected on this network</ErrorCard>
-                  )}
-                  <div className="w-full rounded-xl border border-border bg-muted/30 p-6">
-                    <ConnectWallet />
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div variants={itemVariants} className="w-full">
-                <CreateMultiSigForm
-                  owner01={address.toString()}
-                  factory={multiSigFactory}
-                />
-              </motion.div>
-            )}
-          </motion.div>
-        </div>
-      </BigCard>
-    </div>
+      {!isConnected || address === undefined || multiSigFactory === undefined ? (
+        <motion.div variants={itemVariants} className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+          {(!isConnected || address === undefined) && <ErrorCard>Please connect your wallet first</ErrorCard>}
+          {multiSigFactory === undefined && isConnected && (
+            <ErrorCard>No MultiSig Factory contract detected on this network</ErrorCard>
+          )}
+          <div className="w-full rounded-xl border border-border bg-card p-6">
+            <ConnectWallet />
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div variants={itemVariants} className="w-full">
+          <CreateMultiSigForm owner01={address.toString()} factory={multiSigFactory} />
+        </motion.div>
+      )}
+    </motion.div>
   )
 }
 

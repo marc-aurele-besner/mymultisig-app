@@ -2,6 +2,7 @@ import React from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 
+import { CodeBlock } from '@/components/ui/code-block'
 import GuideLayout, {
   GuideList,
   GuideNote,
@@ -13,7 +14,7 @@ import GuideLayout, {
 const siteUrl = 'https://mymultisig.app'
 
 const steps = [
-  { name: 'Create an API key', text: 'Mint a scoped key at /settings/agents while signed in with your wallet.' },
+  { name: 'Create an API key', text: 'Mint a scoped key at /settings/api-keys while signed in with your wallet.' },
   {
     name: 'Optionally give the agent an owner key',
     text: 'Generate a fresh key for the agent and add its address as an owner of the multisig so it can sign.'
@@ -31,11 +32,7 @@ const structuredData = {
   step: steps.map((step, index) => ({ '@type': 'HowToStep', position: index + 1, name: step.name, text: step.text }))
 }
 
-const Code: React.FC<{ children: string }> = ({ children }) => (
-  <pre className='overflow-x-auto rounded-lg border border-border bg-muted/40 p-4 font-mono text-xs leading-relaxed text-foreground'>
-    {children}
-  </pre>
-)
+const Code: React.FC<{ children: string }> = ({ children }) => <CodeBlock code={children} className='my-2' />
 
 const Page: React.FC = () => {
   return (
@@ -47,6 +44,12 @@ const Page: React.FC = () => {
         kicker='HOW-TO'
         title='Manage a multisig with AI agents'
         lead='Connect Claude, Cursor or any MCP-capable agent to MyMultiSig. The agent can check balances and the request queue, decode and review requests, propose transactions, sign them with its own owner key, and execute once the threshold is met. You keep the final say on every step.'
+        cta={{
+          title: 'Connect your first agent',
+          text: 'Create a scoped API key, then add the MCP server to your client.',
+          primary: { label: 'Create an API key', href: '/settings/api-keys' },
+          secondary: { label: 'Explore Agents & API', href: '/agents' }
+        }}
         related={[
           { title: 'Propose, sign, and execute transactions', href: '/docs/propose-sign-execute' },
           { title: 'Create a multisig', href: '/docs/create-a-multisig' }
@@ -55,7 +58,7 @@ const Page: React.FC = () => {
         <GuideSection title='How the agent gets its powers'>
           <GuideList>
             <li>
-              <strong>API key (optional):</strong> created at <Link href='/settings/agents'>Settings → AI agents</Link>.
+              <strong>API key (optional):</strong> created at <Link href='/settings/api-keys'>Settings → API keys</Link>.
               It acts as your wallet on mymultisig.app, limited to the scopes you pick:
               <ul className='ml-5 mt-1 list-disc'>
                 <li><code>read</code>: see your wallets.</li>
@@ -179,7 +182,7 @@ npx mymultisig-cli --json request propose --chain 11155111 --wallet 0x… \\
               Before signing, read the agent&apos;s <code>get_request</code> summary and warnings: delegatecall, owner or
               threshold changes, unlimited approvals.
             </li>
-            <li>Revoke a key at <Link href='/settings/agents'>Settings → AI agents</Link> the moment you stop using it.</li>
+            <li>Revoke a key at <Link href='/settings/api-keys'>Settings → API keys</Link> the moment you stop using it.</li>
           </GuideList>
         </GuideSection>
       </GuideLayout>

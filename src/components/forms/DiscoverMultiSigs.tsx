@@ -22,7 +22,7 @@ const DiscoverMultiSigs: React.FC<DiscoverMultiSigsProps> = ({ factory }) => {
   if (address == null) return null
 
   return (
-    <div className='flex flex-col gap-4 border-t border-border pt-8'>
+    <div className='flex flex-col gap-4 rounded-xl border border-border bg-card p-5 md:p-6'>
       <div>
         <h3 className='text-sm font-semibold text-foreground'>Wallets you created</h3>
         <p className='mt-1 text-sm text-muted-foreground'>

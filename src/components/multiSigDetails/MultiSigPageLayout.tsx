@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react'
 
-import BigCard from '../cards/BigCard'
 import MultiSigHeader from './MultiSigHeader'
 import MultiSigNav from './MultiSigNav'
 import useMultiSigs from '../../states/multiSigs'
@@ -10,8 +9,10 @@ interface MultiSigPageLayoutProps {
   children: React.ReactNode
 }
 
-// Shared shell for every /multisig/[address] subpage: wallet header, tab
-// navigation, and consistent spacing/width for the page content.
+// Shared frame for every /multisig/[address] subpage and for request pages:
+// the wallet header, then the page content. The wallet's sections live in
+// the app sidebar; the tab strip here only shows below `lg`, where the
+// sidebar is hidden.
 const MultiSigPageLayout: React.FC<MultiSigPageLayoutProps> = ({ multiSigAddress, children }) => {
   const { setSelectedMultiSigAddress } = useMultiSigs()
 
@@ -22,14 +23,10 @@ const MultiSigPageLayout: React.FC<MultiSigPageLayoutProps> = ({ multiSigAddress
   }, [multiSigAddress, setSelectedMultiSigAddress])
 
   return (
-    <div className='flex justify-center'>
-      <BigCard className='max-w-[1200px]'>
-        <div className='flex w-full flex-col gap-6'>
-          <MultiSigHeader multiSigAddress={multiSigAddress} />
-          <MultiSigNav multiSigAddress={multiSigAddress} />
-          <div className='w-full'>{children}</div>
-        </div>
-      </BigCard>
+    <div className='flex w-full flex-col gap-6'>
+      <MultiSigHeader multiSigAddress={multiSigAddress} />
+      <MultiSigNav multiSigAddress={multiSigAddress} />
+      <div className='w-full'>{children}</div>
     </div>
   )
 }

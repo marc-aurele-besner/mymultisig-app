@@ -1,9 +1,14 @@
 import React from 'react'
 
+import SettingsLayout from '../../components/settings/SettingsLayout'
 import AgentSettings from '../../components/views/AgentSettings'
 
 const Page: React.FC = () => {
-  return <AgentSettings />
+  return (
+    <SettingsLayout>
+      <AgentSettings />
+    </SettingsLayout>
+  )
 }
 
 export async function getStaticProps() {
@@ -11,7 +16,7 @@ export async function getStaticProps() {
     props: {
       title: 'MyMultiSig - AI agents',
       description:
-        'Create scoped API keys so AI agents can read your multisigs and queue requests through the MyMultiSig MCP server, CLI or SDK.',
+        'Connect Claude, Cursor or any MCP client to MyMultiSig: setup snippets for the MCP server, the Claude Code plugin and the CLI, plus the environment options.',
       path: '/settings/agents'
     }
   }

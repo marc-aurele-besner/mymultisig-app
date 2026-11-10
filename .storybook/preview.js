@@ -1,6 +1,7 @@
 import React from 'react'
 
 import '../src/styles/globals.css'
+import Web3Provider from '../src/components/web3/Web3Provider'
 
 export const parameters = {
   controls: {
@@ -49,10 +50,17 @@ export const parameters = {
   },
 }
 
+// Most components read wallet state through wagmi hooks, directly or through a
+// child (address inputs, network icons, the shell). Providing wagmi and React
+// Query here means no story fails with "`useConfig` must be used within
+// `WagmiProvider`" because it forgot its own wrapper. Stories that still wrap
+// themselves in Web3Provider keep working: the inner provider simply wins.
 export const decorators = [
   (Story) => (
-    <div style={{ minHeight: '100vh', padding: 24 }}>
-      <Story />
-    </div>
+    <Web3Provider>
+      <div style={{ minHeight: '100vh', padding: 24 }}>
+        <Story />
+      </div>
+    </Web3Provider>
   ),
 ]

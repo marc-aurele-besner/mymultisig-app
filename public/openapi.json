@@ -1132,7 +1132,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "mms_ API key",
-        "description": "Scoped API key from /settings/agents"
+        "description": "Scoped API key from /settings/api-keys"
       },
       "cookieAuth": {
         "type": "apiKey",

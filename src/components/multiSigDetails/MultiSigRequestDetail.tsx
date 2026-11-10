@@ -108,14 +108,6 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
   if (requestDetails.request.mode === 'userop') {
     return (
       <Fragment>
-        <div className='flex gap-2 px-6'>
-          <Button asChild>
-            <Link href={`/multisig/${requestDetails.multiSigAddress}/buildRequest`}>Build a request</Link>
-          </Button>
-          <Button asChild variant='outline'>
-            <Link href={`/multisig/${requestDetails.multiSigAddress}/requests`}>Consult requests</Link>
-          </Button>
-        </div>
         <ShareRequestLink requestId={multiSigRequestId} />
         <UserOpRequestCard
           request={requestDetails}
@@ -208,17 +200,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
 
   return (
     <Fragment>
-      <div className='flex gap-2 px-6'>
-        <Button asChild>
-          <Link href={`/multisig/${requestDetails.multiSigAddress}/buildRequest`}>Build a request</Link>
-        </Button>
-        <Button asChild variant='outline'>
-          <Link href={`/multisig/${requestDetails.multiSigAddress}/requests`}>Consult requests</Link>
-        </Button>
-      </div>
-      <div className='mt-4'>
-        <ShareRequestLink requestId={multiSigRequestId} />
-      </div>
+      <ShareRequestLink requestId={multiSigRequestId} />
 
       <section className='mt-4 w-full overflow-hidden rounded-xl border border-border bg-card'>
         <header className='flex flex-wrap items-start justify-between gap-4 p-5 md:p-6'>
@@ -472,16 +454,6 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
         )}
       </section>
 
-      <div className='flex justify-center'>
-        <Button asChild className='m-4'>
-          <Link
-            href={`/multisig/${requestDetails.multiSigAddress}/requests`}
-            onClick={() => setSelectedMultiSigTransactionRequest(null)}
-          >
-            View a different request
-          </Link>
-        </Button>
-      </div>
     </Fragment>
   )
 }
