@@ -80,11 +80,13 @@ yarn packages:build && yarn packages:test
 (cd packages/cli && npm publish --otp <code>)
 ```
 
-The plugin's `.mcp.json` pins an exact version (`mymultisig-mcp@0.1.1`). The Claude plugin directory blocks ranges, so after each MCP release:
+The plugin's `.mcp.json` runs `npx -y mymultisig-mcp@<exact version>`, because the Claude plugin directory blocks ranges. After each MCP release:
 - bump that pin;
 - bump `version` in `plugins/mymultisig/.claude-plugin/plugin.json`, so the directory and installed users pick up the change.
 
-The plugin takes its keys through `userConfig`. They are masked prompts stored in the OS credential store, then passed to the server as `${user_config.*}`. That's because the directory holds plugins that read credentials from the user's shell environment for manual review.
+Don't switch to a `package.json` + lockfile install. The directory blocks running a server straight from `node_modules`. It also says lockfile installs, like local MCP servers, will later be accepted only from Verified organizations.
+
+The plugin takes its keys through `userConfig`. They are masked prompts stored in the OS credential store, and `.mcp.json` passes them to the server as `CLAUDE_PLUGIN_OPTION_<KEY>` env vars. That's the name the directory expects, and the server reads it as a fallback for `MYMULTISIG_<KEY>`. The directory holds plugins that read credentials from the user's shell environment for manual review, which is why the keys don't come from there.
 
 ### Claude plugin directory
 
