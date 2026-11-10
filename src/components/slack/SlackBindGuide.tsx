@@ -1,11 +1,12 @@
-import React, { useState } from 'react'
+import React from 'react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
+import { CodeBlock } from '@/components/ui/code-block'
 import { cn } from '@/lib/utils'
 import { bindCommandFor } from '../../lib/slack/chainAliases'
 import { SlackWorkspace } from '../../models/Slack'
-import { CheckIcon, CopyIcon, ExternalLinkIcon, RefreshIcon } from '../icons/ChakraIcons'
+import { ExternalLinkIcon, RefreshIcon } from '../icons/ChakraIcons'
 
 export interface BindableMultiSig {
   address: `0x${string}`
@@ -29,39 +30,11 @@ const shortenAddress = (address: string): string => `${address.slice(0, 6)}…${
 // installed, Slack offers to open it there.
 export const slackWorkspaceUrl = (teamId: string): string => `https://app.slack.com/client/${encodeURIComponent(teamId)}`
 
+// A slash command to paste into Slack, syntax-coloured with a copy button.
 export const CopyCommand: React.FC<{ command: string; label?: string; className?: string }> = ({
   command,
-  label,
   className
-}) => {
-  const [copied, setCopied] = useState(false)
-  const onCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(command)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
-    } catch {
-      // Clipboard access denied; the command stays selectable for manual copy.
-    }
-  }
-  return (
-    <div className={cn('flex min-w-0 items-center gap-2 rounded-md border border-border bg-muted/40 p-1 pl-3', className)}>
-      <code className='min-w-0 flex-1 select-all py-1 [overflow-wrap:anywhere] font-mono text-xs text-foreground' title={command}>
-        {command}
-      </code>
-      <Button
-        variant='ghost'
-        size='sm'
-        onClick={() => void onCopy()}
-        aria-label={label ?? `Copy ${command}`}
-        className='shrink-0'
-      >
-        {copied ? <CheckIcon className='h-4 w-4 animate-pop-in text-primary' /> : <CopyIcon className='h-4 w-4' />}
-        {copied ? 'Copied' : 'Copy'}
-      </Button>
-    </div>
-  )
-}
+}) => <CodeBlock code={command} language='bash' inline className={className} />
 
 const Step: React.FC<{ n: number; title: string; children: React.ReactNode }> = ({ n, title, children }) => (
   <li className='flex gap-3'>

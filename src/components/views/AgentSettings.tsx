@@ -5,31 +5,36 @@ import { BotIcon, KeyRoundIcon, ShieldIcon } from 'lucide-react'
 
 import BigCard from '../cards/BigCard'
 import { Button } from '@/components/ui/button'
-import { CopyButton, mcpConfig } from './ApiKeySettings'
+import { CodeBlock } from '@/components/ui/code-block'
+import { mcpConfig } from './ApiKeySettings'
 import { AgentApiKey, listAgentApiKeys } from '../../utils/api'
 
 const KEY_PLACEHOLDER = 'mms_…'
 
-const CLIENTS: { title: string; hint: string; snippet: string }[] = [
+const CLIENTS: { title: string; hint: string; snippet: string; file: string }[] = [
   {
     title: 'Claude Code (plugin)',
     hint: 'Bundles the MCP server and the multisig workflow skills.',
-    snippet: '/plugin marketplace add marc-aurele-besner/mymultisig-app\n/plugin install mymultisig@mymultisig'
+    snippet: '/plugin marketplace add marc-aurele-besner/mymultisig-app\n/plugin install mymultisig@mymultisig',
+    file: 'Claude Code'
   },
   {
     title: 'Claude Code (server only)',
     hint: 'Adds just the MCP server.',
-    snippet: `claude mcp add mymultisig -e MYMULTISIG_API_KEY=${KEY_PLACEHOLDER} -- npx -y mymultisig-mcp`
+    snippet: `claude mcp add mymultisig -e MYMULTISIG_API_KEY=${KEY_PLACEHOLDER} -- npx -y mymultisig-mcp`,
+    file: 'terminal'
   },
   {
     title: 'Claude Desktop, Cursor and other MCP clients',
     hint: 'Add this to the client’s MCP config.',
-    snippet: mcpConfig(KEY_PLACEHOLDER)
+    snippet: mcpConfig(KEY_PLACEHOLDER),
+    file: 'mcp config · json'
   },
   {
     title: 'Command line',
     hint: 'The same engine for scripts and CI. Reads MYMULTISIG_API_KEY from the environment.',
-    snippet: 'npx mymultisig-cli --help'
+    snippet: 'npx mymultisig-cli --help',
+    file: 'terminal'
   }
 ]
 
@@ -121,16 +126,11 @@ const AgentSettings: React.FC = () => {
             <h2 className='text-lg font-semibold text-foreground'>Connect a client</h2>
             {CLIENTS.map((client) => (
               <div key={client.title} className='flex flex-col gap-2 rounded-lg border border-border p-4'>
-                <div className='flex flex-wrap items-start justify-between gap-3'>
-                  <div>
-                    <h3 className='text-sm font-semibold text-foreground'>{client.title}</h3>
-                    <p className='text-xs text-muted-foreground'>{client.hint}</p>
-                  </div>
-                  <CopyButton value={client.snippet} />
+                <div>
+                  <h3 className='text-sm font-semibold text-foreground'>{client.title}</h3>
+                  <p className='text-xs text-muted-foreground'>{client.hint}</p>
                 </div>
-                <pre className='overflow-x-auto rounded bg-background p-3 font-mono text-xs text-foreground'>
-                  {client.snippet}
-                </pre>
+                <CodeBlock code={client.snippet} title={client.file} />
               </div>
             ))}
           </section>

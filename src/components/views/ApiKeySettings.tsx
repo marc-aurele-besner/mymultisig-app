@@ -6,6 +6,7 @@ import { isAddress } from 'viem'
 
 import BigCard from '../cards/BigCard'
 import { Button } from '@/components/ui/button'
+import { CodeBlock } from '@/components/ui/code-block'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -247,22 +248,15 @@ const ApiKeySettings: React.FC = () => {
                 <CopyButton value={newKey} />
               </div>
               <p className='text-sm text-muted-foreground'>Claude Code:</p>
-              <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
-                <code className='break-all rounded bg-background px-2 py-1 font-mono text-xs'>
-                  {`claude mcp add mymultisig -e MYMULTISIG_API_KEY=${newKey} -- npx -y mymultisig-mcp`}
-                </code>
-                <CopyButton
-                  value={`claude mcp add mymultisig -e MYMULTISIG_API_KEY=${newKey} -- npx -y mymultisig-mcp`}
-                />
-              </div>
+              <CodeBlock
+                title='terminal'
+                code={`claude mcp add mymultisig -e MYMULTISIG_API_KEY=${newKey} -- npx -y mymultisig-mcp`}
+              />
               <p className='text-sm text-muted-foreground'>Claude Desktop, Cursor and other MCP clients:</p>
-              <pre className='overflow-x-auto rounded bg-background p-3 font-mono text-xs'>{mcpConfig(newKey)}</pre>
-              <div className='flex flex-wrap items-center gap-3'>
-                <CopyButton value={mcpConfig(newKey)} label='Copy config' />
-                <Link href='/settings/agents' className='text-sm text-primary underline-offset-4 hover:underline'>
-                  More clients and options →
-                </Link>
-              </div>
+              <CodeBlock title='mcp config · json' code={mcpConfig(newKey)} />
+              <Link href='/settings/agents' className='text-sm text-primary underline-offset-4 hover:underline'>
+                More clients and options →
+              </Link>
             </div>
           )}
 

@@ -2,6 +2,7 @@ import React from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 
+import { CodeBlock } from '@/components/ui/code-block'
 import GuideLayout, {
   GuideList,
   GuideNote,
@@ -31,11 +32,7 @@ const structuredData = {
   step: steps.map((step, index) => ({ '@type': 'HowToStep', position: index + 1, name: step.name, text: step.text }))
 }
 
-const Code: React.FC<{ children: string }> = ({ children }) => (
-  <pre className='overflow-x-auto rounded-lg border border-border bg-muted/40 p-4 font-mono text-xs leading-relaxed text-foreground'>
-    {children}
-  </pre>
-)
+const Code: React.FC<{ children: string }> = ({ children }) => <CodeBlock code={children} className='my-2' />
 
 const Page: React.FC = () => {
   return (
