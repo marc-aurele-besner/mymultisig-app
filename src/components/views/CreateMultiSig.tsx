@@ -28,7 +28,10 @@ const itemVariants = {
 
 const CreateMultiSig: React.FC = () => {
   const [hasMounted, setHasMounted] = useState(false)
-  const { isConnected, address } = useAccount()
+  const { isConnected: walletConnected, address } = useAccount()
+  // Wallet state only exists in the browser: until mounted, render the
+  // disconnected variant so the heading and copy are in the static HTML.
+  const isConnected = hasMounted && walletConnected
   const chainId = useChainId()
   const chains = useChains()
   const chain = chains.find((c) => c.id === chainId)
@@ -37,8 +40,6 @@ const CreateMultiSig: React.FC = () => {
   useEffect(() => {
     setHasMounted(true)
   }, [])
-
-  if (!hasMounted) return null
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="flex w-full flex-col gap-6">
@@ -50,7 +51,7 @@ const CreateMultiSig: React.FC = () => {
           className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl"
         />
         <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-          {chain && (
+          {hasMounted && chain && (
             <span className="flex items-center gap-1.5 font-medium text-foreground">
               <NetworkIcon chainId={chain.id} name={chain.name} size={16} />
               {chain.name}

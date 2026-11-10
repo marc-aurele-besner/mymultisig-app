@@ -11,7 +11,7 @@ export async function getStaticProps() {
     props: {
       title: 'MyMultiSig - Get started',
       description:
-        'A guided path from connecting a wallet to your first executed multisig transaction: sign in, create or import a multisig, fund it, propose, collect signatures and execute.',
+        'From connecting a wallet to your first executed multisig transaction: create or import a multisig, fund it, propose, collect signatures and execute.',
       path: '/get-started'
     }
   }

@@ -17,6 +17,7 @@ export async function getStaticProps() {
       title: 'MyMultiSig - API keys',
       description:
         'Create, list and revoke scoped API keys for the MyMultiSig REST API, CLI, SDK and AI agents. Keys can be limited to specific multisigs and given an expiry.',
+      noIndex: true,
       path: '/settings/api-keys'
     }
   }

@@ -17,6 +17,7 @@ export async function getStaticProps() {
       title: 'MyMultiSig - Email settings',
       description:
         'Set the inbox that receives signature requests and ready-to-execute notifications for the multisig wallets you own.',
+      noIndex: true,
       path: '/settings/email'
     }
   }
