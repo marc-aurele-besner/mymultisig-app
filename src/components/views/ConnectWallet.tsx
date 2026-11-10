@@ -1,7 +1,17 @@
 import React from 'react'
 import { useConnect } from 'wagmi'
 import { motion } from 'framer-motion'
-import { WalletCoinbase, WalletMetamask, WalletWalletConnect } from '@web3icons/react'
+import {
+  WalletCoinbase,
+  WalletMetamask,
+  WalletOkx,
+  WalletPhantom,
+  WalletRabby,
+  WalletRainbow,
+  WalletTrust,
+  WalletWalletConnect,
+  WalletZerion
+} from '@web3icons/react'
 import { cn } from '@/lib/utils'
 import ErrorCard from '../cards/ErrorCard'
 import { WalletIcon } from '../icons/wallet'
@@ -15,38 +25,51 @@ const BrowserWalletMark: WalletMark = ({ size }) => (
   <WalletIcon width={size} height={size} className='text-foreground' />
 )
 
-const walletConfig: Record<string, { name: string; Mark: WalletMark; description: string }> = {
-  metaMaskSDK: {
-    name: 'MetaMask',
-    Mark: ({ size }) => <WalletMetamask size={size} variant='branded' />,
-    description: 'Connect using MetaMask'
-  },
-  coinbaseWalletSDK: {
-    name: 'Coinbase',
-    Mark: ({ size }) => <WalletCoinbase size={size} variant='branded' />,
-    description: 'Connect using Coinbase Wallet'
-  },
-  walletConnect: {
-    name: 'WalletConnect',
-    Mark: ({ size }) => <WalletWalletConnect size={size} variant='branded' />,
-    description: 'Scan with WalletConnect'
-  },
-  injected: {
-    name: 'Browser Wallet',
-    Mark: BrowserWalletMark,
-    description: 'Use injected provider'
-  }
+interface WalletBrand {
+  name: string
+  Mark: WalletMark
 }
 
-// Connector ids vary across wagmi versions ('metaMask' vs 'metaMaskSDK'); fall
-// back to a name match before giving up on a branded mark.
-const configForConnector = (connector: { id: string; name: string }) =>
-  walletConfig[connector.id] ??
-  Object.values(walletConfig).find((c) => connector.name.toLowerCase().includes(c.name.toLowerCase())) ?? {
-    name: connector.name,
-    Mark: BrowserWalletMark,
-    description: `Connect with ${connector.name}`
-  }
+// Marks by connector id, for the connectors configured in Web3Provider.
+const walletConfig: Record<string, WalletBrand> = {
+  metaMaskSDK: { name: 'MetaMask', Mark: ({ size }) => <WalletMetamask size={size} variant='branded' /> },
+  coinbaseWalletSDK: { name: 'Coinbase', Mark: ({ size }) => <WalletCoinbase size={size} variant='branded' /> },
+  walletConnect: { name: 'WalletConnect', Mark: ({ size }) => <WalletWalletConnect size={size} variant='branded' /> },
+  injected: { name: 'Browser Wallet', Mark: BrowserWalletMark }
+}
+
+// Marks by name, for wallets that announce themselves in the browser
+// (EIP-6963): they arrive as extra connectors with ids we do not control.
+const knownByName: { match: RegExp; Mark: WalletMark }[] = [
+  { match: /metamask/i, Mark: ({ size }) => <WalletMetamask size={size} variant='branded' /> },
+  { match: /coinbase/i, Mark: ({ size }) => <WalletCoinbase size={size} variant='branded' /> },
+  { match: /walletconnect/i, Mark: ({ size }) => <WalletWalletConnect size={size} variant='branded' /> },
+  { match: /phantom/i, Mark: ({ size }) => <WalletPhantom size={size} variant='branded' /> },
+  { match: /rabby/i, Mark: ({ size }) => <WalletRabby size={size} variant='branded' /> },
+  { match: /rainbow/i, Mark: ({ size }) => <WalletRainbow size={size} variant='branded' /> },
+  { match: /okx/i, Mark: ({ size }) => <WalletOkx size={size} variant='branded' /> },
+  { match: /trust/i, Mark: ({ size }) => <WalletTrust size={size} variant='branded' /> },
+  { match: /zerion/i, Mark: ({ size }) => <WalletZerion size={size} variant='branded' /> }
+]
+
+// Resolution order: our configured connectors by id, then a known brand by
+// name, then the icon the wallet announces about itself, then a generic mark.
+// Wallets without a packaged mark (SubWallet, for one) get their own official
+// icon this way, straight from the extension.
+const configForConnector = (connector: { id: string; name: string; icon?: string }): WalletBrand => {
+  const byId = walletConfig[connector.id]
+  if (byId != null) return byId
+  const known = knownByName.find((entry) => entry.match.test(connector.name) || entry.match.test(connector.id))
+  if (known != null) return { name: connector.name, Mark: known.Mark }
+  const announced = connector.icon
+  if (announced != null && announced !== '')
+    return {
+      name: connector.name,
+      // eslint-disable-next-line @next/next/no-img-element -- a data URI supplied by the wallet extension
+      Mark: ({ size }) => <img src={announced} alt='' width={size} height={size} className='rounded-md' />
+    }
+  return { name: connector.name, Mark: BrowserWalletMark }
+}
 
 export interface ConnectWalletProps {
   // Two columns and no heading, for narrow containers that bring their own
