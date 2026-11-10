@@ -3,6 +3,7 @@ import { DEFAULT_API_URL, type MyMultiSigClientOptions } from 'mymultisig-sdk'
 export type ServerConfig = {
   client: MyMultiSigClientOptions
   readOnly: boolean
+  allowSoloExecution: boolean
 }
 
 const truthy = (value: string | undefined) => value != null && /^(1|true|yes|on)$/i.test(value.trim())
@@ -18,6 +19,10 @@ const truthy = (value: string | undefined) => value != null && /^(1|true|yes|on)
 //   MYMULTISIG_RPC_URL_<id>  RPC per chain id, e.g. MYMULTISIG_RPC_URL_11155111
 //   MYMULTISIG_CHAINS        comma-separated chain id allowlist, e.g. 11155111
 //   MYMULTISIG_READ_ONLY     1 = register read tools only
+//   MYMULTISIG_ALLOW_SOLO_EXECUTION
+//                            1 = let the agent execute without another owner's
+//                            approval and deploy wallets it could run alone.
+//                            Off by default (human-in-the-loop guard).
 //
 // The Claude Code plugin passes its userConfig options as
 // CLAUDE_PLUGIN_OPTION_<KEY> (API_KEY, PRIVATE_KEY, CHAINS, READ_ONLY), the
@@ -49,6 +54,7 @@ export const loadConfig = (rawEnv: NodeJS.ProcessEnv = process.env): ServerConfi
       rpcUrls,
       allowedChainIds: chains && chains.length > 0 ? chains : undefined
     },
-    readOnly: truthy(env.MYMULTISIG_READ_ONLY)
+    readOnly: truthy(env.MYMULTISIG_READ_ONLY),
+    allowSoloExecution: truthy(env.MYMULTISIG_ALLOW_SOLO_EXECUTION)
   }
 }

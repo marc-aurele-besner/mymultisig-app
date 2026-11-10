@@ -30,7 +30,13 @@ Without any setting, the agent can still read public wallet state and queued req
 - `review-and-sign`: decode, verify and sign a request after confirmation.
 - `execute-queue`: execute requests that reached their threshold, in order.
 
-Every write (deploy, propose, approve, execute, cancel, reset) is an MCP tool marked destructive, so Claude asks before running it.
+Every write (deploy, propose, approve, execute, cancel, reset) is an MCP tool annotated as a write, so Claude asks before running it.
+
+A human stays in the loop:
+- the server won't execute a request that only the agent has signed;
+- it won't deploy a wallet the agent could run alone (threshold 1 with the agent as an owner).
+
+Another owner must approve every transaction before it moves funds.
 
 ## What this plugin runs and sends
 

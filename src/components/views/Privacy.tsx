@@ -2,7 +2,7 @@ import React from 'react'
 import Link from 'next/link'
 import BigCard from '../cards/BigCard'
 
-const LAST_UPDATED = 'July 14, 2026'
+const LAST_UPDATED = 'November 9, 2026'
 
 const sections = [
   {
@@ -17,7 +17,8 @@ const sections = [
       'Wallet addresses and multisig configuration. When you create or import a multisig, its address, name, chain, signer addresses, and threshold are stored in our database so the App can display your wallets across devices.',
       'Transaction requests. Proposed transactions and their collected signatures are stored in our database until they are executed or discarded.',
       'Sign-In with Ethereum sessions. When you sign in, a session cookie tied to your wallet address is set so the App can authorize writes to our database. The cookie contains no personal information beyond your public wallet address.',
-      'Contact form submissions. If you use the contact form, the name, email address, and message you provide are emailed to us so we can respond.'
+      'Contact form submissions. If you use the contact form, the name, email address, and message you provide are emailed to us so we can respond.',
+      'Agent API keys. If you create an API key for an AI agent or script at /settings/agents, we store a one-way hash of the key (never the key itself), its first characters so you can recognize it, its name, scopes, optional wallet allowlist and expiry, the wallet that created it, and when it was last used. You can revoke a key at any time and it stops working immediately.'
     ]
   },
   {
@@ -27,31 +28,38 @@ const sections = [
     ]
   },
   {
-    title: '4. Analytics',
+    title: '4. AI agent tools',
+    paragraphs: [
+      'The mymultisig-mcp server, the mymultisig CLI, and the MyMultiSig plugin for Claude Code run on your own machine and collect no telemetry. An agent’s private key is used only on that machine to sign, and is never sent to us.',
+      'These tools send our API only what each action needs: wallet and request data, signatures, and your API key or a Sign-In with Ethereum session. They send blockchain reads and transactions to the RPC endpoints of the chains you use. They do not send us your conversations with an AI assistant.'
+    ]
+  },
+  {
+    title: '5. Analytics',
     paragraphs: [
       'We use Google Analytics to understand aggregate usage of the App (pages visited, approximate location, device type). Google Analytics sets cookies and processes data under its own privacy policy. You can block it with standard browser tools or extensions without affecting the App’s functionality.'
     ]
   },
   {
-    title: '5. Third-party services',
+    title: '6. Third-party services',
     paragraphs: [
       'The App relies on third-party infrastructure that may process your IP address and request metadata under their own privacy policies: Netlify (hosting), Neon (database), WalletConnect (wallet connections), RPC providers such as Alchemy, Infura, or public endpoints (blockchain reads and writes), Resend (contact form and email notification delivery), and Google Analytics (usage analytics).'
     ]
   },
   {
-    title: '6. On-chain data',
+    title: '7. On-chain data',
     paragraphs: [
       'Anything you write to a public blockchain — multisig deployments, signer sets, executed transactions — is public, permanent, and outside of our control. This policy cannot apply to on-chain data.'
     ]
   },
   {
-    title: '7. Data retention and removal',
+    title: '8. Data retention and removal',
     paragraphs: [
-      'Multisig and transaction data remains in our database so that all signers can access it. If you want data associated with your wallet removed, contact us and we will delete what we reasonably can, keeping in mind that other signers may depend on shared multisig records and that on-chain data cannot be deleted.'
+      'Multisig and transaction data remains in our database so that all signers can access it. Agent API key records are kept until you revoke them, then retained only as revoked entries. If you want data associated with your wallet removed, contact us and we will delete what we reasonably can, keeping in mind that other signers may depend on shared multisig records and that on-chain data cannot be deleted.'
     ]
   },
   {
-    title: '8. Changes to this policy',
+    title: '9. Changes to this policy',
     paragraphs: [
       'We may update this policy from time to time. The "Last updated" date at the top of this page reflects the most recent revision.'
     ]
@@ -82,7 +90,7 @@ const Privacy: React.FC = () => {
           ))}
 
           <section className="flex flex-col gap-3">
-            <h2 className="text-lg font-semibold text-foreground">9. Contact</h2>
+            <h2 className="text-lg font-semibold text-foreground">10. Contact</h2>
             <p className="text-sm leading-relaxed text-muted-foreground">
               Questions about this policy or a data removal request? Reach out through the{' '}
               <Link href="/contact" className="text-primary underline-offset-4 hover:underline">
