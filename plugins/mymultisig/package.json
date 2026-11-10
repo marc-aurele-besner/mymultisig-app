@@ -1,9 +1,0 @@
-{
-  "name": "mymultisig-plugin",
-  "private": true,
-  "description": "Runtime dependency of the MyMultiSig Claude Code plugin: the mymultisig-mcp server, installed from the lockfile when the plugin is installed.",
-  "license": "MIT",
-  "dependencies": {
-    "mymultisig-mcp": "0.1.2"
-  }
-}

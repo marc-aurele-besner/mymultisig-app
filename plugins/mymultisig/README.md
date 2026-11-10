@@ -34,8 +34,7 @@ Every write (deploy, propose, approve, execute, cancel, reset) is an MCP tool ma
 
 ## What this plugin runs and sends
 
-- **Installs:** when you install the plugin, Claude Code installs the [`mymultisig-mcp`](https://www.npmjs.com/package/mymultisig-mcp) package and its dependencies from npm. It uses the exact versions and hashes in this folder's `package-lock.json`, and no install scripts run.
-- **Runs:** that MCP server, locally, with `node`. Its source is in [`packages/mcp`](https://github.com/marc-aurele-besner/mymultisig-app/tree/main/packages/mcp) of this repository.
+- **Runs:** the [`mymultisig-mcp`](https://www.npmjs.com/package/mymultisig-mcp) MCP server. It's pinned to an exact version, fetched from the public npm registry, and started locally with `npx`. Its source is in [`packages/mcp`](https://github.com/marc-aurele-besner/mymultisig-app/tree/main/packages/mcp) of this repository.
 - **Sends to https://mymultisig.app:** REST calls to list wallets and requests and to queue, sign, cancel or reset requests. Those calls carry your API key (as a `Bearer` header) or a Sign-In with Ethereum session signed locally. They also carry request data and the EIP-712 signatures the agent produced.
 - **Sends to public RPC endpoints of the chains you use:** contract reads, and transactions the agent signs (deploy and execute).
 - **Never sends:** the private key. It is only used in the local process to sign.
