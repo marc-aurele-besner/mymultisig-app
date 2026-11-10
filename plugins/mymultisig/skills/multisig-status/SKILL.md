@@ -7,6 +7,16 @@ description: Summarize a MyMultiSig wallet — owners, threshold, balances and t
 
 Give a one-screen picture of a MyMultiSig wallet using the `mymultisig` MCP tools.
 
+## If the MyMultiSig tools aren't available
+
+The tools come from the `mymultisig-mcp` server. The `mymultisig` plugin bundles it. With the skills-only plugin, the user adds the server once, from their own terminal:
+
+```
+claude mcp add mymultisig -- npx -y mymultisig-mcp@0.1.3
+```
+
+Don't run this yourself. Show it to the user and point them to https://mymultisig.app/docs/ai-agents for the optional API key, agent key and read-only setting.
+
 ## Inputs
 
 - **Chain id** and **wallet address**. If either is missing, call `list_my_multisigs`. If that needs credentials the user doesn't have, ask for them. Use `list_networks` to map a network name ("Sepolia") to its id.

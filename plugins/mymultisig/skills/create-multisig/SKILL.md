@@ -7,6 +7,16 @@ description: Deploy a new MyMultiSig multi-signature wallet with chosen owners a
 
 Deploys a wallet from the official MyMultiSig factory using the `mymultisig` MCP tools. The agent's key (`MYMULTISIG_PRIVATE_KEY`) sends the deployment transaction and pays the gas.
 
+## If the MyMultiSig tools aren't available
+
+The tools come from the `mymultisig-mcp` server. The `mymultisig` plugin bundles it. With the skills-only plugin, the user adds the server once, from their own terminal:
+
+```
+claude mcp add mymultisig -- npx -y mymultisig-mcp@0.1.3
+```
+
+Don't run this yourself. Show it to the user and point them to https://mymultisig.app/docs/ai-agents for the optional API key, agent key and read-only setting.
+
 ## 1. Gather and check the inputs
 
 - **Chain**: confirm the network by name and id (`list_networks`). Default to a testnet such as Sepolia (11155111) unless the user explicitly asks for mainnet.
