@@ -1,13 +1,13 @@
 {
   "mcpServers": {
     "mymultisig": {
-      "command": "npx",
-      "args": ["-y", "mymultisig-mcp@0.1.1"],
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/node_modules/mymultisig-mcp/dist/index.js"],
       "env": {
-        "MYMULTISIG_API_KEY": "${user_config.api_key}",
-        "MYMULTISIG_PRIVATE_KEY": "${user_config.private_key}",
-        "MYMULTISIG_CHAINS": "${user_config.chains}",
-        "MYMULTISIG_READ_ONLY": "${user_config.read_only}"
+        "CLAUDE_PLUGIN_OPTION_API_KEY": "${user_config.api_key}",
+        "CLAUDE_PLUGIN_OPTION_PRIVATE_KEY": "${user_config.private_key}",
+        "CLAUDE_PLUGIN_OPTION_CHAINS": "${user_config.chains}",
+        "CLAUDE_PLUGIN_OPTION_READ_ONLY": "${user_config.read_only}"
       }
     }
   }
