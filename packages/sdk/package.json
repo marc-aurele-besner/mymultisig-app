@@ -38,6 +38,7 @@
     "mymultisig-contract": "0.5.1",
     "tsup": "^9.0.0",
     "typescript": "^6.0.3",
+    "vite": "^8.3.7",
     "vitest": "^5.0.0"
   },
   "repository": {
