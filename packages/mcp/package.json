@@ -27,7 +27,7 @@
     "@modelcontextprotocol/sdk": "^1.17.0",
     "mymultisig-sdk": "0.1.0",
     "viem": "^2.43.3",
-    "zod": "^3.25.0"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
