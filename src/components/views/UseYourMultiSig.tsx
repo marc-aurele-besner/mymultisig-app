@@ -21,7 +21,10 @@ type NetworkFilter = 'all' | 'current'
 // another network switches the app to it first.
 const UseYourMultiSig: React.FC = () => {
   const hasMounted = useHasMounted()
-  const { isConnected, address } = useAccount()
+  const { isConnected: walletConnected, address } = useAccount()
+  // Wallet and saved-multisig state only exist in the browser: until mounted,
+  // render the disconnected variant so the heading and copy are in the static HTML.
+  const isConnected = hasMounted && walletConnected
   const chainId = useChainId()
   const chains = useChains()
   const chain = chains.find((c) => c.id === chainId)
@@ -31,8 +34,6 @@ const UseYourMultiSig: React.FC = () => {
   const [filter, setFilter] = useState<NetworkFilter>('all')
   const [query, setQuery] = useState('')
   const [confirmRemove, setConfirmRemove] = useState(false)
-
-  if (!hasMounted) return null
 
   const needle = query.trim().toLowerCase()
   const visible = multiSigs.filter(

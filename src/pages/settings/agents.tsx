@@ -17,6 +17,7 @@ export async function getStaticProps() {
       title: 'MyMultiSig - AI agents',
       description:
         'Connect Claude, Cursor or any MCP client to MyMultiSig: setup snippets for the MCP server, the Claude Code plugin and the CLI, plus the environment options.',
+      noIndex: true,
       path: '/settings/agents'
     }
   }

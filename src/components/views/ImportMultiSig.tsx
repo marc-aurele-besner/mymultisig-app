@@ -21,8 +21,6 @@ const ImportMultiSig: React.FC = () => {
     setHasMounted(true)
   }, [])
 
-  if (!hasMounted) return null
-
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <header>
@@ -33,7 +31,7 @@ const ImportMultiSig: React.FC = () => {
           className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl"
         />
         <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-          {chain && (
+          {hasMounted && chain && (
             <span className="flex items-center gap-1.5 font-medium text-foreground">
               <NetworkIcon chainId={chain.id} name={chain.name} size={16} />
               {chain.name}
@@ -43,7 +41,8 @@ const ImportMultiSig: React.FC = () => {
         </p>
       </header>
 
-      {multiSigFactory != null ? (
+      {/* DiscoverMultiSigs reads the saved multisigs in this browser: mount it client-side only */}
+      {!hasMounted ? null : multiSigFactory != null ? (
         <>
           <section className="rounded-xl border border-border bg-card p-5 md:p-6">
             <ImportMultiSigForm factory={multiSigFactory} />

@@ -201,7 +201,7 @@ export async function getStaticProps() {
     props: {
       title: 'Manage a multisig with AI agents - MyMultiSig Guides',
       description:
-        'Connect Claude, Cursor or any MCP client to MyMultiSig: scoped API keys, the mymultisig-mcp server, a Claude Code plugin, CLI and SDK to create, propose, sign and execute multisig transactions.',
+        'Connect Claude, Cursor or any MCP client to MyMultiSig with scoped API keys, the MCP server, a Claude Code plugin, CLI and SDK.',
       path: '/docs/ai-agents'
     }
   }
