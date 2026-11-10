@@ -39,6 +39,10 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 - `useOnboarding` derives the getting-started checklist (`/get-started`, sidebar chip, inbox card) from real state; `src/states/onboarding.ts` only stores "hidden" and "visited notifications".
 - Connecting goes through one dialog, `modals/ConnectModal.tsx`, opened via the `states/connectModal.ts` store. The risk disclaimer is asked for inside `views/ConnectWallet.tsx` the first time a wallet is picked, not on page load.
 - Top-level pages open with `components/layout/PageHero.tsx` (typed eyebrow, word-reveal title, optional animated visual). Third-party marks (Slack, Discord, Telegram, email) come from `icons/BrandIcon.tsx`.
+- Wallet pages are built from `components/common/` (`SectionCard`, `AddressRow`, `Identicon`). Show addresses with `AddressRow`, not raw hex.
+- The request builder (`forms/CreateMultiSigRequestForm.tsx`) has templates (send funds, send a token, call, batch, raw) over one generic step model, plus a live preview that holds the sign button. A template only presets and hides fields; "Send a token" is a `transfer(to, amount)` step with `contractKey: 'erc20'`.
+- Wallet settings (`views/MultiSigSettings.tsx`) are split into sections by `?section=`; the legacy `#rpc` anchor maps to the Connection section. Panels a wallet cannot use render a `Locked` explainer instead of disappearing.
+- Code snippets use `components/ui/code-block.tsx` (JSON and shell colouring). Its colours are the `--code-*` tokens in `globals.css`, defined for both themes.
 - Account settings pages share `components/settings/SettingsLayout.tsx`. Notifications live on `/integration`; agent and developer tooling on `/agents`.
 
 ### Web3
