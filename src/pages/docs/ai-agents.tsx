@@ -78,7 +78,9 @@ const Page: React.FC = () => {
           </GuideList>
           <GuideNote>
             The safest setup is a threshold the agent can never meet alone. For example, in a 2-of-3 with two humans
-            plus the agent, the agent can prepare and co-sign, but nothing moves without a human signature.
+            plus the agent, the agent can prepare and co-sign, but nothing moves without a human signature. The MCP
+            server enforces this. It won&apos;t execute a request that only the agent has signed, and it won&apos;t
+            deploy a wallet the agent could run alone (threshold 1 with the agent as an owner).
           </GuideNote>
         </GuideSection>
 
@@ -120,6 +122,10 @@ const Page: React.FC = () => {
             </li>
             <li>
               <code>MYMULTISIG_READ_ONLY=1</code> exposes read tools only.
+            </li>
+            <li>
+              <code>MYMULTISIG_ALLOW_SOLO_EXECUTION=1</code> turns off the human-in-the-loop guard, so the agent can
+              execute without another owner&apos;s approval. Leave it unset unless you mean it.
             </li>
             <li>
               <code>MYMULTISIG_CHAINS</code> limits the agent to the listed chains.
@@ -195,7 +201,7 @@ export async function getStaticProps() {
     props: {
       title: 'Manage a multisig with AI agents - MyMultiSig Guides',
       description:
-        'Connect Claude, Cursor or any MCP client to MyMultiSig: scoped API keys, the mymultisig-mcp server, a Claude Code plugin, CLI and SDK to create, propose, sign and execute multisig transactions.',
+        'Connect Claude, Cursor or any MCP client to MyMultiSig with scoped API keys, the MCP server, a Claude Code plugin, CLI and SDK.',
       path: '/docs/ai-agents'
     }
   }

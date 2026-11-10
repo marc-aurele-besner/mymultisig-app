@@ -11,12 +11,18 @@ This guide is for operators and contributors. For the user guide, see `/docs/ai-
 | MCP server | `packages/mcp` | `mymultisig-mcp` | stdio MCP server wrapping the SDK. Read tools are always on; write tools are on unless `MYMULTISIG_READ_ONLY=1`. |
 | CLI | `packages/cli` | `mymultisig-cli` | `mymultisig …` commands with human or `--json` output. Irreversible actions need `--yes` when the shell isn't interactive. |
 | Claude Code plugin | `plugins/mymultisig`, `.claude-plugin/marketplace.json` | — | Bundles the MCP server config and five workflow skills. |
+| Skills-only plugin | `plugins/mymultisig-skills` | — | The same five skills without a server. It's the version submitted to the Claude plugin directory. CI checks that its `skills/` matches `plugins/mymultisig/skills/`. |
 | API keys | `src/lib/auth/apiKey.ts`, `src/pages/api/agent-keys/*`, `/settings/api-keys` | — | Scoped Bearer keys for headless agents. |
 | Machine-readable docs | `public/llms.txt`, `public/openapi.json` | — | For LLMs and API clients. |
 
 ## Trust model
 
 - **Keys never reach the server.** API keys authenticate REST calls only. On-chain signing (EIP-712 approvals) and execution use `MYMULTISIG_PRIVATE_KEY`, which stays on the agent's machine. Recommend a dedicated key that is added as an owner, with a threshold the agent can't reach alone.
+- **Human-in-the-loop guard (MCP server, `packages/mcp/src/guard.ts`).**
+  - `execute_request` refuses unless a valid signature from an owner other than the agent is attached.
+  - `create_multisig` refuses a wallet the agent could run alone: the agent is an owner and the threshold is 1.
+  - `MYMULTISIG_ALLOW_SOLO_EXECUTION=1` lifts the guard. Only an operator can set it; the Claude plugin doesn't expose it.
+  - It's there for the Anthropic Software Directory Policy, which rules out software that moves financial assets autonomously without human-in-the-loop safeguards. The CLI isn't guarded, because a person runs every command.
 - **API keys are opt-in per endpoint.**
   - A route accepts a Bearer key only when it passes `{ apiKeyScope }` to `withSession`, `withVerifiedAs` or `withVerifiedAsOwner` (`src/lib/api/middleware.ts`).
   - On any other route, a Bearer token is a 401.
@@ -82,7 +88,9 @@ yarn packages:build && yarn packages:test
 
 The plugin's `.mcp.json` runs `npx -y mymultisig-mcp@<exact version>`, because the Claude plugin directory blocks ranges. After each MCP release:
 - bump that pin;
-- bump `version` in `plugins/mymultisig/.claude-plugin/plugin.json`, so the directory and installed users pick up the change.
+- bump `version` in `plugins/mymultisig/.claude-plugin/plugin.json`, so the directory and installed users pick up the change;
+- update the `claude mcp add … mymultisig-mcp@<version>` line in every `SKILL.md` and in `plugins/mymultisig-skills/README.md`;
+- copy the skills to `plugins/mymultisig-skills/skills/` and bump that plugin's `version`.
 
 Don't switch to a `package.json` + lockfile install. The directory blocks running a server straight from `node_modules`. It also says lockfile installs, like local MCP servers, will later be accepted only from Verified organizations.
 
@@ -90,12 +98,16 @@ The plugin takes its keys through `userConfig`. They are masked prompts stored i
 
 ### Claude plugin directory
 
-The plugin is submitted at https://claude.ai/directory/manage as a **Plugin bundle**:
+The directory only accepts local MCP servers from Verified organizations, and it refused `plugins/mymultisig` for bundling one. So the **skills-only** plugin is what gets submitted at https://claude.ai/directory/manage, as a **Plugin bundle**:
 - repository `marc-aurele-besner/mymultisig-app`
-- path `plugins/mymultisig`
+- path `plugins/mymultisig-skills`
 - branch `main`
 
-The portal's validator refuses the whole repository when a root `.gitattributes` rewrites file contents (`text=auto`, `filter`, LFS), so keep that file out of the repo. Run `claude plugin validate plugins/mymultisig` before pushing plugin changes.
+Its skills tell the user to add the server with `claude mcp add` if the tools are missing. They don't run that command themselves. `plugins/mymultisig`, with the bundled server, stays in our own marketplace.
+
+The directory policy also says it does "not generally allow cryptocurrency software". A listing therefore needs written permission from directory@anthropic.com, and getting the organization Verified would let the bundled plugin through as well.
+
+The portal's validator refuses the whole repository when a root `.gitattributes` rewrites file contents (`text=auto`, `filter`, LFS), so keep that file out of the repo. Run `claude plugin validate plugins/mymultisig plugins/mymultisig-skills` before pushing plugin changes.
 
 Inside this repo, `npx mymultisig-mcp` resolves the local workspace package and fails with "command not found". Test the plugin's server from another directory.
 

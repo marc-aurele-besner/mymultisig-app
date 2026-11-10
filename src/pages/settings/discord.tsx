@@ -17,6 +17,7 @@ export async function getStaticProps() {
       title: 'MyMultiSig - Discord settings',
       description:
         'Add the MyMultiSig Discord bot to a server, list the servers connected to your wallet, and remove the bot when you no longer need it.',
+      noIndex: true,
       path: '/settings/discord'
     }
   }

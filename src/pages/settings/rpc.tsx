@@ -17,6 +17,7 @@ export async function getStaticProps() {
       title: 'MyMultiSig - RPC settings',
       description:
         'Use your own RPC endpoint instead of the public one, per connected wallet or per multisig, to avoid rate limits.',
+      noIndex: true,
       path: '/settings/rpc'
     }
   }

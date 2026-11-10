@@ -7,6 +7,16 @@ description: Execute MyMultiSig requests that have reached their signature thres
 
 Runs requests that are ready to execute, in queue order, using the `mymultisig` MCP tools. Execution is irreversible, and the agent's key pays the gas.
 
+## If the MyMultiSig tools aren't available
+
+The tools come from the `mymultisig-mcp` server. The `mymultisig` plugin bundles it. With the skills-only plugin, the user adds the server once, from their own terminal:
+
+```
+claude mcp add mymultisig -- npx -y mymultisig-mcp@0.1.3
+```
+
+Don't run this yourself. Show it to the user and point them to https://mymultisig.app/docs/ai-agents for the optional API key, agent key and read-only setting.
+
 ## Rules
 
 - **Order matters.** Unpinned requests bind the wallet's current nonce, so only the first non-cancelled request in `list_requests` can succeed.
@@ -14,6 +24,7 @@ Runs requests that are ready to execute, in queue order, using the `mymultisig` 
   - The server then invalidates, or "cascades", every later request; their signatures are wiped and the owners re-sign.
   - Tell the user this before executing anything other than a single request.
 - **Never execute a request that isn't `readyToExecute`.** The tool refuses anyway.
+- **Another owner must have approved.** `execute_request` refuses a request that only the agent has signed, so a human stays in the loop. Share the request link and ask a co-owner to sign it first. Don't suggest turning the guard off; that's the operator's decision.
 - **User-op requests** (`mode` = `userop`) go through a bundler from the app, so skip them here.
 
 ## Steps

@@ -54,7 +54,7 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 
 ### Agent integrations (`packages/`, `plugins/`)
 - `packages/sdk` (`mymultisig-sdk`): shared protocol core + `MyMultiSigClient`. The app imports the protocol helpers (EIP-712 typed data, signature blobs, `execTransaction`/create call builders, legacy ABI fragments) via the `@mymultisig/protocol` tsconfig alias; `src/utils/{contractVersions,transactionTypedData,signatureBlob}.ts` and `src/constants/abi/legacy.ts` are re-export shims. Change protocol code in the package, not the shims.
-- `packages/mcp` (`mymultisig-mcp`, stdio MCP server) and `packages/cli` (`mymultisig-cli`) wrap the SDK; `plugins/mymultisig` is the Claude Code plugin (skills + `.mcp.json`), listed by `.claude-plugin/marketplace.json`.
+- `packages/mcp` (`mymultisig-mcp`, stdio MCP server) and `packages/cli` (`mymultisig-cli`) wrap the SDK; `plugins/mymultisig` is the Claude Code plugin (skills + `.mcp.json`), listed by `.claude-plugin/marketplace.json`. `plugins/mymultisig-skills` is a server-less copy for the Claude plugin directory; edit skills in `plugins/mymultisig/skills` and copy them over (CI diffs the two).
 - Packages are excluded from the root tsconfig and use vitest (not jest). See `docs/ai-agents.md`.
 
 ### State Management

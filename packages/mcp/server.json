@@ -9,12 +9,12 @@
     "source": "github",
     "subfolder": "packages/mcp"
   },
-  "version": "0.1.2",
+  "version": "0.1.3",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "mymultisig-mcp",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "transport": {
         "type": "stdio"
       },
@@ -42,6 +42,12 @@
         {
           "name": "MYMULTISIG_READ_ONLY",
           "description": "Set to 1 to register read-only tools",
+          "isRequired": false,
+          "format": "boolean"
+        },
+        {
+          "name": "MYMULTISIG_ALLOW_SOLO_EXECUTION",
+          "description": "Set to 1 to let the agent execute without another owner's approval (off by default)",
           "isRequired": false,
           "format": "boolean"
         },
