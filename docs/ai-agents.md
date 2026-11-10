@@ -80,7 +80,24 @@ yarn packages:build && yarn packages:test
 (cd packages/cli && npm publish --otp <code>)
 ```
 
-The plugin's `.mcp.json` pins `mymultisig-mcp@0.1`. Bump it when you ship a breaking change.
+The plugin's `.mcp.json` runs `npx -y mymultisig-mcp@<exact version>`, because the Claude plugin directory blocks ranges. After each MCP release:
+- bump that pin;
+- bump `version` in `plugins/mymultisig/.claude-plugin/plugin.json`, so the directory and installed users pick up the change.
+
+Don't switch to a `package.json` + lockfile install. The directory blocks running a server straight from `node_modules`. It also says lockfile installs, like local MCP servers, will later be accepted only from Verified organizations.
+
+The plugin takes its keys through `userConfig`. They are masked prompts stored in the OS credential store, and `.mcp.json` passes them to the server as `CLAUDE_PLUGIN_OPTION_<KEY>` env vars. That's the name the directory expects, and the server reads it as a fallback for `MYMULTISIG_<KEY>`. The directory holds plugins that read credentials from the user's shell environment for manual review, which is why the keys don't come from there.
+
+### Claude plugin directory
+
+The plugin is submitted at https://claude.ai/directory/manage as a **Plugin bundle**:
+- repository `marc-aurele-besner/mymultisig-app`
+- path `plugins/mymultisig`
+- branch `main`
+
+The portal's validator refuses the whole repository when a root `.gitattributes` rewrites file contents (`text=auto`, `filter`, LFS), so keep that file out of the repo. Run `claude plugin validate plugins/mymultisig` before pushing plugin changes.
+
+Inside this repo, `npx mymultisig-mcp` resolves the local workspace package and fails with "command not found". Test the plugin's server from another directory.
 
 npm 10.8.x has a web-login bug: it polls once, gets `202`, and exits ("Exit handler never called"). Use npm 11 for login and publish:
 - `npx -y npm@11 login`
