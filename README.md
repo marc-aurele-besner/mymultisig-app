@@ -158,6 +158,7 @@ Auth (optional; used by `/api/auth/[...nextauth]`):
 - `public` — PWA manifest and icons, `llms.txt`, `openapi.json`
 - `packages/sdk`, `packages/mcp`, `packages/cli` — npm packages for agents (`mymultisig-sdk`, `mymultisig-mcp`, `mymultisig-cli`); the app imports the SDK's protocol core
 - `plugins/mymultisig` — Claude Code plugin (skills + MCP config)
+- `plugins/mymultisig-skills` — the same skills without the MCP server (Claude plugin directory version)
 
 ## Scripts
 
