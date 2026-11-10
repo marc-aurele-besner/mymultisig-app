@@ -1,13 +1,15 @@
 import React, { useState } from 'react'
 import { useChainId, useChains } from 'wagmi'
 import { keccak256, stringToHex } from 'viem'
-import { ExternalLinkIcon, CheckCircleIcon, CheckIcon, AddIcon, DeleteIcon, ArrowBackIcon } from '../icons/ChakraIcons'
-import { AnimatePresence, motion } from 'framer-motion'
+import { ExternalLinkIcon, CheckCircleIcon, CheckIcon, AddIcon, DeleteIcon } from '../icons/ChakraIcons'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { LoadingDots } from '@/components/ui/loading-dots'
 import { cn } from '@/lib/utils'
 
+import AddressRow from '../common/AddressRow'
+import Identicon from '../common/Identicon'
 import TextInput from '../inputs/TextInput'
 import ConfirmationCard from '../cards/ConfirmationCard'
 import { MultiSigFactory, MultiSigConstructorArgs, WalletType, isExtendedWallet } from '../../models/MultiSigs'
@@ -20,8 +22,6 @@ interface CreateMultiSigFormProps {
   owner01: string
   factory: MultiSigFactory
 }
-
-const STEPS = ['Wallet type', 'Name & owners', 'Review & deploy'] as const
 
 const WALLET_TYPE_FEATURES: Record<WalletType, { tagline: string; features: string[] }> = {
   simple: {
@@ -55,52 +55,13 @@ const WALLET_TYPE_FEATURES: Record<WalletType, { tagline: string; features: stri
 const isAddress = (value: string) => /^0x[a-fA-F0-9]{40}$/.test(value)
 const truncateAddress = (addr: string) => `${addr.slice(0, 10)}...${addr.slice(-8)}`
 
-const StepIndicator: React.FC<{ current: number }> = ({ current }) => (
-  <div className='flex w-full items-center justify-center gap-0'>
-    {STEPS.map((label, index) => (
-      <React.Fragment key={label}>
-        {index > 0 && (
-          <div className='relative h-px w-8 overflow-hidden bg-border sm:w-16'>
-            <span
-              className={cn(
-                'absolute inset-0 origin-left bg-primary transition-transform duration-500 ease-out',
-                index <= current ? 'scale-x-100' : 'scale-x-0'
-              )}
-            />
-          </div>
-        )}
-        <div className='flex items-center gap-2'>
-          <span
-            className={cn(
-              'flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-mono text-xs transition-colors duration-300',
-              index < current
-                ? 'bg-primary/20 text-primary'
-                : index === current
-                  ? 'bg-primary text-primary-foreground'
-                  : 'border border-border text-muted-foreground'
-            )}
-          >
-            {index < current ? <CheckIcon className='h-3.5 w-3.5 animate-pop-in' /> : `0${index + 1}`}
-          </span>
-          <span
-            className={cn(
-              'hidden text-sm transition-colors duration-300 sm:inline',
-              index === current ? 'font-semibold text-foreground' : 'text-muted-foreground'
-            )}
-          >
-            {label}
-          </span>
-        </div>
-      </React.Fragment>
-    ))}
-  </div>
-)
-
+// One page: the choices on the left, a live summary with the deploy action
+// on the right. Nothing is hidden behind a step, so the summary always shows
+// exactly what will be deployed.
 const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factory }) => {
   const chainId = useChainId()
   const chains = useChains()
   const chain = chains.find((c) => c.id === chainId)
-  const [step, setStep] = useState(0)
   const [name, setName] = useState('')
   const [owners, setOwners] = useState<string[]>([owner01, ''])
   const [threshold, setThreshold] = useState(1)
@@ -147,9 +108,13 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
   }
 
   const { data, isPending, isSuccess, writeContract } = useCreateMultiSig(constructorArgs, factory.address)
-  // Only predicted on the review step: the inputs are settled there, so the
-  // read does not re-fire on every keystroke of the earlier steps.
-  const { predictedAddress } = usePredictMultiSigAddress(constructorArgs, factory.address, salt != null && step === 2)
+  // Only predicted once the details are valid, so the read does not re-fire
+  // on every keystroke while they are still being typed.
+  const { predictedAddress } = usePredictMultiSigAddress(
+    constructorArgs,
+    factory.address,
+    salt != null && detailsError == null
+  )
   const { totalCount, simpleCount, extendedCount, advancedCount, supportsTypeCounts } = useFactoryStats(
     factory.address
   )
@@ -196,22 +161,21 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
     )
   }
 
-  return (
-    <div className='flex w-full flex-col gap-6'>
-      <StepIndicator current={step} />
+  const ownerTotal = Math.max(filledOwners.length, 1)
+  const typeLabel = walletType.charAt(0).toUpperCase() + walletType.slice(1)
 
-      <AnimatePresence mode='wait' initial={false}>
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6, transition: { duration: 0.15, ease: 'easeIn' } }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
-          className='w-full'
-        >
-      {step === 0 && (
-        <div className='flex w-full flex-col gap-4'>
-          <div className={cn('grid grid-cols-1 gap-4', availableTypes.length > 2 ? 'md:grid-cols-3' : 'md:grid-cols-2')}>
+  return (
+    <div className='grid w-full items-start gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]'>
+      <div className='flex min-w-0 flex-col gap-4'>
+        <section className='flex flex-col gap-4 rounded-xl border border-border bg-card p-5 md:p-6'>
+          <div>
+            <span className='font-mono text-xs text-primary'>01</span>
+            <h2 className='text-lg font-semibold text-foreground'>Wallet type</h2>
+            <p className='text-sm text-muted-foreground'>
+              All types hold funds the same way. They differ in the governance tools owners get later.
+            </p>
+          </div>
+          <div className={cn('grid grid-cols-1 gap-3', availableTypes.length > 2 ? 'md:grid-cols-3' : 'md:grid-cols-2')}>
             {availableTypes.map((type) => (
               <button
                 key={type}
@@ -219,7 +183,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
                 onClick={() => setWalletType(type)}
                 aria-pressed={walletType === type}
                 className={cn(
-                  'flex flex-col gap-3 rounded-xl border p-5 text-left transition-colors',
+                  'flex flex-col gap-2.5 rounded-xl border p-4 text-left transition-colors',
                   walletType === type
                     ? 'border-primary bg-primary/10'
                     : 'border-border bg-muted/30 hover:border-primary/50'
@@ -233,14 +197,14 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
                       walletType === type ? 'border-primary bg-primary' : 'border-border'
                     )}
                   >
-                    {walletType === type && <CheckCircleIcon className='h-4 w-4 text-primary-foreground' />}
+                    {walletType === type && <CheckIcon className='h-3 w-3 text-primary-foreground' />}
                   </span>
                 </div>
-                <p className='text-sm text-muted-foreground'>{WALLET_TYPE_FEATURES[type].tagline}</p>
+                <p className='text-xs text-muted-foreground'>{WALLET_TYPE_FEATURES[type].tagline}</p>
                 <ul className='flex flex-col gap-1'>
                   {WALLET_TYPE_FEATURES[type].features.map((feature) => (
-                    <li key={feature} className='flex items-start gap-2 text-sm text-foreground'>
-                      <CheckCircleIcon className='mt-0.5 h-3.5 w-3.5 shrink-0 text-primary' />
+                    <li key={feature} className='flex items-start gap-2 text-xs text-foreground'>
+                      <CheckCircleIcon className='mt-0.5 h-3 w-3 shrink-0 text-primary' />
                       {feature}
                     </li>
                   ))}
@@ -260,7 +224,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
             </div>
           )}
           {totalCount != null && totalCount > 0 && (
-            <p className='text-center text-xs text-muted-foreground'>
+            <p className='text-xs text-muted-foreground'>
               This factory has created {totalCount} wallet{totalCount === 1 ? '' : 's'}
               {supportsTypeCounts
                 ? ` (${simpleCount ?? 0} simple, ${extendedCount ?? 0} extended, ${advancedCount ?? 0} advanced)`
@@ -268,17 +232,17 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
               .
             </p>
           )}
-          <Button size='lg' className='w-full' onClick={() => setStep(1)}>
-            Continue
-          </Button>
-        </div>
-      )}
+        </section>
 
-      {step === 1 && (
-        <div className='flex w-full flex-col gap-6'>
+        <section className='flex flex-col gap-6 rounded-xl border border-border bg-card p-5 md:p-6'>
+          <div>
+            <span className='font-mono text-xs text-primary'>02</span>
+            <h2 className='text-lg font-semibold text-foreground'>Name &amp; owners</h2>
+          </div>
           <div className='w-full'>
             <span className='mb-2 block text-sm font-semibold text-foreground'>Name</span>
             <TextInput
+              className='md:w-full'
               placeholder='Enter a name for your MultiSig wallet'
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -292,8 +256,13 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
             </p>
             <div className='flex w-full flex-col gap-3'>
               <div className='relative w-full'>
-                <TextInput placeholder={truncateAddress(owner01)} defaultValue={truncateAddress(owner01)} readOnly />
-                <span className='absolute right-6 top-1/2 -translate-y-1/2 rounded bg-primary px-2 py-0.5 text-xs text-primary-foreground'>
+                <TextInput
+                  className='font-mono md:w-full'
+                  placeholder={truncateAddress(owner01)}
+                  defaultValue={truncateAddress(owner01)}
+                  readOnly
+                />
+                <span className='absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-primary/15 px-2 py-0.5 font-mono text-[10px] text-primary'>
                   You
                 </span>
               </div>
@@ -305,10 +274,11 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
                   <div key={`owner-${index + 1}`} className='flex w-full flex-col gap-1'>
                     <div className='flex w-full items-center gap-2'>
                       <TextInput
+                        className='font-mono md:w-full'
                         placeholder={`Owner ${index + 2} address (0x...)`}
                         value={owner}
                         isInvalid={(owner !== '' && !isAddress(owner)) || isDuplicate}
-                        onChange={(e) => handleOwnerChange(e.target.value, index + 1)}
+                        onChange={(e) => handleOwnerChange(e.target.value.trim(), index + 1)}
                       />
                       <Button
                         variant='outline'
@@ -339,13 +309,13 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
               How many owners must sign before a transaction can execute.
             </p>
             <div className='flex flex-wrap gap-2'>
-              {Array.from({ length: Math.max(filledOwners.length, 1) }, (_, i) => i + 1).map((value) => (
+              {Array.from({ length: ownerTotal }, (_, i) => i + 1).map((value) => (
                 <Button
                   key={value}
                   variant={threshold === value ? 'default' : 'outline'}
                   onClick={() => setThreshold(value)}
                 >
-                  {value} of {Math.max(filledOwners.length, 1)}
+                  {value} of {ownerTotal}
                 </Button>
               ))}
             </div>
@@ -353,6 +323,11 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
               <p className='mt-2 text-xs text-muted-foreground'>
                 A threshold of 1 lets any single owner execute transactions alone. Consider requiring at least 2
                 signatures.
+              </p>
+            )}
+            {thresholdValid && threshold === filledOwners.length && filledOwners.length > 1 && (
+              <p className='mt-2 text-xs text-muted-foreground'>
+                Every owner must sign. One lost key would lock the wallet.
               </p>
             )}
           </div>
@@ -371,6 +346,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
               {deterministic && (
                 <div className='flex w-full flex-col gap-1'>
                   <TextInput
+                    className='md:w-full'
                     placeholder='Salt phrase (e.g. my-team-treasury)'
                     value={saltText}
                     onChange={(e) => setSaltText(e.target.value)}
@@ -383,115 +359,124 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
               )}
             </div>
           )}
+        </section>
+      </div>
 
-          <div className='flex w-full gap-2'>
-            <Button variant='outline' size='lg' className='gap-2' onClick={() => setStep(0)}>
-              <ArrowBackIcon className='h-4 w-4' />
-              Back
-            </Button>
-            <Button size='lg' className='flex-1' onClick={() => setStep(2)} disabled={detailsError != null}>
-              Review
-            </Button>
+      {/* Live summary: what will be deployed, in plain words, with the one action */}
+      <aside className='flex flex-col gap-4 rounded-xl border border-border bg-card p-5 md:p-6 lg:sticky lg:top-20'>
+        <span className='font-mono text-[11px] uppercase tracking-wider text-muted-foreground'>Live summary</span>
+        <div className='flex items-center gap-3'>
+          <Identicon value={name.trim() || 'new multisig'} size={44} className='rounded-xl' />
+          <div className='flex min-w-0 flex-col'>
+            <span className='truncate text-base font-semibold text-foreground'>
+              {name.trim() || <span className='text-muted-foreground'>Unnamed multisig</span>}
+            </span>
+            <span className='text-xs text-muted-foreground'>
+              {typeLabel} · {chain?.name ?? '...'}
+            </span>
           </div>
-          {detailsError != null && <p className='text-center text-xs text-muted-foreground'>{detailsError}</p>}
         </div>
-      )}
 
-      {step === 2 && (
-        <div className='flex w-full flex-col gap-4'>
-          <div className='flex w-full flex-col gap-3 rounded-xl border border-border bg-muted/30 p-5 text-sm'>
-            <div className='flex justify-between gap-4'>
-              <span className='text-muted-foreground'>Network</span>
-              <span className='font-semibold text-foreground'>{chain?.name ?? '...'}</span>
-            </div>
-            <div className='flex justify-between gap-4'>
-              <span className='text-muted-foreground'>Wallet type</span>
-              <span className='font-semibold capitalize text-foreground'>{walletType}</span>
-            </div>
-            {isExtendedWallet(walletType) && (
-              <div className='flex justify-between gap-4'>
-                <span className='text-muted-foreground'>Request policy</span>
-                <span className='font-semibold text-foreground'>
-                  {isOnlyOwnerRequest ? 'Owners only' : 'Anyone can propose'}
-                </span>
-              </div>
-            )}
-            <div className='flex justify-between gap-4'>
-              <span className='text-muted-foreground'>Name</span>
-              <span className='font-semibold text-foreground'>{name}</span>
-            </div>
-            <div className='flex justify-between gap-4'>
-              <span className='text-muted-foreground'>Threshold</span>
-              <span className='font-semibold text-foreground'>
-                {threshold} of {filledOwners.length} owner{filledOwners.length === 1 ? '' : 's'}
-              </span>
-            </div>
-            {salt != null && (
-              <div className='flex flex-col gap-1 border-t border-border pt-3'>
-                <span className='text-muted-foreground'>Deterministic address</span>
-                {predictedAddress != null ? (
-                  <span className='break-all font-mono text-xs text-foreground'>{predictedAddress}</span>
-                ) : (
-                  <span className='text-xs text-muted-foreground'>Predicting the wallet address…</span>
+        <div className='flex items-center gap-3 rounded-lg bg-primary/10 p-3'>
+          <span className='flex shrink-0 gap-1' aria-hidden>
+            {Array.from({ length: ownerTotal }, (_, i) => (
+              <span
+                key={i}
+                className={cn(
+                  'h-3.5 w-3.5 rounded-full border-[1.5px]',
+                  i < threshold ? 'border-primary bg-primary' : 'border-muted-foreground/50'
                 )}
-                <span className='text-xs text-muted-foreground'>
-                  Redeploying with the same salt phrase and settings reproduces this address on other chains.
-                </span>
-              </div>
-            )}
-            <div className='flex flex-col gap-1 border-t border-border pt-3'>
-              <span className='text-muted-foreground'>Owners</span>
-              {filledOwners.map((owner) => (
-                <span key={owner} className='font-mono text-xs text-foreground'>
-                  {owner}
-                  {owner.toLowerCase() === owner01.toLowerCase() && (
-                    <span className='ml-2 rounded bg-primary px-1.5 py-0.5 text-[10px] text-primary-foreground'>
-                      You
-                    </span>
-                  )}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <p className='text-center text-xs text-muted-foreground'>
-            Owners and threshold can be changed later, but only through a signed multisig transaction.
+              />
+            ))}
+          </span>
+          <p className='text-sm text-foreground'>
+            Any <strong>{Math.min(threshold, ownerTotal)}</strong> of these <strong>{ownerTotal}</strong> owner
+            {ownerTotal === 1 ? '' : 's'} can move funds.
           </p>
+        </div>
 
-          <div className='flex w-full gap-2'>
-            <Button variant='outline' size='lg' className='gap-2' onClick={() => setStep(1)} disabled={isPending}>
-              <ArrowBackIcon className='h-4 w-4' />
-              Back
-            </Button>
-            <Button
-              size='lg'
-              className='flex-1 gap-2'
-              onClick={() => writeContract?.()}
-              disabled={writeContract == null || detailsError != null || isPending}
-            >
-              <AddIcon className='h-4 w-4' />
-              Deploy {walletType === 'extended' ? 'Extended ' : walletType === 'advanced' ? 'Advanced ' : ''}MultiSig
-            </Button>
+        <dl className='flex flex-col gap-2 text-sm'>
+          <div className='flex justify-between gap-4'>
+            <dt className='text-muted-foreground'>Network</dt>
+            <dd className='font-medium text-foreground'>{chain?.name ?? '...'}</dd>
           </div>
+          <div className='flex justify-between gap-4'>
+            <dt className='text-muted-foreground'>Wallet type</dt>
+            <dd className='font-medium text-foreground'>{typeLabel}</dd>
+          </div>
+          {isExtendedWallet(walletType) && (
+            <div className='flex justify-between gap-4'>
+              <dt className='text-muted-foreground'>Request policy</dt>
+              <dd className='font-medium text-foreground'>
+                {isOnlyOwnerRequest ? 'Owners only' : 'Anyone can propose'}
+              </dd>
+            </div>
+          )}
+          <div className='flex justify-between gap-4'>
+            <dt className='text-muted-foreground'>Threshold</dt>
+            <dd className='font-medium text-foreground'>
+              {threshold} of {filledOwners.length} owner{filledOwners.length === 1 ? '' : 's'}
+            </dd>
+          </div>
+        </dl>
 
-          {isPending && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className='w-full rounded-xl border border-primary bg-primary/10 p-4'
-            >
-              <div className='flex items-center justify-center gap-3'>
-                <LoadingDots />
-                <span className='text-sm font-medium text-primary'>
-                  Please confirm the transaction in your wallet...
-                </span>
-              </div>
-            </motion.div>
+        {salt != null && (
+          <div className='flex flex-col gap-1 border-t border-border pt-3 text-sm'>
+            <span className='text-muted-foreground'>Deterministic address</span>
+            {predictedAddress != null ? (
+              <span className='break-all font-mono text-xs text-foreground'>{predictedAddress}</span>
+            ) : (
+              <span className='text-xs text-muted-foreground'>
+                {detailsError == null ? 'Predicting the wallet address…' : 'Shown once the details are complete.'}
+              </span>
+            )}
+          </div>
+        )}
+
+        <div className='flex flex-col gap-2 border-t border-border pt-3'>
+          <span className='font-mono text-[11px] uppercase tracking-wider text-muted-foreground'>Owners</span>
+          {owners.map((owner, index) =>
+            isAddress(owner) ? (
+              <AddressRow
+                key={`${owner}-${index}`}
+                address={owner}
+                isYou={owner.toLowerCase() === owner01.toLowerCase()}
+              />
+            ) : (
+              <span key={`empty-${index}`} className='text-xs text-muted-foreground'>
+                {owner === '' ? 'Empty owner field' : 'Not a valid address yet'}
+              </span>
+            )
           )}
         </div>
-      )}
-        </motion.div>
-      </AnimatePresence>
+
+        <p className='rounded-lg border border-border bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground'>
+          Owners and threshold can be changed later, but only through a signed multisig transaction.
+        </p>
+
+        <Button
+          size='lg'
+          className='w-full gap-2'
+          onClick={() => writeContract?.()}
+          disabled={writeContract == null || detailsError != null || isPending}
+        >
+          <AddIcon className='h-4 w-4' />
+          Deploy {walletType === 'extended' ? 'Extended ' : walletType === 'advanced' ? 'Advanced ' : ''}MultiSig
+        </Button>
+        {detailsError != null && <p className='text-center text-xs text-muted-foreground'>{detailsError}</p>}
+        {isPending && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className='w-full rounded-xl border border-primary bg-primary/10 p-4'
+          >
+            <div className='flex items-center justify-center gap-3'>
+              <LoadingDots />
+              <span className='text-sm font-medium text-primary'>Please confirm the transaction in your wallet...</span>
+            </div>
+          </motion.div>
+        )}
+      </aside>
     </div>
   )
 }
