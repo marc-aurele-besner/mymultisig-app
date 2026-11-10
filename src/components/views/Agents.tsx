@@ -9,7 +9,7 @@ import PageHero from '../layout/PageHero'
 import IntegrationCard, { IntegrationInfo } from '../integration/IntegrationCard'
 
 // Each agent flow is advertised on its own; they all reuse the scoped API keys
-// from /settings/agents, and on-chain signing always stays on the agent's
+// from /settings/api-keys, and on-chain signing always stays on the agent's
 // machine with its own owner key.
 const agentIntegrations: IntegrationInfo[] = [
   {
@@ -58,7 +58,7 @@ const agentIntegrations: IntegrationInfo[] = [
       'OpenAPI 3.1 spec and llms.txt for code generators and LLMs'
     ],
     note: 'Keys act as the wallet that created them — the same key works for the MCP server and the CLI.',
-    cta: { label: 'Create an API key', href: '/settings/agents' },
+    cta: { label: 'Create an API key', href: '/settings/api-keys' },
     secondaryCta: { label: 'OpenAPI spec', href: '/openapi.json', external: true }
   },
   {
@@ -124,9 +124,9 @@ const safetyModel: { icon: LucideIcon; title: string; text: string }[] = [
 ]
 
 const setupSteps = [
-  { title: 'Create an API key', text: 'Mint a scoped key while signed in with your wallet.', href: '/settings/agents', link: 'Open settings' },
+  { title: 'Create an API key', text: 'Mint a scoped key while signed in with your wallet.', href: '/settings/api-keys', link: 'Open API keys' },
   { title: 'Give the agent an owner key (optional)', text: 'Generate a fresh key and add its address as an owner so it can sign.' },
-  { title: 'Connect the MCP server', text: 'Add mymultisig-mcp to Claude Code, Claude Desktop, Cursor or any MCP client.', href: '/docs/ai-agents', link: 'Open the guide' },
+  { title: 'Connect the MCP server', text: 'Add mymultisig-mcp to Claude Code, Claude Desktop, Cursor or any MCP client.', href: '/settings/agents', link: 'Copy the setup' },
   { title: 'Ask the agent', text: 'Check status, propose, review, sign and execute through natural language.' }
 ]
 
@@ -142,7 +142,7 @@ const Agents: React.FC = () => {
         actions={
           <>
             <Button asChild size='lg' className='gap-2'>
-              <Link href='/settings/agents'>
+              <Link href='/settings/api-keys'>
                 <KeyRoundIcon className='h-4 w-4' />
                 Create an API key
               </Link>
@@ -175,8 +175,8 @@ const Agents: React.FC = () => {
           </h2>
           <p className='mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground'>
             Every flow below uses the scoped API keys you create in{' '}
-            <Link href='/settings/agents' className='text-primary underline-offset-4 hover:underline'>
-              Settings → AI agents
+            <Link href='/settings/api-keys' className='text-primary underline-offset-4 hover:underline'>
+              Settings → API keys
             </Link>
             . Approvals and executions are signed locally with the agent&apos;s own owner key — never on our servers.
           </p>

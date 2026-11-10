@@ -62,7 +62,7 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 - **Neon PostgreSQL** via `@neondatabase/serverless` for storing multisig wallets and transaction requests
 - Schema in `src/lib/db/schema.sql`; client in `src/lib/db/neon.ts`
 - Auth via SIWE session cookies (`src/lib/auth/siwe.ts`): writes require a valid session, and identity-claiming actions must match the session wallet (`isVerifiedAs`)
-- Scoped agent API keys (`Authorization: Bearer mms_…`, `src/lib/auth/apiKey.ts`, table `agent_api_keys`) are accepted only by routes that opt in with `{ apiKeyScope: 'read' | 'propose' | 'sign' | 'manage' }` on the middleware wrappers; everything else stays SIWE-only. Keys are managed at `/settings/agents` via `/api/agent-keys` (SIWE-only).
+- Scoped agent API keys (`Authorization: Bearer mms_…`, `src/lib/auth/apiKey.ts`, table `agent_api_keys`) are accepted only by routes that opt in with `{ apiKeyScope: 'read' | 'propose' | 'sign' | 'manage' }` on the middleware wrappers; everything else stays SIWE-only. Keys are managed at `/settings/api-keys` (client setup snippets live on `/settings/agents`) via `/api/agent-keys` (SIWE-only).
 - API routes in `src/pages/api/` handle CRUD with one dedicated endpoint per action (e.g. `POST /api/multisig-requests`, `PATCH /api/multisig-requests/[id]`); per-endpoint auth is wrapped in `withSession` / `withVerifiedAs` from `src/lib/api/middleware.ts`. Public reads (`GET /api/multisig-requests`, `GET /api/multisig-requests/[id]`) skip the session guard so the detail view can render before sign-in.
 
 ## Key Patterns

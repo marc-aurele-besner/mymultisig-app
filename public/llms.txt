@@ -14,7 +14,7 @@ Key facts for agents:
 - **Wallet types:** `simple` (MyMultiSig) and `extended`/`advanced` (MyMultiSigExtended). Extended wallets add owner-only requests, ERC-4337, spending limits, allowlists and DELEGATECALL.
 - **Auth:** the server never holds keys. There are two ways to authenticate:
   - a SIWE session (EOA);
-  - a scoped API key, sent as `Authorization: Bearer mms_…` and minted at https://mymultisig.app/settings/agents.
+  - a scoped API key, sent as `Authorization: Bearer mms_…` and minted at https://mymultisig.app/settings/api-keys.
 
   Scopes are `read`, `propose`, `sign` and `manage`. A key acts as the wallet that minted it.
 

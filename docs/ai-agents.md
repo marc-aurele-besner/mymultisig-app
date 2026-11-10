@@ -11,7 +11,7 @@ This guide is for operators and contributors. For the user guide, see `/docs/ai-
 | MCP server | `packages/mcp` | `mymultisig-mcp` | stdio MCP server wrapping the SDK. Read tools are always on; write tools are on unless `MYMULTISIG_READ_ONLY=1`. |
 | CLI | `packages/cli` | `mymultisig-cli` | `mymultisig …` commands with human or `--json` output. Irreversible actions need `--yes` when the shell isn't interactive. |
 | Claude Code plugin | `plugins/mymultisig`, `.claude-plugin/marketplace.json` | — | Bundles the MCP server config and five workflow skills. |
-| API keys | `src/lib/auth/apiKey.ts`, `src/pages/api/agent-keys/*`, `/settings/agents` | — | Scoped Bearer keys for headless agents. |
+| API keys | `src/lib/auth/apiKey.ts`, `src/pages/api/agent-keys/*`, `/settings/api-keys` | — | Scoped Bearer keys for headless agents. |
 | Machine-readable docs | `public/llms.txt`, `public/openapi.json` | — | For LLMs and API clients. |
 
 ## Trust model

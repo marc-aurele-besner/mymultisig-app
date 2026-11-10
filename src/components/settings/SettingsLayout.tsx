@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { GlobeIcon, KeyRoundIcon, PlugIcon } from 'lucide-react'
+import { BotIcon, GlobeIcon, KeyRoundIcon, PlugIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import BrandIcon from '../icons/BrandIcon'
@@ -17,9 +17,14 @@ const SETTINGS_NAV: { href: string; label: string; icon: (active: boolean) => Re
   { href: '/settings/discord', label: 'Discord', icon: () => <BrandIcon brand='discord' size={16} /> },
   { href: '/settings/telegram', label: 'Telegram', icon: () => <BrandIcon brand='telegram' size={16} /> },
   {
+    href: '/settings/api-keys',
+    label: 'API keys',
+    icon: (active) => <KeyRoundIcon className={cn('h-4 w-4 shrink-0', active && 'text-primary')} />
+  },
+  {
     href: '/settings/agents',
     label: 'AI agents',
-    icon: (active) => <KeyRoundIcon className={cn('h-4 w-4 shrink-0', active && 'text-primary')} />
+    icon: (active) => <BotIcon className={cn('h-4 w-4 shrink-0', active && 'text-primary')} />
   }
 ]
 
