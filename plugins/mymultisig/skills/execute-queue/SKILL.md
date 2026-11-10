@@ -14,6 +14,7 @@ Runs requests that are ready to execute, in queue order, using the `mymultisig` 
   - The server then invalidates, or "cascades", every later request; their signatures are wiped and the owners re-sign.
   - Tell the user this before executing anything other than a single request.
 - **Never execute a request that isn't `readyToExecute`.** The tool refuses anyway.
+- **Another owner must have approved.** `execute_request` refuses a request that only the agent has signed, so a human stays in the loop. Share the request link and ask a co-owner to sign it first. Don't suggest turning the guard off; that's the operator's decision.
 - **User-op requests** (`mode` = `userop`) go through a bundler from the app, so skip them here.
 
 ## Steps

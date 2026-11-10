@@ -9,13 +9,17 @@ declare const __PACKAGE_VERSION__: string
 const main = async () => {
   const config = loadConfig()
   const client = new MyMultiSigClient(config.client)
-  const server = createServer(client, { readOnly: config.readOnly, version: __PACKAGE_VERSION__ })
+  const server = createServer(client, {
+    readOnly: config.readOnly,
+    allowSoloExecution: config.allowSoloExecution,
+    version: __PACKAGE_VERSION__
+  })
   await server.connect(new StdioServerTransport())
   // stdout is the MCP channel; diagnostics go to stderr.
   console.error(
     `mymultisig-mcp ${__PACKAGE_VERSION__} ready (${config.client.apiUrl}; signer: ${client.address ?? 'none'}; api key: ${
       config.client.apiKey ? 'yes' : 'no'
-    }${config.readOnly ? '; read-only' : ''})`
+    }${config.readOnly ? '; read-only' : ''}${config.allowSoloExecution ? '; solo execution ALLOWED' : ''})`
   )
 }
 

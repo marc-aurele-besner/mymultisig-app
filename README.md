@@ -46,7 +46,7 @@ Agents and scripts can create wallets, read the queue, propose requests, sign th
 | **CLI**: human-readable or `--json` output | `npx mymultisig-cli --help` | [`mymultisig-cli`](https://www.npmjs.com/package/mymultisig-cli) |
 | **TypeScript SDK**: the same protocol code this app runs | `npm i mymultisig-sdk viem` | [`mymultisig-sdk`](https://www.npmjs.com/package/mymultisig-sdk) |
 
-The safest setup is a threshold the agent can't reach alone. For example, in a 2-of-3 with two humans plus the agent, the agent can prepare and co-sign, but nothing moves without a human signature. The user guide is at [mymultisig.app/docs/ai-agents](https://mymultisig.app/docs/ai-agents), and the operator notes (scopes, storage, publishing) are in [`docs/ai-agents.md`](docs/ai-agents.md).
+The safest setup is a threshold the agent can't reach alone. For example, in a 2-of-3 with two humans plus the agent, the agent can prepare and co-sign, but nothing moves without a human signature. The MCP server enforces this by default: it won't execute a request only the agent signed, or deploy a wallet the agent could run alone. To report a vulnerability, see [SECURITY.md](SECURITY.md). The user guide is at [mymultisig.app/docs/ai-agents](https://mymultisig.app/docs/ai-agents), and the operator notes (scopes, storage, publishing) are in [`docs/ai-agents.md`](docs/ai-agents.md).
 
 ## Supported Networks
 

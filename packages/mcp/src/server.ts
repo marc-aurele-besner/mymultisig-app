@@ -8,6 +8,8 @@ import {
   type MyMultiSigClient
 } from 'mymultisig-sdk'
 
+import { assertCosignedByAnotherOwner, assertWalletNeedsAnotherOwner } from './guard'
+
 // MCP surface over MyMultiSigClient. Read tools are always registered; write
 // tools only when the server isn't read-only, and each one refuses early
 // with a clear message when the credentials it needs are missing.
@@ -18,6 +20,8 @@ Flow: propose_transaction queues a request (signed by this agent when it holds a
 other owners approve (in the app, or approve_request) -> execute_request once signatures >= threshold.
 Always call get_request and show the decoded summary + warnings to the user before approve_request or
 execute_request, and get explicit confirmation for anything that moves funds or changes owners/threshold.
+execute_request refuses until an owner other than this agent has approved, and create_multisig refuses a
+wallet this agent could operate alone (threshold 1 with the agent as owner).
 Amounts are in wei unless a tool says otherwise. Chain ids: Ethereum 1, Sepolia 11155111, Polygon 137, ...
 (see list_networks).`
 
@@ -67,7 +71,14 @@ const abiInput = z
   .union([z.string(), z.array(z.string())])
   .describe('JSON ABI array as a string, or human-readable signature(s) like "function transfer(address,uint256)"')
 
-export const createServer = (client: MyMultiSigClient, options: { readOnly: boolean; version: string }) => {
+export type ServerOptions = {
+  readOnly: boolean
+  version: string
+  // Lifts the human-in-the-loop guard (see guard.ts). Off unless the operator opts in.
+  allowSoloExecution?: boolean
+}
+
+export const createServer = (client: MyMultiSigClient, options: ServerOptions) => {
   const server = new McpServer({ name: 'mymultisig', version: options.version }, { instructions: SERVER_INSTRUCTIONS })
   const read = { readOnlyHint: true, openWorldHint: true }
 
@@ -250,7 +261,7 @@ export const createServer = (client: MyMultiSigClient, options: { readOnly: bool
     {
       title: 'Deploy a new multisig',
       description:
-        'Deploy a MyMultiSig wallet from the official factory (the agent key pays gas) and register it on mymultisig.app. Needs MYMULTISIG_PRIVATE_KEY. Confirm owners, threshold and chain with the user first.',
+        'Deploy a MyMultiSig wallet from the official factory (the agent key pays gas) and register it on mymultisig.app. Needs MYMULTISIG_PRIVATE_KEY. Refuses a wallet the agent could operate alone (agent is an owner and threshold is 1). Confirm owners, threshold and chain with the user first.',
       inputSchema: {
         chainId,
         name: z.string().min(1).max(64),
@@ -263,7 +274,11 @@ export const createServer = (client: MyMultiSigClient, options: { readOnly: bool
       },
       annotations: { destructiveHint: false, idempotentHint: false, openWorldHint: true }
     },
-    (input) => run(() => client.createWallet({ ...input, salt: input.salt as Hex | undefined }))
+    (input) =>
+      run(async () => {
+        if (!options.allowSoloExecution) assertWalletNeedsAnotherOwner(input.owners, input.threshold, client.address)
+        return client.createWallet({ ...input, salt: input.salt as Hex | undefined })
+      })
   )
 
   server.registerTool(
@@ -337,11 +352,18 @@ export const createServer = (client: MyMultiSigClient, options: { readOnly: bool
     {
       title: 'Execute a request on-chain',
       description:
-        'Send execTransaction for a request that has reached its threshold (the agent key pays gas). Simulates first and refuses on missing/invalid signatures. Irreversible: confirm with the user first.',
+        'Send execTransaction for a request that has reached its threshold (the agent key pays gas). Simulates first and refuses on missing/invalid signatures, or when no owner other than the agent has approved. Irreversible: confirm with the user first.',
       inputSchema: { chainId, requestId: z.string().uuid() },
       annotations: { destructiveHint: true, idempotentHint: false, openWorldHint: true }
     },
-    ({ chainId, requestId }) => run(() => client.executeRequest(chainId, requestId))
+    ({ chainId, requestId }) =>
+      run(async () => {
+        if (!options.allowSoloExecution) {
+          const status = await client.getRequestStatus(chainId, requestId)
+          assertCosignedByAnotherOwner(status.signatures, client.address)
+        }
+        return client.executeRequest(chainId, requestId)
+      })
   )
 
   server.registerTool(

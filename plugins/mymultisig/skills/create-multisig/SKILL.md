@@ -33,6 +33,8 @@ Show a summary:
 - the predicted address, if a salt is used;
 - that the agent's address pays gas.
 
+If the agent's own address is an owner, the threshold must be at least 2. `create_multisig` refuses a wallet the agent could run alone, so a human co-signs every transaction.
+
 Wait for an explicit "yes".
 
 ## 3. Deploy

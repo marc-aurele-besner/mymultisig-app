@@ -17,6 +17,11 @@ This guide is for operators and contributors. For the user guide, see `/docs/ai-
 ## Trust model
 
 - **Keys never reach the server.** API keys authenticate REST calls only. On-chain signing (EIP-712 approvals) and execution use `MYMULTISIG_PRIVATE_KEY`, which stays on the agent's machine. Recommend a dedicated key that is added as an owner, with a threshold the agent can't reach alone.
+- **Human-in-the-loop guard (MCP server, `packages/mcp/src/guard.ts`).**
+  - `execute_request` refuses unless a valid signature from an owner other than the agent is attached.
+  - `create_multisig` refuses a wallet the agent could run alone: the agent is an owner and the threshold is 1.
+  - `MYMULTISIG_ALLOW_SOLO_EXECUTION=1` lifts the guard. Only an operator can set it; the Claude plugin doesn't expose it.
+  - It's there for the Anthropic Software Directory Policy, which rules out software that moves financial assets autonomously without human-in-the-loop safeguards. The CLI isn't guarded, because a person runs every command.
 - **API keys are opt-in per endpoint.**
   - A route accepts a Bearer key only when it passes `{ apiKeyScope }` to `withSession`, `withVerifiedAs` or `withVerifiedAsOwner` (`src/lib/api/middleware.ts`).
   - On any other route, a Bearer token is a 401.
