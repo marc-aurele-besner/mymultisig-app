@@ -7,6 +7,16 @@ description: Queue a transaction on a MyMultiSig wallet — send native tokens, 
 
 Builds a request, sanity-checks it, queues it on mymultisig.app and shares the link with the co-signers. Uses the `mymultisig` MCP tools.
 
+## If the MyMultiSig tools aren't available
+
+The tools come from the `mymultisig-mcp` server. The `mymultisig` plugin bundles it. With the skills-only plugin, the user adds the server once, from their own terminal:
+
+```
+claude mcp add mymultisig -- npx -y mymultisig-mcp@0.1.3
+```
+
+Don't run this yourself. Show it to the user and point them to https://mymultisig.app/docs/ai-agents for the optional API key, agent key and read-only setting.
+
 ## 1. Build the call
 
 - **Native transfer**: set `to` to the recipient and `valueEther` to the amount, for example `"0.1"`. Leave `data` empty.

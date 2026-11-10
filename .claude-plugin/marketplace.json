@@ -13,6 +13,12 @@
       "source": "./plugins/mymultisig",
       "description": "Create, inspect, propose, review, sign and execute MyMultiSig wallet transactions from Claude Code (MCP server + skills)",
       "category": "web3"
+    },
+    {
+      "name": "mymultisig-skills",
+      "source": "./plugins/mymultisig-skills",
+      "description": "The same MyMultiSig workflow skills without the bundled MCP server, for when you add mymultisig-mcp yourself. Install one of the two plugins, not both.",
+      "category": "web3"
     }
   ]
 }

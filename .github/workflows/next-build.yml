@@ -20,5 +20,9 @@ jobs:
         run: yarn packages:build
       - name: Test agent packages
         run: yarn packages:test
+      # plugins/mymultisig-skills is the server-less copy submitted to the Claude
+      # plugin directory; its skills must match the bundled plugin's.
+      - name: Check plugin skills are in sync
+        run: diff -r plugins/mymultisig/skills plugins/mymultisig-skills/skills
       - name: Next Build
         run: yarn build

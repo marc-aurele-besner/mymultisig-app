@@ -1,0 +1,19 @@
+{
+  "name": "mymultisig-skills",
+  "displayName": "MyMultiSig Skills",
+  "version": "0.1.0",
+  "description": "Workflow skills to inspect, create, propose, review, sign and execute MyMultiSig multi-signature wallet transactions, with a human co-signer in the loop. Uses the mymultisig-mcp server, which you add separately.",
+  "author": {
+    "name": "Marc-Aurele Besner",
+    "url": "https://github.com/marc-aurele-besner"
+  },
+  "homepage": "https://mymultisig.app/docs/ai-agents",
+  "repository": "https://github.com/marc-aurele-besner/mymultisig-app",
+  "license": "MIT",
+  "keywords": ["multisig", "ethereum", "wallet", "skills", "web3"],
+  "icon": "./.claude-plugin/icon.png",
+  "documentationUrl": "https://mymultisig.app/docs/ai-agents",
+  "supportUrl": "https://github.com/marc-aurele-besner/mymultisig-app/issues",
+  "privacyPolicyUrl": "https://mymultisig.app/privacy",
+  "termsOfServiceUrl": "https://mymultisig.app/terms"
+}
