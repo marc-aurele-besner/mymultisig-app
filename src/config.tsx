@@ -6,6 +6,23 @@ const descriptionDefault = 'A simple and easy MultiSig wallet for Ethereum and o
 const author = 'Marc-Aurele Besner'
 const ogImage = `${siteUrl}/images/og-image.png`
 
+// Breadcrumb trail for a route, e.g. /docs/ai-agents → Home › Docs › AI agents.
+// Intermediate names come from the path; the last one is the page's own title.
+const breadcrumbLd = (path: string, title: string) => {
+  const segments = path.split('/').filter(Boolean)
+  const labelFor = (segment: string) => segment.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase())
+  const pageName = title.replace(/^MyMultiSig\s*[-—]\s*/, '').replace(/\s*[-—]\s*MyMultiSig( Guides)?$/, '')
+  const items = [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` },
+    ...segments.map((segment, index) => {
+      const url = `${siteUrl}/${segments.slice(0, index + 1).join('/')}`
+      const isLast = index === segments.length - 1
+      return { '@type': 'ListItem', position: index + 2, name: isLast ? pageName : labelFor(segment), item: url }
+    })
+  ]
+  return { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items }
+}
+
 interface HeaderProps {
   title?: string
   description?: string
@@ -33,6 +50,12 @@ const Header = ({ title = titleDefault, description = descriptionDefault, path, 
       <meta name='robots' content={noIndex ? 'noindex,nofollow' : 'index,follow'} />
       <meta name='distribution' content='web' />
       {canonicalUrl && <link rel='canonical' href={canonicalUrl} />}
+      {path && path !== '/' && !noIndex && (
+        <script
+          type='application/ld+json'
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd(path, title)) }}
+        />
+      )}
 
       {/* Open Graph */}
       <meta property='og:title' content={title} />
