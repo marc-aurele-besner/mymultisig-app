@@ -126,6 +126,27 @@ describe('loadConfig', () => {
     expect(config.readOnly).toBe(true)
   })
 
+  it('reads Claude plugin option names, with MYMULTISIG_* taking precedence', () => {
+    const key = `0x${'11'.repeat(32)}`
+    const config = loadConfig({
+      CLAUDE_PLUGIN_OPTION_API_KEY: 'mms_plugin',
+      CLAUDE_PLUGIN_OPTION_PRIVATE_KEY: key,
+      CLAUDE_PLUGIN_OPTION_CHAINS: '11155111',
+      CLAUDE_PLUGIN_OPTION_READ_ONLY: 'false',
+      MYMULTISIG_READ_ONLY: '1'
+    })
+    expect(config.client.apiKey).toBe('mms_plugin')
+    expect(config.client.privateKey).toBe(key)
+    expect(config.client.allowedChainIds).toEqual([11155111])
+    expect(config.readOnly).toBe(true)
+  })
+
+  it('treats empty plugin options as unset', () => {
+    const config = loadConfig({ CLAUDE_PLUGIN_OPTION_API_KEY: '', CLAUDE_PLUGIN_OPTION_PRIVATE_KEY: '' })
+    expect(config.client.apiKey).toBeUndefined()
+    expect(config.client.privateKey).toBeUndefined()
+  })
+
   it('rejects malformed private keys', () => {
     expect(() => loadConfig({ MYMULTISIG_PRIVATE_KEY: '0x1234' })).toThrow(/32-byte/)
   })
