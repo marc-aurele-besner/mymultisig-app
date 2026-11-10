@@ -17,6 +17,7 @@ export async function getStaticProps() {
       title: 'MyMultiSig - Slack settings',
       description:
         'Install the MyMultiSig Slack app, list the workspaces connected to your wallet, and uninstall when you no longer need it.',
+      noIndex: true,
       path: '/settings/slack'
     }
   }
