@@ -11,7 +11,7 @@ export async function getStaticProps() {
     props: {
       title: 'Multisig API, SDK and MCP server for AI agents · MyMultiSig',
       description:
-        'Let Claude, Cursor or your own bot work a multisig queue via MCP, Claude Code skills, scoped API keys, CLI and SDK. Signing stays local; quorum is enforced onchain.',
+        'Let Claude, Cursor or a bot work a multisig queue via MCP, Claude Code skills, scoped API keys, CLI and SDK. Signing stays local; quorum is enforced onchain.',
       path: '/agents'
     }
   }
