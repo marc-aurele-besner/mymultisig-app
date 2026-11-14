@@ -239,7 +239,7 @@ const Page: React.FC = () => {
 export async function getStaticProps() {
   return {
     props: {
-      title: 'MyMultiSig - Guides',
+      title: 'Multisig wallet guides and docs · MyMultiSig',
       description:
         'Guides to multisig wallets on EVM networks: what a multisig is, how to create one, how to propose, sign, and execute transactions, and how to import an existing wallet.',
       path: '/docs'

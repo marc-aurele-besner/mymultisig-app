@@ -9,8 +9,8 @@ const Page: React.FC = () => {
 export async function getStaticProps() {
   return {
     props: {
-      title: 'MyMultiSig - Contact',
-      description: 'Get in touch with the MyMultiSig team — questions, feedback, or issues with the multisig wallet.',
+      title: 'Contact the MyMultiSig team',
+      description: 'Get in touch with the MyMultiSig team: questions about the open-source multisig wallet, feedback, bug reports, or requests for a new EVM network.',
       path: '/contact'
     }
   }

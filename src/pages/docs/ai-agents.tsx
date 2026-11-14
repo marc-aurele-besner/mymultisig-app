@@ -199,7 +199,7 @@ npx mymultisig-cli --json request propose --chain 11155111 --wallet 0x… \\
 export async function getStaticProps() {
   return {
     props: {
-      title: 'Manage a multisig with AI agents - MyMultiSig Guides',
+      title: 'Manage a multisig with AI agents (MCP, API keys, CLI)',
       description:
         'Connect Claude, Cursor or any MCP client to MyMultiSig with scoped API keys, the MCP server, a Claude Code plugin, CLI and SDK.',
       path: '/docs/ai-agents'

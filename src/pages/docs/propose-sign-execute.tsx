@@ -109,7 +109,7 @@ const Page: React.FC = () => {
 export async function getStaticProps() {
   return {
     props: {
-      title: 'Propose, sign & execute transactions - MyMultiSig Guides',
+      title: 'How to propose, sign and execute multisig transactions',
       description:
         'How multisig transactions work in MyMultiSig: propose a request, collect gas-free EIP-712 signatures from owners, and execute onchain once the threshold is met.',
       path: '/docs/propose-sign-execute'

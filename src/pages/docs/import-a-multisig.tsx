@@ -90,7 +90,7 @@ const Page: React.FC = () => {
 export async function getStaticProps() {
   return {
     props: {
-      title: 'Import an existing multisig - MyMultiSig Guides',
+      title: 'How to import an existing multisig wallet · MyMultiSig',
       description:
         'How to add an already-deployed multisig wallet by contract address: pick the network, paste the address, verify the owners and threshold, and start signing.',
       path: '/docs/import-a-multisig'

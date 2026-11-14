@@ -11,7 +11,7 @@ const ogImage = `${siteUrl}/images/og-image.png`
 const breadcrumbLd = (path: string, title: string) => {
   const segments = path.split('/').filter(Boolean)
   const labelFor = (segment: string) => segment.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase())
-  const pageName = title.replace(/^MyMultiSig\s*[-—]\s*/, '').replace(/\s*[-—]\s*MyMultiSig( Guides)?$/, '')
+  const pageName = title.replace(/^MyMultiSig\s*[-—]\s*/, '').replace(/\s*[-—·]\s*MyMultiSig( Guides)?$/, '')
   const items = [
     { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` },
     ...segments.map((segment, index) => {
@@ -30,10 +30,21 @@ interface HeaderProps {
   path?: string
   /** Private/app pages set this so thin or duplicate URLs stay out of search results */
   noIndex?: boolean
+  /** Guides pass their publish and last-edit dates (YYYY-MM-DD); they render as og:type article */
+  datePublished?: string
+  dateModified?: string
 }
 
-const Header = ({ title = titleDefault, description = descriptionDefault, path, noIndex = false }: HeaderProps) => {
+const Header = ({
+  title = titleDefault,
+  description = descriptionDefault,
+  path,
+  noIndex = false,
+  datePublished,
+  dateModified
+}: HeaderProps) => {
   const canonicalUrl = path != null ? `${siteUrl}${path === '/' ? '/' : path}` : undefined
+  const isArticle = datePublished != null
   return (
     <Head>
       {/* Recommended Meta Tags */}
@@ -59,7 +70,10 @@ const Header = ({ title = titleDefault, description = descriptionDefault, path, 
 
       {/* Open Graph */}
       <meta property='og:title' content={title} />
-      <meta property='og:type' content='website' />
+      <meta property='og:type' content={isArticle ? 'article' : 'website'} />
+      <meta property='og:locale' content='en_US' />
+      {isArticle && <meta property='article:published_time' content={datePublished} />}
+      {isArticle && dateModified && <meta property='article:modified_time' content={dateModified} />}
       {canonicalUrl && <meta property='og:url' content={canonicalUrl} />}
       <meta property='og:image' content={ogImage} />
       <meta property='og:image:width' content='1200' />

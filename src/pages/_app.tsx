@@ -40,6 +40,8 @@ const App: React.FC<AppProps> = ({ Component, pageProps = { title: 'MyMultiSig' 
           description={pageProps.description}
           path={pageProps.path}
           noIndex={pageProps.noIndex}
+          datePublished={pageProps.datePublished}
+          dateModified={pageProps.dateModified}
         />
         {/* reducedMotion="user" makes every framer-motion animation respect prefers-reduced-motion */}
         <MotionConfig reducedMotion="user">

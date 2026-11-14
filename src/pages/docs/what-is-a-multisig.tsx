@@ -119,7 +119,7 @@ const Page: React.FC = () => {
 export async function getStaticProps() {
   return {
     props: {
-      title: 'What is a multisig? - MyMultiSig Guides',
+      title: 'What is a multisig wallet? Owners and thresholds explained',
       description:
         'A plain-language guide to multi-signature wallets: how approval thresholds work, when shared control beats a single key, and how MyMultiSig enforces it onchain.',
       path: '/docs/what-is-a-multisig'

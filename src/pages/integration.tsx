@@ -9,9 +9,9 @@ const Page: React.FC = () => {
 export async function getStaticProps() {
   return {
     props: {
-      title: 'MyMultiSig - Integration',
+      title: 'Multisig alerts in Slack, Discord, Telegram and email',
       description:
-        'Connect MyMultiSig to Slack, Discord, or email notifications, and build on top of it with open ABIs, standard EVM contract calls, and open-source API routes.',
+        'Get multisig request alerts in Slack, Discord, Telegram or email, and build on MyMultiSig with open ABIs, standard EVM contract calls and open API routes.',
       path: '/integration'
     }
   }

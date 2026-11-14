@@ -9,8 +9,8 @@ const Page: React.FC = () => {
 export async function getStaticProps() {
   return {
     props: {
-      title: 'MyMultiSig - Privacy Policy',
-      description: 'Privacy policy for MyMultiSig: what data the app stores, how it is used, and what stays onchain.',
+      title: 'Privacy policy · MyMultiSig',
+      description: 'Privacy policy for MyMultiSig: what the multisig app stores (wallets, requests, signatures), how that data is used, and what stays onchain.',
       path: '/privacy'
     }
   }
