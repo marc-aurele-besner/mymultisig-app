@@ -90,12 +90,24 @@ export const faqItems = [
     a: 'No. You set a threshold when creating the multisig (e.g. 2 of 3). Once that many owners have approved a proposal, the transaction can be executed. Not everyone has to sign every time.'
   },
   {
+    q: 'Which networks does MyMultiSig support?',
+    a: 'Ethereum, Polygon, Optimism, Arbitrum, Avalanche, BNB Chain and Gnosis, plus their testnets such as Sepolia. The same open-source contract is deployed on every network.'
+  },
+  {
+    q: 'Does signing a transaction cost gas?',
+    a: 'No. Owners approve a request by signing an EIP-712 message offchain, which is free. Only the final execution is an onchain transaction, and any owner can send it once the threshold is met.'
+  },
+  {
+    q: 'Can an AI agent use a MyMultiSig wallet?',
+    a: 'Yes. Claude, Cursor or any MCP client can check balances, propose transactions and sign with its own owner key through the MyMultiSig MCP server, CLI, SDK or a scoped API key. The threshold is still enforced onchain, so an agent cannot move funds alone.'
+  },
+  {
     q: 'Is the project audited?',
     a: 'No. MyMultiSig is an early-stage project. The contracts are open-source and available for review, but they have not been professionally audited. Use at your own risk.'
   },
   {
     q: 'Where can I review the code?',
-    a: 'The smart contracts and this web app are both on GitHub. Use the "Review the code" link in the footer or on this page to open the repositories.'
+    a: 'Both are open source on GitHub: the smart contracts in marc-aurele-besner/mymultisig-contract and this web app, API, SDK, MCP server and CLI in marc-aurele-besner/mymultisig-app. The "Review the code" link at the top of this page opens the app repository.'
   }
 ]
 
