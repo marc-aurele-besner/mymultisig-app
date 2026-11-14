@@ -4201,9 +4201,9 @@
     "@tybys/wasm-util" "^0.10.3"
 
 "@neondatabase/serverless@^1.0.2":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@neondatabase/serverless/-/serverless-1.2.0.tgz#d58553f0804eb9ddacb09662d607756b7dc74b77"
-  integrity sha512-tnaqgixUengZQNd9ZrS3ytQfamJzLKY8QxgqWQTNHHtB+KrFQWk77JTbbpg4RD+J3qE4eO2lVytvGDX5Kj6FdQ==
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@neondatabase/serverless/-/serverless-1.2.1.tgz#82b4bb6db01c7cd36a9af0c1f06637f4a8e8d1b3"
+  integrity sha512-PI2JjuyEFE7oZDTkV/s6WP4KEceCwnjQHClfunhysuIATtvcVTBLdA4UgHTnJo7C0mkK+OZ6U7SV1NDnYa0HgA==
 
 "@netlify/ai@^1.0.2", "@netlify/ai@^1.0.4":
   version "1.0.4"
