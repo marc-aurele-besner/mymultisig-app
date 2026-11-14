@@ -15,6 +15,7 @@ export const Basic: StoryFn<typeof GuideLayout> = () => (
     kicker="GUIDE"
     title="Example guide"
     lead="A short lead paragraph that frames what this guide covers."
+    updated="2026-11-09"
     related={[{ title: 'Another guide', href: '/docs' }]}
   >
     <GuideSection title="First section">

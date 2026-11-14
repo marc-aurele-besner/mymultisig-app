@@ -46,11 +46,29 @@ Key facts for agents:
 
 ## Docs
 
-- [What is a multisig?](https://mymultisig.app/docs/what-is-a-multisig)
-- [Create a multisig](https://mymultisig.app/docs/create-a-multisig)
-- [Propose, sign, and execute transactions](https://mymultisig.app/docs/propose-sign-execute)
-- [Import an existing multisig](https://mymultisig.app/docs/import-a-multisig)
-- [Supported networks](https://mymultisig.app/networks)
+- [Guides index](https://mymultisig.app/docs): every guide, in reading order.
+- [What is a multisig?](https://mymultisig.app/docs/what-is-a-multisig): owners, thresholds and when shared control beats a single key.
+- [Create a multisig](https://mymultisig.app/docs/create-a-multisig): pick a network, add owners, set the threshold, deploy.
+- [Propose, sign, and execute transactions](https://mymultisig.app/docs/propose-sign-execute): the full request lifecycle.
+- [Import an existing multisig](https://mymultisig.app/docs/import-a-multisig): add a deployed wallet by address.
+- [Manage a multisig with AI agents](https://mymultisig.app/docs/ai-agents): API keys, MCP server, CLI and SDK.
+- [Get started](https://mymultisig.app/get-started): checklist from connecting a wallet to the first executed transaction.
+- [Supported networks](https://mymultisig.app/networks): every chain with a factory, mainnets and testnets.
+
+## Product pages
+
+- [Create a multisig](https://mymultisig.app/create-multisig), [open one](https://mymultisig.app/open-multisig) or [import one](https://mymultisig.app/import-multisig).
+- [Agents and API](https://mymultisig.app/agents): what an AI agent can do with a multisig, and how.
+- [Integrations](https://mymultisig.app/integration): request alerts in Slack, Discord, Telegram and email.
+- [About](https://mymultisig.app/about): why the project exists and its design principles.
+
+## Common questions
+
+- **Does signing cost gas?** No. Owners sign an EIP-712 message offchain. Only execution is an onchain transaction.
+- **Do all owners have to sign?** No. Only `threshold` owners do, for example 2 of 3.
+- **Is it audited?** No. The contracts are open source but have not been professionally audited.
+- **Does it cost anything?** The app is free to use. You pay the network's gas for deploying and executing.
+- **Networks:** Ethereum, Polygon, Optimism, Arbitrum, Avalanche, BNB Chain and Gnosis, plus testnets such as Sepolia.
 
 ## Source
 

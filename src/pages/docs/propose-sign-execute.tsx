@@ -3,8 +3,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 
 import GuideLayout, { GuideSection, GuideText, GuideList, GuideNote, GuideSteps } from '../../components/docs/GuideLayout'
-
-const siteUrl = 'https://mymultisig.app'
+import { GUIDE_DATES, guidePageProps, guideStructuredData } from '../../components/docs/guideMeta'
 
 const steps = [
   { name: 'Open your multisig', text: 'Select the multisig you want to transact from.' },
@@ -18,7 +17,7 @@ const structuredData = {
   '@type': 'HowTo',
   name: 'How to propose, sign, and execute a multisig transaction',
   description: 'The lifecycle of a MyMultiSig transaction: proposal, offchain EIP-712 signatures, and onchain execution.',
-  url: `${siteUrl}/docs/propose-sign-execute`,
+  ...guideStructuredData('propose-sign-execute'),
   step: steps.map((step, index) => ({
     '@type': 'HowToStep',
     position: index + 1,
@@ -34,6 +33,7 @@ const Page: React.FC = () => {
         <script type='application/ld+json' dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       </Head>
       <GuideLayout
+        updated={GUIDE_DATES['propose-sign-execute'].dateModified}
         kicker='HOW-TO'
         title='Propose, sign, and execute transactions'
         lead='A multisig transaction has three stages: one owner proposes it, enough owners sign it, and anyone with a signature set that meets the threshold executes it onchain.'
@@ -109,10 +109,11 @@ const Page: React.FC = () => {
 export async function getStaticProps() {
   return {
     props: {
-      title: 'Propose, sign & execute transactions - MyMultiSig Guides',
+      title: 'How to propose, sign and execute multisig transactions',
       description:
         'How multisig transactions work in MyMultiSig: propose a request, collect gas-free EIP-712 signatures from owners, and execute onchain once the threshold is met.',
-      path: '/docs/propose-sign-execute'
+      path: '/docs/propose-sign-execute',
+      ...guidePageProps('propose-sign-execute')
     }
   }
 }

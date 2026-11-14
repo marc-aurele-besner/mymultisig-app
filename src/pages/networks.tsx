@@ -33,8 +33,8 @@ export async function getStaticProps() {
     .join(', ')
   return {
     props: {
-      title: 'MyMultiSig - Supported networks',
-      description: `Deploy a multisig on ${networks.length} EVM networks, including ${mainnetNames}. Same open-source contract on every chain.`,
+      title: 'Supported EVM networks for multisig wallets · MyMultiSig',
+      description: `Deploy a multisig on ${networks.length} EVM networks, including ${mainnetNames}. Same contract on every chain.`,
       path: '/networks'
     }
   }

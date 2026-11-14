@@ -22,14 +22,21 @@ const structuredData = {
         'https://github.com/marc-aurele-besner/mymultisig-app',
         'https://github.com/marc-aurele-besner/mymultisig-contract',
         'https://www.npmjs.com/package/mymultisig-contract',
+        'https://www.npmjs.com/package/mymultisig-sdk',
+        'https://www.npmjs.com/package/mymultisig-mcp',
+        'https://www.npmjs.com/package/mymultisig-cli',
         'https://x.com/marcaureleb'
-      ]
+      ],
+      founder: { '@type': 'Person', name: 'Marc-Aurele Besner', url: 'https://github.com/marc-aurele-besner' }
     },
     {
       '@type': 'WebSite',
       '@id': `${siteUrl}/#website`,
       url: `${siteUrl}/`,
       name: 'MyMultiSig',
+      description:
+        'Open-source multisig wallet for Ethereum and EVM networks, with guides on creating a multisig and signing transactions.',
+      inLanguage: 'en',
       publisher: { '@id': `${siteUrl}/#organization` }
     },
     {
@@ -38,9 +45,33 @@ const structuredData = {
       name: 'MyMultiSig',
       url: `${siteUrl}/`,
       applicationCategory: 'FinanceApplication',
+      applicationSubCategory: 'Multisig wallet',
       operatingSystem: 'Web',
-      description: 'Open-source multisig wallet for Ethereum and other EVM networks.',
+      browserRequirements: 'Requires an Ethereum wallet such as MetaMask, Coinbase Wallet or a WalletConnect wallet.',
+      description:
+        'Open-source multisig wallet for Ethereum and other EVM networks. Owners sign requests offchain (EIP-712) and any owner executes once the approval threshold is met.',
+      featureList: [
+        'Create a multisig wallet with any set of owners and an approval threshold',
+        'Propose transactions and collect gas-free EIP-712 signatures',
+        'Execute onchain once the threshold is met',
+        'Import an existing multisig by address',
+        'Notifications in Slack, Discord, Telegram and email',
+        'MCP server, CLI, SDK and scoped API keys for AI agents'
+      ],
+      isAccessibleForFree: true,
+      license: 'https://opensource.org/licenses/MIT',
+      publisher: { '@id': `${siteUrl}/#organization` },
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+    },
+    {
+      '@type': 'SoftwareSourceCode',
+      '@id': `${siteUrl}/#source`,
+      name: 'MyMultiSig',
+      codeRepository: 'https://github.com/marc-aurele-besner/mymultisig-app',
+      programmingLanguage: 'TypeScript',
+      license: 'https://opensource.org/licenses/MIT',
+      targetProduct: { '@id': `${siteUrl}/#app` },
+      author: { '@type': 'Person', name: 'Marc-Aurele Besner', url: 'https://github.com/marc-aurele-besner' }
     },
     {
       '@type': 'FAQPage',

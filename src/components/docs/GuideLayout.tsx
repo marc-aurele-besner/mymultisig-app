@@ -28,6 +28,8 @@ interface GuideLayoutProps {
   kicker: string
   title: string
   lead: string
+  /** Last content edit (YYYY-MM-DD), shown under the lead */
+  updated?: string
   // Closing call to action: the thing the guide just explained how to do.
   cta?: GuideCta
   related?: RelatedGuide[]
@@ -67,7 +69,24 @@ export const GuideNote: React.FC<{ children: React.ReactNode }> = ({ children })
   </div>
 )
 
-const GuideLayout: React.FC<GuideLayoutProps> = ({ kicker, title, lead, cta = DEFAULT_CTA, related, children }) => {
+// Fixed locale and UTC so the server and the browser render the same string.
+const formatDate = (isoDate: string) =>
+  new Date(`${isoDate}T00:00:00Z`).toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+
+const GuideLayout: React.FC<GuideLayoutProps> = ({
+  kicker,
+  title,
+  lead,
+  updated,
+  cta = DEFAULT_CTA,
+  related,
+  children
+}) => {
   return (
     <div className="flex justify-center">
       <article className="flex w-full max-w-[760px] flex-col gap-8 py-4 md:py-8">
@@ -84,6 +103,11 @@ const GuideLayout: React.FC<GuideLayoutProps> = ({ kicker, title, lead, cta = DE
             {title}
           </h1>
           <p className="text-lg font-medium leading-relaxed text-foreground">{lead}</p>
+          {updated != null && (
+            <p className="mt-4 font-mono text-xs text-muted-foreground">
+              Last updated <time dateTime={updated}>{formatDate(updated)}</time>
+            </p>
+          )}
         </div>
 
         {children}

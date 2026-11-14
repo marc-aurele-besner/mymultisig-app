@@ -3,8 +3,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 
 import GuideLayout, { GuideSection, GuideText, GuideList, GuideNote, GuideSteps } from '../../components/docs/GuideLayout'
-
-const siteUrl = 'https://mymultisig.app'
+import { GUIDE_DATES, guidePageProps, guideStructuredData } from '../../components/docs/guideMeta'
 
 const steps = [
   { name: 'Connect your wallet', text: 'Connect MetaMask, Coinbase Wallet, WalletConnect, or any injected wallet.' },
@@ -20,7 +19,7 @@ const structuredData = {
   '@type': 'HowTo',
   name: 'How to create a multisig wallet',
   description: 'Deploy a shared multisig wallet on Ethereum or any supported EVM network with MyMultiSig.',
-  url: `${siteUrl}/docs/create-a-multisig`,
+  ...guideStructuredData('create-a-multisig'),
   step: steps.map((step, index) => ({
     '@type': 'HowToStep',
     position: index + 1,
@@ -36,6 +35,7 @@ const Page: React.FC = () => {
         <script type='application/ld+json' dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       </Head>
       <GuideLayout
+        updated={GUIDE_DATES['create-a-multisig'].dateModified}
         kicker='HOW-TO'
         title='Create a multisig'
         lead='Deploying a multisig with MyMultiSig takes one transaction. You choose the owners and the approval threshold; the factory contract does the rest.'
@@ -119,10 +119,11 @@ const Page: React.FC = () => {
 export async function getStaticProps() {
   return {
     props: {
-      title: 'Create a multisig - MyMultiSig Guides',
+      title: 'How to create a multisig wallet, step by step · MyMultiSig',
       description:
         'Step-by-step guide to deploying a multisig wallet on Ethereum or any supported EVM network: pick a network, add owners, set the approval threshold, and deploy.',
-      path: '/docs/create-a-multisig'
+      path: '/docs/create-a-multisig',
+      ...guidePageProps('create-a-multisig')
     }
   }
 }

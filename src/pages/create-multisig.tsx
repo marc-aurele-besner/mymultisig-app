@@ -9,7 +9,7 @@ const Page: React.FC = () => {
 export async function getStaticProps() {
   return {
     props: {
-      title: 'MyMultiSig - Create a multisig',
+      title: 'Create a multisig wallet on Ethereum and EVM · MyMultiSig',
       description:
         'Deploy a new multisig wallet on Ethereum or any supported EVM network. Choose the owners, set the approval threshold, and create your shared wallet in minutes.',
       path: '/create-multisig'

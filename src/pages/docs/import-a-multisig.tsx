@@ -3,8 +3,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 
 import GuideLayout, { GuideSection, GuideText, GuideList, GuideSteps } from '../../components/docs/GuideLayout'
-
-const siteUrl = 'https://mymultisig.app'
+import { GUIDE_DATES, guidePageProps, guideStructuredData } from '../../components/docs/guideMeta'
 
 const steps = [
   { name: 'Copy the multisig address', text: 'Get the contract address of the deployed multisig you want to add.' },
@@ -18,7 +17,7 @@ const structuredData = {
   '@type': 'HowTo',
   name: 'How to import an existing multisig',
   description: 'Add an already-deployed MyMultiSig wallet by address to track and manage it.',
-  url: `${siteUrl}/docs/import-a-multisig`,
+  ...guideStructuredData('import-a-multisig'),
   step: steps.map((step, index) => ({
     '@type': 'HowToStep',
     position: index + 1,
@@ -34,6 +33,7 @@ const Page: React.FC = () => {
         <script type='application/ld+json' dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       </Head>
       <GuideLayout
+        updated={GUIDE_DATES['import-a-multisig'].dateModified}
         kicker='HOW-TO'
         title='Import an existing multisig'
         lead='A multisig lives onchain, not in the app. If a wallet was already deployed — by a co-owner, or by you on another device — import it by address to see and manage it here.'
@@ -90,10 +90,11 @@ const Page: React.FC = () => {
 export async function getStaticProps() {
   return {
     props: {
-      title: 'Import an existing multisig - MyMultiSig Guides',
+      title: 'How to import an existing multisig wallet · MyMultiSig',
       description:
         'How to add an already-deployed multisig wallet by contract address: pick the network, paste the address, verify the owners and threshold, and start signing.',
-      path: '/docs/import-a-multisig'
+      path: '/docs/import-a-multisig',
+      ...guidePageProps('import-a-multisig')
     }
   }
 }

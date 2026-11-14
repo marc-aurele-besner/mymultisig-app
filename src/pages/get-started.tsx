@@ -9,7 +9,7 @@ const Page: React.FC = () => {
 export async function getStaticProps() {
   return {
     props: {
-      title: 'MyMultiSig - Get started',
+      title: 'Get started with a multisig wallet · MyMultiSig',
       description:
         'From connecting a wallet to your first executed multisig transaction: create or import a multisig, fund it, propose, collect signatures and execute.',
       path: '/get-started'
