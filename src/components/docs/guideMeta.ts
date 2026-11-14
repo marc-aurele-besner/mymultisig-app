@@ -1,11 +1,7 @@
 const siteUrl = 'https://mymultisig.app'
 
 export type GuideSlug =
-  | 'what-is-a-multisig'
-  | 'create-a-multisig'
-  | 'propose-sign-execute'
-  | 'import-a-multisig'
-  | 'ai-agents'
+  'what-is-a-multisig' | 'create-a-multisig' | 'propose-sign-execute' | 'import-a-multisig' | 'ai-agents'
 
 // First publish and last content edit of each guide (YYYY-MM-DD, from git history).
 // Bump dateModified when a guide's content changes: it is shown on the page as
