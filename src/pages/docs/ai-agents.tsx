@@ -10,8 +10,7 @@ import GuideLayout, {
   GuideSteps,
   GuideText
 } from '../../components/docs/GuideLayout'
-
-const siteUrl = 'https://mymultisig.app'
+import { GUIDE_DATES, guidePageProps, guideStructuredData } from '../../components/docs/guideMeta'
 
 const steps = [
   { name: 'Create an API key', text: 'Mint a scoped key at /settings/api-keys while signed in with your wallet.' },
@@ -28,7 +27,7 @@ const structuredData = {
   '@type': 'HowTo',
   name: 'How to manage a multisig with AI agents',
   description: 'Connect Claude or any MCP client to MyMultiSig to create, propose, sign and execute multisig transactions.',
-  url: `${siteUrl}/docs/ai-agents`,
+  ...guideStructuredData('ai-agents'),
   step: steps.map((step, index) => ({ '@type': 'HowToStep', position: index + 1, name: step.name, text: step.text }))
 }
 
@@ -41,6 +40,7 @@ const Page: React.FC = () => {
         <script type='application/ld+json' dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       </Head>
       <GuideLayout
+        updated={GUIDE_DATES['ai-agents'].dateModified}
         kicker='HOW-TO'
         title='Manage a multisig with AI agents'
         lead='Connect Claude, Cursor or any MCP-capable agent to MyMultiSig. The agent can check balances and the request queue, decode and review requests, propose transactions, sign them with its own owner key, and execute once the threshold is met. You keep the final say on every step.'
@@ -202,7 +202,8 @@ export async function getStaticProps() {
       title: 'Manage a multisig with AI agents (MCP, API keys, CLI)',
       description:
         'Connect Claude, Cursor or any MCP client to MyMultiSig with scoped API keys, the MCP server, a Claude Code plugin, CLI and SDK.',
-      path: '/docs/ai-agents'
+      path: '/docs/ai-agents',
+      ...guidePageProps('ai-agents')
     }
   }
 }

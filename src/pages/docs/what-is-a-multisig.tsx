@@ -3,8 +3,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 
 import GuideLayout, { GuideSection, GuideText, GuideList, GuideNote } from '../../components/docs/GuideLayout'
-
-const siteUrl = 'https://mymultisig.app'
+import { GUIDE_DATES, guidePageProps, guideStructuredData } from '../../components/docs/guideMeta'
 
 const structuredData = {
   '@context': 'https://schema.org',
@@ -12,9 +11,7 @@ const structuredData = {
   headline: 'What is a multisig wallet?',
   description:
     'A plain-language explanation of multi-signature wallets: how approval thresholds work, when to use one, and what MyMultiSig enforces onchain.',
-  url: `${siteUrl}/docs/what-is-a-multisig`,
-  author: { '@type': 'Person', name: 'Marc-Aurele Besner' },
-  publisher: { '@id': `${siteUrl}/#organization` }
+  ...guideStructuredData('what-is-a-multisig')
 }
 
 const Page: React.FC = () => {
@@ -24,6 +21,7 @@ const Page: React.FC = () => {
         <script type='application/ld+json' dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       </Head>
       <GuideLayout
+        updated={GUIDE_DATES['what-is-a-multisig'].dateModified}
         kicker='CONCEPTS'
         title='What is a multisig?'
         lead='A multisig (multi-signature) wallet is a shared wallet that requires multiple people to approve a transaction before it can be executed. No single person can move funds alone.'
@@ -122,7 +120,8 @@ export async function getStaticProps() {
       title: 'What is a multisig wallet? Owners and thresholds explained',
       description:
         'A plain-language guide to multi-signature wallets: how approval thresholds work, when shared control beats a single key, and how MyMultiSig enforces it onchain.',
-      path: '/docs/what-is-a-multisig'
+      path: '/docs/what-is-a-multisig',
+      ...guidePageProps('what-is-a-multisig')
     }
   }
 }
