@@ -43,7 +43,10 @@ const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
         ? [
             walletConnect({
               projectId,
-              showQrModal: false
+              // The app renders no QR code of its own, so the provider's modal
+              // (lazy-loaded on first use) is what shows the QR on desktop and
+              // the wallet list on phones. Without it, connecting just spins.
+              showQrModal: true
             })
           ]
         : []),

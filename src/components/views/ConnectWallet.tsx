@@ -12,10 +12,17 @@ import {
   WalletWalletConnect,
   WalletZerion
 } from '@web3icons/react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import ErrorCard from '../cards/ErrorCard'
 import { WalletIcon } from '../icons/wallet'
 import Disclaimer, { hasAcceptedDisclaimer } from '../modals/Disclaimer'
+import useConnectModal from '../../states/connectModal'
+
+// How long a connector may sit on "Connecting…" before we say so and offer a
+// way out. Long enough for a wallet popup to open, short enough that a stuck
+// connector never just spins.
+export const CONNECT_STALL_MS = 15_000
 
 type WalletMark = React.FC<{ size: number }>
 
@@ -83,17 +90,55 @@ export interface ConnectWalletProps {
 }
 
 const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = false, limit }) => {
-  const { connect, connectors: allConnectors, error, isPending } = useConnect()
+  const { connect, connectors: allConnectors, error, isPending, reset } = useConnect()
+  const setConnectModalOpen = useConnectModal((state) => state.setOpen)
   const connectors = limit != null ? allConnectors.slice(0, limit) : allConnectors
   const [connectingId, setConnectingId] = React.useState<string | null>(null)
   // Connector the user picked before accepting the disclaimer; connecting
   // resumes with it once they accept.
   const [awaitingDisclaimer, setAwaitingDisclaimer] = React.useState<(typeof connectors)[0] | null>(null)
 
+  // True once the current attempt has been pending for CONNECT_STALL_MS.
+  const [stalled, setStalled] = React.useState(false)
+  // Bumped on every attempt so "Try again" restarts the timer even when the
+  // connector and pending state end up unchanged.
+  const [attempt, setAttempt] = React.useState(0)
+
+  React.useEffect(() => {
+    setStalled(false)
+    if (!isPending || connectingId == null) return
+    const timer = setTimeout(() => setStalled(true), CONNECT_STALL_MS)
+    return () => clearTimeout(timer)
+  }, [isPending, connectingId, attempt])
+
   const startConnect = (connector: (typeof connectors)[0]) => {
     setConnectingId(connector.id)
+    setAttempt((count) => count + 1)
+    // WalletConnect shows its own modal (QR code, or the wallet list on a
+    // phone) once it has a pairing URI. Close the connect dialog then: its
+    // focus trap and pointer lock would otherwise leave that modal unusable.
+    if (connector.type === 'walletConnect') {
+      // wagmi sends a "connecting" message first, so wait for the URI itself.
+      const onMessage = ({ type }: { type: string }) => {
+        if (type !== 'display_uri') return
+        connector.emitter.off('message', onMessage)
+        setConnectModalOpen(false)
+      }
+      connector.emitter.on('message', onMessage)
+      connect({ connector }, { onSettled: () => connector.emitter.off('message', onMessage) })
+      return
+    }
     connect({ connector })
   }
+
+  // Drop a stuck attempt so every wallet can be picked again. The wallet may
+  // still answer later; that connects as usual.
+  const cancelConnect = () => {
+    reset()
+    setConnectingId(null)
+  }
+
+  const stalledConnector = stalled ? allConnectors.find((connector) => connector.id === connectingId) : undefined
 
   // The risk disclaimer is asked for here, the first time someone connects,
   // rather than on the first page view.
@@ -168,6 +213,29 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = f
           })}
         </div>
       </div>
+
+      {stalledConnector != null && (
+        <div role='status' className='flex flex-col gap-3 rounded-xl border border-border bg-muted/50 p-4 text-sm'>
+          <p className='text-foreground'>
+            {configForConnector(stalledConnector).name} has not opened yet. If no window, QR code or wallet app
+            appeared, cancel and try again, or pick another wallet.
+          </p>
+          <div className='flex gap-2'>
+            <Button
+              size='sm'
+              onClick={() => {
+                cancelConnect()
+                startConnect(stalledConnector)
+              }}
+            >
+              Try again
+            </Button>
+            <Button size='sm' variant='outline' onClick={cancelConnect}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
 
       {error != null && <ErrorCard>{error.message}</ErrorCard>}
 
