@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import GuidePath from '../../components/docs/GuidePath'
 import { ArrowForwardIcon } from '../../components/icons/ChakraIcons'
 import PageHero from '../../components/layout/PageHero'
+import { glossary, glossaryOrder } from '../../constants/glossary'
 
 const siteUrl = 'https://mymultisig.app'
 
@@ -28,7 +29,7 @@ export const guides = [
     href: '/docs/propose-sign-execute',
     kicker: 'HOW-TO',
     title: 'Propose, sign, and execute transactions',
-    description: 'The full lifecycle of a multisig transaction, from proposal to offchain signatures to onchain execution.'
+    description: 'The full life of a multisig transaction, from proposal to free approvals to the final transaction.'
   },
   {
     href: '/docs/import-a-multisig',
@@ -212,6 +213,30 @@ const Page: React.FC = () => {
               )
             })}
           </div>
+        </section>
+
+        {/* Plain-language definitions; <Term> popovers across the app link here */}
+        <section id='glossary' className='flex scroll-mt-24 flex-col gap-4'>
+          <div>
+            <h2 className='font-display text-xl font-bold tracking-tight text-foreground md:text-2xl'>
+              Words you will see
+            </h2>
+            <p className='mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground'>
+              New to crypto wallets? These are the terms MyMultiSig uses, in plain words.
+            </p>
+          </div>
+          <dl className='grid grid-cols-1 gap-3 md:grid-cols-2'>
+            {glossaryOrder.map((key) => (
+              <div
+                key={key}
+                id={`glossary-${key}`}
+                className='scroll-mt-24 rounded-xl border border-border bg-card p-4 target:border-primary/60'
+              >
+                <dt className='text-sm font-semibold text-foreground'>{glossary[key].term}</dt>
+                <dd className='mt-1 text-sm leading-relaxed text-muted-foreground'>{glossary[key].definition}</dd>
+              </div>
+            ))}
+          </dl>
         </section>
 
         <section className='flex flex-wrap items-center justify-between gap-5 rounded-xl border border-border p-6'>
