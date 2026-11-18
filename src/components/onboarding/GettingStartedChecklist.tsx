@@ -10,11 +10,13 @@ export interface GettingStartedChecklistProps {
   steps: OnboardingStep[]
   // Compact hides the description of every step except the next one.
   compact?: boolean
+  // Extra content under a step that is not done yet (e.g. funding help).
+  renderDetail?: (step: OnboardingStep) => React.ReactNode
 }
 
 // The first-run path as a checklist. Purely presentational: the steps and
 // their done state come from useOnboarding.
-const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({ steps, compact = false }) => {
+const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({ steps, compact = false, renderDetail }) => {
   const nextKey = steps.find((s) => !s.done)?.key
   return (
     <ol className='flex flex-col'>
@@ -50,6 +52,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({ steps
               {(!compact || isNext) && (
                 <span className='text-xs leading-relaxed text-muted-foreground'>{step.description}</span>
               )}
+              {!step.done && (!compact || isNext) && renderDetail?.(step)}
             </div>
             {!step.done && step.href != null && step.cta != null && (
               <Button asChild size='sm' variant={isNext ? 'default' : 'outline'} className='shrink-0'>

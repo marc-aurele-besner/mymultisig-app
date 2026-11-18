@@ -6,6 +6,7 @@ import useInbox from './useInbox'
 import useOnboardingState from '../states/onboarding'
 import { fetchSiweSession } from '../utils/siwe'
 import { walletHref } from '../components/shell/navigation'
+import { exchangeFunding } from '../utils/exchangeNetwork'
 
 export interface OnboardingStep {
   key: 'connect' | 'signin' | 'wallet' | 'fund' | 'request' | 'execute' | 'notify'
@@ -67,6 +68,7 @@ const useOnboarding = (): Onboarding => {
     const hasWallet = wallets.length > 0
     const funded = balance != null && balance.value > BigInt(0)
     const executed = hasExecutedRequest || wallets.some((w) => Number(w.nonce) > 0)
+    const funding = wallet != null ? exchangeFunding(wallet.chainId) : null
     const steps: OnboardingStep[] = [
       {
         key: 'connect',
@@ -91,7 +93,12 @@ const useOnboarding = (): Onboarding => {
       {
         key: 'fund',
         title: 'Fund it',
-        description: 'Send a little of the native coin so the wallet has something to manage.',
+        description:
+          funding == null
+            ? 'Send a little of the network’s coin to the multisig address so it has something to manage.'
+            : funding.isTestnet
+              ? `Get free test ${funding.symbol} from a ${funding.network} faucet and send it to the multisig address.`
+              : `Send a little ${funding.symbol} on ${funding.network} to the multisig address. Withdrawing from an exchange? Pick ${funding.network} as the network.`,
         done: hasWallet && (funded || executed),
         href: wallet != null ? walletHref(wallet.address) : undefined,
         cta: 'Fund'
@@ -130,7 +137,17 @@ const useOnboarding = (): Onboarding => {
       next: steps.find((s) => !s.done) ?? null,
       isComplete: doneCount === steps.length
     }
-  }, [address, isConnected, sessionAddress, wallets, wallet, balance, hasAnyRequest, hasExecutedRequest, notificationsVisited])
+  }, [
+    address,
+    isConnected,
+    sessionAddress,
+    wallets,
+    wallet,
+    balance,
+    hasAnyRequest,
+    hasExecutedRequest,
+    notificationsVisited
+  ])
 }
 
 export default useOnboarding

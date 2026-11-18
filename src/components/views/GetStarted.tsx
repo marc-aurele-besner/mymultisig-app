@@ -3,8 +3,10 @@ import Link from 'next/link'
 import { ChevronRightIcon, TriangleAlertIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import FundFromExchange from '../common/FundFromExchange'
 import GettingStartedChecklist from '../onboarding/GettingStartedChecklist'
 import ProgressRing from '../onboarding/ProgressRing'
+import useActiveWallet from '../../hooks/useActiveWallet'
 import useHasMounted from '../../hooks/useHasMounted'
 import useOnboarding from '../../hooks/useOnboarding'
 import useOnboardingState from '../../states/onboarding'
@@ -26,6 +28,7 @@ const GetStarted: React.FC = () => {
   const hasMounted = useHasMounted()
   const onboarding = useOnboarding()
   const { dismissed, setDismissed } = useOnboardingState()
+  const { wallet } = useActiveWallet()
 
   return (
     <div className='flex flex-col gap-8'>
@@ -46,7 +49,16 @@ const GetStarted: React.FC = () => {
 
       <div className='grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]'>
         <section className='rounded-xl border border-border bg-card p-5'>
-          {hasMounted && <GettingStartedChecklist steps={onboarding.steps} />}
+          {hasMounted && (
+            <GettingStartedChecklist
+              steps={onboarding.steps}
+              renderDetail={(step) =>
+                step.key === 'fund' ? (
+                  <FundFromExchange address={wallet?.address} chain={wallet?.chainId} className='mt-2' />
+                ) : null
+              }
+            />
+          )}
           {hasMounted && dismissed && !onboarding.isComplete && (
             <div className='mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4'>
               <span className='text-xs text-muted-foreground'>The checklist is hidden from the sidebar and inbox.</span>
