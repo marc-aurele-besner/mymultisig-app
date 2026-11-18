@@ -5,6 +5,7 @@ import { ChevronRightIcon, TriangleAlertIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import GettingStartedChecklist from '../onboarding/GettingStartedChecklist'
 import ProgressRing from '../onboarding/ProgressRing'
+import Term from '../common/Term'
 import useHasMounted from '../../hooks/useHasMounted'
 import useOnboarding from '../../hooks/useOnboarding'
 import useOnboardingState from '../../states/onboarding'
@@ -17,7 +18,7 @@ const GUIDES = [
   { href: '/docs/ai-agents', title: 'Manage a multisig with AI agents' }
 ]
 
-const LIFECYCLE = ['Proposed', 'Signed', 'Ready', 'Executed']
+const LIFECYCLE = ['Proposed', 'Approved', 'Ready', 'Sent']
 
 // The first-run path on one page: connect, sign in, create or import, fund,
 // propose, execute, notifications. Progress is derived from real state, so
@@ -71,8 +72,9 @@ const GetStarted: React.FC = () => {
               ))}
             </ol>
             <p className='text-xs leading-relaxed text-muted-foreground'>
-              Owners sign off-chain for free. When the threshold is reached, one on-chain transaction executes the
-              request. Requests execute in nonce order.
+              Approving is a free <Term id='signature' />: nothing is sent to the network. Once enough owners approve,
+              one owner sends the transaction and pays the network fee (<Term id='gas' />). Requests go through in the
+              order they were created.
             </p>
           </section>
 
@@ -92,7 +94,8 @@ const GetStarted: React.FC = () => {
 
           <p className='flex items-start gap-2 rounded-lg border border-border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground'>
             <TriangleAlertIcon className='mt-0.5 h-4 w-4 shrink-0 text-primary' />
-            Early-stage project. The contracts are open-source but not professionally audited. Start on a testnet.
+            Early-stage project. The contracts are open-source but not professionally audited. Start on a{' '}
+            <Term id='testnet' />, where coins are free.
           </p>
         </div>
       </div>

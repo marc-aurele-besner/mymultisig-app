@@ -46,7 +46,7 @@ const HeroQuorum: React.FC = () => {
   const signedCount = phase === 'idle' ? 0 : phase === 'sig1' ? 1 : 2
   const quorumReached = signedCount >= THRESHOLD
   const executed = phase === 'executed'
-  const status = executed ? 'EXECUTED' : quorumReached ? 'QUORUM REACHED' : 'AWAITING SIGNATURES'
+  const status = executed ? 'SENT' : quorumReached ? 'ENOUGH APPROVALS' : 'AWAITING APPROVALS'
 
   return (
     <motion.div
@@ -163,7 +163,7 @@ const HeroQuorum: React.FC = () => {
           >
             <Button size="sm" disabled={!quorumReached} className="gap-1.5" tabIndex={-1}>
               {executed && <CheckIcon className="h-3.5 w-3.5" />}
-              {executed ? 'Executed' : 'Execute transaction'}
+              {executed ? 'Sent' : 'Send transaction'}
             </Button>
           </motion.div>
         </div>
