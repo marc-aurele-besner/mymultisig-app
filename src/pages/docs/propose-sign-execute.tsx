@@ -4,6 +4,7 @@ import Link from 'next/link'
 
 import GuideLayout, { GuideSection, GuideText, GuideList, GuideNote, GuideSteps } from '../../components/docs/GuideLayout'
 import { GUIDE_DATES, guidePageProps, guideStructuredData } from '../../components/docs/guideMeta'
+import Term from '../../components/common/Term'
 
 const steps = [
   { name: 'Open your multisig', text: 'Select the multisig you want to transact from.' },
@@ -16,7 +17,7 @@ const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'HowTo',
   name: 'How to propose, sign, and execute a multisig transaction',
-  description: 'The lifecycle of a MyMultiSig transaction: proposal, offchain EIP-712 signatures, and onchain execution.',
+  description: 'The lifecycle of a MyMultiSig transaction: proposal, free offchain signatures, and onchain execution.',
   ...guideStructuredData('propose-sign-execute'),
   step: steps.map((step, index) => ({
     '@type': 'HowToStep',
@@ -50,11 +51,11 @@ const Page: React.FC = () => {
       >
         <GuideSection title='How approval works'>
           <GuideText>
-            MyMultiSig uses <strong>EIP-712 typed signatures</strong>. When an owner approves a request, their wallet
-            shows the exact transaction details — recipient, value, data, and nonce — and signs that structured
-            message. Signing is <strong>offchain and free</strong>: no gas is spent until the final execution. The
-            contract verifies every collected signature onchain before the transaction runs, so the app never has
-            custody and can never forge an approval.
+            Approving a request is a <Term id='signature' />. Your wallet shows the exact transaction details —
+            recipient, amount, data, and request number — and you confirm them. Signing is{' '}
+            <strong>free and sends nothing to the network</strong>: no <Term id='gas' /> is spent until the final
+            transaction. The contract checks every approval before the transaction runs, so the app never holds your
+            funds and can never fake an approval.
           </GuideText>
         </GuideSection>
 
@@ -74,7 +75,8 @@ const Page: React.FC = () => {
               link to the request with your co-owners.
             </li>
             <li>
-              <strong>Execute onchain.</strong> Once enough owners have signed, any owner can execute. The contract
+              <strong>Send it (<Term id='execute'>execute</Term>).</strong> Once enough owners have signed, any owner
+              can send the transaction to the network. The contract
               checks the signatures against the owner list and threshold, then performs the transaction in a single
               onchain call.
             </li>
@@ -84,12 +86,12 @@ const Page: React.FC = () => {
         <GuideSection title='Good to know'>
           <GuideList>
             <li>
-              <strong>Only the executor pays gas.</strong> Proposing and signing are free; the single execution
-              transaction carries the whole cost.
+              <strong>Only the owner who sends it pays gas.</strong> Proposing and signing are free; the final
+              transaction carries the whole network fee, paid in the network&rsquo;s <Term id='nativeCoin' />.
             </li>
             <li>
-              <strong>Requests are ordered by nonce.</strong> Each executed transaction consumes a nonce, which
-              prevents a signed request from being replayed later.
+              <strong>Requests go through in order.</strong> Each request has a number (its nonce). Sending one uses
+              up its number, so a signed request can never be replayed later.
             </li>
             <li>
               <strong>Signatures are per-request.</strong> An owner&rsquo;s signature covers one exact transaction —
@@ -111,7 +113,7 @@ export async function getStaticProps() {
     props: {
       title: 'How to propose, sign and execute multisig transactions',
       description:
-        'How multisig transactions work in MyMultiSig: propose a request, collect gas-free EIP-712 signatures from owners, and execute onchain once the threshold is met.',
+        'How multisig transactions work in MyMultiSig: propose a request, collect gas-free signatures from owners, and execute onchain once the threshold is met.',
       path: '/docs/propose-sign-execute',
       ...guidePageProps('propose-sign-execute')
     }
