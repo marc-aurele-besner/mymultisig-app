@@ -118,7 +118,11 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ open, onOpenChange, onAccept })
           </div>
         </div>
 
-        <DialogFooter className="pb-6 pt-2">
+        {/* Pinned to the bottom of the scrolling dialog, so on a phone the
+            accept button is in reach without reading to the end. The
+            negative offset and margins cover the dialog's own padding
+            (sticky positions against the padded edge). */}
+        <DialogFooter className="sticky -bottom-6 -mx-6 -mb-6 border-t border-border bg-card px-6 pb-6 pt-4">
           <Button className="w-full" size="lg" onClick={accept}>
             I understand and accept
           </Button>
