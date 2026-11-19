@@ -31,7 +31,7 @@ const Term: React.FC<TermProps> = ({ id, children, className }) => {
           {children ?? entry.term.toLowerCase()}
         </button>
       </PopoverTrigger>
-      <PopoverContent side='top' className='w-64 p-3 text-left text-xs leading-relaxed'>
+      <PopoverContent side='top' collisionPadding={12} className='w-64 p-3 text-left text-xs leading-relaxed'>
         <p className='font-semibold text-foreground'>{entry.term}</p>
         <p className='mt-1 text-muted-foreground'>{entry.definition}</p>
         <Link
