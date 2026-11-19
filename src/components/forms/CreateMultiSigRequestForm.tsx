@@ -39,6 +39,7 @@ import { useAddressLabels } from '../../states/addressBook'
 import useWalletAssets from '../../hooks/useWalletAssets'
 import AddressRow from '../common/AddressRow'
 import truncateAddress from '../../utils/truncateAddress'
+import { signatureCount } from '../../utils/requestSignatures'
 import { walletHref } from '../shell/navigation'
 import { buildRawSignatureFromFunction } from '../../utils/buildFunctionSignature'
 import { isModernWallet } from '../../utils/contractVersions'
@@ -161,7 +162,7 @@ const SubmittedRequestStatus: React.FC<{
   threshold: number | null
   onSendAnother: () => void
 }> = ({ multiSigAddress, request, threshold, onSendAnother }) => {
-  const collected = request.signatures.length
+  const collected = signatureCount(request)
   const remaining = threshold != null ? Math.max(threshold - collected, 0) : null
   const status =
     remaining == null

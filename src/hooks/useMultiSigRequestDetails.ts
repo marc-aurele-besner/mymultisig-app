@@ -4,6 +4,7 @@ import { useChainId, useChains, useAccount } from 'wagmi'
 import { MultiSigTransactionRequest } from '../models/MultiSigs'
 import useMultiSigs from '../states/multiSigs'
 import { getMultiSigRequestById } from '../utils'
+import useOnSiweSession from './useOnSiweSession'
 
 const useMultiSigRequestDetails = (multiSigRequestId: string) => {
   const chainId = useChainId()
@@ -12,6 +13,10 @@ const useMultiSigRequestDetails = (multiSigRequestId: string) => {
   const { address } = useAccount()
   const [requestDetails, setRequestDetails] = useState<MultiSigTransactionRequest | null>(null)
   const { multiSigTransactionRequests } = useMultiSigs()
+  // Bumped when a SIWE session starts: the row loaded before sign-in has its
+  // signatures redacted.
+  const [sessionVersion, setSessionVersion] = useState(0)
+  useOnSiweSession(() => setSessionVersion((v) => v + 1))
 
   // Refetch whenever the Zustand store updates (sign / execute / reset / delete
   // all patch `multiSigTransactionRequests`) so the detail view re-renders.
@@ -28,7 +33,7 @@ const useMultiSigRequestDetails = (multiSigRequestId: string) => {
     return () => {
       cancelled = true
     }
-  }, [multiSigTransactionRequests, chain, address, multiSigRequestId])
+  }, [multiSigTransactionRequests, chain, address, multiSigRequestId, sessionVersion])
 
   return requestDetails
 }
