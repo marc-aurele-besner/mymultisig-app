@@ -12,6 +12,7 @@ import useMultiSigRequests from '../../hooks/useMultiSigRequests'
 import useRequestQueue from '../../hooks/useRequestQueue'
 import useMultiSigs from '../../states/multiSigs'
 import { formatRequestDate } from '../../utils/requestDate'
+import { signatureCount } from '../../utils/requestSignatures'
 
 interface MultiSigRequestListProps {
   multiSigAddress: `0x${string}`
@@ -32,7 +33,7 @@ const RequestRow: React.FC<{
   onSelect: (id: string) => void
 }> = ({ request, index, threshold, requests, walletNonce, needsMe, onSelect }) => {
   const queue = useRequestQueue(requests, request.id, walletNonce)
-  const signaturesShown = Math.min(request.signatures.length, threshold)
+  const signaturesShown = Math.min(signatureCount(request), threshold)
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -66,7 +67,7 @@ const RequestRow: React.FC<{
               : 'Executed — call failed, nothing sent'
             : request.isCancelled
               ? `Cancelled${formatRequestDate(request.dateCancelled) != null ? ` on ${formatRequestDate(request.dateCancelled)}` : ''}`
-              : `${request.signatures.length} of ${threshold} signature${threshold === 1 ? '' : 's'} collected`}
+              : `${signatureCount(request)} of ${threshold} signature${threshold === 1 ? '' : 's'} collected`}
           {!request.isCancelled &&
             formatRequestDate(request.dateSubmitted) != null &&
             ` — submitted ${formatRequestDate(request.dateSubmitted)}`}
@@ -158,7 +159,7 @@ const MultiSigRequestList: React.FC<MultiSigRequestListProps> = ({ multiSigAddre
   const needsMe = (request: MultiSigTransactionRequest) =>
     isOwner &&
     isLive(request) &&
-    request.signatures.length < multiSigDetails.threshold &&
+    signatureCount(request) < multiSigDetails.threshold &&
     !(request.ownerSigners ?? []).some((signer) => signer.toLowerCase() === me)
 
   const counts: Record<QueueFilter, number> = {

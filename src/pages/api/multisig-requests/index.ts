@@ -5,6 +5,7 @@ import { getDb } from '../../../lib/db/neon'
 import { multisigRequests, multisigWallets } from '../../../lib/db/schema'
 import { rowToMultiSigRequest } from '../../../lib/db/mappers'
 import { parseBody, parseQueryString, withSession, withVerifiedAs } from '../../../lib/api/middleware'
+import { resolveReader, withSignatureAccess } from '../../../lib/api/signatureAccess'
 import { explorerUrlForChain } from '../../../lib/notifications/chains'
 import { notifyNewRequest, notifyReadyToExecute } from '../../../lib/notifications/dispatcher'
 import { notifyNeedsSignature, notifyThresholdReached } from '../../../lib/email/notifier'
@@ -12,7 +13,8 @@ import { trackTransactionCreated } from '../../../lib/channlize/events'
 
 // Dedicated endpoints for multisig transaction requests:
 //   POST /api/multisig-requests         addMultiSigRequest
-//   GET  /api/multisig-requests?…       getMultiSigRequests   (public read)
+//   GET  /api/multisig-requests?…       getMultiSigRequests   (public read;
+//                                       raw signatures for owners only)
 //
 // `addMultiSigRequest` requires the SIWE session to match the body-claimed
 // `submitter`. The 403 for `allow_only_owner_request` (extended wallets that
@@ -193,6 +195,8 @@ const listHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (multiSigAddress === '') {
     return res.status(400).json({ message: 'Missing multiSigAddress' })
   }
+  const reader = await resolveReader(req)
+  if (!reader.ok) return res.status(reader.status).json({ message: reader.message })
   const db = getDb()
   // LEFT JOIN reads the wallet nonce in the same query so the list view
   // can show a "Next" badge without a second round-trip. The join is
@@ -200,7 +204,8 @@ const listHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   const rows = await db
     .select({
       request: multisigRequests,
-      walletNonce: multisigWallets.nonce
+      walletNonce: multisigWallets.nonce,
+      walletOwners: multisigWallets.owners
     })
     .from(multisigRequests)
     .leftJoin(multisigWallets, sql`LOWER(${multisigWallets.address}) = LOWER(${multisigRequests.multiSigAddress})`)
@@ -219,7 +224,8 @@ const listHandler = async (req: NextApiRequest, res: NextApiResponse) => {
     )
   return res.status(200).json({
     message: 'Data retrieved',
-    content: rows.map((row) => rowToMultiSigRequest(row.request)),
+    // Raw signatures only for the wallet's owners (see signatureAccess.ts).
+    content: rows.map((row) => withSignatureAccess(rowToMultiSigRequest(row.request), reader.caller, row.walletOwners)),
     walletNonce: rows[0]?.walletNonce ?? null
   })
 }

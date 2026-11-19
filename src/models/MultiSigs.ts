@@ -163,6 +163,10 @@ export type MultiSigTransactionRequest = {
   // 'cascade' when invalidated by another request's reset/execute/fail,
   // or the owner's address when they clicked Cancel. '' while live.
   cancelledBy: string
+  // Set by the public request reads when the caller is not an owner of the
+  // wallet: `signatures` is [] and `request.signatures` is '' even though
+  // `ownerSigners` lists who signed. Count signatures with signatureCount().
+  signaturesRedacted?: boolean
 }
 
 export type MultiSigOnChainData = {
