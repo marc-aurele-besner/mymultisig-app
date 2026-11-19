@@ -6,7 +6,7 @@ import type { Chain } from 'viem/chains'
 // import { ledger } from '@wagmi/connectors/ledger'
 // import { safe } from '@wagmi/connectors/safe'
 
-import networks from '../../constants/networks'
+import networks, { DEFAULT_CHAIN } from '../../constants/networks'
 import { pollingIntervalFor, transportFor } from '../../constants/rpcTransports'
 import RpcContextSync from './RpcContextSync'
 
@@ -54,8 +54,11 @@ const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
         shimDisconnect: true
       })
     ]
+    // wagmi starts on the first chain of the list until a chain is persisted
+    // or a wallet connects, so DEFAULT_CHAIN goes first.
+    const chains = [DEFAULT_CHAIN, ...networks.filter((chain) => chain.id !== DEFAULT_CHAIN.id)]
     return createConfig({
-      chains: networks as [Chain, ...Chain[]],
+      chains: chains as [Chain, ...Chain[]],
       connectors,
       transports: Object.fromEntries(networks.map((chain) => [chain.id, transportFor(chain)])) as Record<
         number,

@@ -4,6 +4,7 @@ export {
   gteVersion,
   isModernWallet,
   isModernFactory,
+  hasUnrestrictedAllowance,
   hasWalletBoundEip1271,
   WALLET_BOUND_EIP1271_FROM_VERSION
 } from '@mymultisig/protocol'

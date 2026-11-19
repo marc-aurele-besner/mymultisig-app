@@ -105,6 +105,8 @@ const useSpendingAllowance = (multiSigAddress: `0x${string}`) => {
     // undefined on wallets without the allowance surface (reads revert).
     dailyLimit: dailyLimit != null ? BigInt(dailyLimit as bigint) : undefined,
     remaining: remaining != null ? BigInt(remaining as bigint) : undefined,
+    // version() as the wallet reports it; drives the 0.5.0 allowance warning.
+    walletVersion: details != null ? String(details[1]) : undefined,
     spend,
     isPending,
     isSuccess,

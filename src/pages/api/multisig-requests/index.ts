@@ -5,14 +5,17 @@ import { getDb } from '../../../lib/db/neon'
 import { multisigRequests, multisigWallets } from '../../../lib/db/schema'
 import { rowToMultiSigRequest } from '../../../lib/db/mappers'
 import { parseBody, parseQueryString, withSession, withVerifiedAs } from '../../../lib/api/middleware'
+import { resolveReader, withSignatureAccess } from '../../../lib/api/signatureAccess'
 import { explorerUrlForChain } from '../../../lib/notifications/chains'
 import { notifyNewRequest, notifyReadyToExecute } from '../../../lib/notifications/dispatcher'
 import { notifyNeedsSignature, notifyThresholdReached } from '../../../lib/email/notifier'
 import { trackTransactionCreated } from '../../../lib/channlize/events'
+import { pinnedNonceNumeric } from '../../../lib/api/cascade'
 
 // Dedicated endpoints for multisig transaction requests:
 //   POST /api/multisig-requests         addMultiSigRequest
-//   GET  /api/multisig-requests?…       getMultiSigRequests   (public read)
+//   GET  /api/multisig-requests?…       getMultiSigRequests   (public read;
+//                                       raw signatures for owners only)
 //
 // `addMultiSigRequest` requires the SIWE session to match the body-claimed
 // `submitter`. The 403 for `allow_only_owner_request` (extended wallets that
@@ -41,6 +44,13 @@ const createHandler = withVerifiedAs(
       (typeof doc.id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(doc.id))
     ) {
       return res.status(400).json({ message: 'id must be a UUID' })
+    }
+
+    // A pinned nonce is a plain non-negative integer; anything else would
+    // break the numeric queue ordering and the cascade.
+    const pinnedNonce = (doc.request as Record<string, unknown> | undefined)?.txnNonce ?? doc.txnNonce
+    if (pinnedNonce != null && pinnedNonce !== '' && (typeof pinnedNonce !== 'string' || !/^\d+$/.test(pinnedNonce))) {
+      return res.status(400).json({ message: 'txnNonce must be a non-negative integer string' })
     }
 
     const wallets = await db
@@ -193,6 +203,8 @@ const listHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (multiSigAddress === '') {
     return res.status(400).json({ message: 'Missing multiSigAddress' })
   }
+  const reader = await resolveReader(req)
+  if (!reader.ok) return res.status(reader.status).json({ message: reader.message })
   const db = getDb()
   // LEFT JOIN reads the wallet nonce in the same query so the list view
   // can show a "Next" badge without a second round-trip. The join is
@@ -200,7 +212,8 @@ const listHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   const rows = await db
     .select({
       request: multisigRequests,
-      walletNonce: multisigWallets.nonce
+      walletNonce: multisigWallets.nonce,
+      walletOwners: multisigWallets.owners
     })
     .from(multisigRequests)
     .leftJoin(multisigWallets, sql`LOWER(${multisigWallets.address}) = LOWER(${multisigRequests.multiSigAddress})`)
@@ -214,12 +227,14 @@ const listHandler = async (req: NextApiRequest, res: NextApiResponse) => {
     .orderBy(
       sql`(${multisigRequests.request}->>'mode') = 'userop' ASC`,
       multisigRequests.isCancelled,
-      sql`${multisigRequests.txnNonce} ASC NULLS LAST`,
+      // Numeric, not text: '10' must sort after '9'.
+      sql`${pinnedNonceNumeric()} ASC NULLS LAST`,
       multisigRequests.dateSubmitted
     )
   return res.status(200).json({
     message: 'Data retrieved',
-    content: rows.map((row) => rowToMultiSigRequest(row.request)),
+    // Raw signatures only for the wallet's owners (see signatureAccess.ts).
+    content: rows.map((row) => withSignatureAccess(rowToMultiSigRequest(row.request), reader.caller, row.walletOwners)),
     walletNonce: rows[0]?.walletNonce ?? null
   })
 }

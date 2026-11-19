@@ -41,3 +41,14 @@ export const hasWalletBoundEip1271 = (version: string | undefined): boolean =>
 // 0.5.0 factories take an entryPoint on createMyMultiSigExtended and expose
 // createMyMultiSigAdvanced + per-type bookkeeping.
 export const isModernFactory = (version: string | undefined): boolean => gteVersion(version, '0.5.0')
+
+// Wallets reporting version() 0.5.0 charge the single-signer spending
+// allowance only for `value`: `data` is unrestricted, so an owner with any
+// non-zero daily cap can move ERC-20s / NFTs (value = 0 calls), approve
+// spenders, or call modules alone, bypassing the threshold. The fixed
+// contract restricts the path to plain native transfers and reports a higher
+// version(), so gate granting caps on this check.
+export const ALLOWANCE_RESTRICTED_FROM_VERSION = '0.5.1'
+
+export const hasUnrestrictedAllowance = (version: string | undefined): boolean =>
+  gteVersion(version, '0.5.0') && !gteVersion(version, ALLOWANCE_RESTRICTED_FROM_VERSION)

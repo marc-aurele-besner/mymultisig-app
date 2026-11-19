@@ -6,6 +6,7 @@ import type { InboxItem } from '../../hooks/useInbox'
 import useNavigateOnChain from '../../hooks/useNavigateOnChain'
 import { isUserOp } from '../../lib/api/effectiveNonce'
 import { formatRequestDate } from '../../utils/requestDate'
+import { signatureCount } from '../../utils/requestSignatures'
 
 export interface InboxSectionProps {
   title: string
@@ -42,7 +43,7 @@ const InboxSection: React.FC<InboxSectionProps> = ({ title, items, emptyText }) 
         <ul className='divide-y divide-border'>
           {items.map(({ request, wallet, status }) => {
             const action = ACTION[status]
-            const signed = Math.min(request.signatures.length, wallet.threshold)
+            const signed = Math.min(signatureCount(request), wallet.threshold)
             const submitted = formatRequestDate(request.dateSubmitted)
             const pinned = request.txnNonce ?? request.request?.txnNonce ?? null
             return (
@@ -64,7 +65,7 @@ const InboxSection: React.FC<InboxSectionProps> = ({ title, items, emptyText }) 
                   <span className='flex min-w-0 flex-1 basis-40 flex-col gap-0.5'>
                     <span className='truncate text-sm font-semibold text-foreground'>{request.description}</span>
                     <span className='truncate text-xs text-muted-foreground'>
-                      {wallet.name || 'Multisig'} · {request.signatures.length} of {wallet.threshold} signature
+                      {wallet.name || 'Multisig'} · {signatureCount(request)} of {wallet.threshold} signature
                       {wallet.threshold === 1 ? '' : 's'} collected
                       {submitted != null && ` — submitted ${submitted}`}
                     </span>

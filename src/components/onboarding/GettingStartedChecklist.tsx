@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { CheckIcon } from 'lucide-react'
+import { CheckIcon, ExternalLinkIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -49,6 +49,22 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({ steps
               </span>
               {(!compact || isNext) && (
                 <span className='text-xs leading-relaxed text-muted-foreground'>{step.description}</span>
+              )}
+              {!step.done && (!compact || isNext) && step.links != null && step.links.length > 0 && (
+                <span className='flex flex-wrap gap-x-3 gap-y-1 text-xs'>
+                  {step.links.map((link) => (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='inline-flex items-center gap-1 font-medium text-primary hover:underline'
+                    >
+                      {link.label}
+                      <ExternalLinkIcon className='h-3 w-3' aria-hidden />
+                    </a>
+                  ))}
+                </span>
               )}
             </div>
             {!step.done && step.href != null && step.cta != null && (
