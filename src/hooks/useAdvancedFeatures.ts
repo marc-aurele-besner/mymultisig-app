@@ -32,7 +32,10 @@ const useAdvancedFeatures = (multiSigAddress: `0x${string}`) => {
       { ...base, functionName: 'ENTRY_POINT' },
       // 0.5.0 failure policy; reverts on wallets predating setRequireTxSuccess,
       // so requireTxSuccess stays undefined there and the panel hides the card.
-      { ...base, functionName: 'requireTxSuccess' }
+      { ...base, functionName: 'requireTxSuccess' },
+      // Whether the wallet allowlisted itself. With the allowlist on and this
+      // false, every onlyThis admin call reverts TargetNotAllowed(wallet).
+      { ...base, functionName: 'allowedTargets', args: [multiSigAddress] }
     ],
     allowFailure: true,
     query: { enabled: multiSigAddress !== '0x', retry: false }
@@ -52,6 +55,7 @@ const useAdvancedFeatures = (multiSigAddress: `0x${string}`) => {
     modules: (at<readonly `0x${string}`[]>(5) ?? []).map(String) as `0x${string}`[],
     entryPoint: at<`0x${string}`>(6),
     requireTxSuccess: at<boolean>(7),
+    selfAllowedTarget: at<boolean>(8),
     isLoading,
     refetch
   }

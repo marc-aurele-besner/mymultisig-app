@@ -70,6 +70,26 @@ export const ADMIN_ACTION_GROUPS: { id: AdminActionGroup; label: string; hint: s
   { id: 'modules', label: 'Modules', hint: 'Plugins that can act for the wallet without owner signatures.' }
 ]
 
+// What the form knows about the wallet when validating/encoding an action.
+// The allowlist fields are undefined until read (or on wallets without the
+// 0.5.0 surface).
+export type AdminActionContext = {
+  threshold: number
+  ownerCount: number
+  walletAddress?: string
+  allowlistEnabled?: boolean
+  // allowedTargets(walletAddress): every admin action is a self-call, so with
+  // the allowlist on the wallet must allow itself or it is locked out.
+  selfAllowed?: boolean
+}
+
+export type AdminRequest = {
+  data: `0x${string}`
+  description: string
+  // Overrides the form's default gas cap (e.g. for a batch of self-calls).
+  txnGas?: string
+}
+
 export type AdminActionDefinition = {
   id: string
   label: string
@@ -84,13 +104,36 @@ export type AdminActionDefinition = {
   fields: AdminField[]
   describe: (values: Record<string, string>) => string
   buildArgs: (values: Record<string, string>) => unknown[]
-  validate: (values: Record<string, string>, details: { threshold: number; ownerCount: number }) => string | null
+  validate: (values: Record<string, string>, details: AdminActionContext) => string | null
+  // Custom request builder when a single self-call to `id` is not enough.
+  build?: (values: Record<string, string>, details: AdminActionContext) => AdminRequest
 }
 
 const isAddress = (value: string) => /^0x[a-fA-F0-9]{40}$/.test(value)
 const isUint = (value: string) => /^\d+$/.test(value)
 const isBytes4 = (value: string) => /^0x[a-fA-F0-9]{8}$/.test(value)
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+const sameAddress = (a?: string, b?: string) => a != null && b != null && a.toLowerCase() === b.toLowerCase()
+
+// Deployed 0.5.0 wallets check the target allowlist on every exec path,
+// including calls to the wallet itself. Once the allowlist is on without the
+// wallet on it, every onlyThis function (disableAllowlist, setAllowedTarget,
+// owner and threshold changes, ...) reverts TargetNotAllowed(wallet) forever.
+export const isLockedOutByAllowlist = (ctx: AdminActionContext) =>
+  ctx.allowlistEnabled === true && ctx.selfAllowed === false
+
+export const ALLOWLIST_LOCKOUT_MESSAGE =
+  'The target allowlist is on but does not include this wallet, so the wallet can no longer call its own admin functions. This request would revert with TargetNotAllowed.'
+
+// Gas cap per inner setAllowedTarget call in the bundled batch (two cold
+// SSTOREs at most) and for the outer multiRequestStrict call.
+const ALLOWLIST_INNER_GAS = 60000n
+const ALLOWLIST_BATCH_GAS = '160000'
+
+// True when allowing `target` would switch the allowlist on (or keep it on)
+// without the wallet itself being allowed.
+export const needsSelfAllowlisting = (values: Record<string, string>, ctx: AdminActionContext) =>
+  values.allowed === 'true' && !sameAddress(values.target, ctx.walletAddress) && ctx.selfAllowed !== true
 
 export const ADMIN_ACTIONS: AdminActionDefinition[] = [
   {
@@ -313,14 +356,49 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
     label: 'Allow / disallow a target',
     availableOn: 'extended',
     minWalletVersion: '0.5.0',
-    hint: 'The built-in allowlist turns on with the first allowed target: from then on the wallet only calls allowed addresses. It also applies inside batches and module calls.',
+    danger: true,
+    hint: 'The built-in allowlist turns on with the first allowed target: from then on the wallet only calls allowed addresses, including itself. It also applies inside batches and module calls. Admin actions are calls to the wallet itself, so if the wallet is not on its own allowlist it can never change owners, threshold or the allowlist again. While the wallet is not allowed yet, allowing another target is bundled with allowing the wallet itself.',
     fields: [
       { key: 'target', label: 'Target', placeholder: 'Target address (0x...)', kind: 'address' },
       { key: 'allowed', label: 'Allowed', kind: 'boolean' }
     ],
     describe: (v) => `${v.allowed === 'true' ? 'Allow' : 'Disallow'} calls to ${v.target}`,
     buildArgs: (v) => [v.target, v.allowed === 'true'],
-    validate: (v) => (isAddress(v.target) ? null : 'Enter a valid target address')
+    validate: (v, d) => {
+      if (!isAddress(v.target)) return 'Enter a valid target address'
+      if (d.walletAddress == null || d.selfAllowed == null || d.allowlistEnabled == null)
+        return 'Reading the current allowlist…'
+      if (sameAddress(v.target, d.walletAddress) && v.allowed !== 'true' && d.allowlistEnabled)
+        return 'Removing the wallet from its own allowlist would lock it out of every admin function, including turning the allowlist off. Turn the allowlist off instead.'
+      return null
+    },
+    build: (v, d) => {
+      if (!needsSelfAllowlisting(v, d) || d.walletAddress == null)
+        return {
+          data: encodeFunctionData({ abi, functionName: 'setAllowedTarget', args: [v.target, v.allowed === 'true'] }),
+          description: `${v.allowed === 'true' ? 'Allow' : 'Disallow'} calls to ${v.target}`
+        }
+      // Atomic batch: the wallet allows itself first (while the allowlist is
+      // still off the outer self-call passes), then the requested target.
+      const wallet = d.walletAddress as `0x${string}`
+      return {
+        data: encodeFunctionData({
+          abi,
+          functionName: 'multiRequestStrict',
+          args: [
+            [wallet, wallet],
+            [0n, 0n],
+            [
+              encodeFunctionData({ abi, functionName: 'setAllowedTarget', args: [wallet, true] }),
+              encodeFunctionData({ abi, functionName: 'setAllowedTarget', args: [v.target, true] })
+            ],
+            [ALLOWLIST_INNER_GAS, ALLOWLIST_INNER_GAS]
+          ]
+        }),
+        description: `Allow calls to this wallet (keeps admin functions reachable) and to ${v.target}`,
+        txnGas: ALLOWLIST_BATCH_GAS
+      }
+    }
   },
   {
     id: 'disableAllowlist',
@@ -409,6 +487,23 @@ export const adminActionsFor = (walletType: WalletType | undefined, walletVersio
 
 export const encodeAdminAction = (action: AdminActionDefinition, values: Record<string, string>): `0x${string}` =>
   encodeFunctionData({ abi, functionName: action.id, args: action.buildArgs(values) })
+
+// Validation shared by every action: refuses to queue a self-call that the
+// wallet's allowlist would reject.
+export const validateAdminAction = (
+  action: AdminActionDefinition,
+  values: Record<string, string>,
+  ctx: AdminActionContext
+): string | null => (isLockedOutByAllowlist(ctx) ? ALLOWLIST_LOCKOUT_MESSAGE : action.validate(values, ctx))
+
+export const buildAdminRequest = (
+  action: AdminActionDefinition,
+  values: Record<string, string>,
+  ctx: AdminActionContext
+): AdminRequest =>
+  action.build
+    ? action.build(values, ctx)
+    : { data: encodeAdminAction(action, values), description: action.describe(values) }
 
 // Decodes a self-call payload against the Extended ABI (a superset of the
 // simple wallet's functions). Returns null for data that is not an admin call.
