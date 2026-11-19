@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { EyeIcon, FeatherIcon, FuelIcon, LayersIcon, type LucideIcon } from 'lucide-react'
 import { AddIcon, ExternalLinkIcon, WarningTwoIcon } from '../icons/ChakraIcons'
 import PageHero from '../layout/PageHero'
+import Term from '../common/Term'
 import networks from '../../constants/networks'
 import { Button } from '@/components/ui/button'
 
@@ -26,15 +27,37 @@ const GITHUB_CONTRACT_URL = 'https://github.com/marc-aurele-besner/mymultisig-co
 
 const mainnetCount = networks.filter((chain) => !chain.testnet).length
 
-const facts: { label: string; value: string }[] = [
-  { label: 'Custody', value: 'Non-custodial. The app never holds keys or funds.' },
+const facts: { label: string; value: React.ReactNode }[] = [
+  {
+    label: 'Custody',
+    value: (
+      <>
+        You stay in control. The app never holds your <Term id='key'>keys</Term> or funds.
+      </>
+    )
+  },
   { label: 'Source', value: 'Open source, MIT licensed' },
-  { label: 'Networks', value: `${mainnetCount} EVM mainnets, ${networks.length - mainnetCount} testnets` },
-  { label: 'Fees', value: 'None from the app. You pay network gas only.' },
+  {
+    label: 'Networks',
+    value: (
+      <>
+        {mainnetCount} live networks, {networks.length - mainnetCount} practice networks (
+        <Term id='testnet'>testnets</Term>)
+      </>
+    )
+  },
+  {
+    label: 'Fees',
+    value: (
+      <>
+        None from the app. You only pay the network&apos;s own fee (<Term id='gas' />).
+      </>
+    )
+  },
   { label: 'Audit', value: 'Not professionally audited yet' }
 ]
 
-const features: { icon: LucideIcon; title: string; description: string }[] = [
+const features: { icon: LucideIcon; title: string; description: React.ReactNode }[] = [
   {
     icon: FeatherIcon,
     title: 'Lightweight contracts',
@@ -43,9 +66,12 @@ const features: { icon: LucideIcon; title: string; description: string }[] = [
   },
   {
     icon: FuelIcon,
-    title: 'Gas-conscious design',
-    description:
-      'Owners sign off-chain for free. One transaction executes a request, so onchain operations stay affordable.'
+    title: 'Low fees',
+    description: (
+      <>
+        Approving is a free <Term id='signature' />. One transaction sends each request, so network fees stay low.
+      </>
+    )
   },
   {
     icon: EyeIcon,
@@ -69,7 +95,7 @@ const pieces: { keyword: string; title: string; description: string; href: strin
   {
     keyword: 'app',
     title: 'Web app',
-    description: 'This site: create, propose, sign and execute, plus the API that stores requests.',
+    description: 'This site: create a wallet, propose, approve and send, plus the API that stores requests.',
     href: GITHUB_APP_URL
   },
   {
@@ -114,7 +140,7 @@ const About: React.FC = () => {
         lead={
           <>
             An open-source multisig smart contract and web app. Simple architecture, designed for clarity: create a
-            shared wallet, manage its signers, and approve transactions together. No single key can move the funds.
+            shared wallet, choose its owners, and approve transactions together. No one person can move the funds.
           </>
         }
         actions={
@@ -217,7 +243,7 @@ const About: React.FC = () => {
           <h2 className="text-base font-semibold text-foreground">Where the project stands</h2>
           <p className="mt-1 max-w-3xl text-sm leading-relaxed text-muted-foreground">
             MyMultiSig is an early-stage project. The contracts are available for review but have not been
-            professionally audited, and some features may be incomplete. Start on a testnet, verify every request
+            professionally audited, and some features may be incomplete. Start on a <Term id='testnet' />, verify every request
             before you sign it, and treat the app accordingly.
           </p>
         </div>
