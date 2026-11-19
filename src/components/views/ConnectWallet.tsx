@@ -35,15 +35,41 @@ const BrowserWalletMark: WalletMark = ({ size }) => (
 interface WalletBrand {
   name: string
   Mark: WalletMark
+  // One line under the name saying what picking it opens, so someone with no
+  // wallet installed can tell which option works for them.
+  caption: string
 }
+
+const INSTALLED_CAPTION = 'Installed in this browser.'
 
 // Marks by connector id, for the connectors configured in Web3Provider.
 const walletConfig: Record<string, WalletBrand> = {
-  metaMaskSDK: { name: 'MetaMask', Mark: ({ size }) => <WalletMetamask size={size} variant='branded' /> },
-  coinbaseWalletSDK: { name: 'Coinbase', Mark: ({ size }) => <WalletCoinbase size={size} variant='branded' /> },
-  walletConnect: { name: 'WalletConnect', Mark: ({ size }) => <WalletWalletConnect size={size} variant='branded' /> },
-  injected: { name: 'Browser Wallet', Mark: BrowserWalletMark }
+  metaMaskSDK: {
+    name: 'MetaMask',
+    Mark: ({ size }) => <WalletMetamask size={size} variant='branded' />,
+    caption: 'Needs the MetaMask extension or app.'
+  },
+  coinbaseWalletSDK: {
+    name: 'Coinbase',
+    Mark: ({ size }) => <WalletCoinbase size={size} variant='branded' />,
+    caption: 'Create a wallet with a passkey, no app needed. Not the same as your Coinbase exchange account.'
+  },
+  walletConnect: {
+    name: 'WalletConnect',
+    Mark: ({ size }) => <WalletWalletConnect size={size} variant='branded' />,
+    caption: 'Scan a QR code with a wallet app on your phone.'
+  },
+  injected: { name: 'Browser Wallet', Mark: BrowserWalletMark, caption: 'Uses a wallet extension in this browser.' }
 }
+
+// The option that works with nothing installed. It goes first when the
+// browser has no wallet of its own.
+const NO_INSTALL_CONNECTOR_ID = 'coinbaseWalletSDK'
+
+// A wallet extension injects window.ethereum; without one, only Coinbase
+// (passkey wallet) and WalletConnect (phone app) can do anything.
+const detectBrowserWallet = (): boolean =>
+  typeof window !== 'undefined' && (window as { ethereum?: unknown }).ethereum != null
 
 // Marks by name, for wallets that announce themselves in the browser
 // (EIP-6963): they arrive as extra connectors with ids we do not control.
@@ -67,15 +93,16 @@ const configForConnector = (connector: { id: string; name: string; icon?: string
   const byId = walletConfig[connector.id]
   if (byId != null) return byId
   const known = knownByName.find((entry) => entry.match.test(connector.name) || entry.match.test(connector.id))
-  if (known != null) return { name: connector.name, Mark: known.Mark }
+  if (known != null) return { name: connector.name, Mark: known.Mark, caption: INSTALLED_CAPTION }
   const announced = connector.icon
   if (announced != null && announced !== '')
     return {
       name: connector.name,
       // eslint-disable-next-line @next/next/no-img-element -- a data URI supplied by the wallet extension
-      Mark: ({ size }) => <img src={announced} alt='' width={size} height={size} className='rounded-md' />
+      Mark: ({ size }) => <img src={announced} alt='' width={size} height={size} className='rounded-md' />,
+      caption: INSTALLED_CAPTION
     }
-  return { name: connector.name, Mark: BrowserWalletMark }
+  return { name: connector.name, Mark: BrowserWalletMark, caption: INSTALLED_CAPTION }
 }
 
 export interface ConnectWalletProps {
@@ -92,7 +119,16 @@ export interface ConnectWalletProps {
 const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = false, limit }) => {
   const { connect, connectors: allConnectors, error, isPending, reset } = useConnect()
   const setConnectModalOpen = useConnectModal((state) => state.setOpen)
-  const connectors = limit != null ? allConnectors.slice(0, limit) : allConnectors
+  // Read after mount: the static HTML has no window, and guessing there would
+  // reorder the tiles on hydration.
+  const [hasBrowserWallet, setHasBrowserWallet] = React.useState(true)
+  React.useEffect(() => setHasBrowserWallet(detectBrowserWallet()), [])
+  const ordered = hasBrowserWallet
+    ? allConnectors
+    : [...allConnectors].sort(
+        (a, b) => Number(b.id === NO_INSTALL_CONNECTOR_ID) - Number(a.id === NO_INSTALL_CONNECTOR_ID)
+      )
+  const connectors = limit != null ? ordered.slice(0, limit) : ordered
   const [connectingId, setConnectingId] = React.useState<string | null>(null)
   // Connector the user picked before accepting the disclaimer; connecting
   // resumes with it once they accept.
@@ -204,8 +240,11 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = f
                   <div className={cn('bg-muted', list ? 'rounded-lg p-1.5' : 'rounded-xl p-3')} aria-hidden>
                     <config.Mark size={list ? 22 : compact ? 28 : 36} />
                   </div>
-                  <span className={cn('text-sm font-semibold text-foreground', !list && 'text-center')}>
-                    {isConnecting ? 'Connecting…' : config.name}
+                  <span className={cn('flex min-w-0 flex-col gap-0.5', list ? 'text-left' : 'text-center')}>
+                    <span className='text-sm font-semibold text-foreground'>
+                      {isConnecting ? 'Connecting…' : config.name}
+                    </span>
+                    <span className='text-xs leading-snug text-muted-foreground'>{config.caption}</span>
                   </span>
                 </div>
               </motion.button>

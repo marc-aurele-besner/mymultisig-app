@@ -8,7 +8,7 @@ export type GuideSlug =
 // "Last updated" and sent to search and answer engines, which favour fresh pages.
 export const GUIDE_DATES: Record<GuideSlug, { datePublished: string; dateModified: string }> = {
   'what-is-a-multisig': { datePublished: '2026-07-16', dateModified: '2026-11-09' },
-  'create-a-multisig': { datePublished: '2026-07-16', dateModified: '2026-11-09' },
+  'create-a-multisig': { datePublished: '2026-07-16', dateModified: '2026-11-18' },
   'propose-sign-execute': { datePublished: '2026-07-16', dateModified: '2026-11-09' },
   'import-a-multisig': { datePublished: '2026-07-16', dateModified: '2026-11-09' },
   'ai-agents': { datePublished: '2026-11-09', dateModified: '2026-11-09' }
