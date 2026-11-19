@@ -3,6 +3,7 @@
 export * from './versions'
 export * from './types'
 export * from './typedData'
+export * from './messages'
 export * from './signatures'
 export * from './legacyAbi'
 export * from './exec'
