@@ -1,7 +1,6 @@
 // Cascade invalidation. When a request is reset, executed (success or
-// failure), or manually cancelled, every other active request in the same
-// wallet whose effective nonce is strictly greater than the source's has
-// its signatures wiped and is marked cancelled. This is the on-chain
+// failure), or manually cancelled, other active requests in the same wallet
+// have their signatures wiped and are marked cancelled. This is the on-chain
 // queue semantics that the issue requests: "Auto reset all requests
 // signatures if one request is reset or fail in queue."
 //
@@ -12,20 +11,25 @@
 // would race against concurrent cascades. UserOp requests are excluded
 // (they use the EntryPoint nonce, not the wallet's transaction nonce).
 //
-// For an unpinned source (effective nonce = walletNonce):
-//   - Target pinned at strictly higher nonce: cascade
-//   - Target unpinned (NULL txn_nonce): cascade — issue's "all requests in
-//     queue after it" semantic. Even though the contract would technically
-//     still accept the other's signatures, the user-facing intent is to
-//     re-confirm when something in the queue was reset or failed.
+// Execution ('executed' / 'failed' — a TxFailure still consumes the nonce):
+//   every other request is cancelled. Executing at effective nonce E moves
+//   the wallet nonce past E, so requests pinned at or below E and unpinned
+//   requests (signed at a wallet nonce no higher than E) can never execute;
+//   requests pinned above E are reset so owners re-confirm the queue.
 //
-// For a pinned source (effective nonce = source.txnNonce):
-//   - Target pinned at strictly higher nonce: cascade
-//   - Target unpinned: NOT cascaded. Unpinned requests will still execute
-//     at the current nonce regardless of what was pinned, and their
-//     signatures were computed over the wallet's nonce at signing time.
+// Reset / manual cancel (nothing changed on-chain):
+//   - Unpinned source (effective nonce = walletNonce): every other unpinned
+//     request and everything pinned above the wallet nonce — the issue's
+//     "all requests in queue after it" semantic.
+//   - Pinned source: requests pinned strictly above the source's nonce.
+//     Unpinned requests are kept: they execute at the wallet's current
+//     nonce, not at the pinned slot.
+//
+// txn_nonce is a TEXT column, so nonces are compared through
+// pinnedNonceNumeric (numeric cast) — a text comparison would rank '10'
+// below '9'.
 
-import { and, eq, gt, isNull, sql } from 'drizzle-orm'
+import { and, eq, isNull, sql, SQL } from 'drizzle-orm'
 
 import { getDb } from '../db/neon'
 import { multisigRequests } from '../db/schema'
@@ -42,18 +46,35 @@ export type CascadeSource = {
   txnNonce: string | null | undefined
 }
 
-const cascadePredicate = (source: CascadeSource, walletNonce: string) => {
-  const pinned = source.txnNonce != null && source.txnNonce !== ''
-  if (pinned) {
-    // Strictly greater than the source's pinned nonce. Unpinned targets
-    // (NULL txn_nonce) are NOT invalidated — they execute at the wallet's
-    // current nonce, not at the pinned nonce slot.
-    return gt(multisigRequests.txnNonce, String(source.txnNonce))
-  }
-  // Unpinned source: invalidate anything pinned above the wallet's current
-  // nonce AND every other unpinned request in the queue (the issue's
-  // "all requests in queue after it" semantic).
-  return sql`(${isNull(multisigRequests.txnNonce)}) OR (${gt(multisigRequests.txnNonce, walletNonce)})`
+const DIGITS = /^\d+$/
+
+// txn_nonce as a number, or NULL when unpinned (or not a plain integer).
+export const pinnedNonceNumeric = (): SQL =>
+  sql`(CASE WHEN ${multisigRequests.txnNonce} ~ '^[0-9]+$' THEN (${multisigRequests.txnNonce})::numeric END)`
+
+const isPinned = (txnNonce: string | null | undefined): txnNonce is string => txnNonce != null && DIGITS.test(txnNonce)
+
+// The cascade a request's stored state calls for: executed (or failed),
+// cancelled, or reset (live but with no signatures left). null for a live
+// request that still holds signatures.
+export const triggerFromState = (source: {
+  isExecuted: boolean
+  isSuccessful: boolean
+  isCancelled: boolean
+  signatures: string[]
+}): CascadeTrigger | null => {
+  if (source.isExecuted) return source.isSuccessful ? 'executed' : 'failed'
+  if (source.isCancelled) return 'cancelled'
+  if ((source.signatures ?? []).length === 0) return 'reset'
+  return null
+}
+
+export const cascadePredicate = (source: CascadeSource, trigger: CascadeTrigger, walletNonce: string): SQL => {
+  // Execution consumes the source nonce (and, on Extended wallets, every
+  // nonce below a pinned one), so nothing else in the queue survives as-is.
+  if (trigger === 'executed' || trigger === 'failed') return sql`TRUE`
+  if (isPinned(source.txnNonce)) return sql`${pinnedNonceNumeric()} > ${source.txnNonce}::numeric`
+  return sql`(${isNull(multisigRequests.txnNonce)}) OR (${pinnedNonceNumeric()} > ${walletNonce}::numeric)`
 }
 
 export const cascadeInvalidate = async (
@@ -83,7 +104,7 @@ export const cascadeInvalidate = async (
         sql`(${multisigRequests.id}) <> ${source.id}`,
         // UserOps use the EntryPoint nonce — exclude from wallet-nonce cascade.
         sql`(${multisigRequests.request}->>'mode') IS DISTINCT FROM 'userop'`,
-        cascadePredicate(source, walletNonceStr)
+        cascadePredicate(source, trigger, walletNonceStr)
       )
     )
     .returning({ id: multisigRequests.id })

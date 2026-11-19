@@ -9,6 +9,7 @@ import { explorerUrlForChain } from '../../../lib/notifications/chains'
 import { notifyNewRequest, notifyReadyToExecute } from '../../../lib/notifications/dispatcher'
 import { notifyNeedsSignature, notifyThresholdReached } from '../../../lib/email/notifier'
 import { trackTransactionCreated } from '../../../lib/channlize/events'
+import { pinnedNonceNumeric } from '../../../lib/api/cascade'
 
 // Dedicated endpoints for multisig transaction requests:
 //   POST /api/multisig-requests         addMultiSigRequest
@@ -41,6 +42,13 @@ const createHandler = withVerifiedAs(
       (typeof doc.id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(doc.id))
     ) {
       return res.status(400).json({ message: 'id must be a UUID' })
+    }
+
+    // A pinned nonce is a plain non-negative integer; anything else would
+    // break the numeric queue ordering and the cascade.
+    const pinnedNonce = (doc.request as Record<string, unknown> | undefined)?.txnNonce ?? doc.txnNonce
+    if (pinnedNonce != null && pinnedNonce !== '' && (typeof pinnedNonce !== 'string' || !/^\d+$/.test(pinnedNonce))) {
+      return res.status(400).json({ message: 'txnNonce must be a non-negative integer string' })
     }
 
     const wallets = await db
@@ -214,7 +222,8 @@ const listHandler = async (req: NextApiRequest, res: NextApiResponse) => {
     .orderBy(
       sql`(${multisigRequests.request}->>'mode') = 'userop' ASC`,
       multisigRequests.isCancelled,
-      sql`${multisigRequests.txnNonce} ASC NULLS LAST`,
+      // Numeric, not text: '10' must sort after '9'.
+      sql`${pinnedNonceNumeric()} ASC NULLS LAST`,
       multisigRequests.dateSubmitted
     )
   return res.status(200).json({
