@@ -27,6 +27,6 @@ Basic.args = {
       href: '/create-multisig',
       cta: 'Create'
     },
-    { key: 'fund', title: 'Fund it', description: 'Send a little of the native coin.', done: false }
+    { key: 'fund', title: 'Fund it', description: 'Send it a little of the network’s main coin.', done: false }
   ]
 }

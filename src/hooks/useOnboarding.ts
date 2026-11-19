@@ -91,7 +91,7 @@ const useOnboarding = (): Onboarding => {
       {
         key: 'fund',
         title: 'Fund it',
-        description: 'Send a little of the native coin so the wallet has something to manage.',
+        description: 'Send it a little of the network’s main coin (ETH on Ethereum, POL on Polygon) so it has something to manage.',
         done: hasWallet && (funded || executed),
         href: wallet != null ? walletHref(wallet.address) : undefined,
         cta: 'Fund'
@@ -106,8 +106,8 @@ const useOnboarding = (): Onboarding => {
       },
       {
         key: 'execute',
-        title: 'Collect signatures and execute',
-        description: 'Share the request link. Once the threshold is reached, any owner executes.',
+        title: 'Collect approvals and send it',
+        description: 'Share the request link. Once enough owners approve, any owner sends it and pays the small network fee.',
         done: executed,
         href: wallet != null ? walletHref(wallet.address, 'requests') : undefined,
         cta: 'Open queue'

@@ -4,6 +4,7 @@ import Link from 'next/link'
 
 import GuideLayout, { GuideSection, GuideText, GuideList, GuideSteps } from '../../components/docs/GuideLayout'
 import { GUIDE_DATES, guidePageProps, guideStructuredData } from '../../components/docs/guideMeta'
+import Term from '../../components/common/Term'
 
 const steps = [
   { name: 'Copy the multisig address', text: 'Get the contract address of the deployed multisig you want to add.' },
@@ -56,7 +57,7 @@ const Page: React.FC = () => {
           </GuideList>
           <GuideText>
             Importing never changes the contract — it only registers the address locally so the app can display it.
-            Your rights come from being an owner onchain, not from the import.
+            Your rights come from being an owner recorded <Term id='onchain' />, not from the import.
           </GuideText>
         </GuideSection>
 
