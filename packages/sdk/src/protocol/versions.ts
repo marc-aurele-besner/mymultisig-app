@@ -27,6 +27,17 @@ export const gteVersion = (version: string | undefined, target: string): boolean
 // so a single cutoff covers every breaking change in between.
 export const isModernWallet = (version: string | undefined): boolean => gteVersion(version, '0.5.0')
 
+// 0.5.2 wallets bind EIP-1271 owner votes to the wallet: isValidSignature(hash,
+// sig) checks each vote against getMessageHash(abi.encode(hash)), the EIP-712
+// MyMultiSigMessage(bytes message) hash under the wallet's own domain. 0.5.0 and 0.5.1
+// wallets check votes against the raw hash, so a vote blob is valid on every
+// wallet with the same owners, and an owner's own EOA signature over a hash
+// (a Permit2 permit, say) also counts as a wallet vote. The app only offers
+// off-chain votes on wallets from this version on.
+export const WALLET_BOUND_EIP1271_FROM_VERSION = '0.5.2'
+export const hasWalletBoundEip1271 = (version: string | undefined): boolean =>
+  gteVersion(version, WALLET_BOUND_EIP1271_FROM_VERSION)
+
 // 0.5.0 factories take an entryPoint on createMyMultiSigExtended and expose
 // createMyMultiSigAdvanced + per-type bookkeeping.
 export const isModernFactory = (version: string | undefined): boolean => gteVersion(version, '0.5.0')
