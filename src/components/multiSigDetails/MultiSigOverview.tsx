@@ -22,6 +22,7 @@ import { useAddressLabels } from '../../states/addressBook'
 import { EOL_NONCE_THRESHOLD } from '../../constants/limits'
 import { MultiSigTransactionRequest } from '../../models/MultiSigs'
 import { walletHref } from '../shell/navigation'
+import { signatureCount } from '../../utils/requestSignatures'
 
 interface MultiSigOverviewProps {
   multiSigAddress: `0x${string}`
@@ -116,7 +117,7 @@ const NextUp: React.FC<{
     )
 
   const me = account?.toLowerCase()
-  const signed = next.signatures.length
+  const signed = signatureCount(next)
   const reached = signed >= threshold
   const iSigned = me != null && (next.ownerSigners ?? []).some((signer) => signer.toLowerCase() === me)
   const myTurn = isOwner && !reached && !iSigned

@@ -9,6 +9,7 @@ import SignUserOp from '../buttons/SignUserOp'
 import ApproveUserOpRequest from '../buttons/ApproveUserOpRequest'
 import RevokeUserOpApproval from '../buttons/RevokeUserOpApproval'
 import CancelRequestButton from './CancelRequestButton'
+import SignaturesLockedNotice from './SignaturesLockedNotice'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useAdvancedFeatures from '../../hooks/useAdvancedFeatures'
 import useEntryPointNonce from '../../hooks/useEntryPointNonce'
@@ -56,6 +57,11 @@ const UserOpRequestCard: React.FC<UserOpRequestCardProps> = ({ request, threshol
   const hasApproved = address != null && approverSet.has(address.toLowerCase())
   const thresholdReached = combined.size >= threshold
   const receipt = request.request.userOpReceipt
+  // Loaded without raw signatures (viewer is not a signed-in owner): the
+  // UserOp can be neither signed nor sent from this copy.
+  const signaturesRedacted = request.signaturesRedacted === true
+  const isOwner =
+    address != null && (multiSigDetails?.owners ?? []).some((o) => o.toLowerCase() === address.toLowerCase())
 
   const row = (label: string, value: React.ReactNode) => (
     <div key={label} className='flex flex-wrap items-center gap-2'>
@@ -139,6 +145,10 @@ const UserOpRequestCard: React.FC<UserOpRequestCardProps> = ({ request, threshol
           <div className='px-2 pt-2 text-xl font-bold text-primary'>
             This UserOp request has been executed
             {formatRequestDate(request.dateExecuted) != null && ` on ${formatRequestDate(request.dateExecuted)}`}.
+          </div>
+        ) : signaturesRedacted ? (
+          <div className='px-2 pt-2'>
+            <SignaturesLockedNotice isOwner={isOwner} />
           </div>
         ) : (
           <Fragment>

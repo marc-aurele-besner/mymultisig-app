@@ -3,6 +3,7 @@ import { useChainId, useChains } from 'wagmi'
 
 import { MultiSigTransactionRequest } from '../models/MultiSigs'
 import { listMultiSigRequests } from '../utils'
+import useOnSiweSession from './useOnSiweSession'
 
 const useMultiSigRequests = (multiSigAddress: `0x${string}`) => {
   const chainId = useChainId()
@@ -43,6 +44,9 @@ const useMultiSigRequests = (multiSigAddress: `0x${string}`) => {
     setWalletNonce(null)
     void fetchRequests()
   }, [fetchRequests])
+
+  // Rows loaded before sign-in have their signatures redacted.
+  useOnSiweSession(() => void fetchRequests())
 
   return { requests, walletNonce, isLoading, isError, refetch: fetchRequests }
 }
