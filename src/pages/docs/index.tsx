@@ -91,6 +91,14 @@ const guideMeta: Record<string, { icon: LucideIcon; hint: string; goal: string }
 const [startHere, ...howTos] = guides
 
 const Page: React.FC = () => {
+  // Term popovers link to /docs#glossary-<term>. On a client-side navigation
+  // the router tries the hash before this page has rendered, so scroll once
+  // it is mounted.
+  React.useEffect(() => {
+    if (!window.location.hash.startsWith('#glossary')) return
+    document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ block: 'start' })
+  }, [])
+
   return (
     <>
       <Head>
