@@ -170,7 +170,7 @@ const HeroQuorum: React.FC = () => {
       </div>
 
       <p className="mt-3 px-1 text-center text-xs text-muted-foreground lg:text-left">
-        A 2-of-3 multisig: once two owners sign, any owner can execute.
+        A 2-of-3 multisig: once two owners approve, any owner can send it.
       </p>
     </motion.div>
   )
