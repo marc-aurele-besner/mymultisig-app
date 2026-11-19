@@ -10,9 +10,16 @@ import { explorerUrlForChain } from '../../../lib/notifications/chains'
 import { notifyReadyToExecute } from '../../../lib/notifications/dispatcher'
 import { trackTransactionExecuted, trackTransactionReset, trackTransactionSigned } from '../../../lib/channlize/events'
 import { parseBody, parseIdParam, withSession, withVerifiedAsOwner } from '../../../lib/api/middleware'
+import {
+  checkSignaturesPatch,
+  keepSignatureBlob,
+  resolveReader,
+  withSignatureAccess
+} from '../../../lib/api/signatureAccess'
 
 // Per-request endpoints under /api/multisig-requests/[id]:
-//   GET    getMultiSigRequestById     (public read; returns {content: [row]})
+//   GET    getMultiSigRequestById     (public read; returns {content: [row]},
+//                                     raw signatures for owners only)
 //   PATCH  updateMultiSigRequest     (session required)
 //   DELETE deleteMultiSigRequest     (session required)
 //
@@ -24,12 +31,21 @@ import { parseBody, parseIdParam, withSession, withVerifiedAsOwner } from '../..
 const getHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   const id = parseIdParam(req)
   if (id == null) return res.status(400).json({ message: 'Missing request id' })
+  const reader = await resolveReader(req)
+  if (!reader.ok) return res.status(reader.status).json({ message: reader.message })
   const db = getDb()
-  const rows = await db.select().from(multisigRequests).where(eq(multisigRequests.id, id)).limit(1)
+  const rows = await db
+    .select({ request: multisigRequests, walletOwners: multisigWallets.owners })
+    .from(multisigRequests)
+    .leftJoin(multisigWallets, sql`LOWER(${multisigWallets.address}) = LOWER(${multisigRequests.multiSigAddress})`)
+    .where(eq(multisigRequests.id, id))
+    .orderBy(desc(multisigWallets.id))
+    .limit(1)
   if (rows.length === 0) return res.status(404).json({ message: 'Data not found' })
   return res.status(200).json({
     message: 'Data retrieved',
-    content: [rowToMultiSigRequest(rows[0])]
+    // Raw signatures only for the wallet's owners (see signatureAccess.ts).
+    content: [withSignatureAccess(rowToMultiSigRequest(rows[0].request), reader.caller, rows[0].walletOwners)]
   })
 }
 
@@ -62,10 +78,17 @@ const patchHandler = withVerifiedAsOwner(parseIdParam, async (req, res, _address
   // already successful. Failed → successful is a legitimate correction so
   // we don't block it.
 
+  // Signatures only grow, or drop to [] on a reset. A client working from a
+  // redacted read (signatures: []) would otherwise wipe the stored ones when
+  // it appends its own vote.
+  const signaturesError = checkSignaturesPatch(existing, patch)
+  if (signaturesError != null) return res.status(409).json({ message: signaturesError })
+  const nextRequest = keepSignatureBlob(existing, patch)
+
   await db
     .update(multisigRequests)
     .set({
-      request: (patch.request as Record<string, unknown>) ?? (existing.request as Record<string, unknown>),
+      request: nextRequest,
       signatures: (patch.signatures as string[]) ?? existing.signatures ?? [],
       ownerSigners: (patch.ownerSigners as string[]) ?? existing.ownerSigners ?? [],
       dateExecuted: (patch.dateExecuted as string) ?? existing.dateExecuted ?? '',

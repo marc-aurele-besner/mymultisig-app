@@ -11,6 +11,7 @@ import { addMultiSigRequest, patchMultiSigRequest } from '../utils'
 import { buildTransactionTypedData } from '../utils/transactionTypedData'
 import { combineSignatures } from '../utils/signatureBlob'
 import { isUserRejection } from '../utils/walletError'
+import { REDACTED_SIGNATURES_MESSAGE } from '../utils/requestSignatures'
 
 export type RequestSaveState = 'idle' | 'saving' | 'saved' | 'failed'
 
@@ -91,10 +92,15 @@ const useSignedMultiSigRequest = (
     }
   }, [isSuccess, data, notificationSuccess])
 
+  // A copy loaded without its raw signatures cannot be appended to: the
+  // stored signatures would be lost (the API refuses such a PATCH with 409).
+  const signaturesRedacted = existingRequest?.signaturesRedacted === true
+
   const persist = async (record: MultiSigTransactionRequest) => {
     setSaveState('saving')
     setSaveError(null)
     try {
+      if (signaturesRedacted) throw new Error(REDACTED_SIGNATURES_MESSAGE)
       if (existingRequest && existingRequestId) {
         await patchMultiSigRequest(existingRequestId, record)
         updateMultiSigTransactionRequest(existingRequest.id, record)
@@ -117,9 +123,7 @@ const useSignedMultiSigRequest = (
       // rebuilt from the parallel ownerSigners/signatures arrays so the
       // version-specific encoding (flat concat pre-0.5.0, ABI-encoded
       // (owner, sig)[] on 0.5.0) stays consistent as votes accumulate.
-      const allSigners = existingRequest
-        ? [...existingRequest.ownerSigners, address || '0x']
-        : [address || '0x']
+      const allSigners = existingRequest ? [...existingRequest.ownerSigners, address || '0x'] : [address || '0x']
       const allSignatures = existingRequest ? [...existingRequest.signatures, data || '0x'] : [data || '0x']
       const combined = combineSignatures(walletVersion, allSigners, allSignatures)
       const dataToAdd: MultiSigTransactionRequest = existingRequest
@@ -182,7 +186,7 @@ const useSignedMultiSigRequest = (
     // No-op until the wallet's version/type are known — signing the wrong
     // struct shape would produce a signature the wallet rejects.
     signTypedData: () => {
-      if (typedDataReady) signTypedData(typedData)
+      if (typedDataReady && !signaturesRedacted) signTypedData(typedData)
     },
     saveState,
     saveError,

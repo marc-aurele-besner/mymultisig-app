@@ -67,7 +67,7 @@ Commit messages must follow **Conventional Commits** format (enforced by commitl
 - Schema in `src/lib/db/schema.sql`; client in `src/lib/db/neon.ts`
 - Auth via SIWE session cookies (`src/lib/auth/siwe.ts`): writes require a valid session, and identity-claiming actions must match the session wallet (`isVerifiedAs`)
 - Scoped agent API keys (`Authorization: Bearer mms_…`, `src/lib/auth/apiKey.ts`, table `agent_api_keys`) are accepted only by routes that opt in with `{ apiKeyScope: 'read' | 'propose' | 'sign' | 'manage' }` on the middleware wrappers; everything else stays SIWE-only. Keys are managed at `/settings/api-keys` (client setup snippets live on `/settings/agents`) via `/api/agent-keys` (SIWE-only).
-- API routes in `src/pages/api/` handle CRUD with one dedicated endpoint per action (e.g. `POST /api/multisig-requests`, `PATCH /api/multisig-requests/[id]`); per-endpoint auth is wrapped in `withSession` / `withVerifiedAs` from `src/lib/api/middleware.ts`. Public reads (`GET /api/multisig-requests`, `GET /api/multisig-requests/[id]`) skip the session guard so the detail view can render before sign-in.
+- API routes in `src/pages/api/` handle CRUD with one dedicated endpoint per action (e.g. `POST /api/multisig-requests`, `PATCH /api/multisig-requests/[id]`); per-endpoint auth is wrapped in `withSession` / `withVerifiedAs` from `src/lib/api/middleware.ts`. Public reads (`GET /api/multisig-requests`, `GET /api/multisig-requests/[id]`) skip the session guard so the detail view can render before sign-in, but serve raw signatures (`signatures` and `request.signatures`) only to the wallet's owners (SIWE session or a `read`-scope API key); everyone else gets `signatures: []` plus `signaturesRedacted: true` (`src/lib/api/signatureAccess.ts`). Count signatures with `signatureCount()` (`src/utils/requestSignatures.ts`), which falls back to `ownerSigners`. `PATCH` refuses (409) a `signatures` / `ownerSigners` array that does not keep the stored entries as a prefix, unless it is `[]` (a reset).
 
 ## Key Patterns
 
@@ -119,13 +119,17 @@ The `multisig_requests` table is the source of truth for queued requests. Mutati
 
 - **POST** `/api/multisig-requests` — `withVerifiedAs` (SIWE wallet matches body `submitter`); also enforces `allow_only_owner_request` when set.
 - **PATCH / DELETE / POST .../reset / POST .../cancel** — `withVerifiedAsOwner` (the connected wallet must be on the wallet's owners list). Non-owner wallets get **403**.
-- **POST .../cascade** — `withSession` only (internal fan-out so other clients converge after a peer triggered a reset/execute/cancel).
+- **POST .../cascade** — `withVerifiedAsOwner`; re-runs the cascade for a request that is already executed, cancelled or reset. The trigger is derived from the stored request (`triggerFromState`), never taken from the caller; a live request gets 409.
 
 ### Cascade invalidation
 
-When a request is **reset**, **executed** (success or fail), or **manually cancelled**, every other active request in the same wallet with a strictly greater *effective nonce* has its signatures wiped and is marked `isActive=false, isCancelled=true, cancelledBy='cascade', dateCancelled=<ISO>`. The cascade is **server-side** (single `UPDATE…RETURNING` in `src/lib/api/cascade.ts`) so every client picks it up on their next refresh — the old Zustand-only scan in `useExecTransaction.ts` was incomplete.
+When a request is **reset**, **executed** (success or fail), or **manually cancelled**, other active requests in the same wallet have their signatures wiped and are marked `isActive=false, isCancelled=true, cancelledBy='cascade', dateCancelled=<ISO>`:
 
-**Effective nonce** = `request.txnNonce` (pinned, Extended wallets) OR the wallet's current `nonce()` (unpinned). For unpinned source, the cascade invalidates `(txn_nonce IS NULL) OR (txn_nonce > wallet_nonce)` so all other live requests in the queue are wiped (issue #39 "auto reset all requests signatures if one request is reset or fail in queue"). UserOp requests are excluded — they use the EntryPoint nonce, not the wallet's.
+- **Executed / failed**: every other request. Execution moves the wallet nonce past the source's effective nonce, and on Extended wallets the pinned-nonce `execTransaction` consumes every nonce below a pinned one (`NonceTooLow`), so lower-pinned and unpinned requests can never run; higher-pinned ones are reset so owners re-confirm.
+- **Reset / cancelled**: requests with a strictly greater *effective nonce* (see below); nothing changed on-chain.
+ The cascade is **server-side** (single `UPDATE…RETURNING` in `src/lib/api/cascade.ts`) so every client picks it up on their next refresh — the old Zustand-only scan in `useExecTransaction.ts` was incomplete.
+
+**Effective nonce** = `request.txnNonce` (pinned, Extended wallets) OR the wallet's current `nonce()` (unpinned). For an unpinned reset/cancel, the cascade invalidates `(txn_nonce IS NULL) OR (txn_nonce > wallet_nonce)` so all other live requests in the queue are wiped (issue #39 "auto reset all requests signatures if one request is reset or fail in queue"). UserOp requests are excluded — they use the EntryPoint nonce, not the wallet's.
 
 ### Manual cancel UX
 
@@ -137,7 +141,7 @@ When a request is **reset**, **executed** (success or fail), or **manually cance
 
 1. `request->>'mode' = 'userop'` ASC — UserOps to the end.
 2. `is_cancelled` ASC — cancelled rows float to the bottom.
-3. `txn_nonce` ASC NULLS LAST — pinned ascending; NULLS LAST keeps unpinned (effective nonce = wallet nonce) at the top.
+3. `txn_nonce` ASC NULLS LAST — pinned ascending; NULLS LAST keeps unpinned (effective nonce = wallet nonce) at the top. `txn_nonce` is TEXT, so ordering and the cascade compare it through `pinnedNonceNumeric()` (numeric cast); `POST` rejects a non-integer `txnNonce` with 400.
 4. `date_submitted` ASC — submission-time tiebreaker.
 
 The response envelope now includes `walletNonce: number | null` (LEFT JOIN on `multisig_wallets.nonce`) so the list view can draw a "Next" badge without a second round-trip.
