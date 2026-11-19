@@ -10,7 +10,7 @@ import type { TransactionTypedDataInput } from './typedData'
 // MyMultiSigMessage(bytes message) under the wallet's domain. That hash is
 //   - the key the on-chain registry uses (signMessage(abi.encode(dataHash))
 //     makes isValidSignature(dataHash, '0x') return the magic value), and
-//   - on 0.5.1+ wallets, the hash each owner signs for an off-chain vote
+//   - on 0.5.2+ wallets, the hash each owner signs for an off-chain vote
 //     (see hasWalletBoundEip1271).
 
 export type MessageTypedData = {
@@ -50,7 +50,7 @@ export const buildMessageTypedData = ({
 })
 
 // What an owner signs so the wallet accepts their vote in
-// isValidSignature(dataHash, votes) on a 0.5.1+ wallet. Also what the owners
+// isValidSignature(dataHash, votes) on a 0.5.2+ wallet. Also what the owners
 // of a nested wallet sign when the parent wallet asks it to validate a hash.
 export const buildEip1271VoteTypedData = ({
   domain,

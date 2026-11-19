@@ -44,7 +44,7 @@ const parseVotes = (text: string): Vote[] =>
 // isValidSignature(digest, signature), and the wallet answers yes when
 // - the owners registered the digest on-chain (a signMessage self-call, i.e.
 //   a normal multisig request; verifiers then pass an empty signature), or
-// - on 0.5.1+ wallets, the signature carries threshold owner votes, each
+// - on 0.5.2+ wallets, the signature carries threshold owner votes, each
 //   signed over the digest bound to this wallet (MyMultiSigMessage typed data).
 const MessageSigningPanel: React.FC<MessageSigningPanelProps> = ({
   multiSigAddress,

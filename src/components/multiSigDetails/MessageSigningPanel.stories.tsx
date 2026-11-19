@@ -18,7 +18,7 @@ export const Basic = Template.bind({})
 Basic.args = {
   multiSigAddress: '0x2222222222222222222222222222222222222222',
   walletName: 'Treasury',
-  walletVersion: '0.5.1',
+  walletVersion: '0.5.2',
   threshold: 2,
   owners: ['0x1111111111111111111111111111111111111111', '0x3333333333333333333333333333333333333333']
 }

@@ -24,7 +24,7 @@ const owner = privateKeyToAccount('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbe
 
 const WALLET_A = '0x1111111111111111111111111111111111111111' as const
 const WALLET_B = '0x3333333333333333333333333333333333333333' as const
-const domain = { name: 'Treasury', version: '0.5.1', chainId: 11155111, verifyingContract: WALLET_A }
+const domain = { name: 'Treasury', version: '0.5.2', chainId: 11155111, verifyingContract: WALLET_A }
 const DIGEST = keccak256(toBytes('Permit2 PermitSingle digest'))
 
 // The contract's getMessageHash(message), written out by hand:
@@ -55,10 +55,11 @@ const manualMessageHash = (verifyingContract: `0x${string}`, message: `0x${strin
 }
 
 describe('hasWalletBoundEip1271', () => {
-  it('is false on 0.5.0 and older wallets, true from 0.5.1', () => {
+  it('is false on 0.5.1 and older wallets, true from 0.5.2', () => {
     expect(hasWalletBoundEip1271('0.1.3')).toBe(false)
     expect(hasWalletBoundEip1271('0.5.0')).toBe(false)
-    expect(hasWalletBoundEip1271('0.5.1')).toBe(true)
+    expect(hasWalletBoundEip1271('0.5.1')).toBe(false)
+    expect(hasWalletBoundEip1271('0.5.2')).toBe(true)
     expect(hasWalletBoundEip1271('0.6.0')).toBe(true)
     expect(hasWalletBoundEip1271(undefined)).toBe(false)
   })

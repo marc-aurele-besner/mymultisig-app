@@ -12,7 +12,7 @@ type WalletDomain = { name: string; version: string }
 // wallet-bound hash getMessageHash(abi.encode(dataHash)) either way:
 // - on-chain registry: isMessageSigned reports whether the owners registered
 //   that hash via a signMessage(abi.encode(dataHash)) self-call;
-// - off-chain votes (0.5.1+ only): each owner signs MyMultiSigMessage typed
+// - off-chain votes (0.5.2+ only): each owner signs MyMultiSigMessage typed
 //   data for abi.encode(dataHash) under the wallet's domain (signVote).
 // Both reads revert on pre-0.5.0 wallets, in which case supportsMessageSigning
 // stays false.
@@ -45,7 +45,7 @@ const useMessageSigning = (multiSigAddress: `0x${string}`, dataHash: `0x${string
 
   const supportsVotes = wallet != null && hasWalletBoundEip1271(wallet.version)
 
-  // The connected owner's vote for dataHash. Only offered on 0.5.1+ wallets:
+  // The connected owner's vote for dataHash. Only offered on 0.5.2+ wallets:
   // 0.5.0 wallets check votes against the raw hash, so a vote there would be
   // valid on every wallet with the same owners.
   const signVote = async (): Promise<`0x${string}` | null> => {
