@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { concat, encodeAbiParameters, hashMessage, hashTypedData, keccak256, recoverTypedDataAddress, toBytes, toHex } from 'viem'
+import {
+  concat,
+  encodeAbiParameters,
+  hashMessage,
+  hashTypedData,
+  keccak256,
+  recoverTypedDataAddress,
+  toBytes,
+  toHex
+} from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 
 import {
