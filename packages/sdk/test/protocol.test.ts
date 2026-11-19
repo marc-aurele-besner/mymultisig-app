@@ -9,6 +9,7 @@ import {
   buildTransactionTypedData,
   combineSignatures,
   ENTRY_POINT_V07_ADDRESS,
+  hasUnrestrictedAllowance,
   isModernWallet,
   type ExecTransactionArgs
 } from '../src/protocol'
@@ -40,6 +41,14 @@ describe('versions', () => {
     expect(isModernWallet('0.5.0')).toBe(true)
     expect(isModernWallet('0.5.1')).toBe(true)
     expect(isModernWallet(undefined)).toBe(false)
+  })
+
+  it('flags 0.5.0 wallets whose spending allowance accepts arbitrary calldata', () => {
+    expect(hasUnrestrictedAllowance('0.5.0')).toBe(true)
+    expect(hasUnrestrictedAllowance('0.5.1')).toBe(false)
+    expect(hasUnrestrictedAllowance('0.6.0')).toBe(false)
+    expect(hasUnrestrictedAllowance('0.1.3')).toBe(false)
+    expect(hasUnrestrictedAllowance(undefined)).toBe(false)
   })
 })
 

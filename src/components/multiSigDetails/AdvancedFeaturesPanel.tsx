@@ -7,9 +7,12 @@ import useAdvancedFeatures, {
   FEATURE_ALLOWANCE,
   FEATURE_MODULE
 } from '../../hooks/useAdvancedFeatures'
+import { hasUnrestrictedAllowance } from '../../utils/contractVersions'
 
 interface AdvancedFeaturesPanelProps {
   multiSigAddress: `0x${string}`
+  // version() of the wallet; 0.5.0 allowances are flagged as unsafe.
+  walletVersion?: string
 }
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
@@ -26,7 +29,7 @@ const formatDuration = (seconds: bigint) => {
 // Read-only overview of the 0.5.0 advanced surface (advancedFeaturesEnabled
 // bitmask + per-feature details). Renders nothing on wallets without it;
 // configuration happens through the admin actions above the panel.
-const AdvancedFeaturesPanel: React.FC<AdvancedFeaturesPanelProps> = ({ multiSigAddress }) => {
+const AdvancedFeaturesPanel: React.FC<AdvancedFeaturesPanelProps> = ({ multiSigAddress, walletVersion }) => {
   const {
     supportsAdvanced,
     featuresBitmask,
@@ -80,9 +83,18 @@ const AdvancedFeaturesPanel: React.FC<AdvancedFeaturesPanelProps> = ({ multiSigA
       label: 'Spending allowances',
       bit: FEATURE_ALLOWANCE,
       detail:
-        (featuresBitmask & FEATURE_ALLOWANCE) !== 0
-          ? 'At least one owner has a daily single-signer spending cap.'
-          : 'No owner has a daily spending cap.'
+        (featuresBitmask & FEATURE_ALLOWANCE) !== 0 ? (
+          hasUnrestrictedAllowance(walletVersion) ? (
+            <span className='font-semibold text-destructive'>
+              At least one owner has a daily cap. On version 0.5.0 that owner can move every token and NFT and call
+              any contract alone; set every cap back to 0.
+            </span>
+          ) : (
+            'At least one owner has a daily single-signer spending cap.'
+          )
+        ) : (
+          'No owner has a daily spending cap.'
+        )
     },
     {
       label: 'Modules',
