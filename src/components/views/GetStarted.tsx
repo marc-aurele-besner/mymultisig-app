@@ -2,12 +2,16 @@ import React from 'react'
 import Link from 'next/link'
 import { ChevronRightIcon, TriangleAlertIcon } from 'lucide-react'
 
+import { useChainId } from 'wagmi'
+
 import { Button } from '@/components/ui/button'
+import TestnetFaucet from '../common/TestnetFaucet'
 import GettingStartedChecklist from '../onboarding/GettingStartedChecklist'
 import ProgressRing from '../onboarding/ProgressRing'
 import useHasMounted from '../../hooks/useHasMounted'
 import useOnboarding from '../../hooks/useOnboarding'
 import useOnboardingState from '../../states/onboarding'
+import { DEFAULT_CHAIN } from '../../constants/networks'
 
 const GUIDES = [
   { href: '/docs/what-is-a-multisig', title: 'What is a multisig?' },
@@ -24,6 +28,7 @@ const LIFECYCLE = ['Proposed', 'Signed', 'Ready', 'Executed']
 // the page can be left and reopened at any time.
 const GetStarted: React.FC = () => {
   const hasMounted = useHasMounted()
+  const chainId = useChainId()
   const onboarding = useOnboarding()
   const { dismissed, setDismissed } = useOnboardingState()
 
@@ -88,6 +93,15 @@ const GetStarted: React.FC = () => {
                 <ChevronRightIcon className='h-4 w-4 shrink-0 text-muted-foreground' />
               </Link>
             ))}
+          </section>
+
+          <section className='flex flex-col gap-3 rounded-xl border border-border bg-card p-5'>
+            <h2 className='font-mono text-xs uppercase tracking-wider text-muted-foreground'>Practise for free</h2>
+            <p className='text-xs leading-relaxed text-muted-foreground'>
+              A testnet is a practice copy of a network: same contracts, same steps, but the coins have no value and
+              faucets give them away. Run the whole path on {DEFAULT_CHAIN.name} before using real money.
+            </p>
+            <TestnetFaucet chainId={hasMounted ? chainId : DEFAULT_CHAIN.id} suggestTestnet />
           </section>
 
           <p className='flex items-start gap-2 rounded-lg border border-border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground'>
