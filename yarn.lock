@@ -2215,10 +2215,10 @@
     hashery "^1.5.1"
     keyv "^5.6.0"
 
-"@channlize/core@0.10.1":
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/@channlize/core/-/core-0.10.1.tgz#1b9a2612ac8c1d65ffb92f8d86b9caed6da48b14"
-  integrity sha512-XTU2vrOiod67FcJK6OREEJHQj11tEe1gaD+4knl08OaXyqJPiRdQ+tka9MmwmkMO7NKonXjrrq/AHF+FO7lJvw==
+"@channlize/core@0.10.2":
+  version "0.10.2"
+  resolved "https://registry.yarnpkg.com/@channlize/core/-/core-0.10.2.tgz#9a94b0a3a72c9816e76cca796effe6f613a9f47d"
+  integrity sha512-KkBQc+8sXoMeLNuTTKxhX6gJzyU2NqMIZS9TRl7QAkTDVEvzu3QRS19wqip/mr9+ntKs/x/kL9k+aFNEc2nZpg==
   dependencies:
     cross-fetch "^4.0.0"
 
