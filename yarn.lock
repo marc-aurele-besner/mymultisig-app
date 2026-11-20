@@ -17013,9 +17013,9 @@ requires-port@^1.0.0:
   integrity sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==
 
 resend@^6.17.2:
-  version "6.38.1"
-  resolved "https://registry.yarnpkg.com/resend/-/resend-6.38.1.tgz#1b4c464855b8ef30413f2d75dc787469055dd7b7"
-  integrity sha512-166POyY8qTbxQQwYXQJ6hx7y1vnL51iB9WW76Xe1/bJsW03lCOWYW3eJW7nNlfvWM5ohI3WtUHnqO3rofiO8Lw==
+  version "6.39.0"
+  resolved "https://registry.yarnpkg.com/resend/-/resend-6.39.0.tgz#10f782174f935e9ea674bfafbbf688040d7375dd"
+  integrity sha512-szNf/OR2I5rreOt5dQr7+aZLGFhkNJ0pSjzQIkU1oIrfh7kMZFDJQ3/Cc9s1yVeapafYFg0/aNyj41lsbHPeUw==
   dependencies:
     postal-mime "2.7.6"
     standardwebhooks "1.1.1"
