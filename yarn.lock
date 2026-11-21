@@ -8399,17 +8399,17 @@
     "@walletconnect/window-getters" "^1.0.1"
     tslib "1.14.1"
 
-"@web3icons/common@0.11.55":
-  version "0.11.55"
-  resolved "https://registry.yarnpkg.com/@web3icons/common/-/common-0.11.55.tgz#754987876bf8f42d985f0722ad0b8c48040eb058"
-  integrity sha512-fwwoWmA1gAxCElRBsPP/y7S1i7yJBzd5X3v9wJmcVZ5AzKoRXQp4iho5uazdSFzz6Jrriu8gZ0RAWC/dUDQZuw==
+"@web3icons/common@0.11.56":
+  version "0.11.56"
+  resolved "https://registry.yarnpkg.com/@web3icons/common/-/common-0.11.56.tgz#a81108cfe5c49b0d322567306a65daed6a3dd027"
+  integrity sha512-WCRThRBjpMzF2aNGGOPGFPvRG9/jx2oyQbk0khvssjW60hPkpRORus5gcgzLCRtB5r6y0fjeykGWOfMAwYrjxA==
 
 "@web3icons/react@^4.1.17":
-  version "4.1.26"
-  resolved "https://registry.yarnpkg.com/@web3icons/react/-/react-4.1.26.tgz#0728a15e69169927ec94089f760cda763b5735c4"
-  integrity sha512-SRziHhVKbxv4UepwXACiN82ZyfLCVvlcIawp43LxfnD91LcdRnmOWHBZ9C74hkHs8hkyssCYS9FICmPfTnAo/w==
+  version "4.1.27"
+  resolved "https://registry.yarnpkg.com/@web3icons/react/-/react-4.1.27.tgz#25b949a8925173a569d8ad8cf0102031dd38830d"
+  integrity sha512-KmXHSny1nsUDYbQHetJdSf2sLHAeXgq4YTQzRGR+NHaN3uT8CeoAmZ1DFyPy3Ay0BCOdwlqakqYSGURIbteehw==
   dependencies:
-    "@web3icons/common" "0.11.55"
+    "@web3icons/common" "0.11.56"
 
 "@webassemblyjs/ast@1.14.1", "@webassemblyjs/ast@^1.14.1":
   version "1.14.1"
