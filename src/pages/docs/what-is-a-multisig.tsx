@@ -4,6 +4,7 @@ import Link from 'next/link'
 
 import GuideLayout, { GuideSection, GuideText, GuideList, GuideNote } from '../../components/docs/GuideLayout'
 import { GUIDE_DATES, guidePageProps, guideStructuredData } from '../../components/docs/guideMeta'
+import Term from '../../components/common/Term'
 
 const structuredData = {
   '@context': 'https://schema.org',
@@ -38,7 +39,7 @@ const Page: React.FC = () => {
       >
         <GuideSection title='The problem with a single key'>
           <GuideText>
-            A regular wallet is controlled by one private key. Whoever holds that key has complete control: they can
+            A regular wallet is controlled by one private <Term id='key' />. Whoever holds that key has complete control: they can
             send funds anywhere, at any time, with no oversight. That is fine for personal spending money, but it
             becomes a liability the moment the wallet holds funds that belong to more than one person — a team
             treasury, a community fund, protocol reserves. One compromised laptop, one lost seed phrase, or one bad
@@ -63,8 +64,9 @@ const Page: React.FC = () => {
               multiple people before it moves funds.
             </li>
             <li>
-              <strong>Enforced onchain.</strong> The rules live in the contract, not in a company policy. Nobody —
-              including the app you use to manage it — can bypass the threshold.
+              <strong>Enforced by the blockchain.</strong> The rules live in the wallet&rsquo;s code{' '}
+              (<Term id='onchain' />), not in a company policy. Nobody — including the app you use to manage it — can
+              bypass the threshold.
             </li>
           </GuideList>
         </GuideSection>
@@ -92,14 +94,14 @@ const Page: React.FC = () => {
         <GuideSection title='How MyMultiSig implements it'>
           <GuideText>
             MyMultiSig deploys a lightweight, open-source multisig contract on{' '}
-            <Link href='/networks'>15 EVM networks</Link>. Owners approve transactions by producing{' '}
-            <strong>EIP-712 signatures</strong> — structured, human-readable messages signed with their own wallets.
-            Signatures are collected offchain (no gas to approve), and once the threshold is met, any owner submits a
-            single execution transaction. The contract verifies every signature onchain before anything moves.
+            <Link href='/networks'>15 networks</Link>. Owners approve a transaction with a{' '}
+            <Term id='signature' /> from their own wallet, which shows the details in readable form. Approving sends
+            nothing to the network, so it costs no <Term id='gas' />. Once the threshold is met, any owner sends one
+            final transaction, and the contract checks every approval before anything moves.
           </GuideText>
           <GuideNote>
             <strong>Early-stage project:</strong> the contracts are open-source and available for review, but they have
-            not been professionally audited. Use at your own risk, and try it on a testnet first.
+            not been professionally audited. Use at your own risk, and try it on a <Term id='testnet' /> first.
           </GuideNote>
         </GuideSection>
 
