@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
-    "mymultisig-contract": "0.5.1",
+    "mymultisig-contract": "0.5.2",
     "tsup": "^9.0.0",
     "typescript": "^6.0.3",
     "vite": "^8.3.7",

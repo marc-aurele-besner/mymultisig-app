@@ -5,6 +5,10 @@ import Link from 'next/link'
 import GuideLayout, { GuideSection, GuideText, GuideList, GuideNote, GuideSteps } from '../../components/docs/GuideLayout'
 import { GUIDE_DATES, guidePageProps, guideStructuredData } from '../../components/docs/guideMeta'
 import Term from '../../components/common/Term'
+import { faucetsFor } from '../../constants/faucets'
+import { DEFAULT_CHAIN } from '../../constants/networks'
+
+const sepoliaFaucets = faucetsFor(DEFAULT_CHAIN.id)
 
 const steps = [
   { name: 'Connect your wallet', text: 'Connect MetaMask, Coinbase Wallet, WalletConnect, or any injected wallet.' },
@@ -56,6 +60,16 @@ const Page: React.FC = () => {
             <li>
               A wallet (MetaMask, Coinbase Wallet, or any WalletConnect-compatible wallet) with a little of the
               network&rsquo;s <Term id='nativeCoin'>native coin</Term> to pay the fee for one setup transaction.
+              Practising on a <Term id='testnet' />? Test coins are free:{' '}
+              {sepoliaFaucets.map((faucet, index) => (
+                <React.Fragment key={faucet.url}>
+                  {index > 0 && ' or '}
+                  <a href={faucet.url} target='_blank' rel='noopener noreferrer'>
+                    {faucet.name}
+                  </a>
+                </React.Fragment>
+              ))}{' '}
+              sends Sepolia ETH to your address.
             </li>
             <li>
               The <strong>address of every owner</strong> you want on the wallet. Double-check them — owners can only
@@ -68,6 +82,15 @@ const Page: React.FC = () => {
           </GuideList>
         </GuideSection>
 
+        <GuideSection title='What is a testnet?'>
+          <GuideText>
+            A testnet is a practice copy of a network such as Ethereum. It runs the same MyMultiSig contract and every
+            step works the same way, but its coins have no value: websites called faucets hand them out for free. A
+            mistake on a testnet costs nothing, so it is the right place for your first multisig. When you are ready,
+            switch the network picker to a mainnet and repeat the steps with real funds.
+          </GuideText>
+        </GuideSection>
+
         <GuideSection title='Step by step'>
           <GuideSteps>
             <li>
@@ -76,8 +99,8 @@ const Page: React.FC = () => {
             </li>
             <li>
               <strong>Pick a network.</strong> The multisig lives on one chain — see the{' '}
-              <Link href='/networks'>supported networks</Link>. To practice first, pick a <Term id='testnet' /> like Sepolia; the
-              flow is identical and the funds are free.
+              <Link href='/networks'>supported networks</Link>. To practice first, pick a <Term id='testnet' /> like
+              Sepolia; the flow is identical and the funds are free. New visitors start on Sepolia already.
             </li>
             <li>
               <strong>Name the multisig.</strong> The name is a label to help you and your co-owners recognize the

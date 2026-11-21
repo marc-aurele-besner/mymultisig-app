@@ -46,6 +46,11 @@ export type StoredRequest = {
   txnNonce?: string | null
   dateCancelled: string
   cancelledBy: string
+  // Set when the API withheld the raw signatures: they are only served to
+  // the wallet's owners (SIWE session or API key). `signatures` is then []
+  // and `request.signatures` is '', while `ownerSigners` still lists who
+  // signed.
+  signaturesRedacted?: boolean
 }
 
 export type ApiKeyScope = 'read' | 'propose' | 'sign' | 'manage'

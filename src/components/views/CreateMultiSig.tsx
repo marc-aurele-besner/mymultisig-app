@@ -7,6 +7,7 @@ import NetworkIcon from '../icons/NetworkIcon'
 import ErrorCard from '../cards/ErrorCard'
 import ConnectWallet from './ConnectWallet'
 import CreateMultiSigForm from '../forms/CreateMultiSigForm'
+import TestnetFaucet from '../common/TestnetFaucet'
 import multiSigFactories from '../../constants/multiSigFactory'
 
 const containerVariants = {
@@ -67,6 +68,7 @@ const CreateMultiSig: React.FC = () => {
           {multiSigFactory === undefined && isConnected && (
             <ErrorCard>No MultiSig Factory contract detected on this network</ErrorCard>
           )}
+          {hasMounted && <TestnetFaucet chainId={chainId} suggestTestnet />}
           <div className="w-full rounded-xl border border-border bg-card p-6">
             <ConnectWallet />
           </div>

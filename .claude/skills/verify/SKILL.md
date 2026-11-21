@@ -23,8 +23,10 @@ Gotchas, in the order you hit them:
 1. **Disclaimer modal** blocks everything on first load — click "I understand and accept".
 2. **`/multisig/[address]` pages return `null` unless a wallet is connected**
    (`useAccount().address` gate in `src/pages/multisig/[multisigAddress].tsx`).
-3. Default chain is mainnet (first entry of `src/constants/networks.ts`); the header
-   network selector works while disconnected (wagmi `useSwitchChain`).
+3. Default chain for a fresh profile is Sepolia (`DEFAULT_CHAIN` in
+   `src/constants/networks.ts`); after that wagmi persists the chain in the
+   `wagmi.store` localStorage key. The header network selector works while
+   disconnected (wagmi `useSwitchChain`).
 
 ## Real wallet + chain without funds (anvil fork)
 

@@ -15,6 +15,15 @@ export const fetchSiweSession = async (): Promise<string | null> => {
   }
 }
 
+// Fired on window once a new session is established. Request views listen
+// for it and refetch: the request reads only return raw signatures to
+// signed-in owners, so data loaded before sign-in comes back redacted.
+export const SIWE_SESSION_EVENT = 'mms:siwe-session'
+
+const announceSession = () => {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(SIWE_SESSION_EVENT))
+}
+
 let inflight: Promise<boolean> | null = null
 
 // Idempotent: resolves true when a session for `address` exists, prompting
@@ -49,6 +58,7 @@ export const ensureSiweSession = (
         method: 'POST',
         body: JSON.stringify({ message, signature })
       })
+      if (verifyResponse.ok) announceSession()
       return verifyResponse.ok
     } catch {
       // User rejected the signature or the server was unreachable.
