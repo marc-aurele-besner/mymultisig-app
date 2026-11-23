@@ -14,15 +14,48 @@ import {
 } from '@web3icons/react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { describeConnectError, isProviderNotFound, isUserRejection } from '@/utils/walletError'
 import ErrorCard from '../cards/ErrorCard'
 import { WalletIcon } from '../icons/wallet'
 import Disclaimer, { hasAcceptedDisclaimer } from '../modals/Disclaimer'
 import useConnectModal from '../../states/connectModal'
+import NoWalletPanel from './NoWalletPanel'
 
 // How long a connector may sit on "Connecting…" before we say so and offer a
 // way out. Long enough for a wallet popup to open, short enough that a stuck
 // connector never just spins.
 export const CONNECT_STALL_MS = 15_000
+
+const MOBILE_UA = /iPhone|iPad|iPod|Android|Mobile/i
+
+interface WalletEnvironment {
+  // window.ethereum is set (an extension, or a wallet app's in-app browser).
+  injected: boolean
+  mobile: boolean
+}
+
+// Read after mount so the static HTML and the first client render agree.
+// Until then we assume a wallet is there, so nothing flashes for people who
+// have one.
+const useWalletEnvironment = (): WalletEnvironment => {
+  const [env, setEnv] = React.useState<WalletEnvironment>({ injected: true, mobile: false })
+  React.useEffect(() => {
+    const ethereum = (window as unknown as { ethereum?: unknown }).ethereum
+    setEnv({ injected: ethereum != null, mobile: MOBILE_UA.test(window.navigator.userAgent) })
+  }, [])
+  return env
+}
+
+// Connectors that need a wallet already in the browser. Picking one when
+// there is none shows the no-wallet path instead of a library error or a
+// spinner that never ends.
+const needsInjectedWallet = (connectorId: string, env: WalletEnvironment): boolean => {
+  if (env.injected) return false
+  if (connectorId === 'injected') return true
+  // On desktop the MetaMask SDK falls back to a QR code; on a phone without
+  // the app it waits forever.
+  return connectorId === 'metaMaskSDK' && env.mobile
+}
 
 type WalletMark = React.FC<{ size: number }>
 
@@ -64,12 +97,9 @@ const walletConfig: Record<string, WalletBrand> = {
 
 // The option that works with nothing installed. It goes first when the
 // browser has no wallet of its own.
+// Without a wallet extension (no window.ethereum), only Coinbase (passkey
+// wallet) and WalletConnect (phone app) can do anything.
 const NO_INSTALL_CONNECTOR_ID = 'coinbaseWalletSDK'
-
-// A wallet extension injects window.ethereum; without one, only Coinbase
-// (passkey wallet) and WalletConnect (phone app) can do anything.
-const detectBrowserWallet = (): boolean =>
-  typeof window !== 'undefined' && (window as { ethereum?: unknown }).ethereum != null
 
 // Marks by name, for wallets that announce themselves in the browser
 // (EIP-6963): they arrive as extra connectors with ids we do not control.
@@ -119,11 +149,10 @@ export interface ConnectWalletProps {
 const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = false, limit }) => {
   const { connect, connectors: allConnectors, error, isPending, reset } = useConnect()
   const setConnectModalOpen = useConnectModal((state) => state.setOpen)
-  // Read after mount: the static HTML has no window, and guessing there would
-  // reorder the tiles on hydration.
-  const [hasBrowserWallet, setHasBrowserWallet] = React.useState(true)
-  React.useEffect(() => setHasBrowserWallet(detectBrowserWallet()), [])
-  const ordered = hasBrowserWallet
+  // Read after mount (see useWalletEnvironment): guessing in the static HTML
+  // would reorder the tiles on hydration.
+  const env = useWalletEnvironment()
+  const ordered = env.injected
     ? allConnectors
     : [...allConnectors].sort(
         (a, b) => Number(b.id === NO_INSTALL_CONNECTOR_ID) - Number(a.id === NO_INSTALL_CONNECTOR_ID)
@@ -133,6 +162,16 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = f
   // Connector the user picked before accepting the disclaimer; connecting
   // resumes with it once they accept.
   const [awaitingDisclaimer, setAwaitingDisclaimer] = React.useState<(typeof connectors)[0] | null>(null)
+  // Why the no-wallet panel is open (null: closed).
+  const [noWalletReason, setNoWalletReason] = React.useState<string | null>(null)
+  const [noWalletOpen, setNoWalletOpen] = React.useState(false)
+
+  const coinbase = allConnectors.find((connector) => connector.id === NO_INSTALL_CONNECTOR_ID)
+
+  const openNoWallet = (reason: string | null) => {
+    setNoWalletReason(reason)
+    setNoWalletOpen(true)
+  }
 
   // True once the current attempt has been pending for CONNECT_STALL_MS.
   const [stalled, setStalled] = React.useState(false)
@@ -148,6 +187,12 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = f
   }, [isPending, connectingId, attempt])
 
   const startConnect = (connector: (typeof connectors)[0]) => {
+    if (needsInjectedWallet(connector.id, env)) {
+      reset()
+      setConnectingId(null)
+      openNoWallet(`${configForConnector(connector).name} needs a wallet app, and none was found on this device.`)
+      return
+    }
     setConnectingId(connector.id)
     setAttempt((count) => count + 1)
     // WalletConnect shows its own modal (QR code, or the wallet list on a
@@ -185,6 +230,14 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = f
     }
     startConnect(connector)
   }
+
+  // A wallet that is not there at all goes to the same path, not a raw error.
+  React.useEffect(() => {
+    if (error != null && isProviderNotFound(error)) openNoWallet('No wallet app was found in this browser.')
+  }, [error])
+
+  const showError = error != null && !isProviderNotFound(error)
+  const rejected = showError && isUserRejection(error)
 
   return (
     <>
@@ -251,6 +304,26 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = f
             )
           })}
         </div>
+
+        {noWalletOpen ? (
+          <NoWalletPanel
+            reason={noWalletReason ?? undefined}
+            mobile={env.mobile}
+            creatingSmartWallet={isPending && connectingId === coinbase?.id}
+            onCreateSmartWallet={coinbase != null ? () => handleConnect(coinbase) : undefined}
+          />
+        ) : (
+          <button
+            type='button'
+            onClick={() => openNoWallet(null)}
+            className={cn(
+              'text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline',
+              compact ? 'self-start' : 'self-center'
+            )}
+          >
+            No wallet yet? <span className='text-primary'>Get one in a minute</span>
+          </button>
+        )}
       </div>
 
       {stalledConnector != null && (
@@ -259,7 +332,7 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = f
             {configForConnector(stalledConnector).name} has not opened yet. If no window, QR code or wallet app
             appeared, cancel and try again, or pick another wallet.
           </p>
-          <div className='flex gap-2'>
+          <div className='flex flex-wrap gap-2'>
             <Button
               size='sm'
               onClick={() => {
@@ -272,11 +345,28 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = f
             <Button size='sm' variant='outline' onClick={cancelConnect}>
               Cancel
             </Button>
+            {!noWalletOpen && (
+              <Button
+                size='sm'
+                variant='ghost'
+                onClick={() => {
+                  cancelConnect()
+                  openNoWallet(`${configForConnector(stalledConnector).name} did not answer.`)
+                }}
+              >
+                I don&apos;t have a wallet
+              </Button>
+            )}
           </div>
         </div>
       )}
 
-      {error != null && <ErrorCard>{error.message}</ErrorCard>}
+      {showError &&
+        (rejected ? (
+          <p className='mt-2 text-sm text-muted-foreground'>{describeConnectError(error)}</p>
+        ) : (
+          <ErrorCard>{describeConnectError(error)}</ErrorCard>
+        ))}
 
       <Disclaimer
         open={awaitingDisclaimer != null}

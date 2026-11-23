@@ -176,7 +176,13 @@ const MultiSigSettings: React.FC<MultiSigSettingsProps> = ({ multiSigAddress }) 
                 </Locked>
               )}
               {modern ? (
-                <MessageSigningPanel multiSigAddress={multiSigAddress} />
+                <MessageSigningPanel
+                  multiSigAddress={multiSigAddress}
+                  walletName={multiSigDetails.name}
+                  walletVersion={multiSigDetails.version}
+                  threshold={multiSigDetails.threshold}
+                  owners={owners}
+                />
               ) : (
                 <Locked title='Message signing needs version 0.5.0'>
                   This wallet predates 0.5.0 and has no on-chain message registry (EIP-1271).
