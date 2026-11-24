@@ -164,6 +164,22 @@ const Welcome: React.FC = () => {
             Create a shared wallet, choose who owns it, and set how many of them must approve. Nothing moves until
             enough owners say yes, then any of them can send it.
           </motion.p>
+          {/* Answers "is this for me?" before the first button, for visitors with no co-owners in mind */}
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.78, ease: 'easeOut' }}
+            className="mt-5 max-w-lg border-l-2 border-primary/50 pl-4 text-sm leading-relaxed"
+          >
+            <p className="text-foreground">
+              <span className="font-semibold">Is this for me?</span> It is for teams, families or friends who share
+              funds. It is not a place to earn interest.
+            </p>
+            <p className="mt-1.5 text-muted-foreground">
+              Example: two co-founders make a 2-of-2 wallet. Either one can propose a payment, and it only goes out
+              once both have approved.
+            </p>
+          </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
