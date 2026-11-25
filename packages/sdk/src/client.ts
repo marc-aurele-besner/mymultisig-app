@@ -53,8 +53,14 @@ export type RequestStatus = {
   // The agent's own address has signed this request.
   signedByMe: boolean
   readyToExecute: boolean
+  // The API withheld the raw signatures because the credentials in use are
+  // not an owner of the wallet; nothing can be signed or executed from it.
+  signaturesRedacted: boolean
   links: { app: string; wallet?: string; execution?: string }
 }
+
+const REDACTED_MESSAGE =
+  'The API only shares collected signatures with owners of this wallet. Use an API key or private key of an owner.'
 
 const isPinned = (args: { txnNonce?: string }) => args.txnNonce != null && args.txnNonce !== ''
 
@@ -268,7 +274,7 @@ export class MyMultiSigClient {
         description: r.description,
         submitter: r.submitter,
         signers: r.ownerSigners,
-        signatureCount: r.signatures.length,
+        signatureCount: r.signaturesRedacted ? r.ownerSigners.length : r.signatures.length,
         threshold: wallet.threshold,
         txnNonce: r.txnNonce ?? null,
         isExecuted: r.isExecuted,
@@ -280,8 +286,20 @@ export class MyMultiSigClient {
     }
   }
 
-  async getRequestStatus(chainId: number, requestId: string): Promise<RequestStatus> {
+  // Reads a request with its raw signatures when the credentials allow it.
+  // Anonymous reads come back redacted, so a client holding a private key
+  // signs in once and reads again.
+  private async fetchRequest(requestId: string): Promise<StoredRequest> {
     const request = await this.api.getRequest(requestId)
+    if (!request.signaturesRedacted || this.api.hasApiKey || this.api.hasSession || this.account == null)
+      return request
+    await this.api.siweLogin(this.account)
+    return this.api.getRequest(requestId)
+  }
+
+  async getRequestStatus(chainId: number, requestId: string): Promise<RequestStatus> {
+    const request = await this.fetchRequest(requestId)
+    const signaturesRedacted = request.signaturesRedacted === true
     const wallet = await this.getWallet(chainId, request.multiSigAddress)
     const typedData = requestTypedData(wallet, request.request)
     const checks = await verifyRequestSignatures(typedData, request.ownerSigners, request.signatures, wallet.owners)
@@ -296,7 +314,12 @@ export class MyMultiSigClient {
       threshold: wallet.threshold,
       signedByMe: me != null && request.ownerSigners.some((s) => s.toLowerCase() === me),
       readyToExecute:
-        !request.isExecuted && !request.isCancelled && request.request.mode !== 'userop' && validSignatures >= wallet.threshold,
+        !signaturesRedacted &&
+        !request.isExecuted &&
+        !request.isCancelled &&
+        request.request.mode !== 'userop' &&
+        validSignatures >= wallet.threshold,
+      signaturesRedacted,
       links: {
         app: this.requestUrl(request.id),
         wallet: this.walletUrl(wallet.address),
@@ -400,6 +423,7 @@ export class MyMultiSigClient {
     if (request.request.mode === 'userop')
       throw new Error('UserOp requests are signed over the EntryPoint hash; approve them in the app.')
     if (status.signedByMe) return { ...status, alreadySigned: true }
+    if (status.signaturesRedacted) throw new Error(REDACTED_MESSAGE)
     if (wallet.owners && !wallet.owners.some((o) => o.toLowerCase() === account.address.toLowerCase()))
       throw new Error(`${account.address} is not an owner of ${wallet.address}`)
     const bad = status.signatures.filter((c) => c.status === 'mismatch' || c.status === 'not-owner')
@@ -427,6 +451,7 @@ export class MyMultiSigClient {
     if (request.isExecuted) throw new Error('Request was already executed')
     if (request.isCancelled) throw new Error('Request was cancelled')
     if (request.request.mode === 'userop') throw new Error('UserOp requests are sent through a bundler from the app.')
+    if (status.signaturesRedacted) throw new Error(REDACTED_MESSAGE)
     const bad = status.signatures.filter((c) => c.status === 'mismatch' || c.status === 'not-owner')
     if (bad.length > 0) throw new Error(`Invalid signatures on request: ${bad.map((b) => `${b.signer}: ${b.status}`).join(', ')}`)
     if (!status.readyToExecute)

@@ -63,7 +63,8 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
     ownerCount: multiSigDetails?.ownerCount ?? 1,
     walletAddress: multiSigAddress,
     allowlistEnabled: supportsAdvanced ? allowedTargetsEnabled : undefined,
-    selfAllowed: supportsAdvanced ? selfAllowedTarget : undefined
+    selfAllowed: supportsAdvanced ? selfAllowedTarget : undefined,
+    walletVersion: multiSigDetails?.version
   }
   const lockedOut = isLockedOutByAllowlist(details)
   const validationError = action ? validateAdminAction(action, values, details) : null

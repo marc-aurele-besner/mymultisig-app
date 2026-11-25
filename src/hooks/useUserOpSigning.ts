@@ -9,6 +9,7 @@ import useMultiSigDetails from './useMultiSigDetails'
 import { MultiSigExecTransactionArgs, MultiSigTransactionRequest } from '../models/MultiSigs'
 import useMultiSigs from '../states/multiSigs'
 import { isUserRejection } from '../utils/walletError'
+import { REDACTED_SIGNATURES_MESSAGE } from '../utils/requestSignatures'
 import { addMultiSigRequest, patchMultiSigRequest } from '../utils'
 import {
   DEFAULT_USEROP_GAS,
@@ -122,6 +123,9 @@ const useUserOpSigning = ({
   const valueAndGasCheck = v !== '' && g !== ''
 
   const { data, isError, isPending, isSuccess, error, signMessage, reset } = useSignMessage()
+  // A copy loaded without its raw signatures cannot be appended to: the
+  // stored signatures would be lost (the API refuses such a PATCH with 409).
+  const signaturesRedacted = existingRequest?.signaturesRedacted === true
 
   useEffect(() => {
     // The inline notice already says the prompt was dismissed; no red toast.
@@ -200,14 +204,17 @@ const useUserOpSigning = ({
   }, [existingRequest, dataAdded, isSuccess, data, walletAddress, address, chain, args, description])
 
   return {
-    isPrepareError: !valueAndGasCheck || !ready || userOpHash == null || userOpSigningHash == null,
-    prepareError: !valueAndGasCheck
-      ? 'Invalid value or gas'
-      : !ready
-        ? 'EntryPoint nonce is not yet known'
-        : userOpHash == null
-          ? 'Could not derive the UserOp hash from the EntryPoint'
-          : 'Could not derive the UserOp signing hash from the wallet',
+    isPrepareError:
+      !valueAndGasCheck || !ready || userOpHash == null || userOpSigningHash == null || signaturesRedacted,
+    prepareError: signaturesRedacted
+      ? REDACTED_SIGNATURES_MESSAGE
+      : !valueAndGasCheck
+        ? 'Invalid value or gas'
+        : !ready
+          ? 'EntryPoint nonce is not yet known'
+          : userOpHash == null
+            ? 'Could not derive the UserOp hash from the EntryPoint'
+            : 'Could not derive the UserOp signing hash from the wallet',
     data,
     isError,
     isPending,
@@ -219,7 +226,8 @@ const useUserOpSigning = ({
       // EIP-191 wrap of that digest, so the resulting signature is over
       // exactly `userOpSigningHash` — which is what `_checkSignatures` in
       // `validateUserOp` recovers from.
-      if (ready && userOpHash != null) signMessage({ message: { raw: userOpHash as `0x${string}` } })
+      if (ready && userOpHash != null && !signaturesRedacted)
+        signMessage({ message: { raw: userOpHash as `0x${string}` } })
     },
     reset,
     // Surfacing the intermediate hashes so the UI can show progress.

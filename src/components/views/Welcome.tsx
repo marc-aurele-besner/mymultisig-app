@@ -7,6 +7,7 @@ import { TypedEyebrow, WordReveal } from '@/components/ui/reveal'
 import ConnectWallet from './ConnectWallet'
 import ConnectedWallet from './ConnectedWallet'
 import HeroQuorum from './HeroQuorum'
+import Term from '../common/Term'
 import useConnectModal from '../../states/connectModal'
 import { AddIcon, ArrowForwardIcon, CheckIcon, WalletIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
 
@@ -31,7 +32,7 @@ const childVariants = {
   }
 }
 
-const principles = [
+const principles: { keyword: string; title: string; description: React.ReactNode }[] = [
   {
     keyword: 'open-source',
     title: 'Open source',
@@ -45,32 +46,52 @@ const principles = [
       'Minimal architecture designed for clarity. Fewer moving parts means easier to understand and reason about.'
   },
   {
-    keyword: 'low-gas',
-    title: 'Gas-conscious',
-    description: 'Optimized for low transaction costs. Built to keep onchain operations affordable.'
+    keyword: 'low-fees',
+    title: 'Low fees',
+    description: (
+      <>
+        Built to keep network fees (<Term id='gas' />) small. Approving is free; only the final transaction pays a
+        fee.
+      </>
+    )
   }
 ]
 
-const howItWorksSteps = [
+const howItWorksSteps: { step: string; title: string; description: React.ReactNode }[] = [
   {
     step: '01',
     title: 'Create a multisig',
-    description: 'Deploy a shared wallet on your chosen chain. You pick the network and get a new multisig address.'
+    description: (
+      <>
+        Set up a shared wallet on the <Term id='network'>network</Term> you choose. It gets its own address, like any
+        other wallet.
+      </>
+    )
   },
   {
     step: '02',
-    title: 'Add owners and set the threshold',
-    description: 'Define who can sign and how many approvals are required before any transaction can run.'
+    title: 'Choose the owners and how many must approve',
+    description: (
+      <>
+        Add the wallets that can approve, then pick how many approvals a payment needs, for example 2 of 3. This is
+        the wallet&apos;s <Term id='threshold' />.
+      </>
+    )
   },
   {
     step: '03',
-    title: 'Propose and approve transactions',
-    description: 'Any owner can propose a transaction. Once enough owners approve, any owner can execute it.'
+    title: 'Propose a payment, collect approvals',
+    description: (
+      <>
+        Any owner can suggest a transaction. Approving is a free <Term id='signature' />. Once enough owners approve,
+        any of them can send it to the network.
+      </>
+    )
   }
 ]
 
 const whoItsFor = [
-  'Small teams and onchain collaborators',
+  'Small teams that hold crypto together',
   'Treasury or shared fund management',
   'Protocols and communities',
   'Anywhere shared custody or multiple signers are needed'
@@ -79,27 +100,27 @@ const whoItsFor = [
 export const faqItems = [
   {
     q: 'What is a multisig?',
-    a: 'A multisig (multi-signature) wallet is a shared wallet that requires multiple people to approve a transaction before it can be executed. No single person can move funds alone.'
+    a: 'A multisig (multi-signature) wallet is a shared wallet that requires several people to approve a transaction before it can go through. No single person can move funds alone.'
   },
   {
     q: 'Why would I use one?',
-    a: 'Multisigs are useful whenever you want shared control: team treasuries, community funds, protocol reserves, or any situation where you do not want one key to have full control.'
+    a: 'Multisigs are useful whenever you want shared control: team treasuries, community funds, protocol reserves, or any situation where you do not want one person to have full control.'
   },
   {
     q: 'Do all owners need to approve every transaction?',
-    a: 'No. You set a threshold when creating the multisig (e.g. 2 of 3). Once that many owners have approved a proposal, the transaction can be executed. Not everyone has to sign every time.'
+    a: 'No. When you create the multisig you choose how many approvals it needs, called the threshold (for example 2 of 3). Once that many owners have approved, the transaction can go through. Not everyone has to approve every time.'
   },
   {
     q: 'Which networks does MyMultiSig support?',
-    a: 'Ethereum, Polygon, Optimism, Arbitrum, Avalanche, BNB Chain and Gnosis, plus their testnets such as Sepolia. The same open-source contract is deployed on every network.'
+    a: 'Ethereum, Polygon, Optimism, Arbitrum, Avalanche, BNB Chain and Gnosis, plus their testnets (practice networks with free coins) such as Sepolia. The same open-source contract is deployed on every network.'
   },
   {
-    q: 'Does signing a transaction cost gas?',
-    a: 'No. Owners approve a request by signing an EIP-712 message offchain, which is free. Only the final execution is an onchain transaction, and any owner can send it once the threshold is met.'
+    q: 'Does approving a transaction cost gas (a network fee)?',
+    a: 'No. Approving is a free signature made in your wallet; nothing is sent to the network. Only the final transaction pays gas, the small fee the network charges, and the owner who sends it once enough owners have approved pays it.'
   },
   {
     q: 'Can an AI agent use a MyMultiSig wallet?',
-    a: 'Yes. Claude, Cursor or any MCP client can check balances, propose transactions and sign with its own owner key through the MyMultiSig MCP server, CLI, SDK or a scoped API key. The threshold is still enforced onchain, so an agent cannot move funds alone.'
+    a: 'Yes. Claude, Cursor or any MCP client can check balances, propose transactions and approve as an owner through the MyMultiSig MCP server, CLI, SDK or a scoped API key. The approval rule is built into the wallet itself, so an agent cannot move funds alone.'
   },
   {
     q: 'Is the project audited?',
@@ -127,10 +148,10 @@ const Welcome: React.FC = () => {
         <div>
           {/* The eyebrow carries the branded h1 so search engines see the product name;
               the display line below stays the visual headline. */}
-          <TypedEyebrow as="h1" text="MYMULTISIG — SHARED WALLETS, ENFORCED ONCHAIN" className="mb-4" />
+          <TypedEyebrow as="h1" text="MYMULTISIG — SHARED CRYPTO WALLETS WITH GROUP APPROVAL" className="mb-4" />
           <WordReveal
             as="p"
-            text="No single key can move the funds."
+            text="No one person can move the funds."
             delay={0.25}
             className="font-display text-4xl font-bold leading-[1.05] tracking-tight text-foreground md:text-5xl xl:text-6xl"
           />
@@ -140,9 +161,25 @@ const Welcome: React.FC = () => {
             transition={{ duration: 0.5, delay: 0.7, ease: 'easeOut' }}
             className="mt-5 max-w-lg text-lg leading-relaxed text-muted-foreground"
           >
-            Create a shared wallet, choose its owners, and set how many must approve. Every transaction
-            waits for that quorum—then anyone on the team can execute it.
+            Create a shared wallet, choose who owns it, and set how many of them must approve. Nothing moves until
+            enough owners say yes, then any of them can send it.
           </motion.p>
+          {/* Answers "is this for me?" before the first button, for visitors with no co-owners in mind */}
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.78, ease: 'easeOut' }}
+            className="mt-5 max-w-lg border-l-2 border-primary/50 pl-4 text-sm leading-relaxed"
+          >
+            <p className="text-foreground">
+              <span className="font-semibold">Is this for me?</span> It is for teams, families or friends who share
+              funds. It is not a place to earn interest.
+            </p>
+            <p className="mt-1.5 text-muted-foreground">
+              Example: two co-founders make a 2-of-2 wallet. Either one can propose a payment, and it only goes out
+              once both have approved.
+            </p>
+          </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
@@ -340,8 +377,8 @@ const Welcome: React.FC = () => {
               Built for people and for their agents.
             </h2>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              Claude, Cursor or your own scripts can read the queue, propose and co-sign. A threshold they can never
-              meet alone keeps a human in every decision.
+              Claude, Cursor or your own scripts can read the queue, propose and co-sign. Set the number of approvals so an
+              agent can never reach it alone, and a human stays in every decision.
             </p>
           </div>
           <span className="inline-flex h-11 items-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground">

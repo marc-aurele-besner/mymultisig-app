@@ -15,7 +15,7 @@ import SpendingAllowancePanel from '../multiSigDetails/SpendingAllowancePanel'
 import MessageSigningPanel from '../multiSigDetails/MessageSigningPanel'
 import AccountAbstractionPanel from '../multiSigDetails/AccountAbstractionPanel'
 import MultiSigRpcPanel from '../multiSigDetails/MultiSigRpcPanel'
-import { isModernWallet } from '../../utils/contractVersions'
+import { hasUnrestrictedAllowance, isModernWallet } from '../../utils/contractVersions'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
 import useAdminEventSync from '../../hooks/useAdminEventSync'
@@ -157,7 +157,7 @@ const MultiSigSettings: React.FC<MultiSigSettingsProps> = ({ multiSigAddress }) 
               <>
                 <ExtendedGovernancePanel multiSigAddress={multiSigAddress} owners={owners} />
                 {/* 0.5.0 surface: the panel hides itself when the wallet lacks it. */}
-                <AdvancedFeaturesPanel multiSigAddress={multiSigAddress} />
+                <AdvancedFeaturesPanel multiSigAddress={multiSigAddress} walletVersion={multiSigDetails.version} />
               </>
             ) : (
               <Locked title='Governance needs an Extended wallet'>
@@ -176,13 +176,19 @@ const MultiSigSettings: React.FC<MultiSigSettingsProps> = ({ multiSigAddress }) 
                 </Locked>
               )}
               {modern ? (
-                <MessageSigningPanel multiSigAddress={multiSigAddress} />
+                <MessageSigningPanel
+                  multiSigAddress={multiSigAddress}
+                  walletName={multiSigDetails.name}
+                  walletVersion={multiSigDetails.version}
+                  threshold={multiSigDetails.threshold}
+                  owners={owners}
+                />
               ) : (
                 <Locked title='Message signing needs version 0.5.0'>
                   This wallet predates 0.5.0 and has no on-chain message registry (EIP-1271).
                 </Locked>
               )}
-              {extended && (
+              {extended && !hasUnrestrictedAllowance(multiSigDetails.version) && (
                 <p className='text-xs text-muted-foreground'>
                   The allowance panel only appears once an owner has a daily cap. Set one under Owners &amp;
                   administration.
