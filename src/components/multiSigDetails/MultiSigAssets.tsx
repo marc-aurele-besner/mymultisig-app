@@ -6,6 +6,7 @@ import { LoadingDots } from '@/components/ui/loading-dots'
 import { AddIcon, CoinsIcon, DeleteIcon, ExternalLinkIcon, ImageIcon, RefreshIcon } from '../icons/ChakraIcons'
 
 import AddTokenModal from '../modals/AddTokenModal'
+import FundFromExchange from '../common/FundFromExchange'
 import useWalletAssets from '../../hooks/useWalletAssets'
 import useCustomTokens from '../../states/customTokens'
 import { NftHolding, TokenHolding } from '../../models/Assets'
@@ -90,7 +91,11 @@ const TokenRow: React.FC<{
 )
 
 const NftCard: React.FC<{ nft: NftHolding; explorerUrl?: string }> = ({ nft, explorerUrl }) => {
-  const title = nft.name ?? (nft.collectionName != null ? `${nft.collectionName} #${truncate(nft.tokenId, 6, 4)}` : `#${truncate(nft.tokenId, 6, 4)}`)
+  const title =
+    nft.name ??
+    (nft.collectionName != null
+      ? `${nft.collectionName} #${truncate(nft.tokenId, 6, 4)}`
+      : `#${truncate(nft.tokenId, 6, 4)}`)
   const card = (
     <>
       <div className='flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg bg-muted'>
@@ -173,6 +178,9 @@ const MultiSigAssets: React.FC<MultiSigAssetsProps> = ({ multiSigAddress }) => {
 
   return (
     <div className='flex w-full flex-col gap-4'>
+      {balance != null && balance.value === 0n && (
+        <FundFromExchange address={multiSigAddress} chain={chain} className='rounded-xl' />
+      )}
       <div className='flex flex-col gap-2 rounded-xl border border-border p-4'>
         <div className='flex items-baseline justify-between'>
           <h3 className='text-base font-semibold text-foreground'>Tokens</h3>

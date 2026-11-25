@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { CheckCircleIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
 import TextInput from '../inputs/TextInput'
+import FundFromExchange from '../common/FundFromExchange'
 import useFundMultiSig from '../../hooks/useFundMultiSig'
 
 type AssetType = 'native' | 'token'
@@ -95,7 +96,10 @@ const FundMultiSigModal: React.FC<FundMultiSigModalProps> = ({ multiSigAddress, 
 
   return (
     <Dialog open={open} onOpenChange={close}>
-      <DialogContent showClose={true} className='max-w-[480px] border-border bg-card/98 backdrop-blur-xl'>
+      <DialogContent
+        showClose={true}
+        className='max-h-[90dvh] max-w-[480px] overflow-y-auto border-border bg-card/98 backdrop-blur-xl'
+      >
         <DialogHeader className='pb-2 pt-6'>
           <DialogTitle className='font-display text-xl font-bold tracking-tight text-foreground'>
             Fund this wallet
@@ -215,6 +219,8 @@ const FundMultiSigModal: React.FC<FundMultiSigModalProps> = ({ multiSigAddress, 
               )}
             </div>
           )}
+
+          {!(isFinal && hash) && <FundFromExchange address={multiSigAddress} chain={chain} />}
         </div>
       </DialogContent>
     </Dialog>
