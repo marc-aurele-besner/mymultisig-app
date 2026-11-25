@@ -8,6 +8,7 @@ import useInbox from './useInbox'
 import useOnboardingState from '../states/onboarding'
 import { fetchSiweSession } from '../utils/siwe'
 import { walletHref } from '../components/shell/navigation'
+import { exchangeFunding } from '../utils/exchangeNetwork'
 
 export interface OnboardingStep {
   key: 'connect' | 'signin' | 'wallet' | 'fund' | 'request' | 'execute' | 'notify'
@@ -72,6 +73,7 @@ const useOnboarding = (): Onboarding => {
     const hasWallet = wallets.length > 0
     const funded = balance != null && balance.value > BigInt(0)
     const executed = hasExecutedRequest || wallets.some((w) => Number(w.nonce) > 0)
+    const funding = wallet != null ? exchangeFunding(wallet.chainId) : null
     const fundFaucets = faucetsFor(wallet?.chainId ?? chainId).map((f) => ({ label: f.name, href: f.url }))
     const steps: OnboardingStep[] = [
       {
@@ -98,9 +100,11 @@ const useOnboarding = (): Onboarding => {
         key: 'fund',
         title: 'Fund it',
         description:
-          fundFaucets.length > 0
-            ? 'Send it a little of the network’s main coin (ETH on Ethereum, POL on Polygon) so it has something to manage. On a testnet it is free: get some from a faucet.'
-            : 'Send it a little of the network’s main coin (ETH on Ethereum, POL on Polygon) so it has something to manage.',
+          funding == null
+            ? 'Send it a little of the network’s main coin (ETH on Ethereum, POL on Polygon) so it has something to manage.'
+            : funding.isTestnet
+              ? `Get free test ${funding.symbol} from a ${funding.network} faucet and send it to the multisig address.`
+              : `Send a little ${funding.symbol} on ${funding.network} to the multisig address. Withdrawing from an exchange? Pick ${funding.network} as the network.`,
         done: hasWallet && (funded || executed),
         links: fundFaucets,
         href: wallet != null ? walletHref(wallet.address) : undefined,

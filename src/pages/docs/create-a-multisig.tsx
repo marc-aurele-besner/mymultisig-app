@@ -2,7 +2,13 @@ import React from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 
-import GuideLayout, { GuideSection, GuideText, GuideList, GuideNote, GuideSteps } from '../../components/docs/GuideLayout'
+import GuideLayout, {
+  GuideSection,
+  GuideText,
+  GuideList,
+  GuideNote,
+  GuideSteps
+} from '../../components/docs/GuideLayout'
 import { GUIDE_DATES, guidePageProps, guideStructuredData } from '../../components/docs/guideMeta'
 import Term from '../../components/common/Term'
 import { faucetsFor } from '../../constants/faucets'
@@ -12,7 +18,10 @@ const sepoliaFaucets = faucetsFor(DEFAULT_CHAIN.id)
 
 const steps = [
   { name: 'Connect your wallet', text: 'Connect MetaMask, Coinbase Wallet, WalletConnect, or any injected wallet.' },
-  { name: 'Pick a network', text: 'Choose the EVM network the multisig will live on. Testnets are available for a dry run.' },
+  {
+    name: 'Pick a network',
+    text: 'Choose the EVM network the multisig will live on. Testnets are available for a dry run.'
+  },
   { name: 'Name the multisig', text: 'Give the wallet a human-readable name so co-owners can recognize it.' },
   { name: 'Add the owners', text: 'Enter the wallet address of every owner. Each owner signs with their own wallet.' },
   { name: 'Set the threshold', text: 'Choose how many owner approvals a transaction needs, e.g. 2 of 3.' },
@@ -72,12 +81,13 @@ const Page: React.FC = () => {
               sends Sepolia ETH to your address.
             </li>
             <li>
-              The <strong>address of every owner</strong> you want on the wallet. Double-check them — owners can only
-              be changed later through a multisig transaction that meets the threshold.
+              The <strong>address of every owner</strong> you want on the wallet. Double-check them — owners can only be
+              changed later through a multisig transaction that meets the threshold.
             </li>
             <li>
-              A decision on the <strong>threshold</strong>. Unsure? <Link href='/docs/what-is-a-multisig'>The
-              multisig guide</Link> covers the common setups; 2 of 3 is a solid default for small teams.
+              A decision on the <strong>threshold</strong>. Unsure?{' '}
+              <Link href='/docs/what-is-a-multisig'>The multisig guide</Link> covers the common setups; 2 of 3 is a
+              solid default for small teams.
             </li>
           </GuideList>
         </GuideSection>
@@ -111,13 +121,12 @@ const Page: React.FC = () => {
               by signing with their own wallet — no shared secrets.
             </li>
             <li>
-              <strong>Set the threshold.</strong> The number of approvals required to execute a transaction. It must
-              be at least 1 and at most the number of owners.
+              <strong>Set the threshold.</strong> The number of approvals required to execute a transaction. It must be
+              at least 1 and at most the number of owners.
             </li>
             <li>
-              <strong>Deploy.</strong> Review the summary and confirm the transaction. The factory deploys the
-              contract, and once it confirms, the new multisig appears in{' '}
-              <Link href='/open-multisig'>your multisigs</Link>.
+              <strong>Deploy.</strong> Review the summary and confirm the transaction. The factory deploys the contract,
+              and once it confirms, the new multisig appears in <Link href='/open-multisig'>your multisigs</Link>.
             </li>
           </GuideSteps>
         </GuideSection>
@@ -126,13 +135,47 @@ const Page: React.FC = () => {
           <GuideText>
             Share the multisig address with your co-owners — they can{' '}
             <Link href='/docs/import-a-multisig'>import it by address</Link> to see it on their own devices. Fund the
-            wallet by sending assets to its address like any other account, then{' '}
+            wallet by sending assets to its address on the network you deployed it to (see below), then{' '}
             <Link href='/docs/propose-sign-execute'>propose your first transaction</Link>.
           </GuideText>
           <GuideNote>
             <strong>Fees:</strong> setting up costs a one-time network fee (gas) on the network you chose. Approving
             later transactions is free for owners — approvals are signatures, not transactions, and only the final
             transaction pays gas.
+          </GuideNote>
+        </GuideSection>
+
+        <GuideSection title='Fund it from an exchange'>
+          <GuideText>
+            If your coins sit on an exchange, withdraw them straight to the multisig address. The wallet only exists on
+            the network you deployed it to, so the network you pick on the exchange&rsquo;s withdraw screen matters as
+            much as the address.
+          </GuideText>
+          <GuideSteps>
+            <li>
+              <strong>Pick the coin.</strong> Withdraw the network&rsquo;s own coin, the one that pays gas: ETH on
+              Ethereum, Arbitrum One and Optimism, POL on Polygon, BNB on BNB Smart Chain, AVAX on Avalanche, xDAI on
+              Gnosis.
+            </li>
+            <li>
+              <strong>Pick the same network.</strong> For a multisig on Arbitrum, choose <strong>Arbitrum One</strong>,
+              not &ldquo;Ethereum (ERC20)&rdquo;. Exchanges sometimes use other labels: BNB Smart Chain is often
+              &ldquo;BEP20&rdquo;, and Avalanche needs the <strong>C-Chain</strong>, not the X-Chain. The wallet&rsquo;s
+              Fund dialog names the network to pick.
+            </li>
+            <li>
+              <strong>Paste the multisig address</strong> as the destination. Copy it from the wallet page rather than
+              typing it.
+            </li>
+            <li>
+              <strong>Send a small test amount first.</strong> Once it shows up on the wallet&rsquo;s Assets tab, send
+              the rest.
+            </li>
+          </GuideSteps>
+          <GuideNote>
+            <strong>Wrong network warning:</strong> coins sent on another network land at the same address on a chain
+            where your multisig does not exist, and may be lost. Testnet wallets (like Sepolia) cannot be funded from an
+            exchange at all; use a free faucet instead.
           </GuideNote>
         </GuideSection>
       </GuideLayout>
