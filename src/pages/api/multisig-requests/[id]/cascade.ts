@@ -3,22 +3,20 @@ import { NextApiRequest, NextApiResponse } from 'next'
 
 import { getDb } from '../../../../lib/db/neon'
 import { multisigRequests, multisigWallets } from '../../../../lib/db/schema'
-import { cascadeInvalidate } from '../../../../lib/api/cascade'
-import { parseBody, parseIdParam, withSession } from '../../../../lib/api/middleware'
+import { cascadeInvalidate, triggerFromState } from '../../../../lib/api/cascade'
+import { parseIdParam, withVerifiedAsOwner } from '../../../../lib/api/middleware'
 
 // POST /api/multisig-requests/[id]/cascade
-// Internal fan-out entrypoint. A client that knows about an executed /
-// reset / cancelled request can ask the server to invalidate every other
-// active request bound to a higher effective nonce. Used so other clients
-// converge after one peer triggered the change.
+// Re-runs the cascade for a request that was already executed, cancelled or
+// reset, so other clients converge after one peer triggered the change.
 //
-// Session-only (not owner-gated): the cascade targets *other* requests in
-// the wallet, not the source. The source's id is verified to exist so a
-// caller can't probe arbitrary ids without at least a valid session.
+// Owner-only, and the trigger is derived from the source request's stored
+// state rather than taken from the caller: an execution cascade cancels
+// every other request in the wallet, so it must only run for a request that
+// really was executed. A live request (still holding signatures) has
+// nothing to cascade and gets 409.
 
-const cascadeHandler = withSession(async (req, res) => {
-  const id = parseIdParam(req)
-  if (id == null) return res.status(400).json({ message: 'Missing request id' })
+const cascadeHandler = withVerifiedAsOwner(parseIdParam, async (_req, res, _address, id) => {
   const db = getDb()
   const rows = await db
     .select({
@@ -26,25 +24,15 @@ const cascadeHandler = withSession(async (req, res) => {
       nonce: multisigWallets.nonce
     })
     .from(multisigRequests)
-    .leftJoin(
-      multisigWallets,
-      sql`LOWER(${multisigWallets.address}) = LOWER(${multisigRequests.multiSigAddress})`
-    )
+    .leftJoin(multisigWallets, sql`LOWER(${multisigWallets.address}) = LOWER(${multisigRequests.multiSigAddress})`)
     .where(eq(multisigRequests.id, id))
     .limit(1)
   if (rows.length === 0) return res.status(404).json({ message: 'Data not found' })
   const source = rows[0].request
 
-  const body = parseBody(req) as { trigger?: string }
-  // We don't gate the trigger strictly — the helper writes 'cascade' for
-  // every row it touches, so the caller's claim is informational. Accept
-  // any of the four known values; default to 'executed' for safety.
-  const allowed = ['executed', 'failed', 'reset', 'cancelled'] as const
-  const trigger = (allowed.find((t) => t === body.trigger) ?? 'executed') as
-    | 'executed'
-    | 'failed'
-    | 'reset'
-    | 'cancelled'
+  const trigger = triggerFromState(source)
+  if (trigger == null)
+    return res.status(409).json({ message: 'Nothing to cascade: the request is still live with its signatures' })
 
   const cascade = await cascadeInvalidate(
     {
@@ -58,6 +46,7 @@ const cascadeHandler = withSession(async (req, res) => {
 
   return res.status(200).json({
     message: 'Cascade complete',
+    trigger,
     cascade
   })
 })

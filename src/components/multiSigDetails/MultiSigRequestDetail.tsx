@@ -9,6 +9,8 @@ import truncateAddress from '../../utils/truncateAddress'
 import { useAddressLabels } from '../../states/addressBook'
 import SignRequest from '../buttons/SignRequest'
 import ExecuteRequest from '../buttons/ExecuteRequest'
+import SignaturesLockedNotice from './SignaturesLockedNotice'
+import { signatureCount } from '../../utils/requestSignatures'
 import ApproveRequest from '../buttons/ApproveRequest'
 import RevokeApproval from '../buttons/RevokeApproval'
 import CancelRequestButton from './CancelRequestButton'
@@ -143,14 +145,19 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
   const txnNonce = requestDetails.request.txnNonce
   const hasPinnedNonce = txnNonce != null && txnNonce !== ''
 
-  const approvalCount = supportsHybrid ? combined.size : requestDetails.signatures.length
+  // Loaded without its raw signatures (the viewer is not a signed-in owner):
+  // counts still come from ownerSigners, but nothing can be signed, executed
+  // or scheduled from this copy.
+  const signaturesRedacted = requestDetails.signaturesRedacted === true
+  const offChainCount = signatureCount(requestDetails)
+  const approvalCount = supportsHybrid ? combined.size : offChainCount
   const approvalsNeeded = multiSigDetails.threshold
   const approvalsFilled = Math.min(approvalCount, approvalsNeeded)
   const breakdown = supportsHybrid
     ? `${signerSet.size} off-chain signature${signerSet.size === 1 ? '' : 's'} · ${approverSet.size} on-chain approval${
         approverSet.size === 1 ? '' : 's'
       }`
-    : `${requestDetails.signatures.length} signature${requestDetails.signatures.length === 1 ? '' : 's'}`
+    : `${offChainCount} signature${offChainCount === 1 ? '' : 's'}`
 
   // Address-book label for an address, or "This multisig" for self-calls.
   const nameFor = (addr: string): string | undefined =>
@@ -359,7 +366,9 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
                   title='Execute this request'
                   hint={preflightBlocked ? undefined : 'Enough approvals are collected.'}
                 >
-                  {preflightBlocked ? (
+                  {signaturesRedacted ? (
+                    <SignaturesLockedNotice isOwner={isOwner} />
+                  ) : preflightBlocked ? (
                     <Callout>
                       The wallet rejects the collected approvals (owners may have changed or the nonce moved). Reset the
                       signatures and collect them again.
@@ -379,7 +388,7 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
                   multiSigAddress={requestDetails.multiSigAddress}
                   request={requestDetails}
                   txHash={txHash}
-                  thresholdReached={thresholdReached}
+                  thresholdReached={thresholdReached && !signaturesRedacted}
                 />
               )}
               <ActionRow
@@ -392,6 +401,8 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
                   <span className='text-sm text-muted-foreground'>
                     You approved on-chain; a signature would be a duplicate vote
                   </span>
+                ) : signaturesRedacted ? (
+                  <SignaturesLockedNotice isOwner={isOwner} />
                 ) : (
                   <SignRequest
                     multiSigAddress={requestDetails.multiSigAddress}
@@ -453,7 +464,6 @@ const MultiSigRequestDetail: React.FC<MultiSigRequestDetailProps> = ({ address, 
           </Fragment>
         )}
       </section>
-
     </Fragment>
   )
 }

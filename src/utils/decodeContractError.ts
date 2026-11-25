@@ -16,7 +16,10 @@ const ERROR_MESSAGES: Record<string, string> = {
   NewOwnerMustNotBeOwner: 'The replacement address is already an owner.',
   NewOwnerMustNotBeZero: 'The replacement address cannot be the zero address.',
   TooManyOwners: 'The wallet reached the maximum number of owners.',
-  NonceAlreadyUsed: 'This nonce was already used or burned.',
+  NonceAlreadyUsed: 'This nonce was cancelled on-chain (markNonceAsUsed), so requests signed for it can never execute.',
+  NonceTooLow:
+    'The wallet already moved past this request’s nonce (another request executed or the nonce was incremented). Reset the signatures and sign it again at the current nonce.',
+  NonceOutOfRange: 'The pinned nonce is too large for the wallet’s nonce counter.',
   TransferInactiveOwnershipTooShort: 'The inactivity window must be at least 7 days.',
   TransferInactiveOwnershipBelowMinimum: 'The inactivity window is below the wallet minimum.',
   OwnerMustBeAnOwner: 'The delegating address is not a current owner.',

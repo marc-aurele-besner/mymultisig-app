@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useAccount, useBalance } from 'wagmi'
+import { useAccount, useBalance, useChainId } from 'wagmi'
+
+import { faucetsFor } from '../constants/faucets'
 
 import useActiveWallet from './useActiveWallet'
 import useInbox from './useInbox'
@@ -17,6 +19,8 @@ export interface OnboardingStep {
   // extension (connect, sign in) or needs an earlier step first.
   href?: string
   cta?: string
+  // External help shown under the description, e.g. testnet faucets.
+  links?: { label: string; href: string }[]
 }
 
 export interface Onboarding {
@@ -33,6 +37,7 @@ export interface Onboarding {
 // active wallet's balance, and its request queue.
 const useOnboarding = (): Onboarding => {
   const { address, isConnected } = useAccount()
+  const chainId = useChainId()
   const { wallet, wallets } = useActiveWallet()
   const { hasAnyRequest, hasExecutedRequest } = useInbox()
   const { notificationsVisited } = useOnboardingState()
@@ -69,6 +74,7 @@ const useOnboarding = (): Onboarding => {
     const funded = balance != null && balance.value > BigInt(0)
     const executed = hasExecutedRequest || wallets.some((w) => Number(w.nonce) > 0)
     const funding = wallet != null ? exchangeFunding(wallet.chainId) : null
+    const fundFaucets = faucetsFor(wallet?.chainId ?? chainId).map((f) => ({ label: f.name, href: f.url }))
     const steps: OnboardingStep[] = [
       {
         key: 'connect',
@@ -95,11 +101,12 @@ const useOnboarding = (): Onboarding => {
         title: 'Fund it',
         description:
           funding == null
-            ? 'Send a little of the network’s coin to the multisig address so it has something to manage.'
+            ? 'Send it a little of the network’s main coin (ETH on Ethereum, POL on Polygon) so it has something to manage.'
             : funding.isTestnet
               ? `Get free test ${funding.symbol} from a ${funding.network} faucet and send it to the multisig address.`
               : `Send a little ${funding.symbol} on ${funding.network} to the multisig address. Withdrawing from an exchange? Pick ${funding.network} as the network.`,
         done: hasWallet && (funded || executed),
+        links: fundFaucets,
         href: wallet != null ? walletHref(wallet.address) : undefined,
         cta: 'Fund'
       },
@@ -113,8 +120,8 @@ const useOnboarding = (): Onboarding => {
       },
       {
         key: 'execute',
-        title: 'Collect signatures and execute',
-        description: 'Share the request link. Once the threshold is reached, any owner executes.',
+        title: 'Collect approvals and send it',
+        description: 'Share the request link. Once enough owners approve, any owner sends it and pays the small network fee.',
         done: executed,
         href: wallet != null ? walletHref(wallet.address, 'requests') : undefined,
         cta: 'Open queue'
@@ -140,6 +147,7 @@ const useOnboarding = (): Onboarding => {
   }, [
     address,
     isConnected,
+    chainId,
     sessionAddress,
     wallets,
     wallet,

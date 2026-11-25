@@ -49,7 +49,8 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
 
   const details = {
     threshold: multiSigDetails?.threshold ?? 1,
-    ownerCount: multiSigDetails?.ownerCount ?? 1
+    ownerCount: multiSigDetails?.ownerCount ?? 1,
+    walletVersion: multiSigDetails?.version
   }
   const validationError = action ? action.validate(values, details) : null
   const fieldsFilled = action ? action.fields.every((f) => f.kind === 'boolean' || (values[f.key] ?? '') !== '') : false

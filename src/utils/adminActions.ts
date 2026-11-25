@@ -2,7 +2,7 @@ import { encodeFunctionData, decodeFunctionData, Abi } from 'viem'
 import MyMultiSigExtended from 'mymultisig-contract/abi/MyMultiSigExtended.json'
 
 import { MultiSig, WalletType } from '../models/MultiSigs'
-import { gteVersion } from './contractVersions'
+import { gteVersion, hasUnrestrictedAllowance } from './contractVersions'
 
 // Every admin operation is an onlyThis function: the multisig calls itself, so
 // these are encoded as self-call requests and go through the normal
@@ -84,8 +84,10 @@ export type AdminActionDefinition = {
   fields: AdminField[]
   describe: (values: Record<string, string>) => string
   buildArgs: (values: Record<string, string>) => unknown[]
-  validate: (values: Record<string, string>, details: { threshold: number; ownerCount: number }) => string | null
+  validate: (values: Record<string, string>, details: AdminValidationDetails) => string | null
 }
+
+export type AdminValidationDetails = { threshold: number; ownerCount: number; walletVersion?: string }
 
 const isAddress = (value: string) => /^0x[a-fA-F0-9]{40}$/.test(value)
 const isUint = (value: string) => /^\d+$/.test(value)
@@ -341,7 +343,8 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
     label: 'Set a daily spending limit',
     availableOn: 'extended',
     minWalletVersion: '0.5.0',
-    hint: 'Lets this owner spend up to the cap per rolling 24h window with just their own signature (no threshold). Set 0 to remove the allowance.',
+    danger: true,
+    hint: 'Lets this owner spend up to the cap per rolling 24h window with just their own signature (no threshold). Set 0 to remove the allowance. On version 0.5.0 wallets the cap only limits the native amount: the owner could also move every token and NFT and call any contract alone, so only removing a cap is allowed there.',
     fields: [
       { key: 'owner', label: 'Owner', placeholder: 'Owner address (0x...)', kind: 'address' },
       { key: 'wei', label: 'Daily cap', kind: 'ethers' }
@@ -351,9 +354,11 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
         ? `Remove the daily spending allowance of ${v.owner}`
         : `Allow ${v.owner} to spend up to ${v.wei} wei per day single-signed`,
     buildArgs: (v) => [v.owner, BigInt(v.wei)],
-    validate: (v) => {
+    validate: (v, d) => {
       if (!isAddress(v.owner)) return 'Enter a valid owner address'
       if (!isUint(v.wei)) return 'Enter a wei amount'
+      if (BigInt(v.wei) > 0n && hasUnrestrictedAllowance(d.walletVersion))
+        return 'Version 0.5.0 wallets do not limit what an allowance can call: any cap lets this owner move all tokens and NFTs alone. Only removing a cap (0) is allowed on this version.'
       return null
     }
   },

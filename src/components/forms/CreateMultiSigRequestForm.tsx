@@ -39,6 +39,7 @@ import { useAddressLabels } from '../../states/addressBook'
 import useWalletAssets from '../../hooks/useWalletAssets'
 import AddressRow from '../common/AddressRow'
 import truncateAddress from '../../utils/truncateAddress'
+import { signatureCount } from '../../utils/requestSignatures'
 import { walletHref } from '../shell/navigation'
 import { buildRawSignatureFromFunction } from '../../utils/buildFunctionSignature'
 import { isModernWallet } from '../../utils/contractVersions'
@@ -161,7 +162,7 @@ const SubmittedRequestStatus: React.FC<{
   threshold: number | null
   onSendAnother: () => void
 }> = ({ multiSigAddress, request, threshold, onSendAnother }) => {
-  const collected = request.signatures.length
+  const collected = signatureCount(request)
   const remaining = threshold != null ? Math.max(threshold - collected, 0) : null
   const status =
     remaining == null
@@ -424,6 +425,18 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
   const firstInvalidIndex = steps.findIndex((s, i) => stepError(s, i) != null)
   const stepsValid = firstInvalidIndex === -1
   const expiryValid = expiry === '' || new Date(expiry).getTime() > Date.now()
+  // A pinned nonce must be a whole number at or above the wallet's current
+  // nonce: the wallet rejects lower ones (NonceTooLow), since every nonce
+  // below nonce() is already consumed.
+  const walletNonce = detailsData != null ? BigInt(String(detailsData[4])) : null
+  const pinnedNonceError =
+    pinnedNonce === ''
+      ? null
+      : !/^\d+$/.test(pinnedNonce)
+        ? 'The nonce must be a whole number.'
+        : walletNonce != null && BigInt(pinnedNonce) < walletNonce
+          ? `The wallet is already at nonce ${walletNonce.toString()}; pin ${walletNonce.toString()} or higher.`
+          : null
   const isBatch = steps.length > 1
   const simpleSend = template === 'send' && !showAllFields && !isBatch
   const simpleToken = template === 'token' && !showAllFields && !isBatch
@@ -452,6 +465,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
     !sendAmountMissing &&
     description.trim() !== '' &&
     expiryValid &&
+    (pinnedNonceError == null || bundlerModeEffective) &&
     (!bundlerModeEffective || (!isBatch && entryPoint != null && bundlerConfigured))
   const totalStepGas = steps.reduce((sum, s) => (isUint(s.txnGas) ? sum + Number(s.txnGas) : sum), 0)
   // DELEGATECALL is only accepted on-chain when the target is the wallet
@@ -933,9 +947,11 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
                         className='md:w-full'
                         placeholder='Leave empty to use the current nonce'
                         value={pinnedNonce}
-                        onChange={(e) => setPinnedNonce(e.target.value)}
+                        isInvalid={pinnedNonceError != null}
+                        onChange={(e) => setPinnedNonce(e.target.value.trim())}
                       />,
-                      'Binds the request to an exact nonce so it can be pre-signed or ordered explicitly.'
+                      pinnedNonceError ??
+                        'Binds the request to an exact nonce so it can be pre-signed. Executing it uses up every lower nonce, so requests pinned below it can no longer run.'
                     )}
                   {modern &&
                     !bundlerModeEffective &&
