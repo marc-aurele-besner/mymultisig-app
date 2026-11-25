@@ -64,11 +64,12 @@ Key facts for agents:
 
 ## Common questions
 
-- **Does signing cost gas?** No. Owners sign an EIP-712 message offchain. Only execution is an onchain transaction.
-- **Do all owners have to sign?** No. Only `threshold` owners do, for example 2 of 3.
+- **Does approving cost gas?** No. Approving is a free signature made in the owner's wallet; nothing is sent to the network. Only the final transaction pays gas (the network fee), paid by the owner who sends it. Technically the signature is EIP-712 typed data, signed offchain.
+- **Do all owners have to approve?** No. Only as many as the wallet's threshold, for example 2 of 3.
 - **Is it audited?** No. The contracts are open source but have not been professionally audited.
-- **Does it cost anything?** The app is free to use. You pay the network's gas for deploying and executing.
-- **Networks:** Ethereum, Polygon, Optimism, Arbitrum, Avalanche, BNB Chain and Gnosis, plus testnets such as Sepolia.
+- **Does it cost anything?** The app is free to use. You pay the network's fee (gas) to create the wallet and to send each approved transaction.
+- **Networks:** Ethereum, Polygon, Optimism, Arbitrum, Avalanche, BNB Chain and Gnosis, plus testnets (practice networks with free coins) such as Sepolia.
+- **Glossary:** plain definitions of wallet, key, network, native coin, gas, signature, onchain, owner, threshold, execute and testnet are at https://mymultisig.app/docs#glossary.
 
 ## Source
 

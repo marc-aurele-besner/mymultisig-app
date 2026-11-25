@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 
 import AddressRow from '../common/AddressRow'
 import Identicon from '../common/Identicon'
+import TestnetFaucet from '../common/TestnetFaucet'
 import TextInput from '../inputs/TextInput'
 import ConfirmationCard from '../cards/ConfirmationCard'
 import { MultiSigFactory, MultiSigConstructorArgs, WalletType, isExtendedWallet } from '../../models/MultiSigs'
@@ -419,6 +420,8 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
             </dd>
           </div>
         </dl>
+
+        <TestnetFaucet chainId={chainId} suggestTestnet />
 
         {salt != null && (
           <div className='flex flex-col gap-1 border-t border-border pt-3 text-sm'>

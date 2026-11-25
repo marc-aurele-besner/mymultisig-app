@@ -4,6 +4,8 @@ import { useAccount } from 'wagmi'
 import { MultiSig, MultiSigTransactionRequest } from '../models/MultiSigs'
 import useMultiSigs from '../states/multiSigs'
 import { listMultiSigRequests } from '../utils'
+import useOnSiweSession from './useOnSiweSession'
+import { signatureCount } from '../utils/requestSignatures'
 
 // What a live request needs from the connected account.
 //   sign    - the account is an owner and has not signed yet
@@ -40,8 +42,7 @@ const EMPTY: InboxValue = {
 
 const InboxContext = createContext<InboxValue>(EMPTY)
 
-const isLive = (request: MultiSigTransactionRequest) =>
-  request.isActive && !request.isExecuted && !request.isCancelled
+const isLive = (request: MultiSigTransactionRequest) => request.isActive && !request.isExecuted && !request.isCancelled
 
 // Classifies from the stored wallet record (threshold, owners) and the
 // off-chain signature list. On-chain approvals (approveHash) are not counted
@@ -54,7 +55,7 @@ export const classifyRequest = (
   account: string
 ): InboxStatus => {
   const me = account.toLowerCase()
-  if (request.signatures.length >= wallet.threshold) return 'execute'
+  if (signatureCount(request) >= wallet.threshold) return 'execute'
   // Wallets deployed before 0.5.0 may have no stored owner list; the user
   // saved the wallet in this browser, so treat them as a signer.
   const isOwner = wallet.owners.length === 0 || wallet.owners.some((o) => o.toLowerCase() === me)
@@ -105,6 +106,9 @@ export const InboxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     void load()
   }, [load, multiSigTransactionRequests])
+
+  // Rows loaded before sign-in have their signatures redacted.
+  useOnSiweSession(() => void load())
 
   // Other owners act from their own browsers; pick that up on return.
   useEffect(() => {

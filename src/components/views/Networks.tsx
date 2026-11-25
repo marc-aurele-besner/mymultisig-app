@@ -4,7 +4,8 @@ import { motion } from 'framer-motion'
 import { AddIcon, ExternalLinkIcon } from '../icons/ChakraIcons'
 import NetworkIcon from '../icons/NetworkIcon'
 import PageHero from '../layout/PageHero'
-import networks from '../../constants/networks'
+import TestnetFaucet from '../common/TestnetFaucet'
+import networks, { DEFAULT_CHAIN } from '../../constants/networks'
 import { Button } from '@/components/ui/button'
 
 const containerVariants = {
@@ -167,6 +168,11 @@ const Networks: React.FC = () => {
           <h2 className="font-display text-xl font-semibold tracking-tight text-foreground">
             Testnets ({testnets.length})
           </h2>
+          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            A testnet is a practice copy of a network. It runs the same contracts, but its coins have no value and
+            are handed out for free by faucets, so a mistake costs nothing. New here? Start on {DEFAULT_CHAIN.name}.
+          </p>
+          <TestnetFaucet chainId={DEFAULT_CHAIN.id} className="max-w-2xl" />
           <NetworkGrid chains={testnets} />
         </motion.section>
       </motion.div>

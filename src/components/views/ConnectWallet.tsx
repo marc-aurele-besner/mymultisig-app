@@ -12,10 +12,50 @@ import {
   WalletWalletConnect,
   WalletZerion
 } from '@web3icons/react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { describeConnectError, isProviderNotFound, isUserRejection } from '@/utils/walletError'
 import ErrorCard from '../cards/ErrorCard'
 import { WalletIcon } from '../icons/wallet'
 import Disclaimer, { hasAcceptedDisclaimer } from '../modals/Disclaimer'
+import useConnectModal from '../../states/connectModal'
+import NoWalletPanel from './NoWalletPanel'
+
+// How long a connector may sit on "Connecting…" before we say so and offer a
+// way out. Long enough for a wallet popup to open, short enough that a stuck
+// connector never just spins.
+export const CONNECT_STALL_MS = 15_000
+
+const MOBILE_UA = /iPhone|iPad|iPod|Android|Mobile/i
+
+interface WalletEnvironment {
+  // window.ethereum is set (an extension, or a wallet app's in-app browser).
+  injected: boolean
+  mobile: boolean
+}
+
+// Read after mount so the static HTML and the first client render agree.
+// Until then we assume a wallet is there, so nothing flashes for people who
+// have one.
+const useWalletEnvironment = (): WalletEnvironment => {
+  const [env, setEnv] = React.useState<WalletEnvironment>({ injected: true, mobile: false })
+  React.useEffect(() => {
+    const ethereum = (window as unknown as { ethereum?: unknown }).ethereum
+    setEnv({ injected: ethereum != null, mobile: MOBILE_UA.test(window.navigator.userAgent) })
+  }, [])
+  return env
+}
+
+// Connectors that need a wallet already in the browser. Picking one when
+// there is none shows the no-wallet path instead of a library error or a
+// spinner that never ends.
+const needsInjectedWallet = (connectorId: string, env: WalletEnvironment): boolean => {
+  if (env.injected) return false
+  if (connectorId === 'injected') return true
+  // On desktop the MetaMask SDK falls back to a QR code; on a phone without
+  // the app it waits forever.
+  return connectorId === 'metaMaskSDK' && env.mobile
+}
 
 type WalletMark = React.FC<{ size: number }>
 
@@ -28,15 +68,38 @@ const BrowserWalletMark: WalletMark = ({ size }) => (
 interface WalletBrand {
   name: string
   Mark: WalletMark
+  // One line under the name saying what picking it opens, so someone with no
+  // wallet installed can tell which option works for them.
+  caption: string
 }
+
+const INSTALLED_CAPTION = 'Installed in this browser.'
 
 // Marks by connector id, for the connectors configured in Web3Provider.
 const walletConfig: Record<string, WalletBrand> = {
-  metaMaskSDK: { name: 'MetaMask', Mark: ({ size }) => <WalletMetamask size={size} variant='branded' /> },
-  coinbaseWalletSDK: { name: 'Coinbase', Mark: ({ size }) => <WalletCoinbase size={size} variant='branded' /> },
-  walletConnect: { name: 'WalletConnect', Mark: ({ size }) => <WalletWalletConnect size={size} variant='branded' /> },
-  injected: { name: 'Browser Wallet', Mark: BrowserWalletMark }
+  metaMaskSDK: {
+    name: 'MetaMask',
+    Mark: ({ size }) => <WalletMetamask size={size} variant='branded' />,
+    caption: 'Needs the MetaMask extension or app.'
+  },
+  coinbaseWalletSDK: {
+    name: 'Coinbase',
+    Mark: ({ size }) => <WalletCoinbase size={size} variant='branded' />,
+    caption: 'Create a wallet with a passkey, no app needed. Not the same as your Coinbase exchange account.'
+  },
+  walletConnect: {
+    name: 'WalletConnect',
+    Mark: ({ size }) => <WalletWalletConnect size={size} variant='branded' />,
+    caption: 'Scan a QR code with a wallet app on your phone.'
+  },
+  injected: { name: 'Browser Wallet', Mark: BrowserWalletMark, caption: 'Uses a wallet extension in this browser.' }
 }
+
+// The option that works with nothing installed. It goes first when the
+// browser has no wallet of its own.
+// Without a wallet extension (no window.ethereum), only Coinbase (passkey
+// wallet) and WalletConnect (phone app) can do anything.
+const NO_INSTALL_CONNECTOR_ID = 'coinbaseWalletSDK'
 
 // Marks by name, for wallets that announce themselves in the browser
 // (EIP-6963): they arrive as extra connectors with ids we do not control.
@@ -60,15 +123,16 @@ const configForConnector = (connector: { id: string; name: string; icon?: string
   const byId = walletConfig[connector.id]
   if (byId != null) return byId
   const known = knownByName.find((entry) => entry.match.test(connector.name) || entry.match.test(connector.id))
-  if (known != null) return { name: connector.name, Mark: known.Mark }
+  if (known != null) return { name: connector.name, Mark: known.Mark, caption: INSTALLED_CAPTION }
   const announced = connector.icon
   if (announced != null && announced !== '')
     return {
       name: connector.name,
       // eslint-disable-next-line @next/next/no-img-element -- a data URI supplied by the wallet extension
-      Mark: ({ size }) => <img src={announced} alt='' width={size} height={size} className='rounded-md' />
+      Mark: ({ size }) => <img src={announced} alt='' width={size} height={size} className='rounded-md' />,
+      caption: INSTALLED_CAPTION
     }
-  return { name: connector.name, Mark: BrowserWalletMark }
+  return { name: connector.name, Mark: BrowserWalletMark, caption: INSTALLED_CAPTION }
 }
 
 export interface ConnectWalletProps {
@@ -83,17 +147,79 @@ export interface ConnectWalletProps {
 }
 
 const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = false, limit }) => {
-  const { connect, connectors: allConnectors, error, isPending } = useConnect()
-  const connectors = limit != null ? allConnectors.slice(0, limit) : allConnectors
+  const { connect, connectors: allConnectors, error, isPending, reset } = useConnect()
+  const setConnectModalOpen = useConnectModal((state) => state.setOpen)
+  // Read after mount (see useWalletEnvironment): guessing in the static HTML
+  // would reorder the tiles on hydration.
+  const env = useWalletEnvironment()
+  const ordered = env.injected
+    ? allConnectors
+    : [...allConnectors].sort(
+        (a, b) => Number(b.id === NO_INSTALL_CONNECTOR_ID) - Number(a.id === NO_INSTALL_CONNECTOR_ID)
+      )
+  const connectors = limit != null ? ordered.slice(0, limit) : ordered
   const [connectingId, setConnectingId] = React.useState<string | null>(null)
   // Connector the user picked before accepting the disclaimer; connecting
   // resumes with it once they accept.
   const [awaitingDisclaimer, setAwaitingDisclaimer] = React.useState<(typeof connectors)[0] | null>(null)
+  // Why the no-wallet panel is open (null: closed).
+  const [noWalletReason, setNoWalletReason] = React.useState<string | null>(null)
+  const [noWalletOpen, setNoWalletOpen] = React.useState(false)
+
+  const coinbase = allConnectors.find((connector) => connector.id === NO_INSTALL_CONNECTOR_ID)
+
+  const openNoWallet = (reason: string | null) => {
+    setNoWalletReason(reason)
+    setNoWalletOpen(true)
+  }
+
+  // True once the current attempt has been pending for CONNECT_STALL_MS.
+  const [stalled, setStalled] = React.useState(false)
+  // Bumped on every attempt so "Try again" restarts the timer even when the
+  // connector and pending state end up unchanged.
+  const [attempt, setAttempt] = React.useState(0)
+
+  React.useEffect(() => {
+    setStalled(false)
+    if (!isPending || connectingId == null) return
+    const timer = setTimeout(() => setStalled(true), CONNECT_STALL_MS)
+    return () => clearTimeout(timer)
+  }, [isPending, connectingId, attempt])
 
   const startConnect = (connector: (typeof connectors)[0]) => {
+    if (needsInjectedWallet(connector.id, env)) {
+      reset()
+      setConnectingId(null)
+      openNoWallet(`${configForConnector(connector).name} needs a wallet app, and none was found on this device.`)
+      return
+    }
     setConnectingId(connector.id)
+    setAttempt((count) => count + 1)
+    // WalletConnect shows its own modal (QR code, or the wallet list on a
+    // phone) once it has a pairing URI. Close the connect dialog then: its
+    // focus trap and pointer lock would otherwise leave that modal unusable.
+    if (connector.type === 'walletConnect') {
+      // wagmi sends a "connecting" message first, so wait for the URI itself.
+      const onMessage = ({ type }: { type: string }) => {
+        if (type !== 'display_uri') return
+        connector.emitter.off('message', onMessage)
+        setConnectModalOpen(false)
+      }
+      connector.emitter.on('message', onMessage)
+      connect({ connector }, { onSettled: () => connector.emitter.off('message', onMessage) })
+      return
+    }
     connect({ connector })
   }
+
+  // Drop a stuck attempt so every wallet can be picked again. The wallet may
+  // still answer later; that connects as usual.
+  const cancelConnect = () => {
+    reset()
+    setConnectingId(null)
+  }
+
+  const stalledConnector = stalled ? allConnectors.find((connector) => connector.id === connectingId) : undefined
 
   // The risk disclaimer is asked for here, the first time someone connects,
   // rather than on the first page view.
@@ -104,6 +230,14 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = f
     }
     startConnect(connector)
   }
+
+  // A wallet that is not there at all goes to the same path, not a raw error.
+  React.useEffect(() => {
+    if (error != null && isProviderNotFound(error)) openNoWallet('No wallet app was found in this browser.')
+  }, [error])
+
+  const showError = error != null && !isProviderNotFound(error)
+  const rejected = showError && isUserRejection(error)
 
   return (
     <>
@@ -159,17 +293,80 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ compact = false, list = f
                   <div className={cn('bg-muted', list ? 'rounded-lg p-1.5' : 'rounded-xl p-3')} aria-hidden>
                     <config.Mark size={list ? 22 : compact ? 28 : 36} />
                   </div>
-                  <span className={cn('text-sm font-semibold text-foreground', !list && 'text-center')}>
-                    {isConnecting ? 'Connecting…' : config.name}
+                  <span className={cn('flex min-w-0 flex-col gap-0.5', list ? 'text-left' : 'text-center')}>
+                    <span className='text-sm font-semibold text-foreground'>
+                      {isConnecting ? 'Connecting…' : config.name}
+                    </span>
+                    <span className='text-xs leading-snug text-muted-foreground'>{config.caption}</span>
                   </span>
                 </div>
               </motion.button>
             )
           })}
         </div>
+
+        {noWalletOpen ? (
+          <NoWalletPanel
+            reason={noWalletReason ?? undefined}
+            mobile={env.mobile}
+            creatingSmartWallet={isPending && connectingId === coinbase?.id}
+            onCreateSmartWallet={coinbase != null ? () => handleConnect(coinbase) : undefined}
+          />
+        ) : (
+          <button
+            type='button'
+            onClick={() => openNoWallet(null)}
+            className={cn(
+              'text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline',
+              compact ? 'self-start' : 'self-center'
+            )}
+          >
+            No wallet yet? <span className='text-primary'>Get one in a minute</span>
+          </button>
+        )}
       </div>
 
-      {error != null && <ErrorCard>{error.message}</ErrorCard>}
+      {stalledConnector != null && (
+        <div role='status' className='flex flex-col gap-3 rounded-xl border border-border bg-muted/50 p-4 text-sm'>
+          <p className='text-foreground'>
+            {configForConnector(stalledConnector).name} has not opened yet. If no window, QR code or wallet app
+            appeared, cancel and try again, or pick another wallet.
+          </p>
+          <div className='flex flex-wrap gap-2'>
+            <Button
+              size='sm'
+              onClick={() => {
+                cancelConnect()
+                startConnect(stalledConnector)
+              }}
+            >
+              Try again
+            </Button>
+            <Button size='sm' variant='outline' onClick={cancelConnect}>
+              Cancel
+            </Button>
+            {!noWalletOpen && (
+              <Button
+                size='sm'
+                variant='ghost'
+                onClick={() => {
+                  cancelConnect()
+                  openNoWallet(`${configForConnector(stalledConnector).name} did not answer.`)
+                }}
+              >
+                I don&apos;t have a wallet
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showError &&
+        (rejected ? (
+          <p className='mt-2 text-sm text-muted-foreground'>{describeConnectError(error)}</p>
+        ) : (
+          <ErrorCard>{describeConnectError(error)}</ErrorCard>
+        ))}
 
       <Disclaimer
         open={awaitingDisclaimer != null}

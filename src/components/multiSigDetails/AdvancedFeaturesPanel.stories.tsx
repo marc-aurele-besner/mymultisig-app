@@ -15,4 +15,5 @@ export const Basic: StoryFn<typeof AdvancedFeaturesPanel> = (
 ) => <AdvancedFeaturesPanel {...args} />
 Basic.args = {
   multiSigAddress: '0x2222222222222222222222222222222222222222',
+  walletVersion: '0.5.0',
 }

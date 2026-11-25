@@ -42,7 +42,7 @@ const ConnectModal: React.FC = () => {
           ))}
         </ol>
         <p className='text-xs leading-relaxed text-muted-foreground'>
-          Connecting creates nothing and costs nothing. After it, one free signature proves you own the wallet and
+          Connecting creates no multisig and costs nothing. After it, one free signature proves you own the wallet and
           syncs your multisigs across devices.
         </p>
       </DialogContent>

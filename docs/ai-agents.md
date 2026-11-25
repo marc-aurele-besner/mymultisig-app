@@ -34,7 +34,7 @@ This guide is for operators and contributors. For the user guide, see `/docs/ai-
 
 | Scope | Endpoints |
 |---|---|
-| `read` | `GET /api/multisig-wallets`, `GET /api/address-book`, `GET /api/saved-contracts`, `GET /api/factories` |
+| `read` | `GET /api/multisig-wallets`, `GET /api/address-book`, `GET /api/saved-contracts`, `GET /api/factories`; on the public `GET /api/multisig-requests` and `GET /api/multisig-requests/[id]`, a key of a wallet owner also gets the raw signatures (other callers get `signatures: []` and `signaturesRedacted: true`) |
 | `propose` | `POST /api/multisig-requests` |
 | `sign` | `PATCH /api/multisig-requests/[id]` (signatures, execution status) |
 | `manage` | `DELETE /api/multisig-requests/[id]`, `/cancel`, `/reset`, `POST`/`PATCH /api/multisig-wallets`, address book, saved contracts and factories writes |
