@@ -103,6 +103,7 @@ const useCreateMultiSig = (constructorArgs: MultiSigConstructorArgs, multiSigFac
   }, [isFinal, dataFinal])
 
   return {
+    config,
     data,
     error,
     isError,

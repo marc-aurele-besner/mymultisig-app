@@ -1,14 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createPublicClient, http } from 'viem'
 
-import { ESTIMATE_CHAINS, GAS_COIN_IDS, costUsd, type DeployCostEntry } from '../../lib/deployCost/estimate'
+import { ESTIMATE_CHAINS, GAS_COIN_IDS, usdPerGas, type DeployCostEntry } from '../../lib/deployCost/estimate'
 
 let cache: { at: number; entries: DeployCostEntry[] } | null = null
 const TTL_MS = 2 * 60 * 1000
 
 const load = async (): Promise<DeployCostEntry[]> => {
   const ids = Array.from(new Set(Object.values(GAS_COIN_IDS))).join(',')
-  const priceRes = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`)
+  const priceRes = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`, {
+    signal: AbortSignal.timeout(5000)
+  })
   if (!priceRes.ok) throw new Error('price lookup failed')
   const prices = (await priceRes.json()) as Record<string, { usd?: number }>
   const settled = await Promise.all(
@@ -18,7 +20,7 @@ const load = async (): Promise<DeployCostEntry[]> => {
         if (coinUsd == null) return null
         const client = createPublicClient({ chain, transport: http(undefined, { timeout: 5000 }) })
         const gasPrice = await client.getGasPrice()
-        return { chainId: chain.id, name: chain.name, usd: costUsd(gasPrice, coinUsd) }
+        return { chainId: chain.id, name: chain.name, usdPerGas: usdPerGas(gasPrice, coinUsd) }
       } catch {
         return null
       }

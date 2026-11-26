@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useChainId, useChains } from 'wagmi'
+import React, { useEffect, useState } from 'react'
+import { useAccount, useChainId, useChains, usePublicClient } from 'wagmi'
 import { keccak256, stringToHex } from 'viem'
 import { ExternalLinkIcon, CheckCircleIcon, CheckIcon, AddIcon, DeleteIcon } from '../icons/ChakraIcons'
 import { motion } from 'framer-motion'
@@ -109,7 +109,27 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
     salt
   }
 
-  const { data, isPending, isSuccess, writeContract } = useCreateMultiSig(constructorArgs, factory.address)
+  const { data, isPending, isSuccess, writeContract, config } = useCreateMultiSig(constructorArgs, factory.address)
+  // Ask the node what this exact factory call costs once the details are
+  // valid; until then (or if it fails) the per-type figure is used.
+  const publicClient = usePublicClient()
+  const { address: account } = useAccount()
+  const [estimatedGas, setEstimatedGas] = useState<number | undefined>(undefined)
+  const configKey = JSON.stringify(config, (_k, v) => (typeof v === 'bigint' ? v.toString() : v))
+  useEffect(() => {
+    setEstimatedGas(undefined)
+    if (detailsError != null || publicClient == null || account == null) return
+    let live = true
+    publicClient
+      .estimateContractGas({ ...(config as any), account })
+      .then((gas) => live && setEstimatedGas(Number(gas)))
+      .catch(() => undefined)
+    return () => {
+      live = false
+    }
+    // configKey stands in for config, which is rebuilt every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configKey, detailsError, publicClient, account])
   // Only predicted once the details are valid, so the read does not re-fire
   // on every keystroke while they are still being typed.
   const { predictedAddress } = usePredictMultiSigAddress(
@@ -458,7 +478,7 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
           Owners and threshold can be changed later, but only through a signed multisig transaction.
         </p>
 
-        <DeployCostEstimate chainId={chainId} />
+        <DeployCostEstimate chainId={chainId} walletType={walletType} gasUnits={estimatedGas} />
 
         <Button
           size='lg'
