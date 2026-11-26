@@ -58,7 +58,7 @@ const CreateMultiSig: React.FC = () => {
               {chain.name}
             </span>
           )}
-          <span>Pick the owners and how many must approve. Deploying is one transaction.</span>
+          <span>Pick the owners and how many must approve. Deploying is one transaction with a one-time network fee, estimated in USD before you confirm.</span>
         </p>
       </motion.div>
 
