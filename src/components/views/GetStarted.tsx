@@ -6,6 +6,7 @@ import { useChainId } from 'wagmi'
 
 import { Button } from '@/components/ui/button'
 import FundFromExchange from '../common/FundFromExchange'
+import DeployCostEstimate from '../common/DeployCostEstimate'
 import TestnetFaucet from '../common/TestnetFaucet'
 import GettingStartedChecklist from '../onboarding/GettingStartedChecklist'
 import ProgressRing from '../onboarding/ProgressRing'
@@ -61,6 +62,8 @@ const GetStarted: React.FC = () => {
               renderDetail={(step) =>
                 step.key === 'fund' ? (
                   <FundFromExchange address={wallet?.address} chain={wallet?.chainId} className='mt-2' />
+                ) : step.key === 'wallet' ? (
+                  <DeployCostEstimate className='mt-2' />
                 ) : null
               }
             />

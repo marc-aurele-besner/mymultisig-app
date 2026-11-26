@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 import AddressRow from '../common/AddressRow'
 import Identicon from '../common/Identicon'
 import TestnetFaucet from '../common/TestnetFaucet'
+import DeployCostEstimate from '../common/DeployCostEstimate'
 import TextInput from '../inputs/TextInput'
 import ConfirmationCard from '../cards/ConfirmationCard'
 import { MultiSigFactory, MultiSigConstructorArgs, WalletType, isExtendedWallet } from '../../models/MultiSigs'
@@ -456,6 +457,8 @@ const CreateMultiSigForm: React.FC<CreateMultiSigFormProps> = ({ owner01, factor
         <p className='rounded-lg border border-border bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground'>
           Owners and threshold can be changed later, but only through a signed multisig transaction.
         </p>
+
+        <DeployCostEstimate chainId={chainId} />
 
         <Button
           size='lg'
