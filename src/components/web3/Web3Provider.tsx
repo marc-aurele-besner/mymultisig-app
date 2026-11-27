@@ -16,6 +16,20 @@ interface Web3ProviderProps {
 
 const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID ?? ''
 
+// wagmi's walletConnect connector runs `setup()` as soon as the config is
+// created, which initialises the WalletConnect provider and its modal and so
+// calls api.web3modal.org for every visitor, before they have chosen a wallet
+// or answered the consent banner. Dropping `setup` defers all of that to the
+// first real use: the visitor clicking WalletConnect, or wagmi restoring a
+// session the visitor already opened (reconnect resolves the provider itself).
+const lazyWalletConnect = (parameters: Parameters<typeof walletConnect>[0]): ReturnType<typeof walletConnect> => {
+  const create = walletConnect(parameters)
+  return (config) => {
+    const connector = create(config)
+    return { ...connector, setup: undefined }
+  }
+}
+
 const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
   // Contract reads (owners, threshold, nonce, version, ...) change rarely and
   // every mutation path refetches what it touched explicitly, so serve cached
@@ -41,7 +55,7 @@ const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       }),
       ...(projectId
         ? [
-            walletConnect({
+            lazyWalletConnect({
               projectId,
               // The app renders no QR code of its own, so the provider's modal
               // (lazy-loaded on first use) is what shows the QR on desktop and
