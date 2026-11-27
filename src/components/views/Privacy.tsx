@@ -43,7 +43,7 @@ const sections = [
   {
     title: '6. Third-party services',
     paragraphs: [
-      'The App relies on third-party infrastructure that may process your IP address and request metadata under their own privacy policies: Netlify (hosting), Neon (database), WalletConnect (wallet connections, contacted only once you choose WalletConnect to connect), RPC providers such as Alchemy, Infura, or public endpoints (blockchain reads and writes), Resend (contact form and email notification delivery), and Google Analytics (usage analytics).'
+      'The App relies on third-party infrastructure that may process your IP address and request metadata under their own privacy policies: Netlify (hosting), Neon (database), WalletConnect (wallet connections), RPC providers such as Alchemy, Infura, or public endpoints (blockchain reads and writes), Resend (contact form and email notification delivery), and Google Analytics (usage analytics).'
     ]
   },
   {

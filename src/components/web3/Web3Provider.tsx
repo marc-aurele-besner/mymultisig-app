@@ -16,17 +16,55 @@ interface Web3ProviderProps {
 
 const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID ?? ''
 
-// wagmi's walletConnect connector runs `setup()` as soon as the config is
-// created, which initialises the WalletConnect provider and its modal and so
-// calls api.web3modal.org for every visitor, before they have chosen a wallet
-// or answered the consent banner. Dropping `setup` defers all of that to the
-// first real use: the visitor clicking WalletConnect, or wagmi restoring a
-// session the visitor already opened (reconnect resolves the provider itself).
+// wagmi's walletConnect connector initialises the WalletConnect provider and
+// its modal, which calls api.web3modal.org, from two places that run for every
+// visitor on page load: `setup()` at config creation, and `reconnect()` (on by
+// default in WagmiProvider), which calls `getProvider()` and `isAuthorized()`
+// on every connector. This wrapper holds both back until WalletConnect has an
+// actual reason to start: the visitor picked it in this session, wagmi
+// remembers it as the last connector, or a stored WalletConnect session
+// exists. A first-time visitor has none of these, so nothing is contacted.
+let walletConnectPicked = false
+
+const hasStoredWalletConnectSession = (): boolean => {
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i)
+      if (key?.startsWith('wc@2:') !== true || !key.endsWith('//session')) continue
+      const value = window.localStorage.getItem(key)
+      if (value != null && value !== '' && value !== '[]') return true
+    }
+  } catch {
+    // storage blocked: treat as no session
+  }
+  return false
+}
+
 const lazyWalletConnect = (parameters: Parameters<typeof walletConnect>[0]): ReturnType<typeof walletConnect> => {
   const create = walletConnect(parameters)
   return (config) => {
     const connector = create(config)
-    return { ...connector, setup: undefined }
+    const allowed = async (): Promise<boolean> => {
+      if (walletConnectPicked) return true
+      const recent = await Promise.resolve(config.storage?.getItem('recentConnectorId')).catch(() => null)
+      return recent === connector.id || hasStoredWalletConnectSession()
+    }
+    return {
+      ...connector,
+      setup: undefined,
+      connect: ((...args: Parameters<typeof connector.connect>) => {
+        walletConnectPicked = true
+        return connector.connect.apply(connector, args as never)
+      }) as typeof connector.connect,
+      getProvider: (async (...args: Parameters<typeof connector.getProvider>) => {
+        if (!(await allowed())) return undefined
+        return connector.getProvider.apply(connector, args as never)
+      }) as typeof connector.getProvider,
+      isAuthorized: async () => {
+        if (!(await allowed())) return false
+        return connector.isAuthorized.call(connector)
+      }
+    }
   }
 }
 
