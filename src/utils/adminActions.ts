@@ -96,11 +96,16 @@ const isUint = (value: string) => /^\d+$/.test(value)
 const isBytes4 = (value: string) => /^0x[a-fA-F0-9]{8}$/.test(value)
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
-// First wallet release where the setGuard self-call skips the guard pre-check
-// (mymultisig-contract#324), so a reverting guard can be removed. Wallets below
-// it cannot recover from a reverting guard, and reject the zero address.
-export const GUARD_REMOVABLE_FROM_VERSION = '0.5.3'
-export const canRemoveGuard = (walletVersion?: string) => gteVersion(walletVersion, GUARD_REMOVABLE_FROM_VERSION)
+// First published wallet release where the setGuard self-call skips the guard
+// pre-check (mymultisig-contract#324), so a reverting guard can be removed.
+// null until a release containing the fix is published and the
+// mymultisig-contract dependency is bumped to it: while null, no wallet is
+// treated as able to remove a guard, the zero address stays rejected and the
+// "can always be removed" wording is never shown. Set it to that release's
+// version (not a guess) when bumping the dependency.
+export const GUARD_REMOVABLE_FROM_VERSION: string | null = null
+export const canRemoveGuard = (walletVersion?: string) =>
+  GUARD_REMOVABLE_FROM_VERSION != null && gteVersion(walletVersion, GUARD_REMOVABLE_FROM_VERSION)
 
 export const ADMIN_ACTIONS: AdminActionDefinition[] = [
   {
