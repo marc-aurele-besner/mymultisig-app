@@ -15,7 +15,7 @@ import HexSelectorInput from '../inputs/HexSelectorInput'
 import SignRequest from '../buttons/SignRequest'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
-import { adminActionsFor, encodeAdminAction, ADMIN_ACTION_GROUPS } from '../../utils/adminActions'
+import { adminActionsFor, canRemoveGuard, encodeAdminAction, ADMIN_ACTION_GROUPS } from '../../utils/adminActions'
 
 interface AdminActionFormProps {
   multiSigAddress: `0x${string}`
@@ -64,6 +64,7 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
   // setGuard dry-run: simulate checkTransaction on the proposed guard, as the
   // wallet, with a plain value-0 call. A revert (or a non-contract address)
   // means the guard would block the wallet; warn, but do not block the proposal.
+  const removable = canRemoveGuard(multiSigDetails?.version)
   const proposedGuard = action?.id === 'setGuard' && ready ? values.guard : null
   useEffect(() => {
     setGuardWarning(null)
@@ -73,7 +74,7 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
       try {
         const code = await publicClient.getCode({ address: proposedGuard as `0x${string}` })
         if (!code || code === '0x') {
-          if (!cancelled) setGuardWarning('No contract found at this address: if the wallet sets it, every transaction will revert.')
+          if (!cancelled) setGuardWarning('No contract found at this address: if the wallet sets it, every transaction will revert.' + (removable ? '' : ' This wallet version cannot undo that.'))
           return
         }
         await publicClient.simulateContract({
@@ -86,7 +87,9 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
       } catch {
         if (!cancelled)
           setGuardWarning(
-            'This guard reverted on a dry-run checkTransaction call from the wallet. If it always reverts it will block every transaction (it can still be removed with setGuard).'
+            removable
+              ? 'This guard reverted on a dry-run checkTransaction call from the wallet. If it always reverts it will block every transaction, though setGuard can still remove it.'
+              : 'This guard reverted on a dry-run checkTransaction call from the wallet. If it always reverts it will block every transaction, and this wallet version cannot undo that: the wallet would be locked for good.'
           )
       }
     }
@@ -94,7 +97,7 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
     return () => {
       cancelled = true
     }
-  }, [proposedGuard, publicClient, multiSigAddress])
+  }, [proposedGuard, publicClient, multiSigAddress, removable])
 
   let encoded: `0x${string}` | null = null
   if (ready && action) {
@@ -176,7 +179,7 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
             {action != null && action.group === group.id && (
               <div className='mt-1 flex flex-col gap-3 rounded-lg bg-muted/30 p-3'>
                 <p className={`text-sm ${action.danger ? 'text-destructive' : 'text-muted-foreground'}`}>
-                  {action.hint}
+                  {action.hintFor?.(details) ?? action.hint}
                 </p>
                 {action.fields.map((field) =>
                   field.kind === 'boolean' ? (
