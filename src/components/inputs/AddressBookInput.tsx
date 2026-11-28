@@ -17,6 +17,10 @@ interface AddressBookInputProps {
   id?: string
   // Offer to label-and-save valid addresses that are not in the book yet.
   allowSave?: boolean
+  // Hides saved entries that must not be picked here (e.g. addresses a
+  // contract would reject). Typing such an address is still possible, so
+  // callers validate the value too.
+  exclude?: (address: string) => boolean
 }
 
 const isAddress = (value: string) => /^0x[a-fA-F0-9]{40}$/.test(value)
@@ -30,11 +34,16 @@ const AddressBookInput: React.FC<AddressBookInputProps> = ({
   placeholder = '0x…',
   isInvalid,
   id,
-  allowSave = false
+  allowSave = false,
+  exclude
 }) => {
   const chainId = useChainId()
   const { address: account } = useAccount()
-  const { entries, labelFor } = useAddressLabels(chainId)
+  const { entries: allEntries, labelFor } = useAddressLabels(chainId)
+  const entries = useMemo(
+    () => (exclude == null ? allEntries : allEntries.filter((e) => !exclude(e.address))),
+    [allEntries, exclude]
+  )
   const { addEntry } = useAddressBook()
   const [open, setOpen] = useState(false)
   const [highlighted, setHighlighted] = useState(0)

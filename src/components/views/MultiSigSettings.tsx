@@ -12,6 +12,7 @@ import AdminActionForm from '../forms/AdminActionForm'
 import ExtendedGovernancePanel from '../multiSigDetails/ExtendedGovernancePanel'
 import AdvancedFeaturesPanel from '../multiSigDetails/AdvancedFeaturesPanel'
 import SpendingAllowancePanel from '../multiSigDetails/SpendingAllowancePanel'
+import SessionKeysPanel from '../multiSigDetails/SessionKeysPanel'
 import MessageSigningPanel from '../multiSigDetails/MessageSigningPanel'
 import AccountAbstractionPanel from '../multiSigDetails/AccountAbstractionPanel'
 import MultiSigRpcPanel from '../multiSigDetails/MultiSigRpcPanel'
@@ -31,6 +32,7 @@ const SECTIONS = [
   { id: 'owners', label: 'Owners & administration' },
   { id: 'governance', label: 'Governance' },
   { id: 'signing', label: 'Allowance & signing' },
+  { id: 'sessions', label: 'Session keys' },
   { id: 'aa', label: 'Account abstraction' },
   { id: 'connection', label: 'Connection' }
 ] as const
@@ -196,6 +198,16 @@ const MultiSigSettings: React.FC<MultiSigSettingsProps> = ({ multiSigAddress }) 
               )}
             </>
           )}
+
+          {section === 'sessions' &&
+            (extended ? (
+              <SessionKeysPanel multiSigAddress={multiSigAddress} owners={owners} />
+            ) : (
+              <Locked title='Session keys need an Extended wallet'>
+                Session keys let a bot, an agent or a hot wallet call chosen contracts for a limited time without
+                collecting signatures. They run as a module, which needs a 0.5.0 Extended wallet. This wallet is Simple.
+              </Locked>
+            ))}
 
           {section === 'aa' &&
             (extended ? (
