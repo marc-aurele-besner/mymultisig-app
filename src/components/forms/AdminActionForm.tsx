@@ -15,7 +15,17 @@ import HexSelectorInput from '../inputs/HexSelectorInput'
 import SignRequest from '../buttons/SignRequest'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
-import { adminActionsFor, encodeAdminAction, ADMIN_ACTION_GROUPS } from '../../utils/adminActions'
+import useAdvancedFeatures from '../../hooks/useAdvancedFeatures'
+import {
+  adminActionsFor,
+  buildAdminRequest,
+  validateAdminAction,
+  isLockedOutByAllowlist,
+  ALLOWLIST_LOCKOUT_MESSAGE,
+  ADMIN_ACTION_GROUPS,
+  AdminActionContext,
+  AdminRequest
+} from '../../utils/adminActions'
 
 interface AdminActionFormProps {
   multiSigAddress: `0x${string}`
@@ -34,6 +44,7 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
   const nativeSymbol = chain?.nativeCurrency.symbol ?? 'ETH'
   const { multiSigDetails } = useMultiSigDetails(multiSigAddress, address ?? '0x')
   const { walletType } = useWalletType(multiSigAddress)
+  const { supportsAdvanced, allowedTargetsEnabled, selfAllowedTarget } = useAdvancedFeatures(multiSigAddress)
   const [actionId, setActionId] = useState<string>('')
   const [values, setValues] = useState<Record<string, string>>({})
 
@@ -47,21 +58,25 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
     ? [MyMultiSigExtended as Abi, MyMultiSig as Abi]
     : [MyMultiSig as Abi]
 
-  const details = {
+  const details: AdminActionContext = {
     threshold: multiSigDetails?.threshold ?? 1,
     ownerCount: multiSigDetails?.ownerCount ?? 1,
+    walletAddress: multiSigAddress,
+    allowlistEnabled: supportsAdvanced ? allowedTargetsEnabled : undefined,
+    selfAllowed: supportsAdvanced ? selfAllowedTarget : undefined,
     walletVersion: multiSigDetails?.version
   }
-  const validationError = action ? action.validate(values, details) : null
+  const lockedOut = isLockedOutByAllowlist(details)
+  const validationError = action ? validateAdminAction(action, values, details) : null
   const fieldsFilled = action ? action.fields.every((f) => f.kind === 'boolean' || (values[f.key] ?? '') !== '') : false
   const ready = action != null && fieldsFilled && validationError == null
 
-  let encoded: `0x${string}` | null = null
+  let request: AdminRequest | null = null
   if (ready && action) {
     try {
-      encoded = encodeAdminAction(action, values)
+      request = buildAdminRequest(action, values, details)
     } catch {
-      encoded = null
+      request = null
     }
   }
 
@@ -101,6 +116,11 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
           These operations are multisig transactions: they still need {details.threshold} owner signature
           {details.threshold > 1 ? 's' : ''} before they execute.
         </p>
+        {lockedOut && (
+          <p className='mt-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive'>
+            {ALLOWLIST_LOCKOUT_MESSAGE}
+          </p>
+        )}
       </div>
 
       {ADMIN_ACTION_GROUPS.map((group) => {
@@ -198,15 +218,15 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
                 {fieldsFilled && validationError != null && (
                   <p className='text-sm text-destructive'>{validationError}</p>
                 )}
-                {ready && encoded != null && (
+                {ready && request != null && (
                   <SignRequest
                     multiSigAddress={multiSigAddress}
-                    description={action.describe(values)}
+                    description={request.description}
                     args={{
                       to: multiSigAddress,
                       value: '0',
-                      data: encoded,
-                      txnGas: DEFAULT_ADMIN_GAS,
+                      data: request.data,
+                      txnGas: request.txnGas ?? DEFAULT_ADMIN_GAS,
                       signatures: ''
                     }}
                   />
