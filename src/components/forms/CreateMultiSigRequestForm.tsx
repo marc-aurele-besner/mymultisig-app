@@ -216,7 +216,8 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
   const [description, setDescription] = useState('')
   const [pinnedNonce, setPinnedNonce] = useState('')
   const [expiry, setExpiry] = useState('')
-  const [strictBatch, setStrictBatch] = useState(false)
+  // Batches default to multiRequestStrict (all-or-nothing) on 0.5.0 wallets.
+  const [strictBatch, setStrictBatch] = useState(true)
   const [delegateCall, setDelegateCall] = useState(false)
   const [useBundler, setUseBundler] = useState(false)
   const [newContractKey, setNewContractKey] = useState(0)
@@ -364,7 +365,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
     setDescription('')
     setPinnedNonce('')
     setExpiry('')
-    setStrictBatch(false)
+    setStrictBatch(true)
     setDelegateCall(false)
     setUseBundler(false)
     setSubmitted(null)
@@ -577,7 +578,7 @@ const CreateMultiSigRequestForm: React.FC<CreateMultiSigRequestFormProps> = ({ m
           : ''
   const threshold = detailsData != null ? Number(detailsData[2]) : null
   const currentNonce = detailsData != null ? String(detailsData[4]) : null
-  const optionsInUse = pinnedNonce !== '' || expiry !== '' || strictBatch || delegateCall || useBundler
+  const optionsInUse = pinnedNonce !== '' || expiry !== '' || !strictBatch || delegateCall || useBundler
   const optionsOpen = showOptions || optionsInUse
 
   return (
