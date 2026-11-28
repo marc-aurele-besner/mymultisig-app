@@ -19268,7 +19268,7 @@ verkit@^0.5.0:
   resolved "https://registry.yarnpkg.com/verkit/-/verkit-0.5.0.tgz#8b7617dda9ad2edb7851c6a4ff5f3ca428482401"
   integrity sha512-u4J1hr6Y+C/hit34GwL3eIcUf3wngT8TlYUjK7tk0jxydKLAq3sYvifjdTDA6U3KCKRcQCQDGf/srjxfZF3l7g==
 
-viem@>=2.45.0, viem@^2.1.1, viem@^2.31.7, viem@^2.47.0:
+viem@>=2.45.0, viem@^2.1.1, viem@^2.31.7, viem@^2.43.3, viem@^2.47.0:
   version "2.58.8"
   resolved "https://registry.yarnpkg.com/viem/-/viem-2.58.8.tgz#3dd0833c4a51084347b097e60d83ad44dceac629"
   integrity sha512-kQBP9j2gkL1j+eCIV3qs+cfS2NvltlNX2BcJ2C1qKlCIjP6ibqvIlZSJN8OJ+CR8j/pJpUUoG97179upObcw3g==
@@ -19294,20 +19294,6 @@ viem@^2.27.2:
     abitype "1.2.3"
     isows "1.0.7"
     ox "0.14.54"
-    ws "8.21.0"
-
-viem@^2.43.3:
-  version "2.58.7"
-  resolved "https://registry.yarnpkg.com/viem/-/viem-2.58.7.tgz#c1c590a348482498a0ab96d6a43877836c2bf473"
-  integrity sha512-9s29POkcUOdlvEN5ePdBTBryhoEQE+ikXuuwjvJRqTc99yCMVkVqwvrjogYpTaJLo2rIrgOEjAglbdr6DCRdkg==
-  dependencies:
-    "@noble/curves" "1.9.1"
-    "@noble/hashes" "1.8.0"
-    "@scure/bip32" "1.7.0"
-    "@scure/bip39" "1.6.0"
-    abitype "1.2.3"
-    isows "1.0.7"
-    ox "0.14.67"
     ws "8.21.0"
 
 vite@^8.3.7:
