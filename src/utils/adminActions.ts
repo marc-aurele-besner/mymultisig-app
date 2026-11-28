@@ -81,6 +81,8 @@ export type AdminActionDefinition = {
   group: AdminActionGroup
   danger?: boolean
   hint: string
+  // Optional version-aware hint; the form prefers it over `hint`.
+  hintFor?: (details: AdminValidationDetails) => string
   fields: AdminField[]
   describe: (values: Record<string, string>) => string
   buildArgs: (values: Record<string, string>) => unknown[]
@@ -93,6 +95,17 @@ const isAddress = (value: string) => /^0x[a-fA-F0-9]{40}$/.test(value)
 const isUint = (value: string) => /^\d+$/.test(value)
 const isBytes4 = (value: string) => /^0x[a-fA-F0-9]{8}$/.test(value)
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+
+// First published wallet release where the setGuard self-call skips the guard
+// pre-check (mymultisig-contract#324), so a reverting guard can be removed.
+// null until a release containing the fix is published and the
+// mymultisig-contract dependency is bumped to it: while null, no wallet is
+// treated as able to remove a guard, the zero address stays rejected and the
+// "can always be removed" wording is never shown. Set it to that release's
+// version (not a guess) when bumping the dependency.
+export const GUARD_REMOVABLE_FROM_VERSION: string | null = null
+export const canRemoveGuard = (walletVersion?: string) =>
+  GUARD_REMOVABLE_FROM_VERSION != null && gteVersion(walletVersion, GUARD_REMOVABLE_FROM_VERSION)
 
 export const ADMIN_ACTIONS: AdminActionDefinition[] = [
   {
@@ -299,13 +312,19 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
     availableOn: 'extended',
     minWalletVersion: '0.5.0',
     danger: true,
-    hint: 'Every transaction is pre-checked by this ITransactionGuard contract; a reverting guard blocks the wallet. Make sure the guard is audited and cannot lock you out.',
+    hint: 'Every transaction is pre-checked by this ITransactionGuard contract. On this wallet version a guard that reverts cannot be removed, so the wallet is locked for good: only set a guard you have audited.',
+    hintFor: (d) =>
+      canRemoveGuard(d.walletVersion)
+        ? 'Every transaction is pre-checked by this ITransactionGuard contract, except the setGuard call itself, so a reverting guard can always be removed by proposing the zero address (0x000…000). Removal still needs the owner signatures and the timelock delay when one is set.'
+        : 'Every transaction is pre-checked by this ITransactionGuard contract. This wallet version cannot remove a guard that reverts, so the wallet would be locked for good: only set a guard you have audited.',
     fields: [{ key: 'guard', label: 'Guard contract', placeholder: 'Guard address (0x...)', kind: 'address' }],
-    describe: (v) => `Set the transaction guard to ${v.guard}`,
+    describe: (v) =>
+      v.guard.toLowerCase() === ZERO_ADDRESS ? 'Remove the transaction guard' : `Set the transaction guard to ${v.guard}`,
     buildArgs: (v) => [v.guard],
-    validate: (v) => {
+    validate: (v, d) => {
       if (!isAddress(v.guard)) return 'Enter a valid guard address'
-      if (v.guard.toLowerCase() === ZERO_ADDRESS) return 'The wallet rejects the zero address as a guard'
+      if (v.guard.toLowerCase() === ZERO_ADDRESS && !canRemoveGuard(d.walletVersion))
+        return 'This wallet version rejects the zero address as a guard'
       return null
     }
   },

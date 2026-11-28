@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
-import { useAccount, useChainId, useChains } from 'wagmi'
-import type { Abi } from 'viem'
+import React, { useEffect, useState } from 'react'
+import { useAccount, useChainId, useChains, usePublicClient } from 'wagmi'
+import { parseAbi, type Abi } from 'viem'
 import MyMultiSig from 'mymultisig-contract/abi/MyMultiSig.json'
 import MyMultiSigExtended from 'mymultisig-contract/abi/MyMultiSigExtended.json'
 import { Button } from '@/components/ui/button'
@@ -15,13 +15,15 @@ import HexSelectorInput from '../inputs/HexSelectorInput'
 import SignRequest from '../buttons/SignRequest'
 import useMultiSigDetails from '../../hooks/useMultiSigDetails'
 import useWalletType from '../../hooks/useWalletType'
-import { adminActionsFor, encodeAdminAction, ADMIN_ACTION_GROUPS } from '../../utils/adminActions'
+import { adminActionsFor, canRemoveGuard, encodeAdminAction, ADMIN_ACTION_GROUPS } from '../../utils/adminActions'
 
 interface AdminActionFormProps {
   multiSigAddress: `0x${string}`
 }
 
 const DEFAULT_ADMIN_GAS = '75000'
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+const GUARD_ABI = parseAbi(['function checkTransaction(address to, uint256 value, bytes data)'])
 
 // First-class owners/threshold management: picks an onlyThis function, encodes
 // the self-call, and hands it to the regular sign -> execute request pipeline.
@@ -36,6 +38,9 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
   const { walletType } = useWalletType(multiSigAddress)
   const [actionId, setActionId] = useState<string>('')
   const [values, setValues] = useState<Record<string, string>>({})
+
+  const publicClient = usePublicClient()
+  const [guardWarning, setGuardWarning] = useState<string | null>(null)
 
   const actions = adminActionsFor(walletType, multiSigDetails?.version)
   const action = actions.find((a) => a.id === actionId)
@@ -55,6 +60,44 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
   const validationError = action ? action.validate(values, details) : null
   const fieldsFilled = action ? action.fields.every((f) => f.kind === 'boolean' || (values[f.key] ?? '') !== '') : false
   const ready = action != null && fieldsFilled && validationError == null
+
+  // setGuard dry-run: simulate checkTransaction on the proposed guard, as the
+  // wallet, with a plain value-0 call. A revert (or a non-contract address)
+  // means the guard would block the wallet; warn, but do not block the proposal.
+  const removable = canRemoveGuard(multiSigDetails?.version)
+  const proposedGuard = action?.id === 'setGuard' && ready ? values.guard : null
+  useEffect(() => {
+    setGuardWarning(null)
+    if (!proposedGuard || proposedGuard.toLowerCase() === ZERO_ADDRESS || !publicClient) return
+    let cancelled = false
+    const run = async () => {
+      try {
+        const code = await publicClient.getCode({ address: proposedGuard as `0x${string}` })
+        if (!code || code === '0x') {
+          if (!cancelled) setGuardWarning('No contract found at this address: if the wallet sets it, every transaction will revert.' + (removable ? '' : ' This wallet version cannot undo that.'))
+          return
+        }
+        await publicClient.simulateContract({
+          address: proposedGuard as `0x${string}`,
+          abi: GUARD_ABI,
+          functionName: 'checkTransaction',
+          args: [multiSigAddress, BigInt(0), '0x'],
+          account: multiSigAddress
+        })
+      } catch {
+        if (!cancelled)
+          setGuardWarning(
+            removable
+              ? 'This guard reverted on a dry-run checkTransaction call from the wallet. If it always reverts it will block every transaction, though setGuard can still remove it.'
+              : 'This guard reverted on a dry-run checkTransaction call from the wallet. If it always reverts it will block every transaction, and this wallet version cannot undo that: the wallet would be locked for good.'
+          )
+      }
+    }
+    void run()
+    return () => {
+      cancelled = true
+    }
+  }, [proposedGuard, publicClient, multiSigAddress, removable])
 
   let encoded: `0x${string}` | null = null
   if (ready && action) {
@@ -136,7 +179,7 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
             {action != null && action.group === group.id && (
               <div className='mt-1 flex flex-col gap-3 rounded-lg bg-muted/30 p-3'>
                 <p className={`text-sm ${action.danger ? 'text-destructive' : 'text-muted-foreground'}`}>
-                  {action.hint}
+                  {action.hintFor?.(details) ?? action.hint}
                 </p>
                 {action.fields.map((field) =>
                   field.kind === 'boolean' ? (
@@ -198,6 +241,7 @@ const AdminActionForm: React.FC<AdminActionFormProps> = ({ multiSigAddress }) =>
                 {fieldsFilled && validationError != null && (
                   <p className='text-sm text-destructive'>{validationError}</p>
                 )}
+                {guardWarning != null && <p className='text-sm text-destructive'>{guardWarning}</p>}
                 {ready && encoded != null && (
                   <SignRequest
                     multiSigAddress={multiSigAddress}
