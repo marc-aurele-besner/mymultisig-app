@@ -299,15 +299,12 @@ export const ADMIN_ACTIONS: AdminActionDefinition[] = [
     availableOn: 'extended',
     minWalletVersion: '0.5.0',
     danger: true,
-    hint: 'Every transaction is pre-checked by this ITransactionGuard contract; a reverting guard blocks the wallet. Make sure the guard is audited and cannot lock you out.',
-    fields: [{ key: 'guard', label: 'Guard contract', placeholder: 'Guard address (0x...)', kind: 'address' }],
-    describe: (v) => `Set the transaction guard to ${v.guard}`,
+    hint: 'Every transaction is pre-checked by this ITransactionGuard contract; a reverting guard blocks the wallet. Make sure the guard is audited. Setting the guard is never pre-checked, so a broken guard can be removed by proposing the zero address (0x000…000) here, but that still needs the owner signatures (and the timelock delay when one is set), and wallets deployed before this fix cannot bypass the guard at all.',
+    fields: [{ key: 'guard', label: 'Guard contract (zero address removes it)', placeholder: 'Guard address (0x...)', kind: 'address' }],
+    describe: (v) =>
+      v.guard.toLowerCase() === ZERO_ADDRESS ? 'Remove the transaction guard' : `Set the transaction guard to ${v.guard}`,
     buildArgs: (v) => [v.guard],
-    validate: (v) => {
-      if (!isAddress(v.guard)) return 'Enter a valid guard address'
-      if (v.guard.toLowerCase() === ZERO_ADDRESS) return 'The wallet rejects the zero address as a guard'
-      return null
-    }
+    validate: (v) => (isAddress(v.guard) ? null : 'Enter a valid guard address')
   },
   {
     id: 'setAllowedTarget',
